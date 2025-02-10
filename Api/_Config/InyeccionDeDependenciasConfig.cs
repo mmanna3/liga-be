@@ -11,8 +11,12 @@ public static class InyeccionDeDependenciasConfig
     public static WebApplicationBuilder Configurar(WebApplicationBuilder builder)
     {
         builder.Services.AddScoped<IBDVirtual, BDVirtual>();
+        
         builder.Services.AddScoped<ICategoriaDeServicioRepo, CategoriaDeServicioRepo>();
+        builder.Services.AddScoped<IClubRepo, ClubRepo>();
+        
         builder.Services.AddScoped<ICategoriaDeServicioCore, CategoriaDeServicioCore>();
+        builder.Services.AddScoped<IClubCore, ClubCore>();
         
         return builder;
     }

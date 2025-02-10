@@ -10,6 +10,7 @@ public class MapperConfig : Profile
     {   
 
         CreateMap<CategoriaDeServicio, CategoriaDeServicioDTO>().PreserveReferences().ReverseMap();
+        CreateMap<Club, ClubDTO>().PreserveReferences().ReverseMap();
         
         CreateMap<string, TimeOnly>().ConvertUsing(s => TimeOnly.Parse(s));
         CreateMap<TimeOnly, string>().ConvertUsing(t => t.ToString(Utilidades.FormatoHora));
