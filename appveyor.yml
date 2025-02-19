@@ -33,9 +33,7 @@ test_script:
 before_deploy:
   # Aplica migraciones pendientes
   - dotnet tool install dotnet-ef --global --version 8.0.0
-  - cd Api
   - ps: $DefaultConnectionString = (Get-Content appsettings.Production.json | ConvertFrom-Json).ConnectionStrings.Default
-  # - ps: $DefaultConnectionString
   - ps: dotnet ef database update --connection $DefaultConnectionString
 artifacts:
   - path: dist
