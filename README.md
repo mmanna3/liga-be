@@ -2,8 +2,6 @@
 
 ```
 dotnet tool install dotnet-ef -g
-dotnet tool install swashbuckle.aspnetcore.cli -g
-dotnet tool install nswag.consolecore -g
 ```
 
 # BD
