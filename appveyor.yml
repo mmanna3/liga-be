@@ -29,9 +29,9 @@ build_script:
 test_script:
   # Ejecuta tests  
   - dotnet test --configuration Release --runtime win-x64
-  - cd ..
 before_deploy:
   # Aplica migraciones pendientes
+  - cd Api
   - dotnet tool install dotnet-ef --global --version 8.0.0
   - ps: $DefaultConnectionString = (Get-Content appsettings.Production.json | ConvertFrom-Json).ConnectionStrings.Default
   - ps: dotnet ef database update --connection $DefaultConnectionString
