@@ -9,52 +9,31 @@ environment:
   deploy_password:
     secure: SFAvHfsz398LTl83QbS5gw==
   deploy_server:
-    secure: 9iCJXN3fcB5DufZMg1zVf3xhH5vWLdZxDXFZ1ttdGejbuBldZQQznbF4XXbmX7UnlHDOdIXo7EBb2MQOHqRXdpsKmn7qrcpWoukzYxFB9phYlSqFXRowjeFNDjAPAaFs
+    secure: UHp6oceWoeJTc5juzkMgEsCJR5MBzNv7nhBqXvqpIUo4hUMGidMiQCxvL350tg3XwANaIFb7JYsdXkgZIlAhZ77Co3LYvdNgbY7QarYjgpXqIfcQuHMYGo7EZJf7Q2KGdnZKJjkKwFABi4jq99yVPg==
   deploy_website:
-    secure: RjlovvhfNwCqtGz5G8sg1vIF6BAY7ICmuiGmTtFjV/Y=
+    secure: u6Ynhp0KK4/aOql8Nl3qyQiPOLaGA4ZEz3Gj+AKai/3iemBhZVdaZwmbnvJePiPM
   db_server:
     secure: GENtSiIHJlcMVdOs9CjeQw==
   db_name:
-    secure: t+vaJXx7FxW8zs+EoSWKiX2FAp/4kl8Alb7m7n+oVP8=
+    secure: WrPAgPpTyM3R6EL58lnCDg==
   db_username:
-    secure: t+vaJXx7FxW8zs+EoSWKiX2FAp/4kl8Alb7m7n+oVP8=
+    secure: WrPAgPpTyM3R6EL58lnCDg==
   db_password:
-    secure: DB/5MuvV4BAV3neZnx3j6w==
+    secure: SFAvHfsz398LTl83QbS5gw==
 install:
   - ps: >-
-      $file = "./ReservaTuTurnoApi/Api/appsettings.Production.json";
+      $file = "./Api/appsettings.Production.json";
       (Get-Content $file).Replace("{db_server}", $env:db_server).Replace("{db_name}", $env:db_name).Replace("{db_username}", $env:db_username).Replace("{db_password}", $env:db_password) | Set-Content $file
-  # Instala para generar dtos a partir del backend
-  - dotnet tool install swashbuckle.aspnetcore.cli -g --version 6.5.0
-  - dotnet tool install nswag.consolecore -g
-  - dotnet --version
-before_build:
-  # Genera dtos en PWA a partir del backend (buildeado antes para los tests)
-  - cd ReservaTuTurnoApi/Api
-  - dotnet build --configuration Release --runtime win-x64
-  - dotnet tool list -g
-  - swagger tofile --output swagger.json bin/Release/net8.0/win-x64/Api.dll v1
-  - nswag openapi2tsclient /input:swagger.json /output:./../../ReservaTuTurnoPWA/src/api/clients.ts
-  - cd ../..
-  # Compila la PWA
-  - npm install --global yarn
-  - cd ReservaTuTurnoPWA
-  - yarn install
-  - yarn build
-  - cd ..
-  - ps: >-
-      Copy-Item -Path "./ReservaTuTurnoPWA/dist" -Destination "./ReservaTuTurnoAPI/Api/wwwroot" -Recurse
 build_script:
-  - cmd: dotnet publish --framework net8.0 /p:EnvironmentName=Production --self-contained true -r win-x64 ReservaTuTurnoApi/Api --output %appveyor_build_folder%\dist
+  - cmd: dotnet publish --framework net8.0 /p:EnvironmentName=Production --self-contained true -r win-x64 Api --output %appveyor_build_folder%\dist
 test_script:
-  # Ejecuta tests
-  - cd ReservaTuTurnoApi
+  # Ejecuta tests  
   - dotnet test --configuration Release --runtime win-x64
   - cd ..
 before_deploy:
   # Aplica migraciones pendientes
   - dotnet tool install dotnet-ef --global --version 8.0.0
-  - cd ReservaTuTurnoApi/Api
+  - cd Api
   - ps: $DefaultConnectionString = (Get-Content appsettings.Production.json | ConvertFrom-Json).ConnectionStrings.Default
   # - ps: $DefaultConnectionString
   - ps: dotnet ef database update --connection $DefaultConnectionString
