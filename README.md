@@ -22,6 +22,8 @@ dotnet tool install dotnet-ef -g
 5- Conectarse desde DataGrip copiando esto en el campo url
 `jdbc:sqlserver://localhost:1433;databaseName=liga_dev;user=sa;password=Pas$word!39;encrypt=false;trustServerCertificate=true`
 
+6- Ejecutar el script insertar-datos.sql para insertar datos de prueba en las tablas
+
 
 ## Migraciones
 
