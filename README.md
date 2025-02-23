@@ -24,7 +24,6 @@ dotnet tool install dotnet-ef -g
 
 6- Ejecutar el script insertar-datos.sql para insertar datos de prueba en las tablas
 
-
 ## Migraciones
 
 - Agregar: `add-migration NombreDeLaMigracion`
@@ -43,3 +42,10 @@ alias add-migration="dotnet ef migrations add"
 alias update-database="dotnet ef database update"
 alias remove-migration="dotnet ef migrations remove"
 ```
+
+# Agregar ABM
+
+1- En capa Core: crear Entidad, DTO, IRepositorio, IServicio
+2- En capa Persistencia: crear Repositorio
+3- En capa Api: crear Controller
+4- En \_Config: agregar reglas en InyeccinDeDependenciasConfig y MapperConfig

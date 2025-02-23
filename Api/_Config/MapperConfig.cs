@@ -8,8 +8,6 @@ public class MapperConfig : Profile
 {
     public MapperConfig()
     {   
-
-        CreateMap<CategoriaDeServicio, CategoriaDeServicioDTO>().PreserveReferences().ReverseMap();
         CreateMap<Club, ClubDTO>().PreserveReferences().ReverseMap();
         
         CreateMap<string, TimeOnly>().ConvertUsing(s => TimeOnly.Parse(s));
