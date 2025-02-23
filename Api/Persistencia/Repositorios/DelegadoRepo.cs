@@ -10,4 +10,11 @@ public class DelegadoRepo : RepositorioABM<Delegado>, IDelegadoRepo
     public DelegadoRepo(AppDbContext context) : base(context)
     {
     }
+    
+    protected override IQueryable<Delegado> Set()
+    {
+        return Context.Set<Delegado>()
+            .Include(x => x.Club)
+            .AsQueryable();
+    }
 }
