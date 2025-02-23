@@ -6,5 +6,5 @@ public class Delegado : Entidad
     public required string Nombre { get; set; }
     public required string Apellido { get; set; }
     public required string Password { get; set; }
-    public virtual Club Club { get; set; }
+    public virtual required Club Club { get; set; }
 }

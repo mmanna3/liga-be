@@ -45,7 +45,7 @@ alias remove-migration="dotnet ef migrations remove"
 
 # Agregar ABM
 
-1- En capa Core: crear Entidad, DTO, IRepositorio, IServicio
+1- En capa Core: crear Entidad, DTO, IRepositorio, IServicio, Core
 
 2- En capa Persistencia: crear Repositorio
 

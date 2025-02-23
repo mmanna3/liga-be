@@ -13,8 +13,16 @@ public static class InyeccionDeDependenciasConfig
         builder.Services.AddScoped<IBDVirtual, BDVirtual>();
         
         builder.Services.AddScoped<IClubRepo, ClubRepo>();
-        
         builder.Services.AddScoped<IClubCore, ClubCore>();
+        
+        builder.Services.AddScoped<IJugadorRepo, JugadorRepo>();
+        builder.Services.AddScoped<IJugadorCore, JugadorCore>();
+        
+        builder.Services.AddScoped<IEquipoRepo, EquipoRepo>();
+        builder.Services.AddScoped<IEquipoCore, EquipoCore>();
+        
+        builder.Services.AddScoped<IDelegadoRepo, DelegadoRepo>();
+        builder.Services.AddScoped<IDelegadoCore, DelegadoCore>();
         
         return builder;
     }
