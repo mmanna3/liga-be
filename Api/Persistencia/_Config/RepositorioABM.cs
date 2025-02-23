@@ -22,10 +22,10 @@ public abstract class RepositorioABM<TModel> : RepositorioBase, IRepositorioABM<
         return await Set().ToListAsync();
     }
 
-    public EntityEntry<TModel> Crear(TModel reserva)
+    public EntityEntry<TModel> Crear(TModel modelo)
     {
-        AntesDeCrear(reserva);
-        return Context.Add(reserva);
+        AntesDeCrear(modelo);
+        return Context.Add(modelo);
     }
 
     public virtual async Task<TModel?> ObtenerPorId(int id)
