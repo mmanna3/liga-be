@@ -10,4 +10,12 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
     public JugadorRepo(AppDbContext context) : base(context)
     {
     }
+    
+    protected override IQueryable<Jugador> Set()
+    {
+        return Context.Set<Jugador>()
+            .Include(x => x.JugadorEquipos)
+            .ThenInclude(x => x.Equipo)
+            .AsQueryable();
+    }
 }

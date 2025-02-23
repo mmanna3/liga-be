@@ -16,6 +16,6 @@ public class JugadorDTO : DTO
 
     [Required]
     public DateTime FechaNacimiento { get; set; }
-
-    public ICollection<JugadorEquipoDTO> JugadorEquipos { get; set; } = new List<JugadorEquipoDTO>();
+    
+    public ICollection<EquipoDTO> Equipos { get; set; } = new List<EquipoDTO>();
 }
