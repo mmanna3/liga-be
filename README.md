@@ -46,6 +46,9 @@ alias remove-migration="dotnet ef migrations remove"
 # Agregar ABM
 
 1- En capa Core: crear Entidad, DTO, IRepositorio, IServicio
+
 2- En capa Persistencia: crear Repositorio
+
 3- En capa Api: crear Controller
+
 4- En \_Config: agregar reglas en InyeccinDeDependenciasConfig y MapperConfig
