@@ -18,4 +18,9 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
             .ThenInclude(x => x.Equipo)
             .AsQueryable();
     }
+    
+    public virtual async Task<Jugador?> ObtenerPorDNI(string dni)
+    {
+        return await Context.Set<Jugador>().SingleOrDefaultAsync(x => x.DNI == dni);
+    }
 }

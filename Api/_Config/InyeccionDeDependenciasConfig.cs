@@ -24,6 +24,8 @@ public static class InyeccionDeDependenciasConfig
         builder.Services.AddScoped<IDelegadoRepo, DelegadoRepo>();
         builder.Services.AddScoped<IDelegadoCore, DelegadoCore>();
         
+        builder.Services.AddScoped<IPublicoCore, PublicoCore>();
+        
         return builder;
     }
 }
