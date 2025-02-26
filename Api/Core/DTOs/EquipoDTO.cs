@@ -8,5 +8,5 @@ public class EquipoDTO : DTO
     
     public string? ClubNombre { get; set; }
     
-    public ICollection<string>? Jugadores { get; set; }
+    public ICollection<JugadorDelEquipoDTO>? Jugadores { get; set; }
 }
