@@ -15,6 +15,8 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
     {
         return Context.Set<Equipo>()
             .Include(x => x.Club)
+            .Include(x => x.Jugadores)
+                .ThenInclude(x => x.Jugador)
             .AsQueryable();
     }
 }

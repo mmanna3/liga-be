@@ -15,6 +15,7 @@ namespace Api.Api.Controllers
             _core = publicoCore;
         }
 
+        [HttpGet]
         public async Task<bool> ElDniEstaFichado(string dni)
         {
             return await _core.ElDniEstaFichado(dni);

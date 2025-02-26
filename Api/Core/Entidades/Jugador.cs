@@ -18,4 +18,8 @@ public class Jugador : Entidad
     public DateTime FechaNacimiento { get; set; }
 
     public ICollection<JugadorEquipo> JugadorEquipos { get; set; } = new List<JugadorEquipo>();
+
+    public string NombreCompleto() => Nombre + " " + Apellido;
+    
+    public string NombreCompletoYDNI() => NombreCompleto() + " - " + DNI;
 }

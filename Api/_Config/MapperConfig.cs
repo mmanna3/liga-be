@@ -9,7 +9,13 @@ public class MapperConfig : Profile
     public MapperConfig()
     {   
         CreateMap<Club, ClubDTO>().PreserveReferences().ReverseMap();
-        CreateMap<Equipo, EquipoDTO>().PreserveReferences().ReverseMap();
+        
+        CreateMap<Equipo, EquipoDTO>()
+            .ForMember(dest => dest.ClubNombre, x => x.MapFrom(src => src.Club.Nombre))
+            .ForMember(dest => dest.Jugadores, x => x.MapFrom(src => src.Jugadores.Select(j => j.Jugador.NombreCompletoYDNI())))
+            .PreserveReferences().ReverseMap();
+        
+        
         CreateMap<Delegado, DelegadoDTO>().PreserveReferences().ReverseMap();
         CreateMap<Jugador, JugadorDTO>()
             .ForMember(dest => dest.Equipos, x => x.MapFrom(src => src.JugadorEquipos))
