@@ -1,3 +1,5 @@
+using Api.Core.Otros;
+
 namespace Api.Core.Logica;
 
 public static class GeneradorDeHash
@@ -5,7 +7,7 @@ public static class GeneradorDeHash
 		public static string GenerarAlfanumerico7Digitos(int semilla)
 		{
 			if (semilla <= 0 || semilla >= 10000)
-				throw new ArgumentException("Semilla tiene que estar entre 0 y 10000");
+				throw new ExcepcionControlada("Semilla tiene que estar entre 0 y 10000");
 
 			var semillaTransformada = TransformarAplicandoAlgoritmo(semilla);
 
@@ -19,16 +21,16 @@ public static class GeneradorDeHash
 		public static int ObtenerSemillaAPartirDeAlfanumerico7Digitos(string alfaNumerico7Digitos)
 		{
 			if (alfaNumerico7Digitos.Length != 7)
-				throw new Exception("El código debe ser de 7 dígitos");
+				throw new ExcepcionControlada("El código debe ser de 7 dígitos");
 
 			var numeroString = $"{alfaNumerico7Digitos[3]}{alfaNumerico7Digitos[4]}{alfaNumerico7Digitos[5]}{alfaNumerico7Digitos[6]}";
 			var letrasQueLlegaron = $"{alfaNumerico7Digitos[0]}{alfaNumerico7Digitos[1]}{alfaNumerico7Digitos[2]}".ToUpper();
 
 			if (!int.TryParse(numeroString, out int numero))
-				throw new Exception("El código no tiene el formato correcto");
+				throw new ExcepcionControlada("El código no tiene el formato correcto");
 
 			if (letrasQueLlegaron != ObtenerLetras(TransformarAplicandoAlgoritmo(numero)))
-				throw new Exception("El código es incorrecto");			
+				throw new ExcepcionControlada("El código es incorrecto");			
 
 			return numero;
 		}
@@ -68,7 +70,7 @@ public static class GeneradorDeHash
 		private static char ObtenerLetra(int indice)
 		{
 			if (indice < 0 || indice > 25)
-				throw new ArgumentException();
+				throw new ExcepcionControlada("Índice fuera de rango");
 
 			const string letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; // Son 26
 

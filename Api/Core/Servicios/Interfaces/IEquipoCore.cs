@@ -5,5 +5,5 @@ namespace Api.Core.Servicios.Interfaces;
 
 public interface IEquipoCore : ICoreABM<EquipoDTO>
 {
-    
+    Task<ObtenerNombreEquipoDTO> ObtenerNombrePorCodigoAlfanumerico(string codigoAlfanumerico);
 }

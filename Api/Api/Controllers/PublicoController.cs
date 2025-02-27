@@ -9,16 +9,27 @@ namespace Api.Api.Controllers
     public class PublicoController : ControllerBase
     {
         private readonly IPublicoCore _core;
+        private readonly IEquipoCore _equipoCore;
 
-        public PublicoController(IPublicoCore publicoCore)
+        public PublicoController(IPublicoCore publicoCore, IEquipoCore equipoCore)
         {
             _core = publicoCore;
+            _equipoCore = equipoCore;
         }
 
-        [HttpGet]
-        public async Task<bool> ElDniEstaFichado(string dni)
+        [HttpGet("el-dni-esta-fichado")]
+        public async Task<bool> ElDniEstaFichado([FromQuery] string dni)
         {
             return await _core.ElDniEstaFichado(dni);
         }
+
+        [HttpGet("obtener-nombre-equipo")]
+        public async Task<ObtenerNombreEquipoDTO> OtenerNombreDelEquipo([FromQuery] string codigoAlfanumerico)
+        {
+            return await _equipoCore.ObtenerNombrePorCodigoAlfanumerico(codigoAlfanumerico);
+        }
+
+        
+        
     }
 }
