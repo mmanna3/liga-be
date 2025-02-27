@@ -21,7 +21,13 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.DNI, x => x.MapFrom(src => src.Jugador.DNI))
             .ForMember(dest => dest.Estado, x => x.MapFrom(src => src.EstadoJugador.Id))
             .PreserveReferences().ReverseMap();
-            
+        
+        CreateMap<JugadorEquipo, EquipoDelJugadorDTO>()
+            .ForMember(dest => dest.Nombre, x => x.MapFrom(src => src.Equipo.Nombre))
+            .ForMember(dest => dest.Club, x => x.MapFrom(src => src.Equipo.Club.Nombre))
+            .ForMember(dest => dest.Estado, x => x.MapFrom(src => src.EstadoJugador.Id))
+            .PreserveReferences().ReverseMap();
+        
         CreateMap<Delegado, DelegadoDTO>().PreserveReferences().ReverseMap();
         CreateMap<Jugador, JugadorDTO>()
             .ForMember(dest => dest.Equipos, x => x.MapFrom(src => src.JugadorEquipos))
