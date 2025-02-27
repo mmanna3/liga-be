@@ -1,5 +1,6 @@
 using Api.Core.DTOs;
 using Api.Core.Entidades;
+using Api.Core.Logica;
 using AutoMapper;
 
 namespace Api._Config;
@@ -12,6 +13,7 @@ public class MapperConfig : Profile
         
         CreateMap<Equipo, EquipoDTO>()
             .ForMember(dest => dest.ClubNombre, x => x.MapFrom(src => src.Club.Nombre))
+            .ForMember(dest => dest.CodigoAlfanumerico, x => x.MapFrom(src => GeneradorDeHash.GenerarAlfanumerico7Digitos(src.Id)))
             .PreserveReferences().ReverseMap();
         
         CreateMap<JugadorEquipo, JugadorDelEquipoDTO>()
