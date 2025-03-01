@@ -8,10 +8,14 @@ environment:
     secure: ZumRpgIeGcRgW3H7yXK0bQ==
   deploy_password:
     secure: SFAvHfsz398LTl83QbS5gw==
-  deploy_server:
-    secure: UHp6oceWoeJTc5juzkMgEsCJR5MBzNv7nhBqXvqpIUo4hUMGidMiQCxvL350tg3XwANaIFb7JYsdXkgZIlAhZ77Co3LYvdNgbY7QarYjgpXqIfcQuHMYGo7EZJf7Q2KGdnZKJjkKwFABi4jq99yVPg==
-  deploy_website:
-    secure: u6Ynhp0KK4/aOql8Nl3qyQiPOLaGA4ZEz3Gj+AKai/3iemBhZVdaZwmbnvJePiPM
+  deploy_publish_url_1:
+    secure: K69zP3wjxwDVH7s/sC4OthodaOPs3etcQKSoMEi3J24Zzy/Pqe9QtILQ+TIhpLoJDz6QebuZDVdqciF20w136YeX6zpfMUBdcoVxkrySUdQ=
+  deploy_publish_url_2:
+    secure: Z3kFMmPS+/3jEb5uz8UtB3IsEwaE+Vyv1TS5Ry3tumcQSr0Q1PooCrfztHFGA5CVScwWtIHuv7GPMn7OIANfIE/Z558TKobWJ5AGPrDMkvk=
+  ms_deploy_site_1:
+    secure: kdhuPVSl0krNFGjfcNUmBMLohWaq8nbOx5Ven52IcoU=
+  ms_deploy_site_2:
+    secure: Pf9YKHPQdl46IZWXnY91FKlQ5RlIjuikjHk855wYG5Y=
   db_server:
     secure: GENtSiIHJlcMVdOs9CjeQw==
   db_name:
@@ -27,7 +31,7 @@ install:
 build_script:
   - cmd: dotnet publish --framework net8.0 /p:EnvironmentName=Production --self-contained true -r win-x64 Api --output %appveyor_build_folder%\dist
 test_script:
-  # Ejecuta tests  
+  # Ejecuta tests
   - dotnet test --configuration Release --runtime win-x64
 before_deploy:
   # Aplica migraciones pendientes
@@ -40,9 +44,17 @@ artifacts:
 deploy:
   - provider: WebDeploy
     remove_files: true
-    skip_dirs: \\App_Data;\\logs;\\aspnet_client;
-    server: $(deploy_server)
-    website: $(deploy_website)
+    skip_dirs: \\App_Data;\\Imagenes;\\logs;\\aspnet_client;\\wwwroot;
+    server: $(deploy_publish_url_1)
+    website: $(ms_deploy_site_1)
+    username: $(deploy_username)
+    password: $(deploy_password)
+    ntlm: false
+  - provider: WebDeploy
+    remove_files: true
+    skip_dirs: \\App_Data;\\Imagenes;\\logs;\\aspnet_client;\\wwwroot;
+    server: $(deploy_publish_url_2)
+    website: $(ms_deploy_site_2)
     username: $(deploy_username)
     password: $(deploy_password)
     ntlm: false
