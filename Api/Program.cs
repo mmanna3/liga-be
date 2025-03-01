@@ -62,6 +62,7 @@ try
 
     app.MapControllers();
     
+    app.MapFallbackToFile("index.html");
     
     // Esto es por si hay problema ejecutando las migraciones en una nueva instancia
     // using (var scope = app.Services.CreateScope())
