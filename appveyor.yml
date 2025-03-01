@@ -44,7 +44,7 @@ artifacts:
 deploy:
   - provider: WebDeploy
     remove_files: true
-    skip_dirs: \\App_Data;\\Imagenes;\\logs;\\aspnet_client;\\wwwroot;
+    skip_dirs: \\App_Data;\\Imagenes;\\logs;\\aspnet_client;\\wwwroot;\\well-known;
     server: $(deploy_publish_url_1)
     website: $(ms_deploy_site_1)
     username: $(deploy_username)
@@ -52,7 +52,7 @@ deploy:
     ntlm: false
   - provider: WebDeploy
     remove_files: true
-    skip_dirs: \\App_Data;\\Imagenes;\\logs;\\aspnet_client;\\wwwroot;
+    skip_dirs: \\App_Data;\\Imagenes;\\logs;\\aspnet_client;\\wwwroot;\\well-known;
     server: $(deploy_publish_url_2)
     website: $(ms_deploy_site_2)
     username: $(deploy_username)
