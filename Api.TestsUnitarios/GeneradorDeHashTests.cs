@@ -1,4 +1,5 @@
 using Api.Core.Logica;
+using Api.Core.Otros;
 
 namespace Api.TestsUnitarios;
 
@@ -30,13 +31,13 @@ public class GeneradorDeHashTest
 		[Fact]
 		public void ObtieneSemilla_ApartirDeHash_Falla()
 		{
-			var ex1 = Assert.Throws<Exception>(() => GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos("0MTD001A"));
+			var ex1 = Assert.Throws<ExcepcionControlada>(() => GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos("0MTD001A"));
 			Assert.Equal("El código debe ser de 7 dígitos", ex1.Message);
 
-			var ex2 = Assert.Throws<Exception>(() => GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos("MTD00M1"));
+			var ex2 = Assert.Throws<ExcepcionControlada>(() => GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos("MTD00M1"));
 			Assert.Equal("El código no tiene el formato correcto", ex2.Message);
 
-			var ex3 = Assert.Throws<Exception>(() => GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos("XXX0001"));
+			var ex3 = Assert.Throws<ExcepcionControlada>(() => GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos("XXX0001"));
 			Assert.Equal("El código es incorrecto", ex3.Message);
 		}
 
@@ -71,9 +72,9 @@ public class GeneradorDeHashTest
 		[Fact]
 		public void Semilla_TieneQueSer_MayorQue0_Y_MenorQue10000()
 		{
-			Assert.Throws<ArgumentException>(() => GeneradorDeHash.GenerarAlfanumerico7Digitos(-1));
-			Assert.Throws<ArgumentException>(() => GeneradorDeHash.GenerarAlfanumerico7Digitos(0));
-			Assert.Throws<ArgumentException>(() => GeneradorDeHash.GenerarAlfanumerico7Digitos(10000));
+			Assert.Throws<ExcepcionControlada>(() => GeneradorDeHash.GenerarAlfanumerico7Digitos(-1));
+			Assert.Throws<ExcepcionControlada>(() => GeneradorDeHash.GenerarAlfanumerico7Digitos(0));
+			Assert.Throws<ExcepcionControlada>(() => GeneradorDeHash.GenerarAlfanumerico7Digitos(10000));
 		}
 
 		[Fact]
