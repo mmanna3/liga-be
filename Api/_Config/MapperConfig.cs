@@ -1,3 +1,4 @@
+using System.Globalization;
 using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Core.Logica;
@@ -42,8 +43,8 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Equipo.Nombre))
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Equipo.Id));
         
-        CreateMap<string, TimeOnly>().ConvertUsing(s => TimeOnly.Parse(s));
-        CreateMap<TimeOnly, string>().ConvertUsing(t => t.ToString(Utilidades.FormatoHora));
-        CreateMap<string, DateOnly>().ConvertUsing(s => DateOnly.Parse(s, Utilidades.CultureInfoAr));
+        // CreateMap<string, DateTime>().ConvertUsing(s => 
+        //     DateTime.ParseExact(s, "dd-MM-yyyy", CultureInfo.InvariantCulture)
+        // );
     }
 }

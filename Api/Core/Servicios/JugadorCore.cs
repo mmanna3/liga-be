@@ -1,6 +1,7 @@
 using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Core.Enums;
+using Api.Core.Logica;
 using Api.Core.Otros;
 using Api.Core.Repositorios;
 using Api.Core.Servicios.Interfaces;
@@ -21,6 +22,15 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
     
     protected override async Task<Jugador> AntesDeCrear(JugadorDTO dto, Jugador entidad)
     {
+        // try
+        // {
+            dto.EquipoInicialId = GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos(dto.CodigoAlfanumerico);
+        // }
+        // catch (ExcepcionControlada e)
+        // {
+        //     return FicharJugadorDTO.Error(e.Message);
+        // }
+        
         var resultado = await MapearEquipoInicial(dto, entidad);
         
         Repo.SiElDNISeHabiaFichadoYEstaRechazadoEliminarJugador(entidad.DNI);

@@ -32,3 +32,11 @@ public class ObtenerNombreEquipoDTO : RespuestaPublicaDTO<ObtenerNombreEquipoDTO
     {
     }
 }
+
+public class FicharJugadorDTO : RespuestaPublicaDTO<FicharJugadorDTO, string>
+{
+    public FicharJugadorDTO(bool hayError, string? respuesta, string? mensajeError = null)
+        : base(hayError, respuesta, mensajeError)
+    {
+    }
+}

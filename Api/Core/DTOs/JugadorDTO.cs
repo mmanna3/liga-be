@@ -17,6 +17,7 @@ public class JugadorDTO : DTO
     [Required]
     public DateTime FechaNacimiento { get; set; }
     public int EquipoInicialId { get; set; }
+    public string CodigoAlfanumerico { get; set; }
     public ICollection<EquipoDelJugadorDTO> Equipos { get; set; } = new List<EquipoDelJugadorDTO>();
     
     public string FotoCarnet { get; set; } = string.Empty;
