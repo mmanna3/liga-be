@@ -25,4 +25,19 @@ public class Utilidades
         _context.Add(club);
         return club;
     }
+    
+    public Equipo DadoQueExisteElEquipo(Club club)
+    {
+        var equipo = new Equipo
+        {
+            Nombre = "un equipo",
+            Id = 0,
+            Club = club,
+            ClubId = 0,
+            Jugadores = null
+        };
+        
+        _context.Add(equipo);
+        return equipo;
+    }
 }

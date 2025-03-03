@@ -4,7 +4,7 @@ namespace Api.Core.Repositorios
 {
 	public interface IImagenJugadorRepo
 	{
-		// void GuardarFotoDeJugadorDesdeArchivo(JugadorPendienteDeAprobacionDTO vm);
+		// void GuardarFotoDeJugadorDesdeArchivo(JugadorDTO vm);
 		string GetFotoEnBase64(string dni);
 		// void GuardarImagenJugadorImportado(string dni, byte[] fotoByteArray);
 		void Eliminar(string dni);
@@ -15,8 +15,8 @@ namespace Api.Core.Repositorios
 		string PathFotoTemporalDNIFrente(string dni);
 		string PathFotoTemporalDNIDorso(string dni);
 		void FicharJugadorTemporal(string dniJugadorTemporal);
-		void GuardarFotosTemporalesDeJugadorAutofichado(JugadorPendienteDeAprobacionDTO vm);
-		void GuardarFotosTemporalesDeJugadorAutofichadoSiendoEditado(JugadorPendienteDeAprobacionDTO vm);
+		void GuardarFotosTemporalesDeJugadorAutofichado(JugadorDTO vm);
+		void GuardarFotosTemporalesDeJugadorAutofichadoSiendoEditado(JugadorDTO vm);
 		void RenombrarFotosTemporalesPorCambioDeDNI(string dniAnterior, string dni);
 	}
 }

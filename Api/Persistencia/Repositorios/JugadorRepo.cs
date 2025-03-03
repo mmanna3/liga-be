@@ -26,4 +26,11 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
     {
         return await Context.Set<Jugador>().SingleOrDefaultAsync(x => x.DNI == dni);
     }
+
+    public void SiElDNISeHabiaFichadoYEstaRechazadoEliminarJugador(string dni)
+    {
+        var jugador = Context.Jugadores.SingleOrDefault(x => x.DNI == dni);
+        if (jugador != null)
+            Context.Jugadores.Remove(jugador);
+    }
 }

@@ -7,18 +7,17 @@ public class ABMControllers : TestBase
     {
     }
     
-    // [Theory]
-    // [InlineData("categoriaDeServicio")]
-    // [InlineData("servicio")]
-    // [InlineData("profesional")]
-    // [InlineData("agenda")]
-    // [InlineData("turno")]
-    // public async Task Get_en_ABMEndpoints_Devuelve_Success(string endpoint)
-    // {
-    //     var client = Factory.CreateClient();
-    //     
-    //     var response = await client.GetAsync($"/api/{endpoint}");
-    //     
-    //     response.EnsureSuccessStatusCode();
-    // }
+    [Theory]
+    [InlineData("jugador")]
+    [InlineData("delegado")]
+    [InlineData("equipo")]
+    [InlineData("club")]
+    public async Task Get_en_ABMEndpoints_Devuelve_Success(string endpoint)
+    {
+        var client = Factory.CreateClient();
+        
+        var response = await client.GetAsync($"/api/{endpoint}");
+        
+        response.EnsureSuccessStatusCode();
+    }
 }

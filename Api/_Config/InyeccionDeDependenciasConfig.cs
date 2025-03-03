@@ -1,3 +1,4 @@
+using Api.Core.Logica;
 using Api.Core.Repositorios;
 using Api.Core.Servicios;
 using Api.Core.Servicios.Interfaces;
@@ -25,6 +26,9 @@ public static class InyeccionDeDependenciasConfig
         builder.Services.AddScoped<IDelegadoCore, DelegadoCore>();
         
         builder.Services.AddScoped<IPublicoCore, PublicoCore>();
+        
+        builder.Services.AddScoped<IImagenJugadorRepo, ImagenJugadorRepo>();
+        builder.Services.AddScoped<AppPaths, AppPathsWebApp>();
         
         return builder;
     }

@@ -26,7 +26,7 @@ namespace Api.TestsDeIntegracion
         [Fact]
         public void GuardarFotosTemporalesDeJugadorAutofichado()
         {
-            var vm = new JugadorPendienteDeAprobacionDTO
+            var vm = new JugadorDTO
             {
                 FotoCarnet = PuntoRojoBase64,
                 FotoDNIFrente = PuntoRojoBase64,

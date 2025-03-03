@@ -11,12 +11,25 @@ namespace Api.Core.Servicios;
 public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorCore
 {
     private readonly IEquipoRepo _equipoRepo;
-    public JugadorCore(IBDVirtual bd, IJugadorRepo repo, IMapper mapper, IEquipoRepo equipoRepo) : base(bd, repo, mapper)
+    private readonly IImagenJugadorRepo _imagenJugadorRepo;
+
+    public JugadorCore(IBDVirtual bd, IJugadorRepo repo, IMapper mapper, IEquipoRepo equipoRepo, IImagenJugadorRepo imagenJugadorRepo) : base(bd, repo, mapper)
     {
         _equipoRepo = equipoRepo;
+        _imagenJugadorRepo = imagenJugadorRepo;
     }
     
     protected override async Task<Jugador> AntesDeCrear(JugadorDTO dto, Jugador entidad)
+    {
+        var resultado = await MapearEquipoInicial(dto, entidad);
+        
+        Repo.SiElDNISeHabiaFichadoYEstaRechazadoEliminarJugador(entidad.DNI);
+        _imagenJugadorRepo.GuardarFotosTemporalesDeJugadorAutofichado(dto);
+        
+        return resultado;
+    }
+
+    private async Task<Jugador> MapearEquipoInicial(JugadorDTO dto, Jugador entidad)
     {
         var equipo = await _equipoRepo.ObtenerPorId(dto.EquipoInicialId);
 

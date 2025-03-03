@@ -15,7 +15,7 @@ namespace Api.Persistencia.Repositorios
 			_paths = appPaths;
 		}
 
-		// public void GuardarFotoDeJugadorDesdeArchivo(JugadorPendienteDeAprobacionDTO vm)
+		// public void GuardarFotoDeJugadorDesdeArchivo(JugadorDTO vm)
 		// {
 		// 	var path = $"{_paths.ImagenesJugadoresAbsolute}/{vm.DNI}.jpg";
 		//
@@ -71,14 +71,14 @@ namespace Api.Persistencia.Repositorios
 				File.Delete(pathDNIDorso);
 		}
 
-		public void GuardarFotosTemporalesDeJugadorAutofichado(JugadorPendienteDeAprobacionDTO vm)
+		public void GuardarFotosTemporalesDeJugadorAutofichado(JugadorDTO vm)
 		{
 			GuardarFotoCarnetTemporal(new JugadorDTO {DNI = vm.DNI, FotoCarnet = vm.FotoCarnet });
 			GuardarFotoDNIFrenteTemporal(vm);
 			GuardarFotoDNIDorsoTemporal(vm);
 		}
 
-		public void GuardarFotosTemporalesDeJugadorAutofichadoSiendoEditado(JugadorPendienteDeAprobacionDTO vm)
+		public void GuardarFotosTemporalesDeJugadorAutofichadoSiendoEditado(JugadorDTO vm)
 		{
 			GuardarFotoCarnetTemporal(new JugadorDTO { DNI = vm.DNI, FotoCarnet = vm.FotoCarnet });
 			
@@ -100,7 +100,7 @@ namespace Api.Persistencia.Repositorios
 			GuardarImagenEnDisco(path, imagen);
 		}
 
-		private static void GuardarFotoDNIFrenteTemporal(JugadorPendienteDeAprobacionDTO vm)
+		private static void GuardarFotoDNIFrenteTemporal(JugadorDTO vm)
 		{
 			var imagePath = $"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{vm.DNI}.jpg";
 
@@ -112,7 +112,7 @@ namespace Api.Persistencia.Repositorios
 			GuardarImagenEnDisco(imagePath, imagen);
 		}
 
-		private static void GuardarFotoDNIDorsoTemporal(JugadorPendienteDeAprobacionDTO vm)
+		private static void GuardarFotoDNIDorsoTemporal(JugadorDTO vm)
 		{
 			var path = $"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{vm.DNI}.jpg";
 
