@@ -47,6 +47,35 @@ namespace Api.Core.Logica
             using var data = image.Encode(SKEncodedImageFormat.Jpeg, 75);
             return SKBitmap.Decode(data);
         }
+        
+        public static SKBitmap Comprimir(string imagenBase64)
+        {
+            var image = ConvertirAImageYQuitarMimeType(imagenBase64);
+            return RedimensionarImagenConAnchoFijo(image, 500);
+        }
+
+        // private static SKBitmap ConvertirAImageYQuitarMimeType(string imagenBase64)
+        // {
+        //     // Primero, quitar el prefijo 'data:image/png;base64,' o similar
+        //     var base64String = imagenBase64.Split(',')[1];
+        //     byte[] imageBytes = Convert.FromBase64String(base64String);
+        //
+        //     // Convertir el array de bytes a SKBitmap
+        //     using (var ms = new System.IO.MemoryStream(imageBytes))
+        //     {
+        //         return SKBitmap.Decode(ms);
+        //     }
+        // }
+
+        private static SKBitmap RedimensionarImagenConAnchoFijo(SKBitmap image, int anchoFijo)
+        {
+            // Calcular la altura proporcional basada en el ancho fijo
+            var ratio = (float)anchoFijo / image.Width;
+            int nuevaAltura = (int)(image.Height * ratio);
+
+            // Redimensionar la imagen
+            return image.Resize(new SKImageInfo(anchoFijo, nuevaAltura), SKFilterQuality.Medium);
+        }
 
         public static string StreamToBase64(Stream stream)
         {

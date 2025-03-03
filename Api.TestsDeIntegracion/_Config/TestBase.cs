@@ -1,8 +1,7 @@
 using Api.Persistencia._Config;
-using Api.TestsDeIntegracion._Config;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Api.TestsDeIntegracion;
+namespace Api.TestsDeIntegracion._Config;
 
 public abstract class TestBase 
     : IClassFixture<CustomWebApplicationFactory<Program>>
