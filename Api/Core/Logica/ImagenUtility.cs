@@ -142,5 +142,14 @@ namespace Api.Core.Logica
         {
             return base64.Contains(',') ? base64.Split(',')[1] : base64;
         }
+        
+        public static string AgregarMimeType(string base64String)
+        {
+            if (string.IsNullOrEmpty(base64String))
+                return string.Empty;
+
+            return $"data:image/jpeg;base64,{base64String}";
+        }
+
     }
 }

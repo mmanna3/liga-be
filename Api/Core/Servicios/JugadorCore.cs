@@ -13,11 +13,13 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
 {
     private readonly IEquipoRepo _equipoRepo;
     private readonly IImagenJugadorRepo _imagenJugadorRepo;
+    private static AppPaths _paths = null!;
 
-    public JugadorCore(IBDVirtual bd, IJugadorRepo repo, IMapper mapper, IEquipoRepo equipoRepo, IImagenJugadorRepo imagenJugadorRepo) : base(bd, repo, mapper)
+    public JugadorCore(IBDVirtual bd, IJugadorRepo repo, IMapper mapper, IEquipoRepo equipoRepo, IImagenJugadorRepo imagenJugadorRepo, AppPaths paths) : base(bd, repo, mapper)
     {
         _equipoRepo = equipoRepo;
         _imagenJugadorRepo = imagenJugadorRepo;
+        _paths = paths;
     }
     
     protected override async Task<Jugador> AntesDeCrear(JugadorDTO dto, Jugador entidad)
@@ -39,6 +41,12 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         return resultado;
     }
 
+    protected override JugadorDTO AntesDeObtenerPorId(JugadorDTO dto)
+    {
+        dto.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoEnBase64ConPathAbsoluto($"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{dto.DNI}.jpg"));
+        return dto;
+    }
+    
     private async Task<Jugador> MapearEquipoInicial(JugadorDTO dto, Jugador entidad)
     {
         var equipo = await _equipoRepo.ObtenerPorId(dto.EquipoInicialId);

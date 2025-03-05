@@ -157,6 +157,13 @@ namespace Api.Persistencia.Repositorios
 			return ImagenUtility.ImageToBase64(img);
 		}
 
+		public string GetFotoEnBase64ConPathAbsoluto(string pathAbsoluto)
+		{
+			using var stream = new FileStream(pathAbsoluto, FileMode.Open);
+			using var img = SKImage.FromEncodedData(stream);
+			return ImagenUtility.ImageToBase64(img);
+		}
+		
 		public string Path(string dni)
 		{
 			return $"{_paths.ImagenesJugadoresRelative}/{dni}.jpg";

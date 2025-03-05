@@ -6,6 +6,7 @@ namespace Api.Core.Repositorios
 	{
 		// void GuardarFotoDeJugadorDesdeArchivo(JugadorDTO vm);
 		string GetFotoEnBase64(string dni);
+		string GetFotoEnBase64ConPathAbsoluto(string pathAbsoluto);
 		// void GuardarImagenJugadorImportado(string dni, byte[] fotoByteArray);
 		void Eliminar(string dni);
 		void EliminarLista(IList<string> dni);
