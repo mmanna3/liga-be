@@ -5,7 +5,6 @@ namespace Api.Core.Entidades;
 public class Jugador : Entidad
 {
     [Required, MaxLength(9)] 
-    // ReSharper disable once InconsistentNaming
     public string DNI { get; set; } = string.Empty;
 
     [Required, MaxLength(14)] 

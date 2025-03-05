@@ -79,11 +79,13 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
 
     public async Task<int> Gestionar(GestionarJugadorDTO dto)
     {
-        Repo.CambiarEstado(dto.JugadorEquipoId, dto.Estado);
+        Repo.CambiarEstado(dto.JugadorEquipoId, dto.Estado, dto.MotivoRechazo);
         await BDVirtual.GuardarCambios();
         
         if (dto.Estado == EstadoJugadorEnum.Activo)
             _imagenJugadorRepo.FicharJugadorTemporal(dto.DNI);
+        
+
         
         return dto.JugadorEquipoId;
     }

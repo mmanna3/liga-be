@@ -22,6 +22,10 @@ public class AppDbContext : DbContext
             new EstadoJugador { Id = 4, Estado = "Suspendido" },
             new EstadoJugador { Id = 5, Estado = "Inhabilitado" }
         );
+        
+        builder.Entity<Jugador>()
+            .HasIndex(u => u.DNI)
+            .IsUnique();
     }
     
     public DbSet<Club> Clubs { get; set; } = null!;

@@ -7,5 +7,5 @@ public interface IJugadorRepo : IRepositorioABM<Jugador>
 {
     Task<Jugador?> ObtenerPorDNI(string dni);
     void SiElDNISeHabiaFichadoYEstaRechazadoEliminarJugador(string entidadDNI);
-    void CambiarEstado(int jugadorEquipoId, EstadoJugadorEnum nuevoEstado);
+    void CambiarEstado(int jugadorEquipoId, EstadoJugadorEnum nuevoEstado, string? motivoRechazo);
 }

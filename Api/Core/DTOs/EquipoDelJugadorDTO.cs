@@ -10,4 +10,6 @@ public class EquipoDelJugadorDTO : DTO
     public string Club { get; set; } = string.Empty;
 
     public EstadoJugadorEnum Estado { get; set; }
+    
+    public string? MotivoDeRechazo { get; set; } = string.Empty;
 }

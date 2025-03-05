@@ -8,4 +8,6 @@ public class GestionarJugadorDTO
     public EstadoJugadorEnum Estado { get; set; }
     public int JugadorEquipoId { get; set; }
     public required string DNI { get; set; }
+    
+    public string? MotivoRechazo { get; set; }
 }
