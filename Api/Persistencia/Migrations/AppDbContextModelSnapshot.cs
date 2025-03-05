@@ -36,7 +36,7 @@ namespace Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Clubs");
+                    b.ToTable("Clubs", (string)null);
                 });
 
             modelBuilder.Entity("Api.Core.Entidades.Delegado", b =>
@@ -70,7 +70,7 @@ namespace Api.Migrations
 
                     b.HasIndex("ClubId");
 
-                    b.ToTable("Delegados");
+                    b.ToTable("Delegados", (string)null);
                 });
 
             modelBuilder.Entity("Api.Core.Entidades.Equipo", b =>
@@ -92,7 +92,7 @@ namespace Api.Migrations
 
                     b.HasIndex("ClubId");
 
-                    b.ToTable("Equipos");
+                    b.ToTable("Equipos", (string)null);
                 });
 
             modelBuilder.Entity("Api.Core.Entidades.EstadoJugador", b =>
@@ -110,7 +110,7 @@ namespace Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EstadoJugador");
+                    b.ToTable("EstadoJugador", (string)null);
 
                     b.HasData(
                         new
@@ -171,7 +171,7 @@ namespace Api.Migrations
                     b.HasIndex("DNI")
                         .IsUnique();
 
-                    b.ToTable("Jugadores");
+                    b.ToTable("Jugadores", (string)null);
                 });
 
             modelBuilder.Entity("Api.Core.Entidades.JugadorEquipo", b =>
@@ -206,7 +206,7 @@ namespace Api.Migrations
 
                     b.HasIndex("JugadorId");
 
-                    b.ToTable("JugadorEquipo");
+                    b.ToTable("JugadorEquipo", (string)null);
                 });
 
             modelBuilder.Entity("Api.Core.Entidades.Delegado", b =>

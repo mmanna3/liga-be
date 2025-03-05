@@ -11,11 +11,16 @@ public class MapperConfig : Profile
     public MapperConfig()
     {   
         CreateMap<Club, ClubDTO>().PreserveReferences().ReverseMap();
-        
+
         CreateMap<Equipo, EquipoDTO>()
             .ForMember(dest => dest.ClubNombre, x => x.MapFrom(src => src.Club.Nombre))
-            .ForMember(dest => dest.CodigoAlfanumerico, x => x.MapFrom(src => GeneradorDeHash.GenerarAlfanumerico7Digitos(src.Id)))
-            .PreserveReferences().ReverseMap();
+            .ForMember(dest => dest.CodigoAlfanumerico,
+                x => x.MapFrom(src => GeneradorDeHash.GenerarAlfanumerico7Digitos(src.Id)))
+            .PreserveReferences();
+
+        CreateMap<EquipoDTO, Equipo>()
+            .ForMember(dest => dest.Club, opt => opt.Ignore())
+            .PreserveReferences();
         
         CreateMap<JugadorEquipo, JugadorDelEquipoDTO>()
             .ForMember(dest => dest.Nombre, x => x.MapFrom(src => src.Jugador.Nombre))
