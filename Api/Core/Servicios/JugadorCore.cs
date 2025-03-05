@@ -41,9 +41,20 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         return resultado;
     }
 
-    protected override JugadorDTO AntesDeObtenerPorId(JugadorDTO dto)
+    protected override JugadorDTO AntesDeObtenerPorId(Jugador entidad, JugadorDTO dto)
     {
-        dto.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoEnBase64ConPathAbsoluto($"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{dto.DNI}.jpg"));
+        if (entidad.JugadorEquipos.Any(x =>
+                x.EstadoJugadorId is (int)EstadoJugadorEnum.FichajePendienteDeAprobacion or (int)EstadoJugadorEnum.FichajeRechazado))
+        {
+            dto.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoEnBase64ConPathAbsoluto($"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{dto.DNI}.jpg"));    
+            dto.FotoDNIDorso = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoEnBase64ConPathAbsoluto($"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{dto.DNI}.jpg"));    
+            dto.FotoDNIFrente = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoEnBase64ConPathAbsoluto($"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{dto.DNI}.jpg"));    
+        }
+        else
+        {
+            dto.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoCarnetEnBase64(dto.DNI));    
+        }
+        
         return dto;
     }
     
@@ -64,5 +75,16 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
 
         entidad.JugadorEquipos = new List<JugadorEquipo> { jugadorEquipo };
         return entidad;
+    }
+
+    public async Task<int> Gestionar(GestionarJugadorDTO dto)
+    {
+        Repo.CambiarEstado(dto.JugadorEquipoId, dto.Estado);
+        await BDVirtual.GuardarCambios();
+        
+        if (dto.Estado == EstadoJugadorEnum.Activo)
+            _imagenJugadorRepo.FicharJugadorTemporal(dto.DNI);
+        
+        return dto.JugadorEquipoId;
     }
 }

@@ -1,4 +1,5 @@
 using Api.Core.Entidades;
+using Api.Core.Enums;
 using Api.Core.Repositorios;
 using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
@@ -32,5 +33,15 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
         var jugador = Context.Jugadores.SingleOrDefault(x => x.DNI == dni);
         if (jugador != null)
             Context.Jugadores.Remove(jugador);
+    }
+    
+    public void CambiarEstado(int jugadorEquipoId, EstadoJugadorEnum nuevoEstado)
+    {
+        var jugadorEquipo = Context.JugadorEquipo.SingleOrDefault(x => x.Id == jugadorEquipoId);
+        if (jugadorEquipo != null)
+        {
+            jugadorEquipo.EstadoJugadorId = (int)nuevoEstado;
+            Context.Update(jugadorEquipo);
+        }
     }
 }

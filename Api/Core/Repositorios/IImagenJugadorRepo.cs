@@ -5,7 +5,7 @@ namespace Api.Core.Repositorios
 	public interface IImagenJugadorRepo
 	{
 		// void GuardarFotoDeJugadorDesdeArchivo(JugadorDTO vm);
-		string GetFotoEnBase64(string dni);
+		string GetFotoCarnetEnBase64(string dni);
 		string GetFotoEnBase64ConPathAbsoluto(string pathAbsoluto);
 		// void GuardarImagenJugadorImportado(string dni, byte[] fotoByteArray);
 		void Eliminar(string dni);

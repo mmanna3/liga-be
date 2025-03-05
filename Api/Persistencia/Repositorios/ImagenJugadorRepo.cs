@@ -148,7 +148,7 @@ namespace Api.Persistencia.Repositorios
 		//	}
 		//}
 
-		public string GetFotoEnBase64(string dni)
+		public string GetFotoCarnetEnBase64(string dni)
 		{
 			var imagePath = $"{_paths.ImagenesJugadoresAbsolute}/{dni}.jpg";
 			

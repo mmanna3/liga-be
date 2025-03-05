@@ -50,11 +50,11 @@ public abstract class ABMCore<TRepo, TEntidad, TDTO> : ICoreABM<TDTO>
     {
         var entidad = await Repo.ObtenerPorId(id);
         var dto = Mapper.Map<TDTO>(entidad);
-        dto = AntesDeObtenerPorId(dto);
+        dto = AntesDeObtenerPorId(entidad, dto);
         return dto;
     }
 
-    protected virtual TDTO AntesDeObtenerPorId(TDTO dto)
+    protected virtual TDTO AntesDeObtenerPorId(TEntidad entidad, TDTO dto)
     {
         return dto;
     }
