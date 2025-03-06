@@ -22,7 +22,18 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
                 .ThenInclude(x => x.EstadoJugador)
             .AsQueryable();
     }
-    
+
+    public async Task<IEnumerable<Jugador>> ListarConFiltro(IList<EstadoJugadorEnum> estados)
+    {
+        if (estados.Count == 0)
+            return await Listar();
+        
+        return await Set()
+            .Where(j => j.JugadorEquipos.Any(je => estados.Contains((EstadoJugadorEnum)je.EstadoJugadorId)))
+            .ToListAsync();
+    }
+
+
     public virtual async Task<Jugador?> ObtenerPorDNI(string dni)
     {
         return await Context.Set<Jugador>().SingleOrDefaultAsync(x => x.DNI == dni);

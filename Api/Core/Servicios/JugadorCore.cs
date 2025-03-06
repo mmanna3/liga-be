@@ -89,4 +89,11 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         
         return dto.JugadorEquipoId;
     }
+
+    public async Task<IEnumerable<JugadorDTO>> ListarConFiltro(IList<EstadoJugadorEnum> estados)
+    {
+        var jugadores = await Repo.ListarConFiltro(estados);
+        var dtos = Mapper.Map<List<JugadorDTO>>(jugadores);
+        return dtos;
+    }
 }
