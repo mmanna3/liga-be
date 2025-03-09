@@ -118,7 +118,7 @@ namespace Api.Core.Logica
         private static SKBitmap HacerFotoCuadrada240X240(string base64)
         {
             var bitmap = Base64ToBitmap(base64);
-            return HacerFotoCuadrada(bitmap, 240);
+            return RedimensionarFoto(bitmap, 240);
         }
 
         private static SKBitmap Base64ToBitmap(string base64)
@@ -128,14 +128,20 @@ namespace Api.Core.Logica
             return SKBitmap.Decode(stream);
         }
 
-        private static SKBitmap HacerFotoCuadrada(SKBitmap bitmap, int size)
+        private static SKBitmap RedimensionarFoto(SKBitmap foto, int tamanioEnPixeles)
         {
-            var cuadrada = new SKBitmap(size, size);
-            using var canvas = new SKCanvas(cuadrada);
-            var srcRect = new SKRect((bitmap.Width - size) / 2, (bitmap.Height - size) / 2, (bitmap.Width + size) / 2,
-                (bitmap.Height + size) / 2);
-            canvas.DrawBitmap(bitmap, srcRect, new SKRect(0, 0, size, size));
-            return cuadrada;
+            if (foto == null) throw new ArgumentNullException(nameof(foto));
+            if (tamanioEnPixeles <= 0) throw new ArgumentException("El tamaño debe ser mayor a 0", nameof(tamanioEnPixeles));
+
+            // Crear un nuevo bitmap con el tamaño deseado
+            SKBitmap bitmapRedimensionado = new SKBitmap(tamanioEnPixeles, tamanioEnPixeles);
+    
+            using (SKCanvas canvas = new SKCanvas(bitmapRedimensionado))
+            {
+                canvas.DrawBitmap(foto, new SKRect(0, 0, tamanioEnPixeles, tamanioEnPixeles));
+            }
+    
+            return bitmapRedimensionado;
         }
 
         private static string QuitarMimeType(string base64)

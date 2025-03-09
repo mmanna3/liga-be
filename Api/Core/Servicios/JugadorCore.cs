@@ -79,15 +79,32 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
 
     public async Task<int> Gestionar(GestionarJugadorDTO dto)
     {
-        Repo.CambiarEstado(dto.JugadorEquipoId, dto.Estado, dto.MotivoRechazo);
-        await BDVirtual.GuardarCambios();
+        var jugadorAnterior = await Repo.ObtenerPorId(dto.Id);
         
-        if (dto.Estado == EstadoJugadorEnum.Activo)
-            _imagenJugadorRepo.FicharJugadorTemporal(dto.DNI);
-        
+        if (jugadorAnterior != null) { 
+            var jugadorNuevo = Mapper.Map<Jugador>(jugadorAnterior);
 
-        
-        return dto.JugadorEquipoId;
+            if (jugadorNuevo.DNI != dto.DNI)
+            {
+                jugadorNuevo.DNI = dto.DNI;
+                _imagenJugadorRepo.CambiarDNI(jugadorAnterior.DNI, dto.DNI);
+            }
+
+            jugadorNuevo.Nombre = dto.Nombre;
+            jugadorNuevo.Apellido = dto.Apellido;
+            jugadorNuevo.FechaNacimiento = dto.FechaNacimiento;
+
+            Repo.Modificar(jugadorAnterior, jugadorNuevo);
+            Repo.CambiarEstado(dto.JugadorEquipoId, dto.Estado, dto.MotivoRechazo);
+            await BDVirtual.GuardarCambios();
+            
+            if (dto.Estado == EstadoJugadorEnum.Activo)
+                _imagenJugadorRepo.FicharJugadorTemporal(dto.DNI);
+            
+            return dto.JugadorEquipoId;
+        }
+
+        return -1;
     }
 
     public async Task<IEnumerable<JugadorDTO>> ListarConFiltro(IList<EstadoJugadorEnum> estados)

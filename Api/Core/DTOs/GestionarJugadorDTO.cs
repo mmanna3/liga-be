@@ -3,11 +3,9 @@ using Api.Core.Enums;
 
 namespace Api.Core.DTOs;
 
-public class GestionarJugadorDTO
+public class GestionarJugadorDTO : JugadorBaseDTO
 {
     public EstadoJugadorEnum Estado { get; set; }
     public int JugadorEquipoId { get; set; }
-    public required string DNI { get; set; }
-    
     public string? MotivoRechazo { get; set; }
 }
