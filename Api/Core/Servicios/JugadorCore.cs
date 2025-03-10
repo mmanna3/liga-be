@@ -87,7 +87,7 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
             if (jugadorNuevo.DNI != dto.DNI)
             {
                 jugadorNuevo.DNI = dto.DNI;
-                _imagenJugadorRepo.CambiarDNI(jugadorAnterior.DNI, dto.DNI);
+                _imagenJugadorRepo.RenombrarFotosTemporalesPorCambioDeDNI(jugadorAnterior.DNI, dto.DNI);
             }
 
             jugadorNuevo.Nombre = dto.Nombre;

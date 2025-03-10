@@ -208,14 +208,14 @@ namespace Api.Persistencia.Repositorios
 				File.Move(pathAnterior, pathNuevo);
 		}
 
-		public void RenombrarFotosTemporalesPorCambioDeDNI(string DNIAnterior, string DNINuevo)
+		public void RenombrarFotosTemporalesPorCambioDeDNI(string dniAnterior, string dniNuevo)
 		{
-			RenombrarFotos($"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{DNIAnterior}.jpg", $"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{DNINuevo}.jpg");
-			RenombrarFotos($"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{DNIAnterior}.jpg", $"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{DNINuevo}.jpg");
-			RenombrarFotos($"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{DNIAnterior}.jpg", $"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{DNINuevo}.jpg");
+			RenombrarFoto($"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{dniAnterior}.jpg", $"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{dniNuevo}.jpg");
+			RenombrarFoto($"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{dniAnterior}.jpg", $"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{dniNuevo}.jpg");
+			RenombrarFoto($"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{dniAnterior}.jpg", $"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{dniNuevo}.jpg");
 		}
 
-		private static void RenombrarFotos(string pathAnterior, string pathNuevo)
+		private static void RenombrarFoto(string pathAnterior, string pathNuevo)
 		{
 			if (File.Exists(pathNuevo))
 				File.Delete(pathNuevo);
