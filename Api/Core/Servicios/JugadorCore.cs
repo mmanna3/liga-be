@@ -24,18 +24,12 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
     
     protected override async Task<Jugador> AntesDeCrear(JugadorDTO dto, Jugador entidad)
     {
-        // try
-        // {
-            dto.EquipoInicialId = GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos(dto.CodigoAlfanumerico);
-        // }
-        // catch (ExcepcionControlada e)
-        // {
-        //     return FicharJugadorDTO.Error(e.Message);
-        // }
+        dto.EquipoInicialId = GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos(dto.CodigoAlfanumerico);
         
         var resultado = await MapearEquipoInicial(dto, entidad);
         
         Repo.SiElDNISeHabiaFichadoYEstaRechazadoEliminarJugador(entidad.DNI);
+        await BDVirtual.GuardarCambios();
         _imagenJugadorRepo.GuardarFotosTemporalesDeJugadorAutofichado(dto);
         
         return resultado;
