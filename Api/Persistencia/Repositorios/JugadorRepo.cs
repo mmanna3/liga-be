@@ -46,16 +46,13 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
             Context.Jugadores.Remove(jugador);
     }
     
-    public void CambiarEstado(int jugadorEquipoId, EstadoJugadorEnum nuevoEstado, string? motivoRechazo)
+    public void CambiarEstado(int jugadorEquipoId, EstadoJugadorEnum nuevoEstado, string? motivo)
     {
         var jugadorEquipo = Context.JugadorEquipo.SingleOrDefault(x => x.Id == jugadorEquipoId);
         if (jugadorEquipo != null)
         {
             jugadorEquipo.EstadoJugadorId = (int)nuevoEstado;
-
-            if (nuevoEstado == EstadoJugadorEnum.FichajeRechazado)
-                jugadorEquipo.MotivoDeRechazoFichaje = motivoRechazo;
-            
+            jugadorEquipo.Motivo = motivo;
             Context.Update(jugadorEquipo);
         }
     }

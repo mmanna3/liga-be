@@ -1,4 +1,5 @@
 using Api.Core.DTOs;
+using Api.Core.DTOs.CambiosDeEstadoJugador;
 using Api.Core.Entidades;
 using Api.Core.Enums;
 using Api.Core.Logica;
@@ -106,5 +107,91 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         var jugadores = await Repo.ListarConFiltro(estados);
         var dtos = Mapper.Map<List<JugadorDTO>>(jugadores);
         return dtos;
+    }
+
+    public async Task<int> Aprobar(AprobarJugadorDTO dto)
+    {
+        var jugadorAnterior = await Repo.ObtenerPorId(dto.Id);
+        
+        if (jugadorAnterior != null) { 
+            ModicarDatosBase(dto, jugadorAnterior);
+            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.AprobadoPendienteDePago);
+            await BDVirtual.GuardarCambios();
+            
+            return dto.JugadorEquipoId;
+        }
+
+        return -1;
+    }
+
+    public async Task<int> Rechazar(RechazarJugadorDTO dto)
+    {
+        var jugadorAnterior = await Repo.ObtenerPorId(dto.Id);
+        
+        if (jugadorAnterior != null) { 
+            ModicarDatosBase(dto, jugadorAnterior);
+            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.FichajeRechazado, dto.Motivo);
+            await BDVirtual.GuardarCambios();
+            
+            return dto.JugadorEquipoId;
+        }
+
+        return -1;
+    }
+
+    private void ModicarDatosBase(JugadorBaseDTO dto, Jugador jugadorAnterior)
+    {
+        var jugadorNuevo = Mapper.Map<Jugador>(jugadorAnterior);
+
+        if (jugadorNuevo.DNI != dto.DNI)
+        {
+            jugadorNuevo.DNI = dto.DNI;
+            _imagenJugadorRepo.RenombrarFotosTemporalesPorCambioDeDNI(jugadorAnterior.DNI, dto.DNI);
+        }
+
+        jugadorNuevo.Nombre = dto.Nombre;
+        jugadorNuevo.Apellido = dto.Apellido;
+        jugadorNuevo.FechaNacimiento = dto.FechaNacimiento;
+
+        Repo.Modificar(jugadorAnterior, jugadorNuevo);
+    }
+
+    public async Task<int> Activar(ActivarJugadorDTO dto)
+    {
+        var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
+        if (jugadorAnterior != null) { 
+            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.Activo);
+            await BDVirtual.GuardarCambios();
+            
+            return dto.JugadorEquipoId;
+        }
+
+        return -1;
+    }
+
+    public async Task<int> Suspender(SuspenderJugadorDTO dto)
+    {
+        var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
+        if (jugadorAnterior != null) { 
+            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.Suspendido);
+            await BDVirtual.GuardarCambios();
+            
+            return dto.JugadorEquipoId;
+        }
+
+        return -1;
+    }
+
+    public async Task<int> Inhabilitar(InhabilitarJugadorDTO dto)
+    {
+        var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
+        if (jugadorAnterior != null) { 
+            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.Inhabilitado);
+            await BDVirtual.GuardarCambios();
+            
+            return dto.JugadorEquipoId;
+        }
+
+        return -1;
     }
 }

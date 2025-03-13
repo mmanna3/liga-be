@@ -17,5 +17,5 @@ public class JugadorEquipo : Entidad
     public virtual EstadoJugador EstadoJugador { get; set; } = null!;
 
     [MaxLength(250)]
-    public string? MotivoDeRechazoFichaje { get; set; }
+    public string? Motivo { get; set; }
 }
