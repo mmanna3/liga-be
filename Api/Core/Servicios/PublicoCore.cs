@@ -1,5 +1,6 @@
 using Api.Core.DTOs;
 using Api.Core.Entidades;
+using Api.Core.Enums;
 using Api.Core.Repositorios;
 using Api.Core.Servicios.Interfaces;
 using AutoMapper;
@@ -18,6 +19,9 @@ public class PublicoCore : IPublicoCore
     public async Task<bool> ElDniEstaFichado(string dni)
     {
         var jugador = await _jugadorRepo.ObtenerPorDNI(dni);
-        return jugador != null;
+    
+        return jugador != null && 
+               jugador.JugadorEquipos.Any(x => x.EstadoJugador.Id == (int)EstadoJugadorEnum.FichajeRechazado);
     }
+
 }
