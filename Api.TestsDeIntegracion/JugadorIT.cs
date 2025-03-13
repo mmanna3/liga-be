@@ -1,9 +1,7 @@
 using System.Net.Http.Json;
 using Api.Core.DTOs;
 using Api.Core.Entidades;
-using Api.Core.Enums;
 using Api.Core.Logica;
-using Api.Core.Otros;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
 using Api.TestsUtilidades;
@@ -14,7 +12,7 @@ namespace Api.TestsDeIntegracion;
 public class JugadorIT : TestBase
 {
     private Utilidades? _utilidades;
-    private Equipo _equipo;
+    private Equipo? _equipo;
     private const string PuntoRojoBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
 
     public JugadorIT(CustomWebApplicationFactory<Program> factory) : base(factory)
@@ -44,7 +42,7 @@ public class JugadorIT : TestBase
             Nombre = "Diego",
             Apellido = "Maradona",
             FechaNacimiento = Convert.ToDateTime("1994-12-07T00:00:00"),
-            CodigoAlfanumerico = GeneradorDeHash.GenerarAlfanumerico7Digitos(_equipo.Id),
+            CodigoAlfanumerico = GeneradorDeHash.GenerarAlfanumerico7Digitos(_equipo!.Id),
             FotoCarnet = PuntoRojoBase64,
             FotoDNIFrente = PuntoRojoBase64,
             FotoDNIDorso = PuntoRojoBase64

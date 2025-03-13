@@ -14,7 +14,7 @@ namespace Api.TestsDeIntegracion;
 public class EquipoIT : TestBase
 {
     private Utilidades? _utilidades;
-    private Club _club;
+    private Club? _club;
 
     public EquipoIT(CustomWebApplicationFactory<Program> factory) : base(factory)
     {

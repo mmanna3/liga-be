@@ -14,7 +14,7 @@ public class Utilidades
         _context = context;
     }
     
-    public Club DadoQueExisteElClub()
+    public Club? DadoQueExisteElClub()
     {
         var club = new Club
         {
@@ -26,7 +26,7 @@ public class Utilidades
         return club;
     }
     
-    public Equipo DadoQueExisteElEquipo(Club club)
+    public Equipo? DadoQueExisteElEquipo(Club? club)
     {
         var equipo = new Equipo
         {
@@ -34,7 +34,7 @@ public class Utilidades
             Id = 0,
             Club = club,
             ClubId = 0,
-            Jugadores = null
+            Jugadores = new List<JugadorEquipo>()
         };
         
         _context.Add(equipo);
