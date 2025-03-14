@@ -12,13 +12,6 @@ namespace Api.Api.Controllers
         {
         }
         
-        [HttpPost("gestionar-jugador")]
-        public async Task<ActionResult<int>> Gestionar(GestionarJugadorDTO dto)
-        {
-            var jugadorDTO = await Core.Gestionar(dto);
-            return Ok(jugadorDTO);
-        }
-        
         [HttpPost("aprobar-jugador")]
         public async Task<ActionResult<int>> Aprobar(AprobarJugadorDTO dto)
         {
@@ -37,6 +30,13 @@ namespace Api.Api.Controllers
         public async Task<ActionResult<int>> Activar(ActivarJugadorDTO dto)
         {
             var id = await Core.Activar(dto);
+            return Ok(id);
+        }
+        
+        [HttpPost("pagar-fichaje-del-jugador")]
+        public async Task<ActionResult<int>> PagarFichaje(PagarFichajeJugadorDTO dto)
+        {
+            var id = await Core.PagarFichaje(dto);
             return Ok(id);
         }
         

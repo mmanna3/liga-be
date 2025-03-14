@@ -46,7 +46,7 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
             Context.Jugadores.Remove(jugador);
     }
     
-    public void CambiarEstado(int jugadorEquipoId, EstadoJugadorEnum nuevoEstado, string? motivo)
+    public void CambiarEstado(int jugadorEquipoId, EstadoJugadorEnum nuevoEstado, string? motivo = null)
     {
         var jugadorEquipo = Context.JugadorEquipo.SingleOrDefault(x => x.Id == jugadorEquipoId);
         if (jugadorEquipo != null)

@@ -72,36 +72,6 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         return entidad;
     }
 
-    public async Task<int> Gestionar(GestionarJugadorDTO dto)
-    {
-        var jugadorAnterior = await Repo.ObtenerPorId(dto.Id);
-        
-        if (jugadorAnterior != null) { 
-            var jugadorNuevo = Mapper.Map<Jugador>(jugadorAnterior);
-
-            if (jugadorNuevo.DNI != dto.DNI)
-            {
-                jugadorNuevo.DNI = dto.DNI;
-                _imagenJugadorRepo.RenombrarFotosTemporalesPorCambioDeDNI(jugadorAnterior.DNI, dto.DNI);
-            }
-
-            jugadorNuevo.Nombre = dto.Nombre;
-            jugadorNuevo.Apellido = dto.Apellido;
-            jugadorNuevo.FechaNacimiento = dto.FechaNacimiento;
-
-            Repo.Modificar(jugadorAnterior, jugadorNuevo);
-            Repo.CambiarEstado(dto.JugadorEquipoId, dto.Estado, dto.MotivoRechazo);
-            await BDVirtual.GuardarCambios();
-            
-            if (dto.Estado == EstadoJugadorEnum.Activo)
-                _imagenJugadorRepo.FicharJugadorTemporal(dto.DNI);
-            
-            return dto.JugadorEquipoId;
-        }
-
-        return -1;
-    }
-
     public async Task<IEnumerable<JugadorDTO>> ListarConFiltro(IList<EstadoJugadorEnum> estados)
     {
         var jugadores = await Repo.ListarConFiltro(estados);
@@ -117,6 +87,7 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
             ModicarDatosBase(dto, jugadorAnterior);
             Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.AprobadoPendienteDePago);
             await BDVirtual.GuardarCambios();
+            _imagenJugadorRepo.FicharJugadorTemporal(dto.DNI);
             
             return dto.JugadorEquipoId;
         }
@@ -187,6 +158,19 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
         if (jugadorAnterior != null) { 
             Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.Inhabilitado);
+            await BDVirtual.GuardarCambios();
+            
+            return dto.JugadorEquipoId;
+        }
+
+        return -1;
+    }
+
+    public async Task<int> PagarFichaje(PagarFichajeJugadorDTO dto)
+    {
+        var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
+        if (jugadorAnterior != null) { 
+            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.Activo);
             await BDVirtual.GuardarCambios();
             
             return dto.JugadorEquipoId;

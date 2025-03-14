@@ -20,7 +20,8 @@ public class AppDbContext : DbContext
             new EstadoJugador { Id = 2, Estado = "Fichaje rechazado" },
             new EstadoJugador { Id = 3, Estado = "Activo" },
             new EstadoJugador { Id = 4, Estado = "Suspendido" },
-            new EstadoJugador { Id = 5, Estado = "Inhabilitado" }
+            new EstadoJugador { Id = 5, Estado = "Inhabilitado" },
+            new EstadoJugador { Id = 6, Estado = "Aprobado pendiente de pago" }
         );
         
         builder.Entity<Jugador>()
