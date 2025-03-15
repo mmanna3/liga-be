@@ -11,5 +11,5 @@ public class EquipoDelJugadorDTO : DTO
 
     public EstadoJugadorEnum Estado { get; set; }
     
-    public string? MotivoDeRechazo { get; set; } = string.Empty;
+    public string? Motivo { get; set; } = string.Empty;
 }

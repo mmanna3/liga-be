@@ -27,28 +27,28 @@ namespace Api.Api.Controllers
         }
         
         [HttpPost("activar-jugador")]
-        public async Task<ActionResult<int>> Activar(ActivarJugadorDTO dto)
+        public async Task<ActionResult<int>> Activar(CambiarEstadoDelJugadorDTO dto)
         {
             var id = await Core.Activar(dto);
             return Ok(id);
         }
         
         [HttpPost("pagar-fichaje-del-jugador")]
-        public async Task<ActionResult<int>> PagarFichaje(PagarFichajeJugadorDTO dto)
+        public async Task<ActionResult<int>> PagarFichaje(CambiarEstadoDelJugadorDTO dto)
         {
             var id = await Core.PagarFichaje(dto);
             return Ok(id);
         }
         
         [HttpPost("inhabilitar-jugador")]
-        public async Task<ActionResult<int>> Inhabilitar(InhabilitarJugadorDTO dto)
+        public async Task<ActionResult<int>> Inhabilitar(CambiarEstadoDelJugadorDTO dto)
         {
             var id = await Core.Inhabilitar(dto);
             return Ok(id);
         }
         
         [HttpPost("suspender-jugador")]
-        public async Task<ActionResult<int>> Suspender(SuspenderJugadorDTO dto)
+        public async Task<ActionResult<int>> Suspender(CambiarEstadoDelJugadorDTO dto)
         {
             var id = await Core.Suspender(dto);
             return Ok(id);

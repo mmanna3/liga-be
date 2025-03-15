@@ -127,7 +127,7 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         Repo.Modificar(jugadorAnterior, jugadorNuevo);
     }
 
-    public async Task<int> Activar(ActivarJugadorDTO dto)
+    public async Task<int> Activar(CambiarEstadoDelJugadorDTO dto)
     {
         var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
         if (jugadorAnterior != null) { 
@@ -140,7 +140,7 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         return -1;
     }
 
-    public async Task<int> Suspender(SuspenderJugadorDTO dto)
+    public async Task<int> Suspender(CambiarEstadoDelJugadorDTO dto)
     {
         var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
         if (jugadorAnterior != null) { 
@@ -153,7 +153,7 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         return -1;
     }
 
-    public async Task<int> Inhabilitar(InhabilitarJugadorDTO dto)
+    public async Task<int> Inhabilitar(CambiarEstadoDelJugadorDTO dto)
     {
         var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
         if (jugadorAnterior != null) { 
@@ -166,7 +166,7 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         return -1;
     }
 
-    public async Task<int> PagarFichaje(PagarFichajeJugadorDTO dto)
+    public async Task<int> PagarFichaje(CambiarEstadoDelJugadorDTO dto)
     {
         var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
         if (jugadorAnterior != null) { 

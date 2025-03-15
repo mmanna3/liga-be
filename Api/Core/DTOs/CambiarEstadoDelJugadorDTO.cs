@@ -1,6 +1,6 @@
-namespace Api.Core.DTOs.CambiosDeEstadoJugador;
+namespace Api.Core.DTOs;
 
-public class InhabilitarJugadorDTO
+public class CambiarEstadoDelJugadorDTO
 {
     public int JugadorId { get; set; }
     public int JugadorEquipoId { get; set; }
