@@ -131,7 +131,7 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
     {
         var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
         if (jugadorAnterior != null) { 
-            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.Activo);
+            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.Activo, dto.Motivo);
             await BDVirtual.GuardarCambios();
             
             return dto.JugadorEquipoId;
@@ -144,7 +144,7 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
     {
         var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
         if (jugadorAnterior != null) { 
-            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.Suspendido);
+            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.Suspendido, dto.Motivo);
             await BDVirtual.GuardarCambios();
             
             return dto.JugadorEquipoId;
@@ -157,7 +157,7 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
     {
         var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
         if (jugadorAnterior != null) { 
-            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.Inhabilitado);
+            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.Inhabilitado, dto.Motivo);
             await BDVirtual.GuardarCambios();
             
             return dto.JugadorEquipoId;
@@ -170,7 +170,7 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
     {
         var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
         if (jugadorAnterior != null) { 
-            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.Activo);
+            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.Activo, dto.Motivo);
             await BDVirtual.GuardarCambios();
             
             return dto.JugadorEquipoId;
