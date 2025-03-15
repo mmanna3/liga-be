@@ -15,12 +15,14 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
     private readonly IEquipoRepo _equipoRepo;
     private readonly IImagenJugadorRepo _imagenJugadorRepo;
     private static AppPaths _paths = null!;
+    private readonly IHistorialDePagosRepo _historialDePagosRepo;
 
-    public JugadorCore(IBDVirtual bd, IJugadorRepo repo, IMapper mapper, IEquipoRepo equipoRepo, IImagenJugadorRepo imagenJugadorRepo, AppPaths paths) : base(bd, repo, mapper)
+    public JugadorCore(IBDVirtual bd, IJugadorRepo repo, IMapper mapper, IEquipoRepo equipoRepo, IImagenJugadorRepo imagenJugadorRepo, AppPaths paths, IHistorialDePagosRepo historialDePagosRepo) : base(bd, repo, mapper)
     {
         _equipoRepo = equipoRepo;
         _imagenJugadorRepo = imagenJugadorRepo;
         _paths = paths;
+        _historialDePagosRepo = historialDePagosRepo;
     }
     
     protected override async Task<Jugador> AntesDeCrear(JugadorDTO dto, Jugador entidad)
@@ -161,6 +163,9 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
         if (jugadorAnterior != null) { 
             Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.Activo, dto.Motivo);
+            
+            await _historialDePagosRepo.RegistrarPago(dto.JugadorEquipoId);
+            
             await BDVirtual.GuardarCambios();
             
             return dto.JugadorEquipoId;

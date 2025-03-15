@@ -57,4 +57,5 @@ public class AppDbContext : DbContext
     public DbSet<EstadoJugador> EstadoJugador { get; set; } = null!;
     public DbSet<Usuario> Usuarios { get; set; } = null!;
     public DbSet<Torneo> Torneos { get; set; } = null!;
+    public DbSet<HistorialDePagos> HistorialDePagos { get; set; } = null!;
 }
