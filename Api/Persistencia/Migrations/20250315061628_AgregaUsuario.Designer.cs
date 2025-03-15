@@ -4,6 +4,7 @@ using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250315061628_AgregaUsuario")]
+    partial class AgregaUsuario
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -229,8 +232,13 @@ namespace Api.Migrations
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Rol")
+                        .IsRequired()
+                        .HasMaxLength(14)
+                        .HasColumnType("nvarchar(14)");
 
                     b.HasKey("Id");
 
@@ -243,14 +251,16 @@ namespace Api.Migrations
                         new
                         {
                             Id = 1,
-                            NombreUsuario = "mati",
-                            Password = "$2a$12$.fcQkJ5oIxYYp5LZSXfCuuSEqVxqL8rU2vHa7lVbCspbw6zLLlQ/q"
+                            NombreUsuario = "admin",
+                            Password = "admin123",
+                            Rol = ""
                         },
                         new
                         {
                             Id = 2,
-                            NombreUsuario = "pipa",
-                            Password = "$2a$12$9nHVVAo7FvgXwaGnnsUYDOrFQPdjuaP5R58RTL9TiOAkGHbnp6S0C"
+                            NombreUsuario = "usuario",
+                            Password = "usuario123",
+                            Rol = ""
                         });
                 });
 

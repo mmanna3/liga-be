@@ -4,6 +4,7 @@ using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250315160919_EliminarRolYActualizarUsuarios")]
+    partial class EliminarRolYActualizarUsuarios
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -229,8 +232,8 @@ namespace Api.Migrations
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -244,13 +247,13 @@ namespace Api.Migrations
                         {
                             Id = 1,
                             NombreUsuario = "mati",
-                            Password = "$2a$12$.fcQkJ5oIxYYp5LZSXfCuuSEqVxqL8rU2vHa7lVbCspbw6zLLlQ/q"
+                            Password = "$2a$12$Z448AmN.U41zJ4unBdlWS.1JpoGdVzzWI5K0ptdigtzQNVKNvwdhu"
                         },
                         new
                         {
                             Id = 2,
                             NombreUsuario = "pipa",
-                            Password = "$2a$12$9nHVVAo7FvgXwaGnnsUYDOrFQPdjuaP5R58RTL9TiOAkGHbnp6S0C"
+                            Password = "$2a$12$uBBTnnXXC/5ATjsTubwSKOmiC7zqe/JORoTTrWqdjhzN5hsHYnoKy"
                         });
                 });
 

@@ -52,3 +52,10 @@ alias remove-migration="dotnet ef migrations remove"
 3- En capa Api: crear Controller
 
 4- En \_Config: agregar reglas en InyeccinDeDependenciasConfig y MapperConfig
+
+
+# Crear Usuario
+Agregar en la tabla usuario el NombreUsuario y el password obtenerlo así:
+```
+AuthService.HashPassword("password")
+```

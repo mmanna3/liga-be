@@ -1,4 +1,5 @@
 using Api.Core.Entidades;
+using Api.Core.Servicios;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.Persistencia._Config;
@@ -27,6 +28,25 @@ public class AppDbContext : DbContext
         builder.Entity<Jugador>()
             .HasIndex(u => u.DNI)
             .IsUnique();
+        
+        builder.Entity<Usuario>()
+            .HasIndex(u => u.NombreUsuario)
+            .IsUnique();
+        
+        builder.Entity<Usuario>().HasData(
+            new Usuario 
+            { 
+                Id = 1, 
+                NombreUsuario = "mati", 
+                Password = AuthService.HashPassword("mandarina1")
+            },
+            new Usuario 
+            { 
+                Id = 2, 
+                NombreUsuario = "pipa", 
+                Password = AuthService.HashPassword("edefiliga")
+            }
+        );
     }
     
     public DbSet<Club> Clubs { get; set; } = null!;
@@ -35,4 +55,5 @@ public class AppDbContext : DbContext
     public DbSet<Jugador> Jugadores { get; set; } = null!;
     public DbSet<JugadorEquipo> JugadorEquipo { get; set; } = null!;
     public DbSet<EstadoJugador> EstadoJugador { get; set; } = null!;
+    public DbSet<Usuario> Usuarios { get; set; } = null!;
 }
