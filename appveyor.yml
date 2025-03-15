@@ -81,21 +81,64 @@ after_deploy:
           [string]$password
         )
         
-        Write-Host "Eliminando app_offline.htm del servidor $server, sitio $site..."
+        Write-Host "Eliminando archivos app_offline.htm del servidor $server, sitio $site..."
         
-        # Crear un archivo temporal con la configuración de MSDeploy
-        $msdeployParams = "-verb:delete -dest:contentPath=""$site/app_offline.htm"",computerName=""$server"",username=""$username"",password=""$password"",authType=""Basic"" -allowUntrusted -enableRule:DoNotDeleteRule"
+        # Lista de posibles variaciones del nombre del archivo
+        $fileVariations = @(
+          "app_offline.htm",
+          "App_Offline.htm",
+          "APP_OFFLINE.HTM",
+          "App_offline.htm"
+        )
         
-        # Ejecutar MSDeploy para eliminar el archivo
-        $msdeployPath = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-        & $msdeployPath $msdeployParams.Split() | Out-Host
+        $success = $false
         
-        if ($LASTEXITCODE -eq 0) {
-          Write-Host "app_offline.htm eliminado exitosamente de $site"
-        } else {
-          Write-Warning "Error al eliminar app_offline.htm de $site. Código de salida: $LASTEXITCODE"
+        foreach ($fileName in $fileVariations) {
+          Write-Host "Intentando eliminar $fileName..."
+          
+          # Crear la configuración de MSDeploy para esta variante
+          $msdeployParams = "-verb:delete -dest:contentPath=""$site/$fileName"",computerName=""$server"",username=""$username"",password=""$password"",authType=""Basic"" -allowUntrusted -enableRule:DoNotDeleteRule"
+          
+          # Ejecutar MSDeploy para eliminar el archivo
+          $msdeployPath = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          & $msdeployPath $msdeployParams.Split() | Out-Host
+          
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "$fileName eliminado exitosamente de $site"
+            $success = $true
+          }
+          else {
+            Write-Host "No se encontró $fileName o no se pudo eliminar"
+          }
+        }
+        
+        # Intentar reiniciar la aplicación
+        try {
+          Write-Host "Intentando reiniciar la aplicación en $site..."
+          $msdeployParams = "-verb:sync -source:recycleApp -dest:recycleApp=""$site"",computerName=""$server"",username=""$username"",password=""$password"",authType=""Basic"" -allowUntrusted"
+          & $msdeployPath $msdeployParams.Split() | Out-Host
+          
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Aplicación reiniciada exitosamente en $site"
+          }
+          else {
+            Write-Warning "No se pudo reiniciar la aplicación en $site. Código de salida: $LASTEXITCODE"
+          }
+        }
+        catch {
+          Write-Warning "Error al intentar reiniciar la aplicación: $_"
+        }
+        
+        if ($success) {
+          Write-Host "Al menos una variante de app_offline.htm fue eliminada exitosamente de $site"
+        }
+        else {
+          Write-Warning "No se pudo eliminar ninguna variante de app_offline.htm de $site"
         }
       }
+      
+      # Esperar un momento para asegurarse de que el despliegue se ha completado totalmente
+      Start-Sleep -Seconds 10
       
       # Eliminar app_offline.htm del primer servidor
       Remove-AppOffline -server $env:deploy_publish_url_1 -site $env:ms_deploy_site_1 -username $env:deploy_username -password $env:deploy_password
