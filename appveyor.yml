@@ -68,3 +68,44 @@ deploy:
     ntlm: false
     # Usar la regla AppOffline para detener la aplicación durante el despliegue
     app_offline: true
+
+after_deploy:
+  # Eliminar el archivo app_offline.htm de ambos servidores después del despliegue
+  - ps: >-
+      # Función para eliminar app_offline.htm usando WebDeploy
+      function Remove-AppOffline {
+        param (
+          [string]$server,
+          [string]$site,
+          [string]$username,
+          [string]$password
+        )
+        
+        Write-Host "Eliminando app_offline.htm del servidor $server, sitio $site..."
+        
+        # Crear un archivo temporal con la configuración de MSDeploy
+        $msdeployParams = @"
+        -verb:delete 
+        -dest:contentPath="$site/app_offline.htm",
+        computerName="$server",
+        username="$username",
+        password="$password",
+        authType="Basic"
+        "@
+        
+        # Ejecutar MSDeploy para eliminar el archivo
+        $msdeployPath = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+        & $msdeployPath $msdeployParams.Split() | Out-Host
+        
+        if ($LASTEXITCODE -eq 0) {
+          Write-Host "app_offline.htm eliminado exitosamente de $site"
+        } else {
+          Write-Warning "Error al eliminar app_offline.htm de $site. Código de salida: $LASTEXITCODE"
+        }
+      }
+      
+      # Eliminar app_offline.htm del primer servidor
+      Remove-AppOffline -server $env:deploy_publish_url_1 -site $env:ms_deploy_site_1 -username $env:deploy_username -password $env:deploy_password
+      
+      # Eliminar app_offline.htm del segundo servidor
+      Remove-AppOffline -server $env:deploy_publish_url_2 -site $env:ms_deploy_site_2 -username $env:deploy_username -password $env:deploy_password
