@@ -9,8 +9,8 @@ public class AppDbContext : DbContext
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
     {
-        var connectionString = Database.GetDbConnection().ConnectionString;
-        Console.WriteLine($"Using Connection String: {connectionString}");
+        // var connectionString = Database.GetDbConnection().ConnectionString;
+        // Console.WriteLine($"Using Connection String: {connectionString}");
     }
 
     protected override void OnModelCreating(ModelBuilder builder)
