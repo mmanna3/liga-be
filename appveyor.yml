@@ -32,6 +32,10 @@ install:
       (Get-Content $file).Replace("{db_server}", $env:db_server).Replace("{db_name}", $env:db_name).Replace("{db_username}", $env:db_username).Replace("{db_password}", $env:db_password).Replace("{clave_secreta_jwt}", $env:clave_secreta_jwt) | Set-Content $file
 build_script:
   - cmd: dotnet publish --framework net8.0 /p:EnvironmentName=Production --self-contained true -r win-x64 Api --output %appveyor_build_folder%\dist
+  # Crear archivo app_offline.htm en la carpeta de distribución
+  - ps: >-
+      $appOfflineContent = "<!DOCTYPE html><html><head><title>Aplicación en mantenimiento</title></head><body><h1>La aplicación está siendo actualizada</h1><p>Por favor, espere unos momentos mientras completamos el proceso de actualización.</p></body></html>";
+      Set-Content -Path "$env:appveyor_build_folder\dist\app_offline.htm" -Value $appOfflineContent
 test_script:
   # Ejecuta tests
   - dotnet test --configuration Release --runtime win-x64
@@ -52,6 +56,8 @@ deploy:
     username: $(deploy_username)
     password: $(deploy_password)
     ntlm: false
+    # Usar la regla AppOffline para detener la aplicación durante el despliegue
+    app_offline: true
   - provider: WebDeploy
     remove_files: true
     skip_dirs: \\App_Data;\\Imagenes;\\logs;\\aspnet_client;\\wwwroot;\\well-known;
@@ -60,3 +66,5 @@ deploy:
     username: $(deploy_username)
     password: $(deploy_password)
     ntlm: false
+    # Usar la regla AppOffline para detener la aplicación durante el despliegue
+    app_offline: true
