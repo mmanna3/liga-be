@@ -32,10 +32,9 @@ install:
       (Get-Content $file).Replace("{db_server}", $env:db_server).Replace("{db_name}", $env:db_name).Replace("{db_username}", $env:db_username).Replace("{db_password}", $env:db_password).Replace("{clave_secreta_jwt}", $env:clave_secreta_jwt) | Set-Content $file
 build_script:
   - cmd: dotnet publish --framework net8.0 /p:EnvironmentName=Production --self-contained true -r win-x64 Api --output %appveyor_build_folder%\dist
-  # Crear archivo app_offline.htm en la carpeta de distribución
+  # Crear un archivo app_offline.htm vacío en la carpeta de distribución
   - ps: >-
-      $appOfflineContent = "<!DOCTYPE html><html><head><title>Aplicación en mantenimiento</title></head><body><h1>La aplicación está siendo actualizada</h1><p>Por favor, espere unos momentos mientras completamos el proceso de actualización.</p></body></html>";
-      Set-Content -Path "$env:appveyor_build_folder\dist\app_offline.htm" -Value $appOfflineContent
+      Set-Content -Path "$env:appveyor_build_folder\dist\app_offline.htm" -Value ""
 test_script:
   # Ejecuta tests
   - dotnet test --configuration Release --runtime win-x64
@@ -57,7 +56,9 @@ deploy:
     password: $(deploy_password)
     ntlm: false
     # Usar la regla AppOffline para detener la aplicación durante el despliegue
-    app_offline: true
+    app_offline: false
+    # Usar sincronización para asegurar que el archivo app_offline.htm vacío reemplace cualquier existente
+    sync: true
   - provider: WebDeploy
     remove_files: true
     skip_dirs: \\App_Data;\\Imagenes;\\logs;\\aspnet_client;\\wwwroot;\\well-known;
@@ -67,94 +68,6 @@ deploy:
     password: $(deploy_password)
     ntlm: false
     # Usar la regla AppOffline para detener la aplicación durante el despliegue
-    app_offline: true
-
-after_deploy:
-  # Eliminar el archivo app_offline.htm de ambos servidores después del despliegue
-  - ps: |
-      # Función para eliminar app_offline.htm usando WebDeploy
-      function Remove-AppOffline {
-        param (
-          [string]$server,
-          [string]$site,
-          [string]$username,
-          [string]$password
-        )
-        
-        Write-Host "Eliminando archivos app_offline.htm del servidor $server, sitio $site..."
-        
-        # Lista de posibles variaciones del nombre del archivo
-        $fileVariations = @(
-          "app_offline.htm",
-          "App_Offline.htm",
-          "APP_OFFLINE.HTM",
-          "App_offline.htm"
-        )
-        
-        $success = $false
-        
-        foreach ($fileName in $fileVariations) {
-          Write-Host "Intentando eliminar $fileName..."
-          
-          # Crear la configuración de MSDeploy para esta variante
-          $msdeployParams = "-verb:delete -dest:contentPath=""$site/$fileName"",computerName=""$server"",username=""$username"",password=""$password"",authType=""Basic"" -allowUntrusted -enableRule:DoNotDeleteRule"
-          
-          # Ejecutar MSDeploy para eliminar el archivo
-          $msdeployPath = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-          & $msdeployPath $msdeployParams.Split() | Out-Host
-          
-          if ($LASTEXITCODE -eq 0) {
-            Write-Host "$fileName eliminado exitosamente de $site"
-            $success = $true
-          }
-          else {
-            Write-Host "No se encontró $fileName o no se pudo eliminar"
-          }
-        }
-        
-        # En lugar de reiniciar la aplicación, vamos a "despertarla" haciendo una solicitud HTTP
-        try {
-          # Extraer el nombre del servidor del computerName (quitando https:// si existe)
-          $serverName = $server -replace "https?://", ""
-          
-          # Construir la URL de la aplicación
-          $appUrl = "https://$serverName"
-          
-          Write-Host "Intentando despertar la aplicación haciendo una solicitud a $appUrl..."
-          
-          # Hacer una solicitud HTTP para "despertar" la aplicación
-          $webClient = New-Object System.Net.WebClient
-          $webClient.Headers.Add("User-Agent", "AppVeyor-Deploy-Script")
-          
-          try {
-            $response = $webClient.DownloadString($appUrl)
-            Write-Host "Solicitud HTTP exitosa a $appUrl"
-          }
-          catch [System.Net.WebException] {
-            # Incluso si hay un error HTTP, la solicitud puede haber "despertado" la aplicación
-            Write-Host "La solicitud HTTP a $appUrl devolvió un error, pero puede haber despertado la aplicación: $($_.Exception.Message)"
-          }
-        }
-        catch {
-          Write-Warning "Error al intentar despertar la aplicación: $_"
-        }
-        
-        if ($success) {
-          Write-Host "Al menos una variante de app_offline.htm fue eliminada exitosamente de $site"
-        }
-        else {
-          Write-Warning "No se pudo eliminar ninguna variante de app_offline.htm de $site"
-        }
-      }
-      
-      # Esperar un momento para asegurarse de que el despliegue se ha completado totalmente
-      Start-Sleep -Seconds 10
-      
-      # Eliminar app_offline.htm del primer servidor
-      Remove-AppOffline -server $env:deploy_publish_url_1 -site $env:ms_deploy_site_1 -username $env:deploy_username -password $env:deploy_password
-      
-      # Esperar un momento entre servidores
-      Start-Sleep -Seconds 5
-      
-      # Eliminar app_offline.htm del segundo servidor
-      Remove-AppOffline -server $env:deploy_publish_url_2 -site $env:ms_deploy_site_2 -username $env:deploy_username -password $env:deploy_password
+    app_offline: false
+    # Usar sincronización para asegurar que el archivo app_offline.htm vacío reemplace cualquier existente
+    sync: true
