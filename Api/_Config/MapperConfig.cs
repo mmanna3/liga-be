@@ -23,6 +23,7 @@ public class MapperConfig : Profile
             .PreserveReferences();
         
         CreateMap<JugadorEquipo, JugadorDelEquipoDTO>()
+            .ForMember(dest => dest.JugadorEquipoId, x => x.MapFrom(src => src.Id))
             .ForMember(dest => dest.Nombre, x => x.MapFrom(src => src.Jugador.Nombre))
             .ForMember(dest => dest.Apellido, x => x.MapFrom(src => src.Jugador.Apellido))
             .ForMember(dest => dest.Id, x => x.MapFrom(src => src.Jugador.Id))

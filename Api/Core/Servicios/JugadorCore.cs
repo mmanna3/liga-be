@@ -130,7 +130,6 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
     public async Task<int> Activar(List<CambiarEstadoDelJugadorDTO> dtos)
     {
         foreach (var dto in dtos) await CambiarEstado(dto, EstadoJugadorEnum.Activo);
-        await BDVirtual.GuardarCambios();
         return dtos.Count;
     }
 
@@ -139,6 +138,7 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
            var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
             if (jugadorAnterior != null) { 
                 Repo.CambiarEstado(dto.JugadorEquipoId, estado, dto.Motivo);
+                await BDVirtual.GuardarCambios();
             }
     }
 
