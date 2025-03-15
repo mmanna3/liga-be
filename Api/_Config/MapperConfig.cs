@@ -37,6 +37,7 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Nombre, x => x.MapFrom(src => src.Equipo.Nombre))
             .ForMember(dest => dest.Club, x => x.MapFrom(src => src.Equipo.Club.Nombre))
             .ForMember(dest => dest.Estado, x => x.MapFrom(src => src.EstadoJugador.Id))
+            .ForMember(dest => dest.FechaPagoDeFichaje, x => x.MapFrom(src => src.HistorialDePagos.Fecha))
             .ForMember(dest => dest.Motivo, x => x.MapFrom(src => src.Motivo))
             .PreserveReferences().ReverseMap();
         

@@ -20,6 +20,8 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
                     .ThenInclude(x => x.Club)
             .Include(x => x.JugadorEquipos)
                 .ThenInclude(x => x.EstadoJugador)
+            .Include(x => x.JugadorEquipos)
+                .ThenInclude(x => x.HistorialDePagos)
             .AsQueryable();
     }
 
