@@ -27,9 +27,9 @@ namespace Api.Api.Controllers
         }
         
         [HttpPost("activar-jugador")]
-        public async Task<ActionResult<int>> Activar(CambiarEstadoDelJugadorDTO dto)
+        public async Task<ActionResult<int>> Activar([FromBody] List<CambiarEstadoDelJugadorDTO> dtos)
         {
-            var id = await Core.Activar(dto);
+            var id = await Core.Activar(dtos);
             return Ok(id);
         }
         
@@ -41,16 +41,16 @@ namespace Api.Api.Controllers
         }
         
         [HttpPost("inhabilitar-jugador")]
-        public async Task<ActionResult<int>> Inhabilitar(CambiarEstadoDelJugadorDTO dto)
+        public async Task<ActionResult<int>> Inhabilitar([FromBody] List<CambiarEstadoDelJugadorDTO> dtos)
         {
-            var id = await Core.Inhabilitar(dto);
+            var id = await Core.Inhabilitar(dtos);
             return Ok(id);
         }
         
         [HttpPost("suspender-jugador")]
-        public async Task<ActionResult<int>> Suspender(CambiarEstadoDelJugadorDTO dto)
+        public async Task<ActionResult<int>> Suspender([FromBody] List<CambiarEstadoDelJugadorDTO> dtos)
         {
-            var id = await Core.Suspender(dto);
+            var id = await Core.Suspender(dtos);
             return Ok(id);
         }
         

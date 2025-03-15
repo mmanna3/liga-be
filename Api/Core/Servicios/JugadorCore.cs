@@ -127,43 +127,33 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         Repo.Modificar(jugadorAnterior, jugadorNuevo);
     }
 
-    public async Task<int> Activar(CambiarEstadoDelJugadorDTO dto)
+    public async Task<int> Activar(List<CambiarEstadoDelJugadorDTO> dtos)
     {
-        var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
-        if (jugadorAnterior != null) { 
-            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.Activo, dto.Motivo);
-            await BDVirtual.GuardarCambios();
-            
-            return dto.JugadorEquipoId;
-        }
-
-        return -1;
+        foreach (var dto in dtos) await CambiarEstado(dto, EstadoJugadorEnum.Activo);
+        await BDVirtual.GuardarCambios();
+        return dtos.Count;
     }
 
-    public async Task<int> Suspender(CambiarEstadoDelJugadorDTO dto)
+    private async Task CambiarEstado(CambiarEstadoDelJugadorDTO dto, EstadoJugadorEnum estado)
     {
-        var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
-        if (jugadorAnterior != null) { 
-            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.Suspendido, dto.Motivo);
-            await BDVirtual.GuardarCambios();
-            
-            return dto.JugadorEquipoId;
-        }
-
-        return -1;
+           var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
+            if (jugadorAnterior != null) { 
+                Repo.CambiarEstado(dto.JugadorEquipoId, estado, dto.Motivo);
+            }
     }
 
-    public async Task<int> Inhabilitar(CambiarEstadoDelJugadorDTO dto)
+    public async Task<int> Suspender(List<CambiarEstadoDelJugadorDTO> dtos)
     {
-        var jugadorAnterior = await Repo.ObtenerPorId(dto.JugadorId);
-        if (jugadorAnterior != null) { 
-            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.Inhabilitado, dto.Motivo);
-            await BDVirtual.GuardarCambios();
-            
-            return dto.JugadorEquipoId;
-        }
+        foreach (var dto in dtos) await CambiarEstado(dto, EstadoJugadorEnum.Suspendido);
+        await BDVirtual.GuardarCambios();
+        return dtos.Count;
+    }
 
-        return -1;
+    public async Task<int> Inhabilitar(List<CambiarEstadoDelJugadorDTO> dtos)
+    {
+        foreach (var dto in dtos) await CambiarEstado(dto, EstadoJugadorEnum.Inhabilitado);
+        await BDVirtual.GuardarCambios();
+        return dtos.Count;
     }
 
     public async Task<int> PagarFichaje(CambiarEstadoDelJugadorDTO dto)
