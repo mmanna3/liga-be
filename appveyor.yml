@@ -16,7 +16,7 @@ environment:
     secure: kdhuPVSl0krNFGjfcNUmBMLohWaq8nbOx5Ven52IcoU=
   ms_deploy_site_2:
     secure: Pf9YKHPQdl46IZWXnY91FKlQ5RlIjuikjHk855wYG5Y=
-  db_server:
+  db_server: 
     secure: GENtSiIHJlcMVdOs9CjeQw==
   db_name:
     secure: WrPAgPpTyM3R6EL58lnCDg==
@@ -24,10 +24,12 @@ environment:
     secure: WrPAgPpTyM3R6EL58lnCDg==
   db_password:
     secure: SFAvHfsz398LTl83QbS5gw==
+  clave_secreta_jwt:
+    secure: D7/n0u0zIlvANO9rI/Wn0FFpipPrMJihdNGClSAG+oH6N7jm2EaAbD++QFAbCXGgT/Ixsp+T+KAm/qEd/OTS6jiTOXx21PFSj3c6zdvB1Fuldb9LwgMZ/3vF2UCSgUMtWHu1KJikA2pY0F++TRteBlnnerbxxBNZP5QlaCVn6js=
 install:
   - ps: >-
       $file = "./Api/appsettings.Production.json";
-      (Get-Content $file).Replace("{db_server}", $env:db_server).Replace("{db_name}", $env:db_name).Replace("{db_username}", $env:db_username).Replace("{db_password}", $env:db_password) | Set-Content $file
+      (Get-Content $file).Replace("{db_server}", $env:db_server).Replace("{db_name}", $env:db_name).Replace("{db_username}", $env:db_username).Replace("{db_password}", $env:db_password).Replace("{clave_secreta_jwt}", $env:clave_secreta_jwt) | Set-Content $file
 build_script:
   - cmd: dotnet publish --framework net8.0 /p:EnvironmentName=Production --self-contained true -r win-x64 Api --output %appveyor_build_folder%\dist
 test_script:
