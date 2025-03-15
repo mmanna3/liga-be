@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Api.Core.DTOs;
 using Api.Core.Entidades;
+using Api.Core.Servicios;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,13 +21,20 @@ public class AuthIT : TestBase
 
     private void SeedData(AppDbContext context)
     {
-        // Crear un usuario de prueba
+        // Limpiar usuarios existentes para evitar conflictos
+        var existingUsers = context.Usuarios.Where(u => u.NombreUsuario == "test").ToList();
+        if (existingUsers.Any())
+        {
+            context.Usuarios.RemoveRange(existingUsers);
+            context.SaveChanges();
+        }
+        
+        // Crear un usuario de prueba con contraseña hasheada
         var usuario = new Usuario
         {
-            Id = 0,
+            Id = 999, // ID único para tests
             NombreUsuario = "test",
-            Password = "test123",
-            Rol = "Usuario"
+            Password = AuthService.HashPassword("test123") // Usar BCrypt para hashear la contraseña
         };
         
         context.Usuarios.Add(usuario);

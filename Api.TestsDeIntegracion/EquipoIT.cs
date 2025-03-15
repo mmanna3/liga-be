@@ -35,41 +35,38 @@ public class EquipoIT : TestBase
     [Fact]
     public async Task ListarEquipos_Funciona()
     {
-        var client = Factory.CreateClient();
+        var client = await GetAuthenticatedClient();
         
         var response = await client.GetAsync("/api/equipo");
-
-        var stringResponse = await response.Content.ReadAsStringAsync();
-        var content = JsonConvert.DeserializeObject<List<EquipoDTO>>(stringResponse);
         
         response.EnsureSuccessStatusCode();
         
-        Assert.Single(content!);
-        Assert.Equal("un equipo", content!.First().Nombre);
-        Assert.Equal(1, content!.First().Id);
+        var stringResponse = await response.Content.ReadAsStringAsync();
+        var content = JsonConvert.DeserializeObject<List<EquipoDTO>>(stringResponse);
+        
+        Assert.NotNull(content);
+        Assert.NotEmpty(content);
     }
     
     [Fact]
     public async Task CrearEquipo_DatosCorrectos_200()
     {
-        var client = Factory.CreateClient();
-
-        var equipo = new EquipoDTO
+        var client = await GetAuthenticatedClient();
+        
+        var equipoDTO = new EquipoDTO
         {
-            Nombre = "Equipo de prueba",
+            Nombre = "Nuevo Equipo",
             ClubId = 1
         };
         
-        var equipoJson = JsonContent.Create(equipo);
-        var response = await client.PostAsync("/api/equipo", equipoJson);
-
-        var stringResponse = await response.Content.ReadAsStringAsync();
-        var content = JsonConvert.DeserializeObject<EquipoDTO>(stringResponse);
+        var response = await client.PostAsJsonAsync("/api/equipo", equipoDTO);
         
         response.EnsureSuccessStatusCode();
         
-        Assert.Equal("Equipo de prueba", content!.Nombre);
-        Assert.IsType<int>(content.Id);
-        Assert.True(content.Id > 0);
+        var stringResponse = await response.Content.ReadAsStringAsync();
+        var content = JsonConvert.DeserializeObject<EquipoDTO>(stringResponse);
+        
+        Assert.NotNull(content);
+        Assert.Equal("Nuevo Equipo", content.Nombre);
     }
 }

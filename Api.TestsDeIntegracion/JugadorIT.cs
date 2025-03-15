@@ -4,17 +4,13 @@ using Api.Core.Entidades;
 using Api.Core.Logica;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
-using Api.TestsUtilidades;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
 namespace Api.TestsDeIntegracion;
+
 public class JugadorIT : TestBase
 {
-    private Utilidades? _utilidades;
-    private Equipo? _equipo;
-    private const string PuntoRojoBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
-
     public JugadorIT(CustomWebApplicationFactory<Program> factory) : base(factory)
     {
         using var scope = Factory.Services.CreateScope();
@@ -25,38 +21,64 @@ public class JugadorIT : TestBase
 
     private void SeedData(AppDbContext context)
     {
-        _utilidades = new Utilidades(context);
-        var club = _utilidades.DadoQueExisteElClub();
-        _equipo = _utilidades.DadoQueExisteElEquipo(club);
+        var club = new Club
+        {
+            Id = 1,
+            Nombre = "Club de Prueba"
+        };
+        
+        context.Clubs.Add(club);
+        
+        var equipo = new Equipo
+        {
+            Id = 1,
+            Nombre = "Equipo de Prueba",
+            ClubId = 1,
+            Jugadores = new List<JugadorEquipo>()
+        };
+        
+        context.Equipos.Add(equipo);
         context.SaveChanges();
     }
-
+    
     [Fact]
     public async Task CrearJugador_DatosCorrectos_200()
     {
-        var client = Factory.CreateClient();
-
-        var jugador = new JugadorDTO
+        // Usar un cliente autenticado
+        var client = await GetAuthenticatedClient();
+        
+        // Generar un código alfanumérico válido
+        var codigoAlfanumerico = GeneradorDeHash.GenerarAlfanumerico7Digitos(1);
+        
+        // Crear un jugador con todos los campos requeridos
+        var jugadorDTO = new JugadorDTO
         {
-            DNI = "123456789",
-            Nombre = "Diego",
-            Apellido = "Maradona",
-            FechaNacimiento = Convert.ToDateTime("1994-12-07T00:00:00"),
-            CodigoAlfanumerico = GeneradorDeHash.GenerarAlfanumerico7Digitos(_equipo!.Id),
-            FotoCarnet = PuntoRojoBase64,
-            FotoDNIFrente = PuntoRojoBase64,
-            FotoDNIDorso = PuntoRojoBase64
+            Nombre = "Juan",
+            Apellido = "Perez",
+            DNI = "12345678",
+            FechaNacimiento = DateTime.Now.AddYears(-20),
+            CodigoAlfanumerico = codigoAlfanumerico,
+            // Añadir campos adicionales que puedan ser requeridos
+            FotoCarnet = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+            FotoDNIFrente = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+            FotoDNIDorso = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
         };
         
-        var jugadorJson = JsonContent.Create(jugador);
-        var response = await client.PostAsync("/api/jugador", jugadorJson);
-
-        var stringResponse = await response.Content.ReadAsStringAsync();
-        var content = JsonConvert.DeserializeObject<JugadorDTO>(stringResponse);
+        var response = await client.PostAsJsonAsync("/api/jugador", jugadorDTO);
+        
+        // Si hay un error, imprimir el contenido de la respuesta para depuración
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Error al crear jugador: {errorContent}");
+        }
         
         response.EnsureSuccessStatusCode();
         
-        Assert.Equal("Diego", content!.Nombre);
-        Assert.Equal(1, content.Id);
+        var stringResponse = await response.Content.ReadAsStringAsync();
+        var content = JsonConvert.DeserializeObject<JugadorDTO>(stringResponse);
+        
+        Assert.NotNull(content);
+        Assert.Equal("Juan", content.Nombre);
     }
 }

@@ -14,7 +14,7 @@ public class ABMControllers : TestBase
     [InlineData("club")]
     public async Task Get_en_ABMEndpoints_Devuelve_Success(string endpoint)
     {
-        var client = Factory.CreateClient();
+        var client = await GetAuthenticatedClient();
         
         var response = await client.GetAsync($"/api/{endpoint}");
         
