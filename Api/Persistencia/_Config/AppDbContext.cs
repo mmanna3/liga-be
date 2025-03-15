@@ -1,4 +1,5 @@
 using Api.Core.Entidades;
+using Api.Core.Servicios;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.Persistencia._Config;
@@ -36,14 +37,14 @@ public class AppDbContext : DbContext
             new Usuario 
             { 
                 Id = 1, 
-                NombreUsuario = "admin", 
-                Password = "admin123"
+                NombreUsuario = "mati", 
+                Password = AuthService.HashPassword("mandarina1")
             },
             new Usuario 
             { 
                 Id = 2, 
-                NombreUsuario = "usuario", 
-                Password = "usuario123"
+                NombreUsuario = "pipa", 
+                Password = AuthService.HashPassword("edefiliga")
             }
         );
     }

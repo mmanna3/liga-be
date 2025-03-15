@@ -4,6 +4,7 @@ using System.Text;
 using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Persistencia._Config;
+using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -35,7 +36,7 @@ public class AuthService : IAuthService
             };
         }
 
-        // Verificar la contraseña
+        // Verificar la contraseña usando BCrypt
         if (!VerificarPasswordHash(dto.Password, usuario.Password))
         {
             return new LoginResponseDTO
@@ -60,7 +61,6 @@ public class AuthService : IAuthService
         var claims = new List<Claim>
         {
             new (ClaimTypes.Name, usuario.NombreUsuario),
-            new (ClaimTypes.Role, usuario.Rol),
             new (ClaimTypes.NameIdentifier, usuario.Id.ToString())
         };
 
@@ -92,8 +92,22 @@ public class AuthService : IAuthService
 
     private bool VerificarPasswordHash(string password, string passwordHash)
     {
-        // En un entorno real, deberías usar BCrypt o similar
-        // Para simplificar, usamos una comparación directa en este ejemplo
-        return passwordHash == password;
+        // Verificar la contraseña usando BCrypt
+        try
+        {
+            return BCrypt.Net.BCrypt.Verify(password, passwordHash);
+        }
+        catch
+        {
+            // Si hay un error (por ejemplo, el hash no está en formato BCrypt),
+            // devolver false para indicar que la contraseña es incorrecta
+            return false;
+        }
+    }
+    
+    // Método auxiliar para generar hash de contraseñas (útil para crear usuarios)
+    public static string HashPassword(string password)
+    {
+        return BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt(12));
     }
 } 
