@@ -3,6 +3,7 @@ using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Core.Logica;
 using AutoMapper;
+using System.Linq;
 
 namespace Api._Config;
 
@@ -37,7 +38,7 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Nombre, x => x.MapFrom(src => src.Equipo.Nombre))
             .ForMember(dest => dest.Club, x => x.MapFrom(src => src.Equipo.Club.Nombre))
             .ForMember(dest => dest.Estado, x => x.MapFrom(src => src.EstadoJugador.Id))
-            .ForMember(dest => dest.FechaPagoDeFichaje, x => x.MapFrom(src => src.HistorialDePagos.Fecha))
+            .ForMember(dest => dest.FechaPagoDeFichaje, opt => opt.MapFrom<FechaPagoResolver>())
             .ForMember(dest => dest.Motivo, x => x.MapFrom(src => src.Motivo))
             .PreserveReferences().ReverseMap();
         
@@ -47,7 +48,7 @@ public class MapperConfig : Profile
             .PreserveReferences().ReverseMap();
         
         CreateMap<JugadorEquipo, JugadorEquipoDTO>().PreserveReferences().ReverseMap();
-        CreateMap<EstadoJugadorDTO, EstadoJugadorDTO>().PreserveReferences().ReverseMap();
+        CreateMap<EstadoJugador, EstadoJugadorDTO>().PreserveReferences().ReverseMap();
         
         CreateMap<JugadorEquipo, EquipoDTO>()
             .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Equipo.Nombre))
@@ -56,5 +57,16 @@ public class MapperConfig : Profile
         // CreateMap<string, DateTime>().ConvertUsing(s => 
         //     DateTime.ParseExact(s, "dd-MM-yyyy", CultureInfo.InvariantCulture)
         // );
+    }
+}
+
+public class FechaPagoResolver : IValueResolver<JugadorEquipo, EquipoDelJugadorDTO, DateTime?>
+{
+    public DateTime? Resolve(JugadorEquipo source, EquipoDelJugadorDTO destination, DateTime? destMember, ResolutionContext context)
+    {
+        if (source.HistorialDePagos == null)
+            return null;
+            
+        return source.HistorialDePagos.Fecha;
     }
 }

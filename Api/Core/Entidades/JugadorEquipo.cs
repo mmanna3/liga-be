@@ -15,7 +15,7 @@ public class JugadorEquipo : Entidad
     
     public int EstadoJugadorId { get; set; }
     public virtual EstadoJugador EstadoJugador { get; set; } = null!;
-    public virtual HistorialDePagos HistorialDePagos { get; set; } = null!;
+    public virtual HistorialDePagos? HistorialDePagos { get; set; }
 
     [MaxLength(250)]
     public string? Motivo { get; set; }

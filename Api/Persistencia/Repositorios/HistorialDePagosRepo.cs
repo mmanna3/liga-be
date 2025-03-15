@@ -17,13 +17,26 @@ public class HistorialDePagosRepo : IHistorialDePagosRepo
 
     public async Task RegistrarPago(int jugadorEquipoId)
     {
-        var pago = new HistorialDePagos
+        var pagoExistente = await _context.HistorialDePagos
+            .FirstOrDefaultAsync(h => h.JugadorEquipoId == jugadorEquipoId);
+        
+        if (pagoExistente != null)
         {
-            JugadorEquipoId = jugadorEquipoId,
-            Fecha = DateTime.Now
-        };
+            // Si ya existe un pago, actualizamos la fecha
+            pagoExistente.Fecha = DateTime.Now;
+            _context.HistorialDePagos.Update(pagoExistente);
+        }
+        else
+        {
+            // Si no existe, creamos uno nuevo
+            var pago = new HistorialDePagos
+            {
+                JugadorEquipoId = jugadorEquipoId,
+                Fecha = DateTime.Now
+            };
 
-        await _context.HistorialDePagos.AddAsync(pago);
+            await _context.HistorialDePagos.AddAsync(pago);
+        }
     }
 
     public async Task<IEnumerable<ReportePagosDTO>> ObtenerPagosPorMesYEquipo(int? mes, int? anio)
@@ -55,5 +68,11 @@ public class HistorialDePagosRepo : IHistorialDePagosRepo
             .ToListAsync();
 
         return resultado;
+    }
+
+    public HistorialDePagos? ObtenerPagoPorJugadorEquipoId(int jugadorEquipoId)
+    {
+        return _context.HistorialDePagos
+            .FirstOrDefault(h => h.JugadorEquipoId == jugadorEquipoId);
     }
 } 

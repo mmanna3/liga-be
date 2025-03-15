@@ -11,5 +11,5 @@ public class EquipoDelJugadorDTO : DTO
     public EstadoJugadorEnum Estado { get; set; }
     
     public string? Motivo { get; set; } = string.Empty;
-    public DateTime FechaPagoDeFichaje { get; set; }
+    public DateTime? FechaPagoDeFichaje { get; set; }
 }

@@ -33,6 +33,11 @@ public class AppDbContext : DbContext
             .HasIndex(u => u.NombreUsuario)
             .IsUnique();
         
+        builder.Entity<JugadorEquipo>()
+            .HasOne(je => je.HistorialDePagos)
+            .WithOne(hp => hp.JugadorEquipo)
+            .HasForeignKey<HistorialDePagos>(hp => hp.JugadorEquipoId);
+        
         builder.Entity<Usuario>().HasData(
             new Usuario 
             { 
