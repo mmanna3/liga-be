@@ -8,5 +8,8 @@ public class EquipoDTO : DTO
     public string? CodigoAlfanumerico { get; set; }
     public string? ClubNombre { get; set; }
     
+    public int? TorneoId { get; set; }
+    public string? TorneoNombre { get; set; }
+    
     public ICollection<JugadorDelEquipoDTO>? Jugadores { get; set; }
 }
