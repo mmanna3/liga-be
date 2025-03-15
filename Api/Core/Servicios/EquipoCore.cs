@@ -14,6 +14,29 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
     {
     }
 
+    protected override async Task<Equipo> AntesDeCrear(EquipoDTO dto, Equipo entidad)
+    {
+        // Verificar si ya existe un equipo con el mismo nombre en el mismo torneo
+        if (await Repo.ExisteEquipoConMismoNombreEnTorneo(entidad.Nombre, entidad.TorneoId))
+        {
+            throw new ExcepcionControlada("Ya existe un equipo con el mismo nombre en este torneo.");
+        }
+        
+        return await base.AntesDeCrear(dto, entidad);
+    }
+
+    protected override async Task<int> AntesDeModificar(int id, EquipoDTO dto, Equipo entidadAnterior, Equipo entidadNueva)
+    {
+        // Si el nombre o el torneo cambiaron, verificar que no exista otro equipo con el mismo nombre en el mismo torneo
+        if ((entidadAnterior.Nombre != entidadNueva.Nombre || entidadAnterior.TorneoId != entidadNueva.TorneoId) && 
+            await Repo.ExisteEquipoConMismoNombreEnTorneo(entidadNueva.Nombre, entidadNueva.TorneoId, id))
+        {
+            throw new ExcepcionControlada("Ya existe un equipo con el mismo nombre en este torneo.");
+        }
+
+        return await base.AntesDeModificar(id, dto, entidadAnterior, entidadNueva);
+    }
+
     public async Task<ObtenerNombreEquipoDTO> ObtenerNombrePorCodigoAlfanumerico(string codigoAlfanumerico)
     {
         int id;

@@ -59,7 +59,7 @@ public abstract class ABMCore<TRepo, TEntidad, TDTO> : ICoreABM<TDTO>
         return dto;
     }
 
-    public async Task<int> Modificar(int id, TDTO nuevo)
+    public virtual async Task<int> Modificar(int id, TDTO nuevo)
     {
         var entidadAnterior = await Repo.ObtenerPorId(id);
         if (entidadAnterior == null)
@@ -69,9 +69,15 @@ public abstract class ABMCore<TRepo, TEntidad, TDTO> : ICoreABM<TDTO>
         if (entidadNueva == null)
             throw new ExcepcionControlada("Hubo un problema mapeando la entidad");
         
+        await AntesDeModificar(id, nuevo, entidadAnterior, entidadNueva);
+        
         Repo.Modificar(entidadAnterior, entidadNueva);
         await BDVirtual.GuardarCambios();
         return id;    
-        
+    }
+    
+    protected virtual Task<int> AntesDeModificar(int id, TDTO dto, TEntidad entidadAnterior, TEntidad entidadNueva)
+    {
+        return Task.FromResult(id);
     }
 }
