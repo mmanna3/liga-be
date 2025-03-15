@@ -71,7 +71,7 @@ deploy:
 
 after_deploy:
   # Eliminar el archivo app_offline.htm de ambos servidores después del despliegue
-  - ps: >-
+  - ps: |
       # Función para eliminar app_offline.htm usando WebDeploy
       function Remove-AppOffline {
         param (
@@ -84,14 +84,7 @@ after_deploy:
         Write-Host "Eliminando app_offline.htm del servidor $server, sitio $site..."
         
         # Crear un archivo temporal con la configuración de MSDeploy
-        $msdeployParams = @"
-        -verb:delete 
-        -dest:contentPath="$site/app_offline.htm",
-        computerName="$server",
-        username="$username",
-        password="$password",
-        authType="Basic"
-        "@
+        $msdeployParams = "-verb:delete -dest:contentPath=""$site/app_offline.htm"",computerName=""$server"",username=""$username"",password=""$password"",authType=""Basic"""
         
         # Ejecutar MSDeploy para eliminar el archivo
         $msdeployPath = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
