@@ -112,21 +112,31 @@ after_deploy:
           }
         }
         
-        # Intentar reiniciar la aplicación
+        # En lugar de reiniciar la aplicación, vamos a "despertarla" haciendo una solicitud HTTP
         try {
-          Write-Host "Intentando reiniciar la aplicación en $site..."
-          $msdeployParams = "-verb:sync -source:recycleApp -dest:recycleApp=""$site"",computerName=""$server"",username=""$username"",password=""$password"",authType=""Basic"" -allowUntrusted"
-          & $msdeployPath $msdeployParams.Split() | Out-Host
+          # Extraer el nombre del servidor del computerName (quitando https:// si existe)
+          $serverName = $server -replace "https?://", ""
           
-          if ($LASTEXITCODE -eq 0) {
-            Write-Host "Aplicación reiniciada exitosamente en $site"
+          # Construir la URL de la aplicación
+          $appUrl = "https://$serverName"
+          
+          Write-Host "Intentando despertar la aplicación haciendo una solicitud a $appUrl..."
+          
+          # Hacer una solicitud HTTP para "despertar" la aplicación
+          $webClient = New-Object System.Net.WebClient
+          $webClient.Headers.Add("User-Agent", "AppVeyor-Deploy-Script")
+          
+          try {
+            $response = $webClient.DownloadString($appUrl)
+            Write-Host "Solicitud HTTP exitosa a $appUrl"
           }
-          else {
-            Write-Warning "No se pudo reiniciar la aplicación en $site. Código de salida: $LASTEXITCODE"
+          catch [System.Net.WebException] {
+            # Incluso si hay un error HTTP, la solicitud puede haber "despertado" la aplicación
+            Write-Host "La solicitud HTTP a $appUrl devolvió un error, pero puede haber despertado la aplicación: $($_.Exception.Message)"
           }
         }
         catch {
-          Write-Warning "Error al intentar reiniciar la aplicación: $_"
+          Write-Warning "Error al intentar despertar la aplicación: $_"
         }
         
         if ($success) {
@@ -142,6 +152,9 @@ after_deploy:
       
       # Eliminar app_offline.htm del primer servidor
       Remove-AppOffline -server $env:deploy_publish_url_1 -site $env:ms_deploy_site_1 -username $env:deploy_username -password $env:deploy_password
+      
+      # Esperar un momento entre servidores
+      Start-Sleep -Seconds 5
       
       # Eliminar app_offline.htm del segundo servidor
       Remove-AppOffline -server $env:deploy_publish_url_2 -site $env:ms_deploy_site_2 -username $env:deploy_username -password $env:deploy_password
