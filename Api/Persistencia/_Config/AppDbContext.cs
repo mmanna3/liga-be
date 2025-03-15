@@ -27,6 +27,25 @@ public class AppDbContext : DbContext
         builder.Entity<Jugador>()
             .HasIndex(u => u.DNI)
             .IsUnique();
+        
+        builder.Entity<Usuario>()
+            .HasIndex(u => u.NombreUsuario)
+            .IsUnique();
+        
+        builder.Entity<Usuario>().HasData(
+            new Usuario 
+            { 
+                Id = 1, 
+                NombreUsuario = "admin", 
+                Password = "admin123"
+            },
+            new Usuario 
+            { 
+                Id = 2, 
+                NombreUsuario = "usuario", 
+                Password = "usuario123"
+            }
+        );
     }
     
     public DbSet<Club> Clubs { get; set; } = null!;
@@ -35,4 +54,5 @@ public class AppDbContext : DbContext
     public DbSet<Jugador> Jugadores { get; set; } = null!;
     public DbSet<JugadorEquipo> JugadorEquipo { get; set; } = null!;
     public DbSet<EstadoJugador> EstadoJugador { get; set; } = null!;
+    public DbSet<Usuario> Usuarios { get; set; } = null!;
 }

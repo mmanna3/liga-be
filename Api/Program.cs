@@ -58,6 +58,8 @@ try
     app.UseDefaultFiles();
     app.UseStaticFiles();
 
+    // Habilitar la autenticación y autorización
+    app.UseAuthentication();
     app.UseAuthorization();
 
     app.MapControllers();

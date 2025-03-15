@@ -1,11 +1,13 @@
 using Api.Core.DTOs;
 using Api.Core.Servicios.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers
 {
     [Route("api/publico")]
     [ApiController]
+    [AllowAnonymous]
     public class PublicoController : ControllerBase
     {
         private readonly IPublicoCore _core;

@@ -1,5 +1,6 @@
 using Api.Core.DTOs;
 using Api.Core.Servicios.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +8,7 @@ namespace Api.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public abstract class ABMController<TDTO, TCore> : ControllerBase
     where TDTO : DTO
     where TCore : ICoreABM<TDTO>
