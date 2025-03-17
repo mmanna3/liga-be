@@ -7,6 +7,7 @@ using Api.Persistencia.Repositorios;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using AutoMapper;
 
 namespace Api._Config;
 
@@ -29,7 +30,14 @@ public static class InyeccionDeDependenciasConfig
         builder.Services.AddScoped<ITorneoCore, TorneoCore>();
         
         builder.Services.AddScoped<IDelegadoRepo, DelegadoRepo>();
-        builder.Services.AddScoped<IDelegadoCore, DelegadoCore>();
+        builder.Services.AddScoped<IDelegadoCore>(sp => 
+            new DelegadoCore(
+                sp.GetRequiredService<IBDVirtual>(),
+                sp.GetRequiredService<IDelegadoRepo>(),
+                sp.GetRequiredService<IMapper>(),
+                sp.GetRequiredService<AppDbContext>()
+            )
+        );
         
         builder.Services.AddScoped<IHistorialDePagosRepo, HistorialDePagosRepo>();
         builder.Services.AddScoped<IReporteCore, ReporteCore>();

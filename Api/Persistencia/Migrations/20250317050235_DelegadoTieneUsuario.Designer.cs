@@ -4,6 +4,7 @@ using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250317050235_DelegadoTieneUsuario")]
+    partial class DelegadoTieneUsuario
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -275,6 +278,7 @@ namespace Api.Migrations
                         .HasColumnType("nvarchar(14)");
 
                     b.Property<string>("Password")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
@@ -290,13 +294,13 @@ namespace Api.Migrations
                         {
                             Id = 1,
                             NombreUsuario = "mati",
-                            Password = "$2a$12$d4jBzxzvym4tDVy2IZciOuJw3jkQCVbMzKc745WSlsLRiwJPtlPwe"
+                            Password = "$2a$12$eApHtnPNGVPdlZXTQe7A5uN4eZ9zHjfZcoCKKACdOcQbiGWrLXZI."
                         },
                         new
                         {
                             Id = 2,
                             NombreUsuario = "pipa",
-                            Password = "$2a$12$9UEoU8fizncf8D/wTB7fmu4YBwnUkC4d4Bw8r4Dd5nGIQLQyIxe2y"
+                            Password = "$2a$12$miPry4RRyPtzE7k1gnmj2Oc/RZxJjsgYk2s9AiqkohOhRjniLiyCG"
                         });
                 });
 
