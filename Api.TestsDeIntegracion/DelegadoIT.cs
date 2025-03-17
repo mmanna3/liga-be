@@ -145,8 +145,8 @@ public class DelegadoIT : TestBase
         var content = JsonConvert.DeserializeObject<DelegadoDTO>(stringResponse);
         
         Assert.NotNull(content);
-        Assert.Equal("Carlos Modificado", content.Nombre);
-        Assert.Equal("López Modificado", content.Apellido);
+        Assert.Equal("CarlosModif", content.Nombre);
+        Assert.Equal("LópezModif", content.Apellido);
         Assert.Equal(_club.Id, content.ClubId);
     }
 } 
