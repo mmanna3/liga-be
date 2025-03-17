@@ -46,6 +46,13 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         return texto.Replace(" ", "");
     }
 
+    protected override Task<Delegado> AntesDeModificar(int id, DelegadoDTO dto, Delegado entidadAnterior, Delegado entidadNueva)
+    {
+        entidadNueva.Usuario = null!;
+        entidadNueva.UsuarioId = entidadAnterior.UsuarioId;
+        return Task.FromResult(entidadNueva);
+    }
+    
     protected override async Task<Delegado> AntesDeCrear(DelegadoDTO dto, Delegado entidad)
     {
         var nombreUsuario = ObtenerNombreUsuario(dto);

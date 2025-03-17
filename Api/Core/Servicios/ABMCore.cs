@@ -75,8 +75,8 @@ public abstract class ABMCore<TRepo, TEntidad, TDTO> : ICoreABM<TDTO>
         return id;    
     }
     
-    protected virtual Task<int> AntesDeModificar(int id, TDTO dto, TEntidad entidadAnterior, TEntidad entidadNueva)
+    protected virtual Task<TEntidad> AntesDeModificar(int id, TDTO dto, TEntidad entidadAnterior, TEntidad entidadNueva)
     {
-        return Task.FromResult(id);
+        return Task.FromResult(entidadNueva);
     }
 }

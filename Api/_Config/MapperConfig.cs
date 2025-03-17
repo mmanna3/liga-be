@@ -44,11 +44,12 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.FechaPagoDeFichaje, opt => opt.MapFrom<FechaPagoResolver>())
             .ForMember(dest => dest.Motivo, x => x.MapFrom(src => src.Motivo))
             .PreserveReferences().ReverseMap();
-        
+
         CreateMap<Delegado, DelegadoDTO>()
             .ForMember(dest => dest.NombreUsuario, x => x.MapFrom(src => src.Usuario.NombreUsuario))
             .PreserveReferences()
             .ReverseMap();
+        
         
         CreateMap<Jugador, JugadorDTO>()
             .ForMember(dest => dest.Equipos, x => x.MapFrom(src => src.JugadorEquipos))

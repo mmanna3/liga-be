@@ -25,7 +25,7 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
         return await base.AntesDeCrear(dto, entidad);
     }
 
-    protected override async Task<int> AntesDeModificar(int id, EquipoDTO dto, Equipo entidadAnterior, Equipo entidadNueva)
+    protected override async Task<Equipo> AntesDeModificar(int id, EquipoDTO dto, Equipo entidadAnterior, Equipo entidadNueva)
     {
         // Si el nombre o el torneo cambiaron, verificar que no exista otro equipo con el mismo nombre en el mismo torneo
         if ((entidadAnterior.Nombre != entidadNueva.Nombre || entidadAnterior.TorneoId != entidadNueva.TorneoId) && 
