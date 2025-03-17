@@ -39,7 +39,7 @@ public abstract class TestBase
         {
             Id = 999, // ID único para tests
             NombreUsuario = "test",
-            Password = AuthService.HashPassword("test123") // Usar BCrypt para hashear la contraseña
+            Password = AuthCore.HashPassword("test123") // Usar BCrypt para hashear la contraseña
         };
         
         context.Usuarios.Add(usuario);

@@ -40,7 +40,7 @@ public static class InyeccionDeDependenciasConfig
         builder.Services.AddScoped<AppPaths, AppPathsWebApp>();
         
         // Registrar el servicio de autenticación
-        builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<IAuthService, AuthCore>();
         
         // Configurar la autenticación JWT
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

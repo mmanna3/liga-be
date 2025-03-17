@@ -4,19 +4,17 @@ using System.Text;
 using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Persistencia._Config;
-using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Api.Core.Servicios;
 
-public class AuthService : IAuthService
+public class AuthCore : IAuthService
 {
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
 
-    public AuthService(AppDbContext context, IConfiguration configuration)
+    public AuthCore(AppDbContext context, IConfiguration configuration)
     {
         _context = context;
         _configuration = configuration;

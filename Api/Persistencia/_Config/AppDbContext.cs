@@ -43,13 +43,13 @@ public class AppDbContext : DbContext
             { 
                 Id = 1, 
                 NombreUsuario = "mati", 
-                Password = AuthService.HashPassword("mandarina1")
+                Password = AuthCore.HashPassword("mandarina1")
             },
             new Usuario 
             { 
                 Id = 2, 
                 NombreUsuario = "pipa", 
-                Password = AuthService.HashPassword("edefiliga")
+                Password = AuthCore.HashPassword("edefiliga")
             }
         );
     }
