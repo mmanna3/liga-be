@@ -8,4 +8,5 @@ public class ClubDTO : DTO
     public required string Nombre { get; set; }
     
     public ICollection<EquipoDTO>? Equipos { get; set; }
+    public ICollection<DelegadoDTO>? Delegados { get; set; }
 }

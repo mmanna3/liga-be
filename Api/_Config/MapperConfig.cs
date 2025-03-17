@@ -11,7 +11,10 @@ public class MapperConfig : Profile
 {
     public MapperConfig()
     {   
-        CreateMap<Club, ClubDTO>().PreserveReferences().ReverseMap();
+        CreateMap<Club, ClubDTO>()
+            // .ForMember(dest => dest.Equipos, opt => opt.MapFrom(src => src.Equipos))
+            // .ForMember(dest => dest.Delegados, opt => opt.MapFrom(src => src.Delegados))
+            .PreserveReferences().ReverseMap();
         CreateMap<Torneo, TorneoDTO>().PreserveReferences().ReverseMap();
 
         CreateMap<Equipo, EquipoDTO>()
@@ -42,7 +45,11 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Motivo, x => x.MapFrom(src => src.Motivo))
             .PreserveReferences().ReverseMap();
         
-        CreateMap<Delegado, DelegadoDTO>().PreserveReferences().ReverseMap();
+        CreateMap<Delegado, DelegadoDTO>()
+            .ForMember(dest => dest.Password, opt => opt.Ignore())
+            .PreserveReferences()
+            .ReverseMap();
+        
         CreateMap<Jugador, JugadorDTO>()
             .ForMember(dest => dest.Equipos, x => x.MapFrom(src => src.JugadorEquipos))
             .PreserveReferences().ReverseMap();
