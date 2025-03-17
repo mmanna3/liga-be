@@ -67,6 +67,15 @@ public class DelegadoIT : TestBase
         Assert.Equal("Juan", content.Nombre);
         Assert.Equal("Pérez", content.Apellido);
         Assert.Equal(_club.Id, content.ClubId);
+
+        // Verificar el nombre de usuario generado
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var delegado = await context.Delegados.FindAsync(content.Id);
+        var usuario = await context.Usuarios.FindAsync(delegado!.UsuarioId);
+        
+        Assert.NotNull(usuario);
+        Assert.Equal("jperez", usuario.NombreUsuario);
     }
 
     [Fact]
@@ -120,8 +129,8 @@ public class DelegadoIT : TestBase
         var delegadoModificadoDTO = new DelegadoDTO
         {
             Id = createContent!.Id,
-            Nombre = "Carlos Modificado",
-            Apellido = "López Modificado",
+            Nombre = "CarlosModif",
+            Apellido = "LópezModif",
             ClubId = _club.Id
         };
         

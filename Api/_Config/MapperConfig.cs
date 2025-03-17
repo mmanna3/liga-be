@@ -46,6 +46,7 @@ public class MapperConfig : Profile
             .PreserveReferences().ReverseMap();
         
         CreateMap<Delegado, DelegadoDTO>()
+            .ForMember(dest => dest.NombreUsuario, x => x.MapFrom(src => src.Usuario.NombreUsuario))
             .PreserveReferences()
             .ReverseMap();
         
