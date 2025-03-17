@@ -5,6 +5,7 @@ using Api.Core.Servicios.Interfaces;
 using AutoMapper;
 using System.Text;
 using Api.Persistencia._Config;
+using Microsoft.EntityFrameworkCore;
 
 namespace Api.Core.Servicios;
 
@@ -59,5 +60,26 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         entidad.UsuarioId = usuario.Id;
         
         return entidad;
+    }
+
+    protected override async Task<int> AntesDeModificar(int id, DelegadoDTO dto, Delegado entidadAnterior, Delegado entidadNueva)
+    {
+        // Mantener el mismo UsuarioId que tenía antes
+        entidadNueva.UsuarioId = entidadAnterior.UsuarioId;
+        
+        // Actualizar el nombre de usuario
+        var nombreNormalizado = NormalizarTexto(dto.Nombre);
+        var apellidoNormalizado = NormalizarTexto(dto.Apellido);
+        var nombreUsuario = nombreNormalizado[0] + apellidoNormalizado;
+
+        var usuario = await _context.Usuarios.FindAsync(entidadAnterior.UsuarioId);
+        if (usuario != null)
+        {
+            usuario.NombreUsuario = nombreUsuario;
+            _context.Usuarios.Update(usuario);
+            await _context.SaveChangesAsync();
+        }
+
+        return id;
     }
 }
