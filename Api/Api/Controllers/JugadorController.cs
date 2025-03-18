@@ -2,6 +2,7 @@ using Api.Core.DTOs;
 using Api.Core.DTOs.CambiosDeEstadoJugador;
 using Api.Core.Enums;
 using Api.Core.Servicios.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers
@@ -10,6 +11,13 @@ namespace Api.Api.Controllers
     {
         public JugadorController(IJugadorCore core) : base(core)
         {
+        }
+        
+        [HttpPost]
+        [AllowAnonymous]
+        public override async Task<ActionResult<JugadorDTO>> Crear(JugadorDTO dto)
+        {
+            return await base.Crear(dto);
         }
         
         [HttpPost("aprobar-jugador")]

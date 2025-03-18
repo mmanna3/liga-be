@@ -41,7 +41,7 @@ public abstract class ABMController<TDTO, TCore> : ControllerBase
     
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPost]
-    public async Task<ActionResult<TDTO>> Crear(TDTO dto)
+    public virtual async Task<ActionResult<TDTO>> Crear(TDTO dto)
     {
         var id = await Core.Crear(dto); //Podría devolver el objeto creado en vez de el Id
         dto.Id = id;
