@@ -34,12 +34,16 @@ public abstract class TestBase
             context.SaveChanges();
         }
         
-        // Crear un usuario de prueba con contraseña hasheada
+        // Obtener el rol de administrador (ya debe existir)
+        var rolAdmin = context.Roles.First(r => r.Nombre == "Administrador");
+        
+        // Crear un usuario de prueba con contraseña hasheada y rol de administrador
         var usuario = new Usuario
         {
             Id = 999, // ID único para tests
             NombreUsuario = "test",
-            Password = AuthCore.HashPassword("test123") // Usar BCrypt para hashear la contraseña
+            Password = AuthCore.HashPassword("test123"), // Usar BCrypt para hashear la contraseña
+            RolId = rolAdmin.Id
         };
         
         context.Usuarios.Add(usuario);

@@ -1,4 +1,5 @@
 using System.Data.Common;
+using Api.Core.Entidades;
 using Api.Persistencia._Config;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -35,6 +36,13 @@ public class CustomWebApplicationFactory<TProgram>
                 var connection = new SqliteConnection("DataSource=:memory:");
                 connection.Open();
 
+                // Create the schema and seed data in the database
+                using (var context = CreateDbContext(connection))
+                {
+                    context.Database.EnsureDeleted();
+                    context.Database.EnsureCreated();
+                }
+
                 return connection;
             });
 
@@ -46,5 +54,12 @@ public class CustomWebApplicationFactory<TProgram>
         });
 
         builder.UseEnvironment("Development");
+    }
+    
+    private static AppDbContext CreateDbContext(DbConnection connection)
+    {
+        var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+        optionsBuilder.UseSqlite(connection);
+        return new AppDbContext(optionsBuilder.Options);
     }
 }
