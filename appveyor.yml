@@ -16,7 +16,7 @@ environment:
     secure: kdhuPVSl0krNFGjfcNUmBMLohWaq8nbOx5Ven52IcoU=
   ms_deploy_site_2:
     secure: Pf9YKHPQdl46IZWXnY91FKlQ5RlIjuikjHk855wYG5Y=
-  db_server: 
+  db_server:
     secure: GENtSiIHJlcMVdOs9CjeQw==
   db_name:
     secure: WrPAgPpTyM3R6EL58lnCDg==
@@ -52,9 +52,7 @@ deploy:
     username: $(deploy_username)
     password: $(deploy_password)
     ntlm: false
-    # Usar la regla AppOffline para detener la aplicación durante el despliegue
-    app_offline: false
-    # Usar sincronización para asegurar que el archivo app_offline.htm vacío reemplace cualquier existente
+    app_offline: true
     sync: true
   - provider: WebDeploy
     remove_files: true
@@ -64,7 +62,5 @@ deploy:
     username: $(deploy_username)
     password: $(deploy_password)
     ntlm: false
-    # Usar la regla AppOffline para detener la aplicación durante el despliegue
-    app_offline: false
-    # Usar sincronización para asegurar que el archivo app_offline.htm vacío reemplace cualquier existente
+    app_offline: true
     sync: true
