@@ -23,6 +23,7 @@ public class AuthCore : IAuthService
     public async Task<LoginResponseDTO> Login(LoginDTO dto)
     {
         var usuario = await _context.Usuarios
+            .Include(u => u.Rol)
             .FirstOrDefaultAsync(u => u.NombreUsuario == dto.Usuario);
 
         if (usuario == null)
@@ -59,7 +60,8 @@ public class AuthCore : IAuthService
         var claims = new List<Claim>
         {
             new (ClaimTypes.Name, usuario.NombreUsuario),
-            new (ClaimTypes.NameIdentifier, usuario.Id.ToString())
+            new (ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+            new (ClaimTypes.Role, usuario.Rol.Nombre)
         };
 
         // Obtener la clave secreta de la configuración o usar una clave por defecto

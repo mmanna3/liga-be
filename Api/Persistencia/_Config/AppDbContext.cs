@@ -16,6 +16,16 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        
+        builder.Entity<Rol>().HasData(
+            new Rol { Id = 1, Nombre = "Administrador" },
+            new Rol { Id = 2, Nombre = "Usuario" }
+        );
+        
+        builder.Entity<Usuario>()
+            .Property(u => u.RolId)
+            .HasDefaultValue(1);
+            
         builder.Entity<EstadoJugador>().HasData(
             new EstadoJugador { Id = 1, Estado = "Fichaje pendiente de aprobación" },
             new EstadoJugador { Id = 2, Estado = "Fichaje rechazado" },
@@ -43,13 +53,15 @@ public class AppDbContext : DbContext
             { 
                 Id = 1, 
                 NombreUsuario = "mati", 
-                Password = AuthCore.HashPassword("mandarina1")
+                Password = AuthCore.HashPassword("mandarina1"),
+                RolId = 1
             },
             new Usuario 
             { 
                 Id = 2, 
                 NombreUsuario = "pipa", 
-                Password = AuthCore.HashPassword("edefiliga")
+                Password = AuthCore.HashPassword("edefiliga"),
+                RolId = 1
             }
         );
     }
@@ -61,6 +73,7 @@ public class AppDbContext : DbContext
     public DbSet<JugadorEquipo> JugadorEquipo { get; set; } = null!;
     public DbSet<EstadoJugador> EstadoJugador { get; set; } = null!;
     public DbSet<Usuario> Usuarios { get; set; } = null!;
+    public DbSet<Rol> Roles { get; set; } = null!;
     public DbSet<Torneo> Torneos { get; set; } = null!;
     public DbSet<HistorialDePagos> HistorialDePagos { get; set; } = null!;
 }

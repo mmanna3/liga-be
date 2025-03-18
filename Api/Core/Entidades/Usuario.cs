@@ -9,4 +9,7 @@ public class Usuario : Entidad
     
     [MaxLength(255)]
     public string? Password { get; set; }
+
+    public int RolId { get; set; }
+    public virtual Rol Rol { get; set; } = null!;
 } 

@@ -8,7 +8,7 @@ namespace Api.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
+[Authorize(Roles = "Administrador")]
 public abstract class ABMController<TDTO, TCore> : ControllerBase
     where TDTO : DTO
     where TCore : ICoreABM<TDTO>
@@ -43,7 +43,7 @@ public abstract class ABMController<TDTO, TCore> : ControllerBase
     [HttpPost]
     public virtual async Task<ActionResult<TDTO>> Crear(TDTO dto)
     {
-        var id = await Core.Crear(dto); //Podría devolver el objeto creado en vez de el Id
+        var id = await Core.Crear(dto);
         dto.Id = id;
 
         return Ok(dto);
@@ -63,13 +63,11 @@ public abstract class ABMController<TDTO, TCore> : ControllerBase
         }
         catch (Exception e) 
         {
-            if (e.GetType() == typeof(KeyNotFoundException))
+            if (e is DbUpdateConcurrencyException)
                 return NotFound();
-
-            return StatusCode(500, e.Message);
+            throw;
         }
 
-        return Ok(id);
+        return NoContent();
     }
-
 }
