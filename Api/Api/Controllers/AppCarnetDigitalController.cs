@@ -15,18 +15,26 @@ namespace Api.Api.Controllers
     [Authorize]
     public class AppCarnetDigitalController : ControllerBase
     {
+        private readonly IAppCarnetDigitalCore _core;
+
+        public AppCarnetDigitalController(IAppCarnetDigitalCore core)
+        {
+            _core = core;
+        }
+        
         [HttpGet("equipos-del-delegado")]
-        public async Task<ActionResult<string>> Equipos()
+        public async Task<ActionResult<EquiposDelDelegadoDTO>> Equipos()
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
             if (identity != null)
             {
                 var userClaims = identity.Claims;
-                var username = userClaims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
-
-                if (username != null)
+                var usuario = userClaims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+                
+                if (usuario != null)
                 {
-                    return Ok(username);
+                    var equipos = await _core.ObtenerEquiposPorUsuarioDeDelegado(usuario);
+                    return Ok(equipos);
                 }
             }
 

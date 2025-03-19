@@ -4,6 +4,7 @@ using Api.Core.Entidades;
 using Api.Core.Logica;
 using AutoMapper;
 using System.Linq;
+using Api.Core.DTOs.AppCarnetDigital;
 
 namespace Api._Config;
 
@@ -62,7 +63,10 @@ public class MapperConfig : Profile
         CreateMap<JugadorEquipo, EquipoDTO>()
             .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Equipo.Nombre))
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Equipo.Id));
-        
+
+        CreateMap<Equipo, EquipoBaseDTO>()
+            .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => src.Torneo!.Nombre));
+
         // CreateMap<string, DateTime>().ConvertUsing(s => 
         //     DateTime.ParseExact(s, "dd-MM-yyyy", CultureInfo.InvariantCulture)
         // );

@@ -18,4 +18,14 @@ public class DelegadoRepo : RepositorioABM<Delegado>, IDelegadoRepo
             .Include(x => x.Usuario)
             .AsQueryable();
     }
+    
+    public virtual async Task<Delegado> ObtenerPorUsuario(string usuario)
+    {
+        return await Set()
+            .AsNoTracking()
+            .Include(x => x.Club.Equipos)
+                .ThenInclude(x => x.Torneo)
+            .SingleOrDefaultAsync(x => x.Usuario.NombreUsuario == usuario) 
+               ?? throw new InvalidOperationException();
+    }
 }

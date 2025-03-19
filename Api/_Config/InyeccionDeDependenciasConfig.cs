@@ -49,6 +49,7 @@ public static class InyeccionDeDependenciasConfig
         
         // Registrar el servicio de autenticación
         builder.Services.AddScoped<IAuthService, AuthCore>();
+        builder.Services.AddScoped<IAppCarnetDigitalCore, AppCarnetDigitalCore>();
         
         // Configurar la autenticación JWT
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
