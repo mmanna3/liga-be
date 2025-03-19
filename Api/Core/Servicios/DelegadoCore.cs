@@ -85,4 +85,19 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         var nombreUsuario = nombreNormalizado[0] + apellidoNormalizado;
         return nombreUsuario;
     }
+
+    public async Task<bool> BlanquearClave(int id)
+    {
+        var delegado = await Repo.ObtenerPorId(id);
+
+        if (delegado != null)
+        {
+            delegado.Usuario.Password = null;
+            _context.Update(delegado);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        return false;
+    }
 }

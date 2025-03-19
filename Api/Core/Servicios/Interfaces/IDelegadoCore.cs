@@ -5,5 +5,5 @@ namespace Api.Core.Servicios.Interfaces;
 
 public interface IDelegadoCore : ICoreABM<DelegadoDTO>
 {
-    
+    Task<bool> BlanquearClave(int id);
 }
