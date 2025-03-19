@@ -6,5 +6,7 @@ public class DelegadoDTO : DTO
     public required string Apellido { get; set; }
     
     public string? NombreUsuario { get; set; }
+    
+    public bool BlanqueoPendiente { get; set; }
     public virtual required int ClubId { get; set; }
 }
