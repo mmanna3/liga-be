@@ -59,3 +59,8 @@ Agregar en la tabla usuario el NombreUsuario y el password obtenerlo así:
 ```
 AuthService.HashPassword("password")
 ```
+
+
+# En Hosting Plesk, configurar
+
+- Web application firewall (en el panel principal): Detection only (si no, no permite PUT y DELETE)
