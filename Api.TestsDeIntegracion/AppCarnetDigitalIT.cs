@@ -1,10 +1,10 @@
 using System.Net.Http.Json;
 using Api.Core.DTOs.AppCarnetDigital;
 using Api.Core.Entidades;
+using Api.Core.Enums;
 using Api.Core.Logica;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SkiaSharp;
 
@@ -120,27 +120,39 @@ public class AppCarnetDigitalIT : TestBase
     [Fact]
     public async Task Carnets_EquipoExistente_DevuelveCarnetsCorrectos()
     {
-        // Arrange
         var client = await GetAuthenticatedClient();
         
-        // Act
         var response = await client.GetAsync("/api/carnet-digital/carnets?equipoId=1");
         
-        // Assert
         response.EnsureSuccessStatusCode();
         
         var carnets = await response.Content.ReadFromJsonAsync<List<CarnetDigitalDTO>>();
         
         Assert.NotNull(carnets);
-        Assert.Equal(2, carnets.Count);
+        Assert.Single(carnets);
         
         var primerCarnet = carnets.First();
         Assert.Equal("Juan", primerCarnet.Nombre);
         Assert.Equal("Pérez", primerCarnet.Apellido);
         Assert.Equal("12345678", primerCarnet.DNI);
-        Assert.Equal(3, primerCarnet.Estado); // EstadoJugador.Activo
+        Assert.Equal((int)EstadoJugadorEnum.Activo, primerCarnet.Estado);
+    }
+    
+    [Fact]
+    public async Task JugadoresPendientes_EquipoExistente_DevuelveCarnetsCorrectos()
+    {
+        var client = await GetAuthenticatedClient();
         
-        var segundoCarnet = carnets.Last();
+        var response = await client.GetAsync("/api/carnet-digital/jugadores-pendientes?equipoId=1");
+        
+        response.EnsureSuccessStatusCode();
+        
+        var carnets = await response.Content.ReadFromJsonAsync<List<CarnetDigitalDTO>>();
+        
+        Assert.NotNull(carnets);
+        Assert.Single(carnets);
+        
+        var segundoCarnet = carnets.First();
         Assert.Equal("Pedro", segundoCarnet.Nombre);
         Assert.Equal("González", segundoCarnet.Apellido);
         Assert.Equal("87654321", segundoCarnet.DNI);
@@ -150,13 +162,18 @@ public class AppCarnetDigitalIT : TestBase
     [Fact]
     public async Task Carnets_EquipoInexistente_Devuelve404()
     {
-        // Arrange
         var client = await GetAuthenticatedClient();
-        
-        // Act
         var response = await client.GetAsync("/api/carnet-digital/carnets?equipoId=999");
         
-        // Assert
-        Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(System.Net.HttpStatusCode.NoContent, response.StatusCode);
     }
+    
+    // [Fact]
+    // public async Task CarnetsPorCodigoAlfanumerico_EquipoExistente_DevuelveCarnets()
+    // {
+    //     var client = await GetAuthenticatedClient();
+    //     
+    //     var response = await client.GetAsync("/api/carnet-digital/carnets?carnets-por-codigo-alfanumerico=999");
+    //     
+    // }
 } 

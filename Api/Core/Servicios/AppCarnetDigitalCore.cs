@@ -1,6 +1,5 @@
-using Api.Core.DTOs;
 using Api.Core.DTOs.AppCarnetDigital;
-using Api.Core.Entidades;
+using Api.Core.Enums;
 using Api.Core.Logica;
 using Api.Core.Repositorios;
 using Api.Core.Servicios.Interfaces;
@@ -10,18 +9,14 @@ namespace Api.Core.Servicios;
 
 public class AppCarnetDigitalCore : IAppCarnetDigitalCore
 {
-    private readonly IBDVirtual _bdVirtual;
     private readonly IDelegadoRepo _delegadoRepo;
-    private readonly IClubRepo _clubRepo;
     private readonly IMapper _mapper;
     private readonly IEquipoRepo _equipoRepo;
     private readonly IImagenJugadorRepo _imagenJugadorRepo;
 
-    public AppCarnetDigitalCore(IBDVirtual bd, IDelegadoRepo delegadoRepo, IClubRepo clubRepo, IEquipoRepo equipoRepo, IMapper mapper, IImagenJugadorRepo imagenJugadorRepo)
+    public AppCarnetDigitalCore(IDelegadoRepo delegadoRepo, IEquipoRepo equipoRepo, IMapper mapper, IImagenJugadorRepo imagenJugadorRepo)
     {
-        _bdVirtual = bd;
         _delegadoRepo = delegadoRepo;
-        _clubRepo = clubRepo;
         _mapper = mapper;
         _imagenJugadorRepo = imagenJugadorRepo;
         _equipoRepo = equipoRepo;
@@ -53,7 +48,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             return null;
 
         var lista = new List<CarnetDigitalDTO>();
-        foreach (var jugador in equipo.Jugadores)
+        foreach (var jugador in equipo.Jugadores.Where(x => x.EstadoJugadorId != (int)EstadoJugadorEnum.FichajeRechazado && x.EstadoJugadorId != (int)EstadoJugadorEnum.FichajePendienteDeAprobacion))
         {
             var carnet = _mapper.Map<CarnetDigitalDTO>(jugador);
             carnet.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoCarnetEnBase64(carnet.DNI));
@@ -61,5 +56,28 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         }
 
         return lista;
+    }
+
+    public async Task<ICollection<CarnetDigitalDTO>> JugadoresPendientes(int equipoId)
+    {
+        var equipo = await _equipoRepo.ObtenerPorId(equipoId);
+        if (equipo == null)
+            return null;
+
+        var lista = new List<CarnetDigitalDTO>();
+        foreach (var jugador in equipo.Jugadores.Where(x => x.EstadoJugadorId is (int)EstadoJugadorEnum.FichajeRechazado or (int)EstadoJugadorEnum.FichajePendienteDeAprobacion))
+        {
+            var carnet = _mapper.Map<CarnetDigitalDTO>(jugador);
+            carnet.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoCarnetEnBase64(carnet.DNI));
+            lista.Add(carnet);
+        }
+
+        return lista;
+    }
+
+    public Task<ICollection<CarnetDigitalDTO>> CarnetsPorCodigoAlfanumerico(string codigoAlfanumerico)
+    {
+        var id = GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos(codigoAlfanumerico);
+        return Carnets(id);
     }
 }

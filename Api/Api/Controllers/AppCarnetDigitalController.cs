@@ -45,8 +45,22 @@ namespace Api.Api.Controllers
         public async Task<ActionResult<ICollection<CarnetDigitalDTO>>> Carnets(int equipoId)
         {
             var equipos = await _core.Carnets(equipoId);
-            if (equipos == null)
-                return NotFound();
+
+            return Ok(equipos);
+        }
+        
+        [HttpGet("carnets-por-codigo-alfanumerico")]
+        public async Task<ActionResult<ICollection<CarnetDigitalDTO>>> CarnetsPorCodigoAlfanumerico(string codigoAlfanumerico)
+        {
+            var equipos = await _core.CarnetsPorCodigoAlfanumerico(codigoAlfanumerico);
+
+            return Ok(equipos);
+        }
+        
+        [HttpGet("jugadores-pendientes")]
+        public async Task<ActionResult<ICollection<CarnetDigitalDTO>>> JugadoresPendientes(int equipoId)
+        {
+            var equipos = await _core.JugadoresPendientes(equipoId);
 
             return Ok(equipos);
         }
