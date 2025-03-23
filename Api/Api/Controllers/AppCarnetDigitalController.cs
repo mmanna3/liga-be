@@ -40,5 +40,15 @@ namespace Api.Api.Controllers
 
             return Unauthorized("No se pudo obtener el usuario del token.");
         }
+        
+        [HttpGet("carnets")]
+        public async Task<ActionResult<ICollection<CarnetDigitalDTO>>> Carnets(int equipoId)
+        {
+            var equipos = await _core.Carnets(equipoId);
+            if (equipos == null)
+                return NotFound();
+
+            return Ok(equipos);
+        }
     }
 }

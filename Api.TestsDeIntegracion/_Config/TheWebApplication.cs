@@ -1,5 +1,6 @@
 using System.Data.Common;
 using Api.Core.Entidades;
+using Api.Core.Logica;
 using Api.Persistencia._Config;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -51,6 +52,9 @@ public class CustomWebApplicationFactory<TProgram>
                 var connection = container.GetRequiredService<DbConnection>();
                 options.UseSqlite(connection);
             });
+
+            // Registrar AppPaths para las pruebas
+            services.AddScoped<AppPaths, AppPathsForTest>();
         });
 
         builder.UseEnvironment("Development");
