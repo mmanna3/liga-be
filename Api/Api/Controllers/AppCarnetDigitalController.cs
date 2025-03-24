@@ -58,7 +58,7 @@ namespace Api.Api.Controllers
         }
         
         [HttpGet("jugadores-pendientes")]
-        public async Task<ActionResult<ICollection<CarnetDigitalDTO>>> JugadoresPendientes(int equipoId)
+        public async Task<ActionResult<ICollection<CarnetDigitalPendienteDTO>>> JugadoresPendientes(int equipoId)
         {
             var equipos = await _core.JugadoresPendientes(equipoId);
 

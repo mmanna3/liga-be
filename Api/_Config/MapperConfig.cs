@@ -72,7 +72,17 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Jugador.Nombre))
             .ForMember(dest => dest.Apellido, opt => opt.MapFrom(src => src.Jugador.Apellido))
             .ForMember(dest => dest.FechaNacimiento, opt => opt.MapFrom(src => src.Jugador.FechaNacimiento))
-            .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.EstadoJugadorId));
+            .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.EstadoJugadorId))
+            .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => src.Equipo.Torneo!.Nombre));
+        
+        CreateMap<JugadorEquipo, CarnetDigitalPendienteDTO>()
+            .ForMember(dest => dest.DNI, opt => opt.MapFrom(src => src.Jugador.DNI))
+            .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Jugador.Nombre))
+            .ForMember(dest => dest.Apellido, opt => opt.MapFrom(src => src.Jugador.Apellido))
+            .ForMember(dest => dest.FechaNacimiento, opt => opt.MapFrom(src => src.Jugador.FechaNacimiento))
+            .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.EstadoJugadorId))
+            .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => src.Equipo.Torneo!.Nombre))
+            .ForMember(dest => dest.Motivo, opt => opt.MapFrom(src => src.Motivo));
 
         // CreateMap<string, DateTime>().ConvertUsing(s => 
         //     DateTime.ParseExact(s, "dd-MM-yyyy", CultureInfo.InvariantCulture)

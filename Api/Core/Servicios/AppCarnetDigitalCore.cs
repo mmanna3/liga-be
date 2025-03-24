@@ -58,16 +58,16 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         return lista;
     }
 
-    public async Task<ICollection<CarnetDigitalDTO>> JugadoresPendientes(int equipoId)
+    public async Task<ICollection<CarnetDigitalPendienteDTO>> JugadoresPendientes(int equipoId)
     {
         var equipo = await _equipoRepo.ObtenerPorId(equipoId);
         if (equipo == null)
             return null;
 
-        var lista = new List<CarnetDigitalDTO>();
+        var lista = new List<CarnetDigitalPendienteDTO>();
         foreach (var jugador in equipo.Jugadores.Where(x => x.EstadoJugadorId is (int)EstadoJugadorEnum.FichajeRechazado or (int)EstadoJugadorEnum.FichajePendienteDeAprobacion))
         {
-            var carnet = _mapper.Map<CarnetDigitalDTO>(jugador);
+            var carnet = _mapper.Map<CarnetDigitalPendienteDTO>(jugador);
             carnet.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoCarnetEnBase64(carnet.DNI));
             lista.Add(carnet);
         }

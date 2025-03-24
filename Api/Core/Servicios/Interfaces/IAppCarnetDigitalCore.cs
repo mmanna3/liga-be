@@ -6,6 +6,6 @@ public interface IAppCarnetDigitalCore
 {
     Task<EquiposDelDelegadoDTO> ObtenerEquiposPorUsuarioDeDelegado(string usuario);
     Task<ICollection<CarnetDigitalDTO>> Carnets(int equipoId);
-    Task<ICollection<CarnetDigitalDTO>> JugadoresPendientes(int equipoId);
+    Task<ICollection<CarnetDigitalPendienteDTO>> JugadoresPendientes(int equipoId);
     Task<ICollection<CarnetDigitalDTO>> CarnetsPorCodigoAlfanumerico(string codigoAlfanumerico);
 }
