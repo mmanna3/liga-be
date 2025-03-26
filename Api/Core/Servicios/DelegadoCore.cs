@@ -61,7 +61,7 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         {
             Id = 0,
             NombreUsuario = nombreUsuario,
-            Password = BCrypt.Net.BCrypt.HashPassword("password")
+            Password = null
         };
         
         await _context.Usuarios.AddAsync(usuario);
