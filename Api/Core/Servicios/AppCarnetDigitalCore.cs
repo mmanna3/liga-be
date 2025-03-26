@@ -52,6 +52,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         {
             var carnet = _mapper.Map<CarnetDigitalDTO>(jugador);
             carnet.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoCarnetEnBase64(carnet.DNI));
+            carnet.Equipo = equipo.Nombre;  // Porque le cuesta por referencia circular para hacerlo con Automapper
             lista.Add(carnet);
         }
 
@@ -69,6 +70,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         {
             var carnet = _mapper.Map<CarnetDigitalPendienteDTO>(jugador);
             carnet.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoCarnetEnBase64(carnet.DNI));
+            carnet.Equipo = equipo.Nombre;  // Porque le cuesta por referencia circular para hacerlo con Automapper
             lista.Add(carnet);
         }
 
