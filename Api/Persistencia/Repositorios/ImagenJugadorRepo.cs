@@ -151,10 +151,14 @@ namespace Api.Persistencia.Repositorios
 		public string GetFotoCarnetEnBase64(string dni)
 		{
 			var imagePath = $"{_paths.ImagenesJugadoresAbsolute}/{dni}.jpg";
-			
+
 			if (!File.Exists(imagePath))
-				return string.Empty;
-			
+			{
+				imagePath = $"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{dni}.jpg";
+				if (!File.Exists(imagePath))
+					return string.Empty;
+			}
+
 			using var stream = new FileStream(imagePath, FileMode.Open);
 			using var img = SKImage.FromEncodedData(stream);
 			return ImagenUtility.ImageToBase64(img);
