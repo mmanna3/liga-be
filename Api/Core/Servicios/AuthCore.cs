@@ -35,6 +35,15 @@ public class AuthCore : IAuthService
             };
         }
 
+        if (usuario.Password == null)
+        {
+            return new LoginResponseDTO
+            {
+                Exito = false,
+                Error = "El usuario debe cambiar la contraseña"
+            };
+        }
+
         // Verificar la contraseña usando BCrypt
         if (!VerificarPasswordHash(dto.Password, usuario.Password))
         {
