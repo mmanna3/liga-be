@@ -62,6 +62,9 @@ namespace Api.Api.Controllers
         {
             var equipos = await _core.JugadoresPendientes(equipoId);
 
+            if (equipos == null)
+                return NoContent();
+
             return Ok(equipos);
         }
     }

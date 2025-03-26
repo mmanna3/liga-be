@@ -70,6 +70,9 @@ public class AppCarnetDigitalIT : TestBase
         };
 
         context.Jugadores.AddRange(jugador1, jugador2);
+        
+        // Guardar para obtener los IDs
+        context.SaveChanges();
 
         // Asociar jugadores al equipo con diferentes estados
         var jugadorEquipo1 = new JugadorEquipo
@@ -77,6 +80,8 @@ public class AppCarnetDigitalIT : TestBase
             Id = 1,
             JugadorId = 1,
             EquipoId = 1,
+            Equipo = equipo,
+            Jugador = jugador1,
             EstadoJugadorId = 3, // Activo
             FechaFichaje = DateTime.Now
         };
@@ -86,10 +91,14 @@ public class AppCarnetDigitalIT : TestBase
             Id = 2,
             JugadorId = 2,
             EquipoId = 1,
+            Equipo = equipo,
+            Jugador = jugador2,
             EstadoJugadorId = 1, // Fichaje pendiente de aprobación
             FechaFichaje = DateTime.Now
         };
 
+        equipo.Jugadores.Add(jugadorEquipo1);
+        equipo.Jugadores.Add(jugadorEquipo2);
         context.JugadorEquipo.AddRange(jugadorEquipo1, jugadorEquipo2);
         
         // Guardar los cambios
@@ -101,7 +110,8 @@ public class AppCarnetDigitalIT : TestBase
         // Crear una imagen de prueba de 240x240 píxeles
         using var bitmap = new SKBitmap(240, 240);
         using var canvas = new SKCanvas(bitmap);
-        using var paint = new SKPaint { Color = SKColors.Blue };
+        using var paint = new SKPaint();
+        paint.Color = SKColors.Blue;
         canvas.DrawRect(0, 0, 240, 240, paint);
         
         // Guardar la imagen para el primer jugador
@@ -147,7 +157,7 @@ public class AppCarnetDigitalIT : TestBase
         
         response.EnsureSuccessStatusCode();
         
-        var carnets = await response.Content.ReadFromJsonAsync<List<CarnetDigitalDTO>>();
+        var carnets = await response.Content.ReadFromJsonAsync<List<CarnetDigitalPendienteDTO>>();
         
         Assert.NotNull(carnets);
         Assert.Single(carnets);

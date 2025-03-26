@@ -152,6 +152,9 @@ namespace Api.Persistencia.Repositorios
 		{
 			var imagePath = $"{_paths.ImagenesJugadoresAbsolute}/{dni}.jpg";
 			
+			if (!File.Exists(imagePath))
+				return string.Empty;
+			
 			using var stream = new FileStream(imagePath, FileMode.Open);
 			using var img = SKImage.FromEncodedData(stream);
 			return ImagenUtility.ImageToBase64(img);
@@ -159,6 +162,9 @@ namespace Api.Persistencia.Repositorios
 
 		public string GetFotoEnBase64ConPathAbsoluto(string pathAbsoluto)
 		{
+			if (!File.Exists(pathAbsoluto))
+				return string.Empty;
+				
 			using var stream = new FileStream(pathAbsoluto, FileMode.Open);
 			using var img = SKImage.FromEncodedData(stream);
 			return ImagenUtility.ImageToBase64(img);
