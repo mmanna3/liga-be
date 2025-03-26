@@ -4,6 +4,7 @@ using Api.Core.Entidades;
 using Api.Core.Servicios;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
@@ -179,7 +180,6 @@ public class AuthIT : TestBase
         var request = new CambiarPasswordDTO
         {
             Usuario = "usuario_no_existente",
-            PasswordActual = "test123",
             PasswordNuevo = "nueva123"
         };
         
@@ -198,14 +198,13 @@ public class AuthIT : TestBase
     }
 
     [Fact]
-    public async Task CambiarPassword_ContraseñaActualIncorrecta_400()
+    public async Task CambiarPassword_ContraseñaNoNull_400()
     {
         // Arrange
         var client = Factory.CreateClient();
         var request = new CambiarPasswordDTO
         {
             Usuario = "test",
-            PasswordActual = "contraseña_incorrecta",
             PasswordNuevo = "nueva123"
         };
         
@@ -220,18 +219,25 @@ public class AuthIT : TestBase
         
         Assert.NotNull(content);
         Assert.False(content.Exito);
-        Assert.Equal("La contraseña actual es incorrecta", content.Error);
+        Assert.Equal("No se puede cambiar la contraseña. Debe solicitar que se blanquee su contraseña.", content.Error);
     }
 
     [Fact]
-    public async Task CambiarPassword_DatosCorrectos_200()
+    public async Task CambiarPassword_ContraseñaNull_200()
     {
         // Arrange
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        
+        // Obtener el usuario de prueba y blanquear su contraseña
+        var usuario = context.Usuarios.First(u => u.NombreUsuario == "test");
+        usuario.Password = null;
+        await context.SaveChangesAsync();
+        
         var client = Factory.CreateClient();
         var request = new CambiarPasswordDTO
         {
             Usuario = "test",
-            PasswordActual = "test123",
             PasswordNuevo = "nueva123"
         };
         

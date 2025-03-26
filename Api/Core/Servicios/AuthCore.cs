@@ -79,17 +79,13 @@ public class AuthCore : IAuthService
             };
         }
 
-        // Si el usuario no tiene contraseña (fue blanqueada), permitir el cambio sin verificar la actual
         if (usuario.Password != null)
         {
-            if (!VerificarPasswordHash(dto.PasswordActual, usuario.Password))
+            return new LoginResponseDTO
             {
-                return new LoginResponseDTO
-                {
-                    Exito = false,
-                    Error = "La contraseña actual es incorrecta"
-                };
-            }
+                Exito = false,
+                Error = "No se puede cambiar la contraseña. Debe solicitar que se blanquee su contraseña."
+            };
         }
 
         // Actualizar la contraseña
