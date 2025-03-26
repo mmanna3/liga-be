@@ -29,4 +29,18 @@ public class AuthController : ControllerBase
         
         return Ok(response);
     }
+
+    [HttpPost("cambiar-password")]
+    [AllowAnonymous]
+    public async Task<ActionResult<LoginResponseDTO>> CambiarPassword(CambiarPasswordDTO dto)
+    {
+        var response = await _authService.CambiarPassword(dto);
+        
+        if (!response.Exito)
+        {
+            return BadRequest(response);
+        }
+        
+        return Ok(response);
+    }
 } 

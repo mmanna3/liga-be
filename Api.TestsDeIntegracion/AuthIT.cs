@@ -170,4 +170,92 @@ public class AuthIT : TestBase
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.Forbidden, response.StatusCode);
     }
+
+    [Fact]
+    public async Task CambiarPassword_UsuarioNoEncontrado_400()
+    {
+        // Arrange
+        var client = Factory.CreateClient();
+        var request = new CambiarPasswordDTO
+        {
+            Usuario = "usuario_no_existente",
+            PasswordActual = "test123",
+            PasswordNuevo = "nueva123"
+        };
+        
+        // Act
+        var response = await client.PostAsync("/api/auth/cambiar-password", JsonContent.Create(request));
+        
+        // Assert
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+        
+        var content = JsonConvert.DeserializeObject<LoginResponseDTO>(
+            await response.Content.ReadAsStringAsync());
+        
+        Assert.NotNull(content);
+        Assert.False(content.Exito);
+        Assert.Equal("Usuario no encontrado", content.Error);
+    }
+
+    [Fact]
+    public async Task CambiarPassword_ContraseñaActualIncorrecta_400()
+    {
+        // Arrange
+        var client = Factory.CreateClient();
+        var request = new CambiarPasswordDTO
+        {
+            Usuario = "test",
+            PasswordActual = "contraseña_incorrecta",
+            PasswordNuevo = "nueva123"
+        };
+        
+        // Act
+        var response = await client.PostAsync("/api/auth/cambiar-password", JsonContent.Create(request));
+        
+        // Assert
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+        
+        var content = JsonConvert.DeserializeObject<LoginResponseDTO>(
+            await response.Content.ReadAsStringAsync());
+        
+        Assert.NotNull(content);
+        Assert.False(content.Exito);
+        Assert.Equal("La contraseña actual es incorrecta", content.Error);
+    }
+
+    [Fact]
+    public async Task CambiarPassword_DatosCorrectos_200()
+    {
+        // Arrange
+        var client = Factory.CreateClient();
+        var request = new CambiarPasswordDTO
+        {
+            Usuario = "test",
+            PasswordActual = "test123",
+            PasswordNuevo = "nueva123"
+        };
+        
+        // Act
+        var response = await client.PostAsync("/api/auth/cambiar-password", JsonContent.Create(request));
+        
+        // Assert
+        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        
+        var content = JsonConvert.DeserializeObject<LoginResponseDTO>(
+            await response.Content.ReadAsStringAsync());
+        
+        Assert.NotNull(content);
+        Assert.True(content.Exito);
+        Assert.NotNull(content.Token);
+        
+        // Verificar que se puede hacer login con la nueva contraseña
+        var loginRequest = new LoginDTO
+        {
+            Usuario = "test",
+            Password = "nueva123"
+        };
+        
+        var loginResponse = await client.PostAsync("/api/auth/login", JsonContent.Create(loginRequest));
+        Assert.Equal(System.Net.HttpStatusCode.OK, loginResponse.StatusCode);
+    }
 } 

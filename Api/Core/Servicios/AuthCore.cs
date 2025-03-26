@@ -64,6 +64,48 @@ public class AuthCore : IAuthService
         };
     }
 
+    public async Task<LoginResponseDTO> CambiarPassword(CambiarPasswordDTO dto)
+    {
+        var usuario = await _context.Usuarios
+            .Include(u => u.Rol)
+            .FirstOrDefaultAsync(u => u.NombreUsuario == dto.Usuario);
+
+        if (usuario == null)
+        {
+            return new LoginResponseDTO
+            {
+                Exito = false,
+                Error = "Usuario no encontrado"
+            };
+        }
+
+        // Si el usuario no tiene contraseña (fue blanqueada), permitir el cambio sin verificar la actual
+        if (usuario.Password != null)
+        {
+            if (!VerificarPasswordHash(dto.PasswordActual, usuario.Password))
+            {
+                return new LoginResponseDTO
+                {
+                    Exito = false,
+                    Error = "La contraseña actual es incorrecta"
+                };
+            }
+        }
+
+        // Actualizar la contraseña
+        usuario.Password = HashPassword(dto.PasswordNuevo);
+        await _context.SaveChangesAsync();
+
+        // Generar nuevo token
+        var token = GenerarToken(usuario);
+
+        return new LoginResponseDTO
+        {
+            Exito = true,
+            Token = token
+        };
+    }
+
     private string GenerarToken(Usuario usuario)
     {
         var claims = new List<Claim>
