@@ -21,6 +21,9 @@ namespace Api.TestsDeIntegracion
             _imagenJugadorRepo = new ImagenJugadorRepo(_paths);
             
             EliminarTodosLosArchivosEnLaCarpeta(_paths.ImagenesJugadoresAbsolute);
+            EliminarTodosLosArchivosEnLaCarpeta(_paths.ImagenesTemporalesJugadorCarnetAbsolute);
+            EliminarTodosLosArchivosEnLaCarpeta(_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute);
+            EliminarTodosLosArchivosEnLaCarpeta(_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute);
         }
         
         [Fact]
