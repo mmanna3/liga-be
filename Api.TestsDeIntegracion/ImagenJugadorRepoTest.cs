@@ -49,11 +49,47 @@ namespace Api.TestsDeIntegracion
         {
             if (Directory.Exists(carpeta))
             {
-                foreach (var archivo in Directory.GetFiles(carpeta))
+                var archivos = Directory.GetFiles(carpeta);
+                foreach (var archivo in archivos)
                 {
                     File.Delete(archivo);
                 }
             }
+        }
+
+        [Fact]
+        public void EliminarFotosDelJugador_DeletesAllPlayerImages()
+        {
+            // Arrange
+            var vm = new JugadorDTO
+            {
+                FotoCarnet = PuntoRojoBase64,
+                FotoDNIFrente = PuntoRojoBase64,
+                FotoDNIDorso = PuntoRojoBase64,
+                DNI = DNI
+            };
+
+            _imagenJugadorRepo.GuardarFotosTemporalesDeJugadorAutofichado(vm);
+            _imagenJugadorRepo.FicharJugadorTemporal(DNI);
+
+            var pathJugador = $"{_paths.ImagenesJugadoresAbsolute}/{DNI}.jpg";
+            var pathCarnet = $"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{DNI}.jpg";
+            var pathDNIFrente = $"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{DNI}.jpg";
+            var pathDNIDorso = $"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{DNI}.jpg";
+
+            Assert.True(File.Exists(pathJugador));
+            Assert.True(File.Exists(pathCarnet));
+            Assert.True(File.Exists(pathDNIFrente));
+            Assert.True(File.Exists(pathDNIDorso));
+
+            // Act
+            _imagenJugadorRepo.EliminarFotosDelJugador(DNI);
+
+            // Assert
+            Assert.False(File.Exists(pathJugador));
+            Assert.False(File.Exists(pathCarnet));
+            Assert.False(File.Exists(pathDNIFrente));
+            Assert.False(File.Exists(pathDNIDorso));
         }
     }
 }

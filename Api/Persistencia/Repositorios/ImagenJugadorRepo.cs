@@ -233,5 +233,24 @@ namespace Api.Persistencia.Repositorios
 			if (File.Exists(pathAnterior))
 				File.Move(pathAnterior, pathNuevo);
 		}
+
+		public void EliminarFotosDelJugador(string dni)
+		{
+			var pathJugador = $"{_paths.ImagenesJugadoresAbsolute}/{dni}.jpg";
+			if (File.Exists(pathJugador))
+				File.Delete(pathJugador);
+			
+			var pathCarnet = $"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{dni}.jpg";
+			if (File.Exists(pathCarnet))
+				File.Delete(pathCarnet);
+
+			var pathDNIFrente = $"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{dni}.jpg";
+			if (File.Exists(pathDNIFrente))
+				File.Delete(pathDNIFrente);
+
+			var pathDNIDorso = $"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{dni}.jpg";
+			if (File.Exists(pathDNIDorso))
+				File.Delete(pathDNIDorso);
+		}
 	}
 }

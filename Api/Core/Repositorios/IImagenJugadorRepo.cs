@@ -19,5 +19,6 @@ namespace Api.Core.Repositorios
 		void GuardarFotosTemporalesDeJugadorAutofichado(JugadorDTO vm);
 		void GuardarFotosTemporalesDeJugadorAutofichadoSiendoEditado(JugadorDTO vm);
 		void RenombrarFotosTemporalesPorCambioDeDNI(string dniAnterior, string dni);
+		void EliminarFotosDelJugador(string dni);
 	}
 }

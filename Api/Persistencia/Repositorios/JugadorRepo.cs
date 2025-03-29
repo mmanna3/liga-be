@@ -58,4 +58,9 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
             Context.Update(jugadorEquipo);
         }
     }
+
+    public void Eliminar(Jugador jugador)
+    {
+        Context.Jugadores.Remove(jugador);
+    }
 }
