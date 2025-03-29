@@ -13,4 +13,6 @@ public class JugadorDelEquipoDTO : DTO
 
     public EstadoJugadorEnum Estado { get; set; }
     public int JugadorEquipoId { get; set; }
+    
+    public string? Motivo { get; set; }
 }
