@@ -38,7 +38,7 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
 
     public virtual async Task<Jugador?> ObtenerPorDNI(string dni)
     {
-        return await Context.Set<Jugador>().SingleOrDefaultAsync(x => x.DNI == dni);
+        return await Set().SingleOrDefaultAsync(x => x.DNI == dni);
     }
 
     public void SiElDNISeHabiaFichadoYEstaRechazadoEliminarJugador(string dni)
