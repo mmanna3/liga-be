@@ -23,7 +23,7 @@ public class PublicoCoreTest
     }
 
     [Fact]
-    public async Task ElDniEstaFichado_WhenPlayerDoesNotExist_ReturnsFalse()
+    public async Task ElDniEstaFichado_CuandoElJugadorNoExiste_RetornaFalse()
     {
         // Arrange
         const string dni = "12345678";
@@ -37,7 +37,7 @@ public class PublicoCoreTest
     }
 
     [Fact]
-    public async Task ElDniEstaFichado_WhenPlayerExistsAndIsActive_ReturnsTrue()
+    public async Task ElDniEstaFichado_CuandoElJugadorExisteYEstaActivo_RetornaTrue()
     {
         // Arrange
         const string dni = "12345678";
@@ -65,7 +65,7 @@ public class PublicoCoreTest
     }
 
     [Fact]
-    public async Task ElDniEstaFichado_WhenPlayerExistsAndIsPending_ReturnsFalse()
+    public async Task ElDniEstaFichado_CuandoElJugadorExisteYEstaPendiente_RetornaFalse()
     {
         // Arrange
         const string dni = "12345678";
@@ -93,7 +93,7 @@ public class PublicoCoreTest
     }
 
     [Fact]
-    public async Task ElDniEstaFichado_WhenPlayerExistsAndIsRejected_ReturnsFalse()
+    public async Task ElDniEstaFichado_CuandoElJugadorExisteYEstaRechazado_RetornaFalse()
     {
         // Arrange
         const string dni = "12345678";
@@ -121,7 +121,7 @@ public class PublicoCoreTest
     }
 
     [Fact]
-    public async Task ElDniEstaFichado_WhenPlayerExistsWithMultipleTeams_ReturnsFalseIfAnyTeamIsPendingOrRejected()
+    public async Task ElDniEstaFichado_CuandoElJugadorExisteConMultiplesEquipos_RetornaFalseSiAlgunEquipoEstaPendienteORechazado()
     {
         // Arrange
         const string dni = "12345678";
@@ -161,7 +161,7 @@ public class PublicoCoreTest
     }
 
     [Fact]
-    public async Task ElDniEstaFichado_WhenPlayerExistsWithMultipleTeams_ReturnsTrueIfAllTeamsAreActive()
+    public async Task ElDniEstaFichado_CuandoElJugadorExisteConMultiplesEquipos_RetornaTrueSiTodosLosEquiposEstanActivos()
     {
         // Arrange
         const string dni = "12345678";
