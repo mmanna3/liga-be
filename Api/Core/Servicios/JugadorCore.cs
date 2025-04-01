@@ -29,7 +29,7 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
     {
         dto.EquipoInicialId = GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos(dto.CodigoAlfanumerico);
         
-        var resultado = await MapearEquipoInicial(dto, entidad);
+        var resultado = await FicharJugadorEnElEquipo(dto.EquipoInicialId, entidad);
         
         Repo.SiElDNISeHabiaFichadoYEstaRechazadoEliminarJugador(entidad.DNI);
         await BDVirtual.GuardarCambios();
@@ -55,9 +55,9 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         return dto;
     }
     
-    private async Task<Jugador> MapearEquipoInicial(JugadorDTO dto, Jugador entidad)
+    public async Task<Jugador> FicharJugadorEnElEquipo(int equipoId, Jugador entidad)
     {
-        var equipo = await _equipoRepo.ObtenerPorId(dto.EquipoInicialId);
+        var equipo = await _equipoRepo.ObtenerPorId(equipoId);
 
         if (equipo == null)
             throw new ExcepcionControlada("El equipo no existe");
@@ -65,12 +65,12 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         var jugadorEquipo = new JugadorEquipo
         {
             Id = 0,
-            EquipoId = dto.EquipoInicialId,
+            EquipoId = equipoId,
             FechaFichaje = DateTime.Now,
             EstadoJugadorId = (int)EstadoJugadorEnum.FichajePendienteDeAprobacion 
         };
-
-        entidad.JugadorEquipos = new List<JugadorEquipo> { jugadorEquipo };
+        
+        entidad.JugadorEquipos.Add(jugadorEquipo);
         return entidad;
     }
 

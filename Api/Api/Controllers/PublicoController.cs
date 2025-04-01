@@ -31,6 +31,11 @@ namespace Api.Api.Controllers
             return await _equipoCore.ObtenerNombrePorCodigoAlfanumerico(codigoAlfanumerico);
         }
 
+        [HttpPost("fichar-en-otro-equipo")]
+        public async Task<int> FicharEnOtroEquipo(FicharEnOtroEquipoDTO dto)
+        {
+            return await _core.FicharEnOtroEquipo(dto);
+        }
         
         
     }

@@ -12,7 +12,6 @@ public abstract class ABMCore<TRepo, TEntidad, TDTO> : ICoreABM<TDTO>
     where TEntidad : Entidad
     where TDTO: DTO
 {
-    // VirtalDB (como VirtualDOM sería un buen nombre?)
     protected readonly IBDVirtual BDVirtual;
     protected readonly TRepo Repo;
     protected readonly IMapper Mapper; 

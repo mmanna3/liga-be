@@ -1,5 +1,6 @@
 using Api.Core.DTOs;
 using Api.Core.DTOs.CambiosDeEstadoJugador;
+using Api.Core.Entidades;
 using Api.Core.Enums;
 
 namespace Api.Core.Servicios.Interfaces;
@@ -14,4 +15,5 @@ public interface IJugadorCore : ICoreABM<JugadorDTO>
     Task<int> Suspender(List<CambiarEstadoDelJugadorDTO> dtos);
     Task<int> Inhabilitar(List<CambiarEstadoDelJugadorDTO> dtos);
     Task<int> PagarFichaje(CambiarEstadoDelJugadorDTO dto);
+    Task<Jugador> FicharJugadorEnElEquipo(int equipoId, Jugador jugador);
 }
