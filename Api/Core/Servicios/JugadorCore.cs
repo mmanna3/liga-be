@@ -141,17 +141,21 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
 
     private void ModicarDatosBase(JugadorBaseDTO dto, Jugador jugadorAnterior)
     {
-        var jugadorNuevo = Mapper.Map<Jugador>(jugadorAnterior);
+        // Create a new Jugador instance with only the necessary properties
+        var jugadorNuevo = new Jugador
+        {
+            Id = jugadorAnterior.Id,
+            DNI = dto.DNI,
+            Nombre = dto.Nombre,
+            Apellido = dto.Apellido,
+            FechaNacimiento = dto.FechaNacimiento
+        };
 
         if (jugadorNuevo.DNI != dto.DNI)
         {
             jugadorNuevo.DNI = dto.DNI;
             _imagenJugadorRepo.RenombrarFotosTemporalesPorCambioDeDNI(jugadorAnterior.DNI, dto.DNI);
         }
-
-        jugadorNuevo.Nombre = dto.Nombre;
-        jugadorNuevo.Apellido = dto.Apellido;
-        jugadorNuevo.FechaNacimiento = dto.FechaNacimiento;
 
         Repo.Modificar(jugadorAnterior, jugadorNuevo);
     }
