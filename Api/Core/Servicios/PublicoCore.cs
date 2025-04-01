@@ -26,8 +26,8 @@ public class PublicoCore : IPublicoCore
         
         if (jugador != null)
         {
-            var elJugadorEstaRechazadoEnAlgunEquipo = jugador.JugadorEquipos.Any(x => x.EstadoJugador.Id == (int)EstadoJugadorEnum.FichajeRechazado);
-            return !elJugadorEstaRechazadoEnAlgunEquipo;
+            var elJugadorNoEstaAprobado = jugador.JugadorEquipos.Any(x => x.EstadoJugador.Id is (int)EstadoJugadorEnum.FichajeRechazado or (int)EstadoJugadorEnum.FichajePendienteDeAprobacion);
+            return !elJugadorNoEstaAprobado;
         }
 
         return false;
