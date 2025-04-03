@@ -53,10 +53,13 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         return dto;
     }
     
-    public async Task<Jugador> FicharJugadorEnElEquipo(int equipoId, Jugador entidad)
+    public async Task<Jugador> FicharJugadorEnElEquipo(int equipoId, Jugador jugador)
     {
         var equipo = await _equipoRepo.ObtenerPorId(equipoId);
 
+        if (jugador.JugadorEquipos.Any(x => x.EquipoId == equipoId))
+            throw new ExcepcionControlada("El jugador ya está fichado en el equipo");
+        
         if (equipo == null)
             throw new ExcepcionControlada("El equipo no existe");
 
@@ -68,8 +71,8 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
             EstadoJugadorId = (int)EstadoJugadorEnum.FichajePendienteDeAprobacion 
         };
         
-        entidad.JugadorEquipos.Add(jugadorEquipo);
-        return entidad;
+        jugador.JugadorEquipos.Add(jugadorEquipo);
+        return jugador;
     }
 
     public async Task<IEnumerable<JugadorDTO>> ListarConFiltro(IList<EstadoJugadorEnum> estados)
