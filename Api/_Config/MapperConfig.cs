@@ -42,6 +42,7 @@ public class MapperConfig : Profile
         CreateMap<JugadorEquipo, EquipoDelJugadorDTO>()
             .ForMember(dest => dest.Nombre, x => x.MapFrom(src => src.Equipo.Nombre))
             .ForMember(dest => dest.Club, x => x.MapFrom(src => src.Equipo.Club.Nombre))
+            .ForMember(dest => dest.Torneo, x => x.MapFrom(src => src.Equipo.Torneo.Nombre))
             .ForMember(dest => dest.Estado, x => x.MapFrom(src => src.EstadoJugador.Id))
             .ForMember(dest => dest.FechaPagoDeFichaje, opt => opt.MapFrom<FechaPagoResolver>())
             .ForMember(dest => dest.Motivo, x => x.MapFrom(src => src.Motivo))

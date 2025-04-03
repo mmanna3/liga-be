@@ -8,8 +8,11 @@ public class EquipoDelJugadorDTO : DTO
 
     public string Club { get; set; } = string.Empty;
 
+    public string Torneo { get; set; } = string.Empty;
+    
     public EstadoJugadorEnum Estado { get; set; }
     
     public string? Motivo { get; set; } = string.Empty;
     public DateTime? FechaPagoDeFichaje { get; set; }
+    
 }
