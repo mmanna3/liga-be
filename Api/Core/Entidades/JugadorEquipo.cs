@@ -1,8 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Api.Core.Entidades;
 
+[Index(nameof(EquipoId), nameof(JugadorId), IsUnique = true)]
 public class JugadorEquipo : Entidad
 {
     public virtual Jugador Jugador { get; set; } = null!;
