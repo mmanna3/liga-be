@@ -41,6 +41,13 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
         return await Set().SingleOrDefaultAsync(x => x.DNI == dni);
     }
 
+    public async Task<Jugador?> ObtenerPorIdParaEliminar(int id)
+    {
+        return await Context.Set<Jugador>()
+            .Include(x => x.JugadorEquipos)
+            .SingleOrDefaultAsync(x => x.Id == id);
+    }
+
     public void SiElDNISeHabiaFichadoYEstaRechazadoEliminarJugador(string dni)
     {
         var jugador = Context.Jugadores.SingleOrDefault(x => x.DNI == dni);
@@ -62,5 +69,14 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
     public void Eliminar(Jugador jugador)
     {
         Context.Jugadores.Remove(jugador);
+    }
+
+    public void EliminarJugadorEquipo(int jugadorEquipoId)
+    {
+        var jugadorEquipo = Context.JugadorEquipo.Find(jugadorEquipoId);
+        if (jugadorEquipo != null)
+        {
+            Context.JugadorEquipo.Remove(jugadorEquipo);
+        }
     }
 }

@@ -95,16 +95,17 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
 
     public async Task<int> Eliminar(int id)
     {
-        var jugador = await Repo.ObtenerPorId(id);
+        var jugador = await Repo.ObtenerPorIdParaEliminar(id);
         if (jugador == null)
             return -1;
-
-        // Eliminar las imágenes asociadas al jugador
-        _imagenJugadorRepo.EliminarFotosDelJugador(jugador.DNI);
         
-        // Eliminar el jugador y sus relaciones
+        foreach (var jugadorEquipo in jugador.JugadorEquipos.ToList())
+            Repo.EliminarJugadorEquipo(jugadorEquipo.Id);
+        
         Repo.Eliminar(jugador);
         await BDVirtual.GuardarCambios();
+        
+        _imagenJugadorRepo.EliminarFotosDelJugador(jugador.DNI);
         
         return id;
     }
