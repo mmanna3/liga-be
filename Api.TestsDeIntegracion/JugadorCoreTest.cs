@@ -58,7 +58,7 @@ namespace Api.TestsDeIntegracion
                 FechaNacimiento = DateTime.Now
             };
 
-            _jugadorRepoMock.Setup(x => x.ObtenerPorId(jugadorId))
+            _jugadorRepoMock.Setup(x => x.ObtenerPorIdParaEliminar(jugadorId))
                 .ReturnsAsync(jugador);
 
             // Act
@@ -76,7 +76,7 @@ namespace Api.TestsDeIntegracion
         {
             // Arrange
             var jugadorId = 1;
-            _jugadorRepoMock.Setup(x => x.ObtenerPorId(jugadorId))
+            _jugadorRepoMock.Setup(x => x.ObtenerPorIdParaEliminar(jugadorId))
                 .ReturnsAsync((Jugador?)null);
 
             // Act
