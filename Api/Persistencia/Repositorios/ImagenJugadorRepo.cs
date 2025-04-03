@@ -46,27 +46,18 @@ namespace Api.Persistencia.Repositorios
 		//No testeado
 		public void FicharJugadorTemporal(string dni)
 		{
-			var pathTemporal = $"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{dni}.jpg";
-			var pathJugadores = $"{_paths.ImagenesJugadoresAbsolute}/{dni}.jpg";
-
+			var pathCarnet = $"{_paths.ImagenesJugadoresAbsolute}/{dni}.jpg";
 			Directory.CreateDirectory(_paths.ImagenesJugadoresAbsolute);
-			
-			// Si por algo quedó una foto de este jugador en el disco, aunque el jugador no figure fichado
-			// (Quizás porque se borró el jugador pero no la foto)
-			// De más está decir que esto no debería pasar, pero pasó, entonces puse este bonito IF
-			if (File.Exists(pathJugadores))
-				File.Delete(pathJugadores);
 
-			if (File.Exists(pathTemporal))
-				File.Move(pathTemporal, pathJugadores);
+			var pathCarnetTemporal = $"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{dni}.jpg";
+			if (File.Exists(pathCarnetTemporal))
+				File.Move(pathCarnetTemporal, pathCarnet);
 
 			var pathDNIFrente = $"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{dni}.jpg";
-
 			if (File.Exists(pathDNIFrente))
 				File.Delete(pathDNIFrente);
 
 			var pathDNIDorso = $"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{dni}.jpg";
-
 			if (File.Exists(pathDNIDorso))
 				File.Delete(pathDNIDorso);
 		}

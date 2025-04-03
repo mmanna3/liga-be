@@ -40,17 +40,15 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
 
     protected override JugadorDTO AntesDeObtenerPorId(Jugador entidad, JugadorDTO dto)
     {
-        if (entidad.JugadorEquipos.Any(x =>
-                x.EstadoJugadorId is (int)EstadoJugadorEnum.FichajePendienteDeAprobacion or (int)EstadoJugadorEnum.FichajeRechazado))
-        {
-            dto.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoEnBase64ConPathAbsoluto($"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{dto.DNI}.jpg"));    
-            dto.FotoDNIDorso = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoEnBase64ConPathAbsoluto($"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{dto.DNI}.jpg"));    
-            dto.FotoDNIFrente = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoEnBase64ConPathAbsoluto($"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{dto.DNI}.jpg"));    
-        }
-        else
-        {
-            dto.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoCarnetEnBase64(dto.DNI));    
-        }
+        dto.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoCarnetEnBase64(dto.DNI));
+        
+        dto.FotoDNIDorso = ImagenUtility.AgregarMimeType(
+            _imagenJugadorRepo.GetFotoEnBase64ConPathAbsoluto(
+                    $"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{dto.DNI}.jpg"));
+        
+        dto.FotoDNIFrente = ImagenUtility.AgregarMimeType(
+            _imagenJugadorRepo.GetFotoEnBase64ConPathAbsoluto(
+                $"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{dto.DNI}.jpg"));
         
         return dto;
     }
@@ -110,12 +108,13 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
 
     public async Task<int> Aprobar(AprobarJugadorDTO dto)
     {
-        var jugadorAnterior = await Repo.ObtenerPorId(dto.Id);
+        var jugador = await Repo.ObtenerPorId(dto.Id);
         
-        if (jugadorAnterior != null) { 
-            ModicarDatosBase(dto, jugadorAnterior);
+        if (jugador != null) { 
+            ModicarDatosBase(dto, jugador);
             Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.AprobadoPendienteDePago);
             await BDVirtual.GuardarCambios();
+            
             _imagenJugadorRepo.FicharJugadorTemporal(dto.DNI);
             
             return dto.JugadorEquipoId;
@@ -126,10 +125,10 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
 
     public async Task<int> Rechazar(RechazarJugadorDTO dto)
     {
-        var jugadorAnterior = await Repo.ObtenerPorId(dto.Id);
+        var jugador = await Repo.ObtenerPorId(dto.Id);
         
-        if (jugadorAnterior != null) { 
-            ModicarDatosBase(dto, jugadorAnterior);
+        if (jugador != null) { 
+            ModicarDatosBase(dto, jugador);
             Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.FichajeRechazado, dto.Motivo);
             await BDVirtual.GuardarCambios();
             
