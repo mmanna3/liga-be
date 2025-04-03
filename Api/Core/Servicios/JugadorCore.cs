@@ -28,6 +28,7 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
     protected override async Task<Jugador> AntesDeCrear(JugadorDTO dto, Jugador entidad)
     {
         dto.EquipoInicialId = GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos(dto.CodigoAlfanumerico);
+        dto.DNI = QuitarCaracteresNoNumericos(dto.DNI);
         
         var resultado = await FicharJugadorEnElEquipo(dto.EquipoInicialId, entidad);
         
@@ -36,6 +37,11 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         _imagenJugadorRepo.GuardarFotosTemporalesDeJugadorAutofichado(dto);
         
         return resultado;
+    }
+
+    private static string QuitarCaracteresNoNumericos(string dni)
+    {
+        return new string(dni.Where(char.IsDigit).ToArray());
     }
 
     protected override JugadorDTO AntesDeObtenerPorId(Jugador entidad, JugadorDTO dto)
