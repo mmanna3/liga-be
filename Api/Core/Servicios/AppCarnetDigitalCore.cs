@@ -48,7 +48,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             return null;
 
         var lista = new List<CarnetDigitalDTO>();
-        foreach (var jugador in equipo.Jugadores.Where(x => x.EstadoJugadorId != (int)EstadoJugadorEnum.FichajeRechazado && x.EstadoJugadorId != (int)EstadoJugadorEnum.FichajePendienteDeAprobacion))
+        foreach (var jugador in equipo.Jugadores.Where(x => x.EstadoJugadorId != (int)EstadoJugadorEnum.FichajeRechazado && x.EstadoJugadorId != (int)EstadoJugadorEnum.FichajePendienteDeAprobacion && x.EstadoJugadorId != (int)EstadoJugadorEnum.AprobadoPendienteDePago))
         {
             var carnet = _mapper.Map<CarnetDigitalDTO>(jugador);
             carnet.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoCarnetEnBase64(carnet.DNI));
