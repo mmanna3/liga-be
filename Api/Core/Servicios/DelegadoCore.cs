@@ -100,4 +100,16 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
 
         return false;
     }
+    
+    public async Task<int> Eliminar(int id)
+    {
+        var delegado = await Repo.ObtenerPorId(id);
+        if (delegado == null)
+            return -1;
+        
+        Repo.Eliminar(delegado);
+        await BDVirtual.GuardarCambios();
+        
+        return id;
+    }
 }

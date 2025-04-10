@@ -15,5 +15,14 @@ namespace Api.Api.Controllers
         {
             return await Core.BlanquearClave(id);
         }
+        
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<int>> Eliminar(int id)
+        {
+            var resultado = await Core.Eliminar(id);
+            if (resultado == -1)
+                return NotFound();
+            return Ok(resultado);
+        }
     }
 }

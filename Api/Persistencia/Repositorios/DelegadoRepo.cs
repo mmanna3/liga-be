@@ -28,4 +28,9 @@ public class DelegadoRepo : RepositorioABM<Delegado>, IDelegadoRepo
             .SingleOrDefaultAsync(x => x.Usuario.NombreUsuario == usuario) 
                ?? throw new InvalidOperationException();
     }
+    
+    public void Eliminar(Delegado delegado)
+    {
+        Context.Delegados.Remove(delegado);
+    }
 }
