@@ -19,7 +19,8 @@ public class AppDbContext : DbContext
         
         builder.Entity<Rol>().HasData(
             new Rol { Id = 1, Nombre = "Administrador" },
-            new Rol { Id = 2, Nombre = "Usuario" }
+            new Rol { Id = 2, Nombre = "Usuario" },
+            new Rol { Id = 3, Nombre = "Consulta" }
         );
         
         builder.Entity<Usuario>()
@@ -62,6 +63,13 @@ public class AppDbContext : DbContext
                 NombreUsuario = "pipa", 
                 Password = AuthCore.HashPassword("edefiliga"),
                 RolId = 1
+            },
+            new Usuario 
+            { 
+                Id = 101, 
+                NombreUsuario = "consulta", 
+                Password = AuthCore.HashPassword("consulta"),
+                RolId = 3
             }
         );
     }
