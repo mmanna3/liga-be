@@ -8,6 +8,7 @@ namespace Api.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public abstract class ABMController<TDTO, TCore> : ControllerBase
     where TDTO : DTO
     where TCore : ICoreABM<TDTO>
