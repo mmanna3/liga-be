@@ -63,8 +63,19 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
         var jugadorEquipo = Context.JugadorEquipo.SingleOrDefault(x => x.Id == jugadorEquipoId);
         if (jugadorEquipo != null)
         {
+            if (nuevoEstado == EstadoJugadorEnum.Activo && jugadorEquipo.EstadoJugadorId == (int)EstadoJugadorEnum.AprobadoPendienteDePago)
+            {
+                var historialDePago = new HistorialDePagos
+                {
+                    JugadorEquipoId = jugadorEquipoId,
+                    Fecha = DateTime.Now
+                };
+                Context.HistorialDePagos.Add(historialDePago);
+            }
+            
             jugadorEquipo.EstadoJugadorId = (int)nuevoEstado;
             jugadorEquipo.Motivo = motivo;
+            
             Context.Update(jugadorEquipo);
         }
     }
