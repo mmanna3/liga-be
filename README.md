@@ -22,7 +22,7 @@ dotnet tool install dotnet-ef -g
 5- Conectarse desde DataGrip copiando esto en el campo url
 `jdbc:sqlserver://localhost:1433;databaseName=liga_dev;user=sa;password=Pas$word!39;encrypt=false;trustServerCertificate=true`
 
-6- Ejecutar el script insertar-datos.sql para insertar datos de prueba en las tablas
+6- Ejecutar el script `insertar-datos.sql` para insertar datos de prueba en las tablas
 
 ## Migraciones
 
@@ -53,13 +53,13 @@ alias remove-migration="dotnet ef migrations remove"
 
 4- En \_Config: agregar reglas en InyeccinDeDependenciasConfig y MapperConfig
 
-
 # Crear Usuario
+
 Agregar en la tabla usuario el NombreUsuario y el password obtenerlo así:
+
 ```
 AuthService.HashPassword("password")
 ```
-
 
 # En Hosting Plesk, configurar
 

@@ -21,12 +21,23 @@ SELECT 'La fragata', Id FROM @Clubes WHERE Nombre = 'Almirante Brown'
 UNION ALL
 SELECT 'Aurinegro', Id FROM @Clubes WHERE Nombre = 'Almirante Brown';
 
-INSERT INTO Delegados (Usuario, Nombre, Apellido, Password, ClubId)
-SELECT 'user1', 'Juan', 'Pérez', 'pass123', Id FROM @Clubes WHERE Nombre = 'Boca'
+-- Primero insertamos los usuarios
+DECLARE @Usuarios TABLE (Id INT, NombreUsuario NVARCHAR(14));
+
+INSERT INTO Usuarios (NombreUsuario, Password, RolId)
+OUTPUT INSERTED.Id, INSERTED.NombreUsuario INTO @Usuarios
+VALUES 
+('jperez', '$2a$12$eApHtnPNGVPdlZXTQe7A5uN4eZ9zHjfZcoCKKACdOcQbiGWrLXZI.', 2),
+('mgomez', '$2a$12$miPry4RRyPtzE7k1gnmj2Oc/RZxJjsgYk2s9AiqkohOhRjniLiyCG', 2),
+('clopez', '$2a$12$eApHtnPNGVPdlZXTQe7A5uN4eZ9zHjfZcoCKKACdOcQbiGWrLXZI.', 2);
+
+-- Luego insertamos los delegados
+INSERT INTO Delegados (Nombre, Apellido, ClubId, UsuarioId)
+SELECT 'Juan', 'Pérez', Id, (SELECT Id FROM @Usuarios WHERE NombreUsuario = 'jperez') FROM @Clubes WHERE Nombre = 'Boca'
 UNION ALL
-SELECT 'user2', 'María', 'Gómez', 'pass456', Id FROM @Clubes WHERE Nombre = 'Boca'
+SELECT 'María', 'Gómez', Id, (SELECT Id FROM @Usuarios WHERE NombreUsuario = 'mgomez') FROM @Clubes WHERE Nombre = 'Boca'
 UNION ALL
-SELECT 'user3', 'Carlos', 'López', 'pass789', Id FROM @Clubes WHERE Nombre = 'Almirante Brown';
+SELECT 'Carlos', 'López', Id, (SELECT Id FROM @Usuarios WHERE NombreUsuario = 'clopez') FROM @Clubes WHERE Nombre = 'Almirante Brown';
 
 DECLARE @Jugadores TABLE (Id INT, DNI NVARCHAR(18), Nombre NVARCHAR(50), Apellido NVARCHAR(50), FechaNacimiento DATE);
 
@@ -44,7 +55,7 @@ VALUES
 ('67890123I', 'Daniel', 'Bazán Vera', '1981-03-15'),
 ('78901234J', 'Blas Armando', 'Giunta', '1963-09-06');
 
-INSERT INTO JugadorEquipo (JugadorId, EquipoId, FechaFichaje, EstadoJugadorId, MotivoDeRechazoFichaje)
+INSERT INTO JugadorEquipo (JugadorId, EquipoId, FechaFichaje, EstadoJugadorId, Motivo)
 SELECT J.Id, E.Id, '2024-01-15', 1, NULL FROM @Jugadores J CROSS JOIN @Equipos E WHERE J.DNI = '12345678A' AND E.Nombre = 'Boquita'
 UNION ALL
 SELECT J.Id, E.Id, '2024-02-10', 1, NULL FROM @Jugadores J CROSS JOIN @Equipos E WHERE J.DNI = '87654321B' AND E.Nombre = 'Boquita'
