@@ -81,6 +81,21 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         return jugador;
     }
 
+    public async Task<int> DesvincularJugadorDelEquipo(DesvincularJugadorDelEquipoDTO dto)
+    {
+        var jugador = await Repo.ObtenerPorIdParaEliminar(dto.JugadorId);
+        if (jugador == null)
+            return -1;
+
+        if (jugador.JugadorEquipos.Count == 1)
+            return await Eliminar(dto.JugadorId);
+
+        var jugadorEquipoId = jugador.JugadorEquipos.Single(x => x.Id == dto.EquipoId).Id;
+        Repo.EliminarJugadorEquipo(jugadorEquipoId);
+        await BDVirtual.GuardarCambios();
+        return dto.JugadorId;
+    }
+
     public async Task<IEnumerable<JugadorDTO>> ListarConFiltro(IList<EstadoJugadorEnum> estados)
     {
         var jugadores = await Repo.ListarConFiltro(estados);

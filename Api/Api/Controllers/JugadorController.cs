@@ -77,5 +77,13 @@ namespace Api.Api.Controllers
                 return NotFound();
             return Ok(resultado);
         }
+        
+                
+        [HttpPost("desvincular-jugador-del-equipo")]
+        public async Task<ActionResult<int>> DesvincularJugadorDelEquipo(DesvincularJugadorDelEquipoDTO dto)
+        {
+            var id = await Core.DesvincularJugadorDelEquipo(dto);
+            return Ok(id);
+        }
     }
 }

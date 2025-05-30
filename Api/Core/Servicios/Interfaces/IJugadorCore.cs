@@ -16,4 +16,5 @@ public interface IJugadorCore : ICoreABM<JugadorDTO>
     Task<int> Inhabilitar(List<CambiarEstadoDelJugadorDTO> dtos);
     Task<int> PagarFichaje(CambiarEstadoDelJugadorDTO dto);
     Task<Jugador> FicharJugadorEnElEquipo(int equipoId, Jugador jugador);
+    Task<int> DesvincularJugadorDelEquipo(DesvincularJugadorDelEquipoDTO dto);
 }
