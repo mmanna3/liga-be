@@ -41,6 +41,13 @@ namespace Api.Api.Controllers
             return Ok(id);
         }
         
+        [HttpPost("efectuar-pases")]
+        public async Task<ActionResult<int>> EfectuarPases([FromBody] List<EfectuarPaseDTO> dtos)
+        {
+            var id = await Core.EfectuarPases(dtos);
+            return Ok(id);
+        }
+        
         [HttpPost("pagar-fichaje-del-jugador")]
         public async Task<ActionResult<int>> PagarFichaje(CambiarEstadoDelJugadorDTO dto)
         {
