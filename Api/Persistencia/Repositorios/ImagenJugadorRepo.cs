@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using Api.Core.DTOs;
+﻿using Api.Core.DTOs;
 using Api.Core.Logica;
 using Api.Core.Repositorios;
 using SkiaSharp;
@@ -43,23 +42,60 @@ namespace Api.Persistencia.Repositorios
 			return $"{_paths.ImagenesTemporalesJugadorDNIDorsoRelative}/{dni}.jpg";
 		}
 
-		//No testeado
 		public void FicharJugadorTemporal(string dni)
 		{
-			var pathCarnet = $"{_paths.ImagenesJugadoresAbsolute}/{dni}.jpg";
 			Directory.CreateDirectory(_paths.ImagenesJugadoresAbsolute);
 
-			var pathCarnetTemporal = $"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{dni}.jpg";
-			if (File.Exists(pathCarnetTemporal))
-				File.Move(pathCarnetTemporal, pathCarnet);
+			var archivosTemporales = Directory.GetFiles(_paths.ImagenesTemporalesJugadorCarnetAbsolute, $"{dni}.*");
+			if (archivosTemporales.Length != 1)
+				throw new Exception("No se encontró una foto temporal del carnet para el jugador");
 
-			var pathDNIFrente = $"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{dni}.jpg";
-			if (File.Exists(pathDNIFrente))
-				File.Delete(pathDNIFrente);
+			var pathTemporal = archivosTemporales[0];
+			var extensionTemporal = System.IO.Path.GetExtension(pathTemporal).ToLowerInvariant();
 
-			var pathDNIDorso = $"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{dni}.jpg";
-			if (File.Exists(pathDNIDorso))
-				File.Delete(pathDNIDorso);
+			var pathDestino = $"{_paths.ImagenesJugadoresAbsolute}/{dni}.jpg";
+
+			try
+			{
+				if (extensionTemporal is ".jpg" or ".jpeg")
+					File.Move(pathTemporal, pathDestino);
+				else
+				{
+					ConvertirAJPGyGuardar(pathTemporal, pathDestino);
+					File.Delete(pathTemporal);
+				}
+			}
+			catch (Exception ex)
+			{
+				throw new Exception($"Error al procesar la imagen temporal del jugador {dni}: {ex.Message}", ex);
+			}
+
+			BorrarDniFrenteYDorsoTemporales(dni);
+		}
+
+		// ReSharper disable once InconsistentNaming
+		private static void ConvertirAJPGyGuardar(string origen, string destino)
+		{
+			using var bitmap = SKBitmap.Decode(origen);
+			using var image = SKImage.FromBitmap(bitmap);
+			using var data = image.Encode(SKEncodedImageFormat.Jpeg, 75);
+			using var fs = new FileStream(destino, FileMode.Create);
+			data.SaveTo(fs);
+		}
+
+		private static void BorrarDniFrenteYDorsoTemporales(string dni)
+		{
+			var extensiones = new[] { ".jpg", ".jpeg", ".png" };
+			foreach (var ext in extensiones)
+			{
+				var frente = $"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{dni}{ext}";
+				if (File.Exists(frente))
+					File.Delete(frente);
+
+				var dorso = $"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{dni}{ext}";
+				if (File.Exists(dorso))
+					File.Delete(dorso);
+			}
 		}
 
 		public void GuardarFotosTemporalesDeJugadorAutofichado(JugadorDTO vm)

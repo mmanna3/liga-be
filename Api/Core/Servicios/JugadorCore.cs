@@ -137,10 +137,10 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         
         if (jugador != null) { 
             ModicarDatosBase(dto, jugador);
-            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.AprobadoPendienteDePago);
-            await BDVirtual.GuardarCambios();
-            
+            Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.AprobadoPendienteDePago);                        
             _imagenJugadorRepo.FicharJugadorTemporal(dto.DNI);
+            
+            await BDVirtual.GuardarCambios();
             
             return dto.JugadorEquipoId;
         }
