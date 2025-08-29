@@ -138,7 +138,9 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         if (jugador != null) { 
             ModicarDatosBase(dto, jugador);
             Repo.CambiarEstado(dto.JugadorEquipoId, EstadoJugadorEnum.AprobadoPendienteDePago);                        
-            _imagenJugadorRepo.FicharJugadorTemporal(dto.DNI);
+            
+            if (EsElPrimerEquipoEnElQueSeFicha(jugador))
+                _imagenJugadorRepo.FicharJugadorTemporal(dto.DNI);
             
             await BDVirtual.GuardarCambios();
             
@@ -146,6 +148,11 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         }
 
         return -1;
+    }
+
+    private static bool EsElPrimerEquipoEnElQueSeFicha(Jugador jugador)
+    {
+        return jugador.JugadorEquipos.Count == 1;
     }
 
     public async Task<int> Rechazar(RechazarJugadorDTO dto)
