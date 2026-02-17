@@ -30,11 +30,7 @@ jobs:
         run: |
           $file = "Api/appsettings.Production.json"
           $content = Get-Content $file -Raw
-          $content = $content.Replace("{db_server}", "$env:DB_SERVER")
-            .Replace("{db_name}", "$env:DB_NAME")
-            .Replace("{db_username}", "$env:DB_USERNAME")
-            .Replace("{db_password}", "$env:DB_PASSWORD")
-            .Replace("{clave_secreta_jwt}", "$env:CLAVE_SECRETA_JWT")
+          $content = $content.Replace("{db_server}", "$env:DB_SERVER").Replace("{db_name}", "$env:DB_NAME").Replace("{db_username}", "$env:DB_USERNAME").Replace("{db_password}", "$env:DB_PASSWORD").Replace("{clave_secreta_jwt}", "$env:CLAVE_SECRETA_JWT")
           Set-Content -Path $file -Value $content
         env:
           DB_SERVER: ${{ secrets.DB_SERVER }}
@@ -63,7 +59,7 @@ jobs:
           $connStr = $config.ConnectionStrings.Default
           Push-Location Api; dotnet ef database update --connection $connStr; Pop-Location
 
-      - name: Deploy al servidor 1
+      - name: Deploy
         uses: rasmusbuchholdt/simply-web-deploy@2.2.0
         with:
           website-name: ${{ secrets.MS_DEPLOY_SITE }}
