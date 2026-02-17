@@ -43,13 +43,13 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build --configuration Release --runtime win-x64 --no-restore
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --configuration Release --no-build
 
       - name: Publish
         run: dotnet publish Api/Api.csproj --configuration Release --framework net8.0 --self-contained true -r win-x64 -p:EnvironmentName=Production -o dist
-
-      - name: Test
-        run: dotnet test --configuration Release --runtime win-x64 --no-build
 
       - name: Aplicar migraciones
         shell: pwsh
