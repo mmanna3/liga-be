@@ -1,0 +1,75 @@
+name: Build, Test y Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  DOTNET_VERSION: "8.0.x"
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [edefi]
+    environment: ${{ matrix.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Inyectar configuración de producción
+        shell: pwsh
+        run: |
+          $file = "Api/appsettings.Production.json"
+          $content = Get-Content $file -Raw
+          $content = $content.Replace("{db_server}", "$env:DB_SERVER")
+            .Replace("{db_name}", "$env:DB_NAME")
+            .Replace("{db_username}", "$env:DB_USERNAME")
+            .Replace("{db_password}", "$env:DB_PASSWORD")
+            .Replace("{clave_secreta_jwt}", "$env:CLAVE_SECRETA_JWT")
+          Set-Content -Path $file -Value $content
+        env:
+          DB_SERVER: ${{ secrets.DB_SERVER }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          CLAVE_SECRETA_JWT: ${{ secrets.CLAVE_SECRETA_JWT }}
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Publish
+        run: dotnet publish Api/Api.csproj --configuration Release --framework net8.0 --self-contained true -r win-x64 -p:EnvironmentName=Production -o dist
+
+      - name: Test
+        run: dotnet test --configuration Release --runtime win-x64 --no-build
+
+      - name: Aplicar migraciones
+        shell: pwsh
+        run: |
+          dotnet tool install --global dotnet-ef --version 8.0.11
+          $config = Get-Content Api/appsettings.Production.json | ConvertFrom-Json
+          $connStr = $config.ConnectionStrings.Default
+          Push-Location Api; dotnet ef database update --connection $connStr; Pop-Location
+
+      - name: Deploy al servidor 1
+        uses: rasmusbuchholdt/simply-web-deploy@2.2.0
+        with:
+          website-name: ${{ secrets.MS_DEPLOY_SITE }}
+          server-computer-name: ${{ secrets.DEPLOY_PUBLISH_URL }}
+          server-username: ${{ secrets.DEPLOY_USERNAME }}
+          server-password: ${{ secrets.DEPLOY_PASSWORD }}
+          source-path: '\dist\'
+          target-delete: true
+          skip-directory-paths: '\App_Data,\Imagenes,\logs,\aspnet_client,\wwwroot,\.well-known'

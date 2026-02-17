@@ -31,6 +31,10 @@ dotnet tool install dotnet-ef -g
 - Actualizar la BD: `update-database`
 - Revertir migraciones aplicadas: `update-database NombreUltimaMigracionBuena`
 
+# CI/CD
+
+El proyecto usa GitHub Actions para build, tests y deploy. Ver [.github/SETUP-GITHUB-ACTIONS.md](.github/SETUP-GITHUB-ACTIONS.md) para configurar los secrets en GitHub.
+
 # Hosting
 
 - Web application firewall: Detection only (si no, no permite PUT y DELETE)
