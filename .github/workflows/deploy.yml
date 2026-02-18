@@ -60,12 +60,17 @@ jobs:
           Push-Location Api; dotnet ef database update --connection $connStr; Pop-Location
 
       - name: Deploy
-        uses: rasmusbuchholdt/simply-web-deploy@2.2.0
-        with:
-          website-name: ${{ secrets.MS_DEPLOY_SITE }}
-          server-computer-name: ${{ secrets.DEPLOY_PUBLISH_URL }}
-          server-username: ${{ secrets.DEPLOY_USERNAME }}
-          server-password: ${{ secrets.DEPLOY_PASSWORD }}
-          source-path: '\dist\'
-          target-delete: true
-          skip-directory-paths: '\App_Data,\Imagenes,\logs,\aspnet_client,\wwwroot,\.well-known'
+        shell: pwsh
+        run: |
+          $msdeploy = "C:\Program Files (x86)\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          $server = "$env:DEPLOY_PUBLISH_URL/MsDeploy.axd?site=$env:MS_DEPLOY_SITE"
+          $sourcePath = Join-Path $env:GITHUB_WORKSPACE "dist"
+          $dest = "contentPath=$env:MS_DEPLOY_SITE,computerName=$server,username=$env:DEPLOY_USERNAME,password=$env:DEPLOY_PASSWORD,AuthType='Basic'"
+          $skipDirs = @("App_Data", "Imagenes", "logs", "aspnet_client", "wwwroot", ".well-known")
+          $skipArgs = $skipDirs | ForEach-Object { "-skip:Directory=$_" }
+          & $msdeploy -verb:sync -allowUntrusted "-source:contentPath=$sourcePath" "-dest:$dest" -enableRule:AppOffline @skipArgs
+        env:
+          DEPLOY_PUBLISH_URL: ${{ secrets.DEPLOY_PUBLISH_URL }}
+          MS_DEPLOY_SITE: ${{ secrets.MS_DEPLOY_SITE }}
+          DEPLOY_USERNAME: ${{ secrets.DEPLOY_USERNAME }}
+          DEPLOY_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
