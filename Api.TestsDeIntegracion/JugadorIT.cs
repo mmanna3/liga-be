@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Api.Core.DTOs;
 using Api.Core.Entidades;
+using Api.Core.Enums;
 using Api.Core.Logica;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
@@ -41,6 +42,78 @@ public class JugadorIT : TestBase
         context.SaveChanges();
     }
     
+    [Fact]
+    public async Task CrearJugador_CodigoQueNoExiste_LanzaError()
+    {
+        var client = await GetAuthenticatedClient();
+
+        // Usar código válido en formato pero que apunta a un equipo que no existe (Id=2)
+        var codigoAlfanumerico = GeneradorDeHash.GenerarAlfanumerico7Digitos(2);
+
+        var jugadorDTO = new JugadorDTO
+        {
+            Nombre = "Maria",
+            Apellido = "Lopez",
+            DNI = "55555555",
+            FechaNacimiento = DateTime.Now.AddYears(-22),
+            CodigoAlfanumerico = codigoAlfanumerico,
+            FotoCarnet = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+            FotoDNIFrente = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+            FotoDNIDorso = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+        };
+
+        var response = await client.PostAsJsonAsync("/api/jugador", jugadorDTO);
+
+        Assert.False(response.IsSuccessStatusCode);
+    }
+
+    [Fact]
+    public async Task CrearJugador_DniDuplicadoYActivo_LanzaError()
+    {
+        // Arrange: seed un jugador activo con DNI=12345678
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var jugador = new Jugador
+        {
+            Id = 10,
+            DNI = "12345678",
+            Nombre = "Jugador",
+            Apellido = "Existente",
+            FechaNacimiento = new DateTime(1990, 1, 1)
+        };
+        context.Jugadores.Add(jugador);
+        context.SaveChanges();
+
+        context.JugadorEquipo.Add(new JugadorEquipo
+        {
+            JugadorId = 10,
+            EquipoId = 1,
+            FechaFichaje = DateTime.Now,
+            EstadoJugadorId = (int)EstadoJugadorEnum.Activo
+        });
+        context.SaveChanges();
+
+        var client = await GetAuthenticatedClient();
+        var codigoAlfanumerico = GeneradorDeHash.GenerarAlfanumerico7Digitos(1);
+
+        var jugadorDTO = new JugadorDTO
+        {
+            Nombre = "Juan",
+            Apellido = "Perez",
+            DNI = "12345678",
+            FechaNacimiento = DateTime.Now.AddYears(-20),
+            CodigoAlfanumerico = codigoAlfanumerico,
+            FotoCarnet = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+            FotoDNIFrente = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+            FotoDNIDorso = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+        };
+
+        var response = await client.PostAsJsonAsync("/api/jugador", jugadorDTO);
+
+        Assert.False(response.IsSuccessStatusCode);
+    }
+
     [Fact]
     public async Task CrearJugador_DatosCorrectos_200()
     {

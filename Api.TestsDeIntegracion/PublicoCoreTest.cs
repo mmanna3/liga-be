@@ -1,5 +1,7 @@
+using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Core.Enums;
+using Api.Core.Otros;
 using Api.Core.Repositorios;
 using Api.Core.Servicios;
 using Api.Core.Servicios.Interfaces;
@@ -158,6 +160,45 @@ public class PublicoCoreTest
 
         // Assert
         Assert.False(result);
+    }
+
+    [Fact]
+    public async Task FicharEnOtroEquipo_JugadorNoExiste_LanzaExcepcionControlada()
+    {
+        // Arrange
+        var dto = new FicharEnOtroEquipoDTO { DNI = "99999999", CodigoAlfanumerico = "ABC1234" };
+        _jugadorRepoMock.Setup(x => x.ObtenerPorDNI(dto.DNI)).ReturnsAsync((Jugador?)null);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ExcepcionControlada>(() => _publicoCore.FicharEnOtroEquipo(dto));
+    }
+
+    [Fact]
+    public async Task FicharEnOtroEquipo_JugadorExiste_LlamaFicharYRetornaId()
+    {
+        // Arrange
+        var jugador = new Jugador
+        {
+            Id = 5,
+            DNI = "11111111",
+            Nombre = "Juan",
+            Apellido = "Perez",
+            FechaNacimiento = new DateTime(2000, 1, 1),
+            JugadorEquipos = new List<JugadorEquipo>()
+        };
+        var codigoAlfanumerico = Api.Core.Logica.GeneradorDeHash.GenerarAlfanumerico7Digitos(1);
+        var dto = new FicharEnOtroEquipoDTO { DNI = jugador.DNI, CodigoAlfanumerico = codigoAlfanumerico };
+
+        _jugadorRepoMock.Setup(x => x.ObtenerPorDNI(dto.DNI)).ReturnsAsync(jugador);
+        _jugadorCoreMock.Setup(x => x.FicharJugadorEnElEquipo(1, jugador)).ReturnsAsync(jugador);
+        _bdVirtualMock.Setup(x => x.GuardarCambios()).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _publicoCore.FicharEnOtroEquipo(dto);
+
+        // Assert
+        Assert.Equal(5, result);
+        _jugadorCoreMock.Verify(x => x.FicharJugadorEnElEquipo(1, jugador), Times.Once);
     }
 
     [Fact]
