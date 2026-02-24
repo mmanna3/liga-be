@@ -1,6 +1,7 @@
 using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Core.Enums;
+using Api.Core.Logica;
 using Api.Core.Otros;
 using Api.Core.Repositorios;
 using Api.Core.Servicios;
@@ -186,7 +187,7 @@ public class PublicoCoreTest
             FechaNacimiento = new DateTime(2000, 1, 1),
             JugadorEquipos = new List<JugadorEquipo>()
         };
-        var codigoAlfanumerico = Api.Core.Logica.GeneradorDeHash.GenerarAlfanumerico7Digitos(1);
+        var codigoAlfanumerico = GeneradorDeHash.GenerarAlfanumerico7Digitos(1);
         var dto = new FicharEnOtroEquipoDTO { DNI = jugador.DNI, CodigoAlfanumerico = codigoAlfanumerico };
 
         _jugadorRepoMock.Setup(x => x.ObtenerPorDNI(dto.DNI)).ReturnsAsync(jugador);

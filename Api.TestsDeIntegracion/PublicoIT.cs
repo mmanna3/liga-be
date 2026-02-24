@@ -48,6 +48,7 @@ public class PublicoIT : TestBase
 
         context.JugadorEquipo.Add(new JugadorEquipo
         {
+            Id = 1,
             JugadorId = 1,
             EquipoId = 1,
             FechaFichaje = DateTime.Now,
