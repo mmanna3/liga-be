@@ -29,6 +29,10 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
     {
         dto.EquipoInicialId = GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos(dto.CodigoAlfanumerico);
         dto.DNI = QuitarCaracteresNoNumericos(dto.DNI);
+
+        var jugadorExistente = await Repo.ObtenerPorDNI(dto.DNI);
+        if (jugadorExistente != null && jugadorExistente.JugadorEquipos.Any(je => je.EstadoJugadorId != (int)EstadoJugadorEnum.FichajeRechazado))
+            throw new ExcepcionControlada("Ya existe un jugador activo con este DNI");
         
         var resultado = await FicharJugadorEnElEquipo(dto.EquipoInicialId, entidad);
         
