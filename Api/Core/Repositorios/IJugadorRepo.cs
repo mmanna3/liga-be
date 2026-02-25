@@ -12,4 +12,5 @@ public interface IJugadorRepo : IRepositorioABM<Jugador>
     void CambiarEstado(int jugadorEquipoId, EstadoJugadorEnum nuevoEstado, string? motivo = null);
     void Eliminar(Jugador jugador);
     void EliminarJugadorEquipo(int jugadorEquipoId);
+    Task<bool> JugadorYaJuegaEnTorneoDelEquipoDestino(int jugadorId, int equipoOrigenId, int equipoDestinoId);
 }

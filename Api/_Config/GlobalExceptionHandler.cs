@@ -1,3 +1,4 @@
+using Api.Core.Otros;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,16 +18,20 @@ internal sealed class GlobalExceptionHandler : IExceptionHandler
         Exception exception,
         CancellationToken cancellationToken)
     {
-        _logger.LogError(
-            exception, "Exception occurred: {Message}", exception.Message);
+        var statusCode = exception is ExcepcionControlada
+            ? StatusCodes.Status400BadRequest
+            : StatusCodes.Status500InternalServerError;
+
+        if (statusCode == StatusCodes.Status500InternalServerError)
+            _logger.LogError(exception, "Exception occurred: {Message}", exception.Message);
 
         var problemDetails = new ProblemDetails
         {
-            Status = StatusCodes.Status500InternalServerError,
+            Status = statusCode,
             Title = exception.Message
         };
 
-        httpContext.Response.StatusCode = problemDetails.Status.Value;
+        httpContext.Response.StatusCode = statusCode;
 
         await httpContext.Response
             .WriteAsJsonAsync(problemDetails, cancellationToken);

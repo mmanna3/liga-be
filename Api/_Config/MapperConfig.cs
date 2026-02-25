@@ -67,7 +67,8 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Equipo.Id));
 
         CreateMap<Equipo, EquipoBaseDTO>()
-            .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => src.Torneo!.Nombre));
+            .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => src.Torneo!.Nombre))
+            .ForMember(dest => dest.CodigoAlfanumerico, opt => opt.MapFrom(src => GeneradorDeHash.GenerarAlfanumerico7Digitos(src.Id)));
 
         CreateMap<JugadorEquipo, CarnetDigitalDTO>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Jugador.Id))

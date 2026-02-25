@@ -12,4 +12,5 @@ public class EquipoBaseDTO
     public required int Id { get; set; }
     public required string Nombre { get; set; }
     public required string Torneo { get; set; }
+    public string? CodigoAlfanumerico { get; set; }
 }

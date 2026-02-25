@@ -201,6 +201,126 @@ public class JugadorIT : TestBase
         Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    /// <summary>
+    /// Crea el escenario base para tests de pase:
+    /// - TorneoOro y TorneoPl distintos
+    /// - EquipoAzul y EquipoRojo en TorneoOro, EquipoVerde en TorneoPl
+    /// - Jugador inscripto en EquipoRojo y EquipoVerde
+    /// Los IDs usan <paramref name="baseId"/> como prefijo para evitar colisiones entre tests.
+    /// </summary>
+    private void SeedEscenarioPases(AppDbContext context, int baseId,
+        out int azulId, out int rojoId, out int verdeId, out int jugadorId)
+    {
+        var torneoOroId = baseId;
+        var torneoPlataId = baseId + 1;
+        azulId  = baseId + 10;
+        rojoId  = baseId + 11;
+        verdeId = baseId + 12;
+        jugadorId = baseId + 20;
+
+        context.Torneos.AddRange(
+            new Torneo { Id = torneoOroId,   Nombre = $"Oro {baseId}"  },
+            new Torneo { Id = torneoPlataId, Nombre = $"Plata {baseId}" }
+        );
+        context.Equipos.AddRange(
+            new Equipo { Id = azulId,  Nombre = $"Azul {baseId}",  ClubId = 1, TorneoId = torneoOroId,   Jugadores = new List<JugadorEquipo>() },
+            new Equipo { Id = rojoId,  Nombre = $"Rojo {baseId}",  ClubId = 1, TorneoId = torneoOroId,   Jugadores = new List<JugadorEquipo>() },
+            new Equipo { Id = verdeId, Nombre = $"Verde {baseId}", ClubId = 1, TorneoId = torneoPlataId, Jugadores = new List<JugadorEquipo>() }
+        );
+        context.Jugadores.Add(new Jugador
+        {
+            Id = jugadorId,
+            DNI = $"{baseId}12",
+            Nombre = "Test",
+            Apellido = "Jugador",
+            FechaNacimiento = new DateTime(2000, 1, 1)
+        });
+        context.JugadorEquipo.AddRange(
+            new JugadorEquipo { Id = baseId + 30, JugadorId = jugadorId, EquipoId = rojoId,  FechaFichaje = DateTime.Now, EstadoJugadorId = (int)EstadoJugadorEnum.Activo },
+            new JugadorEquipo { Id = baseId + 31, JugadorId = jugadorId, EquipoId = verdeId, FechaFichaje = DateTime.Now, EstadoJugadorId = (int)EstadoJugadorEnum.Activo }
+        );
+        context.SaveChanges();
+    }
+
+    [Fact]
+    public async Task EfectuarPases_VerdeAzul_FallaConflictoTorneoOro()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        SeedEscenarioPases(context, 1000, out _, out _, out var verdeId, out var jugadorId);
+        // azulId = 1010, rojoId = 1011, verdeId = 1012
+        var azulId = 1010;
+
+        var client = await GetAuthenticatedClient();
+        var pases = new List<EfectuarPaseDTO>
+        {
+            new EfectuarPaseDTO { JugadorId = jugadorId, EquipoOrigenId = verdeId, EquipoDestinoId = azulId }
+        };
+        var response = await client.PostAsJsonAsync("/api/Jugador/efectuar-pases", pases);
+
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task EfectuarPases_VerdeRojo_FallaJugadorYaEnDestino()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        SeedEscenarioPases(context, 2000, out _, out var rojoId, out var verdeId, out var jugadorId);
+
+        var client = await GetAuthenticatedClient();
+        var pases = new List<EfectuarPaseDTO>
+        {
+            new EfectuarPaseDTO { JugadorId = jugadorId, EquipoOrigenId = verdeId, EquipoDestinoId = rojoId }
+        };
+        var response = await client.PostAsJsonAsync("/api/Jugador/efectuar-pases", pases);
+
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task EfectuarPases_RojoVerde_FallaJugadorYaEnDestino()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        SeedEscenarioPases(context, 3000, out _, out var rojoId, out var verdeId, out var jugadorId);
+
+        var client = await GetAuthenticatedClient();
+        var pases = new List<EfectuarPaseDTO>
+        {
+            new EfectuarPaseDTO { JugadorId = jugadorId, EquipoOrigenId = rojoId, EquipoDestinoId = verdeId }
+        };
+        var response = await client.PostAsJsonAsync("/api/Jugador/efectuar-pases", pases);
+
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task EfectuarPases_RojoAzul_TransfiereYSetaAprobadoPendienteDePago()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        SeedEscenarioPases(context, 4000, out var azulId, out var rojoId, out _, out var jugadorId);
+
+        var client = await GetAuthenticatedClient();
+        var pases = new List<EfectuarPaseDTO>
+        {
+            new EfectuarPaseDTO { JugadorId = jugadorId, EquipoOrigenId = rojoId, EquipoDestinoId = azulId }
+        };
+        var response = await client.PostAsJsonAsync("/api/Jugador/efectuar-pases", pases);
+
+        response.EnsureSuccessStatusCode();
+
+        using var verifyScope = Factory.Services.CreateScope();
+        var verifyContext = verifyScope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        Assert.False(verifyContext.JugadorEquipo.Any(je => je.JugadorId == jugadorId && je.EquipoId == rojoId));
+        Assert.True(verifyContext.JugadorEquipo.Any(je => je.JugadorId == jugadorId && je.EquipoId == azulId));
+
+        var jeAzul = verifyContext.JugadorEquipo.Single(je => je.JugadorId == jugadorId && je.EquipoId == azulId);
+        Assert.Equal((int)EstadoJugadorEnum.AprobadoPendienteDePago, jeAzul.EstadoJugadorId);
+    }
+
     [Fact]
     public async Task EfectuarPases_JugadorYEquiposValidos_TransfiereCorrectamente()
     {

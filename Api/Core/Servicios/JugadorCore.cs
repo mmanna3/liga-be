@@ -203,23 +203,28 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         {
             // Usamos una entidad trackeada para que EF persista las modificaciones en la colección JugadorEquipos
             var jugador = await Repo.ObtenerPorIdParaEliminar(dto.JugadorId);
-            if (jugador != null)
+            if (jugador == null) continue;
+
+            if (jugador.JugadorEquipos.Any(je => je.EquipoId == dto.EquipoDestinoId))
+                throw new ExcepcionControlada("El jugador ya juega en el equipo destino.");
+
+            if (await Repo.JugadorYaJuegaEnTorneoDelEquipoDestino(dto.JugadorId, dto.EquipoOrigenId, dto.EquipoDestinoId))
+                throw new ExcepcionControlada("El jugador ya juega en otro equipo del mismo torneo.");
+
+            var jugadorEquipoOrigen = jugador.JugadorEquipos.Single(x => x.EquipoId == dto.EquipoOrigenId);
+
+            var jugadorEquipoDestino = new JugadorEquipo
             {
-                var jugadorEquipoOrigen = jugador.JugadorEquipos.Single(x => x.EquipoId == dto.EquipoOrigenId);
-                
-                var jugadorEquipoDestino = new JugadorEquipo
-                {
-                    Id = 0,
-                    EquipoId = dto.EquipoDestinoId,
-                    FechaFichaje = DateTime.Now,
-                    EstadoJugadorId = jugadorEquipoOrigen.EstadoJugadorId 
-                };
-        
-                jugador.JugadorEquipos.Add(jugadorEquipoDestino);
-                Repo.EliminarJugadorEquipo(jugadorEquipoOrigen.Id);
-                
-                await BDVirtual.GuardarCambios();
-            }
+                Id = 0,
+                EquipoId = dto.EquipoDestinoId,
+                FechaFichaje = DateTime.Now,
+                EstadoJugadorId = (int)EstadoJugadorEnum.AprobadoPendienteDePago
+            };
+
+            jugador.JugadorEquipos.Add(jugadorEquipoDestino);
+            Repo.EliminarJugadorEquipo(jugadorEquipoOrigen.Id);
+
+            await BDVirtual.GuardarCambios();
         }
         await BDVirtual.GuardarCambios();
         return dtos.Count;

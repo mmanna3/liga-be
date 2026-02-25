@@ -93,4 +93,21 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
             Context.JugadorEquipo.Remove(jugadorEquipo);
         }
     }
+
+    public async Task<bool> JugadorYaJuegaEnTorneoDelEquipoDestino(int jugadorId, int equipoOrigenId, int equipoDestinoId)
+    {
+        var torneoDestinoId = await Context.Equipos
+            .Where(e => e.Id == equipoDestinoId)
+            .Select(e => e.TorneoId)
+            .FirstOrDefaultAsync();
+
+        if (torneoDestinoId == null)
+            return false;
+
+        return await Context.JugadorEquipo
+            .AnyAsync(je =>
+                je.JugadorId == jugadorId &&
+                je.EquipoId != equipoOrigenId &&
+                je.Equipo.TorneoId == torneoDestinoId);
+    }
 }
