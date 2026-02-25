@@ -94,7 +94,7 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         if (jugador.JugadorEquipos.Count == 1)
             return await Eliminar(dto.JugadorId);
 
-        var jugadorEquipoId = jugador.JugadorEquipos.Single(x => x.Id == dto.EquipoId).Id;
+        var jugadorEquipoId = jugador.JugadorEquipos.Single(x => x.EquipoId == dto.EquipoId).Id;
         Repo.EliminarJugadorEquipo(jugadorEquipoId);
         await BDVirtual.GuardarCambios();
         return dto.JugadorId;
