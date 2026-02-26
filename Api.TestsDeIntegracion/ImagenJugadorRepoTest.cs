@@ -1,4 +1,4 @@
-﻿using Api.Core.DTOs;
+using Api.Core.DTOs;
 using Api.Persistencia.Repositorios;
 using Microsoft.AspNetCore.Hosting;
 using Moq;
@@ -21,9 +21,9 @@ namespace Api.TestsDeIntegracion
             _imagenJugadorRepo = new ImagenJugadorRepo(_paths);
             
             EliminarTodosLosArchivosEnLaCarpeta(_paths.ImagenesJugadoresAbsolute);
-            EliminarTodosLosArchivosEnLaCarpeta(_paths.ImagenesTemporalesJugadorCarnetAbsolute);
-            EliminarTodosLosArchivosEnLaCarpeta(_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute);
-            EliminarTodosLosArchivosEnLaCarpeta(_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute);
+            EliminarTodosLosArchivosEnLaCarpeta(_paths.ImagenesTemporalesCarnetAbsolute);
+            EliminarTodosLosArchivosEnLaCarpeta(_paths.ImagenesTemporalesDNIFrenteAbsolute);
+            EliminarTodosLosArchivosEnLaCarpeta(_paths.ImagenesTemporalesDNIDorsoAbsolute);
         }
         
         [Fact]
@@ -39,9 +39,9 @@ namespace Api.TestsDeIntegracion
 
             _imagenJugadorRepo.GuardarFotosTemporalesDeJugadorAutofichado(vm);
 
-            var pathFotoCarnetTemporal = $"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{DNI}.jpg";
-            var pathFotoDNIFrenteTemporal = $"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{DNI}.jpg";
-            var pathFotoDNIDorsoTemporal = $"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{DNI}.jpg";
+            var pathFotoCarnetTemporal = $"{_paths.ImagenesTemporalesCarnetAbsolute}/{DNI}.jpg";
+            var pathFotoDNIFrenteTemporal = $"{_paths.ImagenesTemporalesDNIFrenteAbsolute}/{DNI}.jpg";
+            var pathFotoDNIDorsoTemporal = $"{_paths.ImagenesTemporalesDNIDorsoAbsolute}/{DNI}.jpg";
 
             Assert.True(File.Exists(pathFotoCarnetTemporal));
             Assert.True(File.Exists(pathFotoDNIFrenteTemporal));
@@ -77,9 +77,9 @@ namespace Api.TestsDeIntegracion
         //     _imagenJugadorRepo.FicharJugadorTemporal(DNI);
         //
         //     var pathJugador = $"{_paths.ImagenesJugadoresAbsolute}/{DNI}.jpg";
-        //     var pathCarnet = $"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{DNI}.jpg";
-        //     var pathDNIFrente = $"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{DNI}.jpg";
-        //     var pathDNIDorso = $"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{DNI}.jpg";
+        //     var pathCarnet = $"{_paths.ImagenesTemporalesCarnetAbsolute}/{DNI}.jpg";
+        //     var pathDNIFrente = $"{_paths.ImagenesTemporalesDNIFrenteAbsolute}/{DNI}.jpg";
+        //     var pathDNIDorso = $"{_paths.ImagenesTemporalesDNIDorsoAbsolute}/{DNI}.jpg";
         //
         //     Assert.True(File.Exists(pathJugador));
         //     Assert.True(File.Exists(pathCarnet));

@@ -35,6 +35,16 @@ public class AppDbContext : DbContext
             new EstadoJugador { Id = 5, Estado = "Inhabilitado" },
             new EstadoJugador { Id = 6, Estado = "Aprobado pendiente de pago" }
         );
+
+        builder.Entity<EstadoDelegado>().HasData(
+            new EstadoDelegado { Id = 1, Estado = "Pendiente de aprobación" },
+            new EstadoDelegado { Id = 2, Estado = "Rechazado" },
+            new EstadoDelegado { Id = 3, Estado = "Activo" }
+        );
+
+        builder.Entity<Delegado>()
+            .Property(d => d.EstadoDelegadoId)
+            .HasDefaultValue(3); // Activo para delegados existentes
         
         builder.Entity<Jugador>()
             .HasIndex(u => u.DNI)
@@ -80,6 +90,7 @@ public class AppDbContext : DbContext
     public DbSet<Jugador> Jugadores { get; set; } = null!;
     public DbSet<JugadorEquipo> JugadorEquipo { get; set; } = null!;
     public DbSet<EstadoJugador> EstadoJugador { get; set; } = null!;
+    public DbSet<EstadoDelegado> EstadoDelegado { get; set; } = null!;
     public DbSet<Usuario> Usuarios { get; set; } = null!;
     public DbSet<Rol> Roles { get; set; } = null!;
     public DbSet<Torneo> Torneos { get; set; } = null!;

@@ -1,4 +1,4 @@
-﻿namespace Api.Core.Logica
+namespace Api.Core.Logica
 {
 	public abstract class AppPaths
 	{
@@ -6,22 +6,24 @@
 		
 		public string ImagenesRelative { get; } = "/Imagenes";
 		public string ImagenesJugadoresRelative { get; } = "/Imagenes/Jugadores";
+		public string ImagenesDelegadosRelative { get; } = "/Imagenes/Delegados";
 		public string ImagenesEscudosRelative { get; } = "/Imagenes/Escudos";
 		public string ImagenesPublicidadesRelative { get; } = "/Imagenes/Publicidades";
 		public string EscudoDefaultRelative { get; } = "/Imagenes/Escudos/default.jpg";
-		public string ImagenesTemporalesJugadorCarnetRelative { get; } = "/Imagenes/Temporales/Carnet";
-		public string ImagenesTemporalesJugadorDNIFrenteRelative { get; } = "/Imagenes/Temporales/DNIFrente";
-		public string ImagenesTemporalesJugadorDNIDorsoRelative { get; } = "/Imagenes/Temporales/DNIDorso";
+		public string ImagenesTemporalesCarnetRelative { get; } = "/Imagenes/Temporales/Carnet";
+		public string ImagenesTemporalesDNIFrenteRelative { get; } = "/Imagenes/Temporales/DNIFrente";
+		public string ImagenesTemporalesDNIDorsoRelative { get; } = "/Imagenes/Temporales/DNIDorso";
 		public string BackupGeneratorExeRelative { get; } = "/Utilidades/Backup/Recursos/SchemaZen.exe";
 
 		public string ImagenesAbsolute { get; }
 		public string ImagenesJugadoresAbsolute { get; }
+		public string ImagenesDelegadosAbsolute { get; }
 		public string ImagenesPublicidadesAbsolute { get; }
 		public string ImagenesEscudosAbsolute { get; }
 		public string EscudoDefaultFileAbsolute { get; }
-		public string ImagenesTemporalesJugadorCarnetAbsolute { get; set; }
-		public string ImagenesTemporalesJugadorDNIFrenteAbsolute { get; set; }
-		public string ImagenesTemporalesJugadorDNIDorsoAbsolute { get; set; }
+		public string ImagenesTemporalesCarnetAbsolute { get; set; }
+		public string ImagenesTemporalesDNIFrenteAbsolute { get; set; }
+		public string ImagenesTemporalesDNIDorsoAbsolute { get; set; }
 		public string BackupGeneratorExeAbsolute { get; }
 		public string CarpetaTemporalBackupBaseDeDatosAbsolute { get; }
 
@@ -31,12 +33,13 @@
 			Env = env;
 			ImagenesAbsolute = GetAbsolutePath(ImagenesRelative);
 			ImagenesJugadoresAbsolute = GetAbsolutePath(ImagenesJugadoresRelative);
+			ImagenesDelegadosAbsolute = GetAbsolutePath(ImagenesDelegadosRelative);
 			ImagenesEscudosAbsolute = GetAbsolutePath(ImagenesEscudosRelative);
 			ImagenesPublicidadesAbsolute = GetAbsolutePath(ImagenesPublicidadesRelative);
 			EscudoDefaultFileAbsolute = GetAbsolutePath(EscudoDefaultRelative);
-			ImagenesTemporalesJugadorCarnetAbsolute = GetAbsolutePath(ImagenesTemporalesJugadorCarnetRelative);
-			ImagenesTemporalesJugadorDNIFrenteAbsolute = GetAbsolutePath(ImagenesTemporalesJugadorDNIFrenteRelative);
-			ImagenesTemporalesJugadorDNIDorsoAbsolute = GetAbsolutePath(ImagenesTemporalesJugadorDNIDorsoRelative);
+			ImagenesTemporalesCarnetAbsolute = GetAbsolutePath(ImagenesTemporalesCarnetRelative);
+			ImagenesTemporalesDNIFrenteAbsolute = GetAbsolutePath(ImagenesTemporalesDNIFrenteRelative);
+			ImagenesTemporalesDNIDorsoAbsolute = GetAbsolutePath(ImagenesTemporalesDNIDorsoRelative);
 			BackupGeneratorExeAbsolute = GetAbsolutePath(BackupGeneratorExeRelative);
 			CarpetaTemporalBackupBaseDeDatosAbsolute = BackupAbsoluteOf("ZenSchemaBackup");
 		}

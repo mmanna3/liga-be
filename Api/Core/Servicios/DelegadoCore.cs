@@ -1,5 +1,7 @@
 using Api.Core.DTOs;
 using Api.Core.Entidades;
+using Api.Core.Enums;
+using Api.Core.Otros;
 using Api.Core.Repositorios;
 using Api.Core.Servicios.Interfaces;
 using AutoMapper;
@@ -16,6 +18,8 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
     {
         _context = context;
     }
+
+    private static string QuitarCaracteresNoNumericos(string dni) => new string(dni.Where(char.IsDigit).ToArray());
 
     private static string NormalizarTexto(string texto)
     {
@@ -50,6 +54,7 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
     {
         entidadNueva.Usuario = null!;
         entidadNueva.UsuarioId = entidadAnterior.UsuarioId;
+        entidadNueva.EstadoDelegadoId = entidadAnterior.EstadoDelegadoId;
         return Task.FromResult(entidadNueva);
     }
     
@@ -57,6 +62,12 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
     {
         var nombreUsuario = ObtenerNombreUsuario(dto);
         
+        dto.DNI = QuitarCaracteresNoNumericos(dto.DNI);
+
+        var delegadoExistente = await Repo.ObtenerPorDNI(dto.DNI);
+        if (delegadoExistente != null && delegadoExistente.EstadoDelegadoId != (int)EstadoDelegadoEnum.Rechazado)
+            throw new ExcepcionControlada("Ya existe un delegado con este DNI");
+
         var usuario = new Usuario
         {
             Id = 0,
@@ -64,9 +75,11 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
             Password = null
         };
         
-        await _context.Usuarios.AddAsync(usuario);
-        
+        await _context.Usuarios.AddAsync(usuario);        
         entidad.Usuario = usuario;
+
+        await BDVirtual.GuardarCambios();
+        // TODO: Guardar fotos temporales del delegado cuando exista IImagenDelegadoRepo
         
         return entidad;
     }

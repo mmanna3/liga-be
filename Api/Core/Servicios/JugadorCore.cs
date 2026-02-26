@@ -54,11 +54,11 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         
         dto.FotoDNIDorso = ImagenUtility.AgregarMimeType(
             _imagenJugadorRepo.GetFotoEnBase64ConPathAbsoluto(
-                    $"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{dto.DNI}.jpg"));
+                    $"{_paths.ImagenesTemporalesDNIDorsoAbsolute}/{dto.DNI}.jpg"));
         
         dto.FotoDNIFrente = ImagenUtility.AgregarMimeType(
             _imagenJugadorRepo.GetFotoEnBase64ConPathAbsoluto(
-                $"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{dto.DNI}.jpg"));
+                $"{_paths.ImagenesTemporalesDNIFrenteAbsolute}/{dto.DNI}.jpg"));
         
         return dto;
     }

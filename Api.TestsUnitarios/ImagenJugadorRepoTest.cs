@@ -10,9 +10,6 @@ public class ImagenJugadorRepoTest
     {
         public AppPathsTest(string root) : base(new DummyEnv(root))
         {
-            ImagenesTemporalesJugadorCarnetAbsolute = GetAbsolutePath(ImagenesTemporalesJugadorCarnetRelative);
-            ImagenesTemporalesJugadorDNIFrenteAbsolute = GetAbsolutePath(ImagenesTemporalesJugadorDNIFrenteRelative);
-            ImagenesTemporalesJugadorDNIDorsoAbsolute = GetAbsolutePath(ImagenesTemporalesJugadorDNIDorsoRelative);
         }
 
         protected override string GetAbsolutePath(string relativePath)
@@ -44,18 +41,18 @@ public class ImagenJugadorRepoTest
         var repo = new ImagenJugadorRepo(paths);
         const string dni = "12345678";
 
-        Directory.CreateDirectory(paths.ImagenesTemporalesJugadorCarnetAbsolute);
-        Directory.CreateDirectory(paths.ImagenesTemporalesJugadorDNIFrenteAbsolute);
-        Directory.CreateDirectory(paths.ImagenesTemporalesJugadorDNIDorsoAbsolute);
+        Directory.CreateDirectory(paths.ImagenesTemporalesCarnetAbsolute);
+        Directory.CreateDirectory(paths.ImagenesTemporalesDNIFrenteAbsolute);
+        Directory.CreateDirectory(paths.ImagenesTemporalesDNIDorsoAbsolute);
 
         // Creamos una imagen PNG válida
         using (var bitmap = new SKBitmap(1, 1))
         using (var image = SKImage.FromBitmap(bitmap))
         using (var data = image.Encode(SKEncodedImageFormat.Png, 100))
         {
-            File.WriteAllBytes(Path.Combine(paths.ImagenesTemporalesJugadorCarnetAbsolute, $"{dni}.png"), data.ToArray());
-            File.WriteAllBytes(Path.Combine(paths.ImagenesTemporalesJugadorDNIFrenteAbsolute, $"{dni}.png"), data.ToArray());
-            File.WriteAllBytes(Path.Combine(paths.ImagenesTemporalesJugadorDNIDorsoAbsolute, $"{dni}.png"), data.ToArray());
+            File.WriteAllBytes(Path.Combine(paths.ImagenesTemporalesCarnetAbsolute, $"{dni}.png"), data.ToArray());
+            File.WriteAllBytes(Path.Combine(paths.ImagenesTemporalesDNIFrenteAbsolute, $"{dni}.png"), data.ToArray());
+            File.WriteAllBytes(Path.Combine(paths.ImagenesTemporalesDNIDorsoAbsolute, $"{dni}.png"), data.ToArray());
         }
 
         // Act
@@ -64,9 +61,9 @@ public class ImagenJugadorRepoTest
         // Assert
         var pathDefinitivo = Path.Combine(paths.ImagenesJugadoresAbsolute, $"{dni}.jpg");
         Assert.True(File.Exists(pathDefinitivo), "La imagen definitiva no existe");
-        Assert.False(File.Exists(Path.Combine(paths.ImagenesTemporalesJugadorCarnetAbsolute, $"{dni}.png")), "La imagen temporal carnet no fue eliminada");
-        Assert.False(File.Exists(Path.Combine(paths.ImagenesTemporalesJugadorDNIFrenteAbsolute, $"{dni}.png")), "La imagen temporal DNI frente no fue eliminada");
-        Assert.False(File.Exists(Path.Combine(paths.ImagenesTemporalesJugadorDNIDorsoAbsolute, $"{dni}.png")), "La imagen temporal DNI dorso no fue eliminada");
+        Assert.False(File.Exists(Path.Combine(paths.ImagenesTemporalesCarnetAbsolute, $"{dni}.png")), "La imagen temporal carnet no fue eliminada");
+        Assert.False(File.Exists(Path.Combine(paths.ImagenesTemporalesDNIFrenteAbsolute, $"{dni}.png")), "La imagen temporal DNI frente no fue eliminada");
+        Assert.False(File.Exists(Path.Combine(paths.ImagenesTemporalesDNIDorsoAbsolute, $"{dni}.png")), "La imagen temporal DNI dorso no fue eliminada");
     }
 
 }

@@ -1,4 +1,4 @@
-﻿using Api.Core.DTOs;
+using Api.Core.DTOs;
 using Api.Core.Logica;
 using Api.Core.Repositorios;
 using SkiaSharp;
@@ -29,24 +29,24 @@ namespace Api.Persistencia.Repositorios
 
 		public string PathFotoTemporalCarnet(string dni)
 		{
-			return $"{_paths.ImagenesTemporalesJugadorCarnetRelative}/{dni}.jpg";
+			return $"{_paths.ImagenesTemporalesCarnetRelative}/{dni}.jpg";
 		}
 
 		public string PathFotoTemporalDNIFrente(string dni)
 		{
-			return $"{_paths.ImagenesTemporalesJugadorDNIFrenteRelative}/{dni}.jpg";
+			return $"{_paths.ImagenesTemporalesDNIFrenteRelative}/{dni}.jpg";
 		}
 
 		public string PathFotoTemporalDNIDorso(string dni)
 		{
-			return $"{_paths.ImagenesTemporalesJugadorDNIDorsoRelative}/{dni}.jpg";
+			return $"{_paths.ImagenesTemporalesDNIDorsoRelative}/{dni}.jpg";
 		}
 
 		public void FicharJugadorTemporal(string dni)
 		{
 			Directory.CreateDirectory(_paths.ImagenesJugadoresAbsolute);
 
-			var archivosTemporales = Directory.GetFiles(_paths.ImagenesTemporalesJugadorCarnetAbsolute, $"{dni}.*");
+			var archivosTemporales = Directory.GetFiles(_paths.ImagenesTemporalesCarnetAbsolute, $"{dni}.*");
 			if (archivosTemporales.Length != 1)
 				throw new Exception("No se encontró una foto temporal del carnet para el jugador");
 
@@ -88,11 +88,11 @@ namespace Api.Persistencia.Repositorios
 			var extensiones = new[] { ".jpg", ".jpeg", ".png" };
 			foreach (var ext in extensiones)
 			{
-				var frente = $"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{dni}{ext}";
+				var frente = $"{_paths.ImagenesTemporalesDNIFrenteAbsolute}/{dni}{ext}";
 				if (File.Exists(frente))
 					File.Delete(frente);
 
-				var dorso = $"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{dni}{ext}";
+				var dorso = $"{_paths.ImagenesTemporalesDNIDorsoAbsolute}/{dni}{ext}";
 				if (File.Exists(dorso))
 					File.Delete(dorso);
 			}
@@ -116,12 +116,12 @@ namespace Api.Persistencia.Repositorios
 
 		private static void GuardarFotoCarnetTemporal(JugadorDTO vm)
 		{
-			var path = $"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{vm.DNI}.jpg";
+			var path = $"{_paths.ImagenesTemporalesCarnetAbsolute}/{vm.DNI}.jpg";
 
 			if (File.Exists(path))
 				File.Delete(path);
 
-			Directory.CreateDirectory(_paths.ImagenesTemporalesJugadorCarnetAbsolute);
+			Directory.CreateDirectory(_paths.ImagenesTemporalesCarnetAbsolute);
 
 			var imagen = ImagenUtility.ConvertirABitMapYATamanio240X240(vm.FotoCarnet);
 			GuardarImagenEnDisco(path, imagen);
@@ -129,24 +129,24 @@ namespace Api.Persistencia.Repositorios
 
 		private static void GuardarFotoDNIFrenteTemporal(JugadorDTO vm)
 		{
-			var imagePath = $"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{vm.DNI}.jpg";
+			var imagePath = $"{_paths.ImagenesTemporalesDNIFrenteAbsolute}/{vm.DNI}.jpg";
 
 			if (File.Exists(imagePath))
 				File.Delete(imagePath);
 
-			Directory.CreateDirectory(_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute);
+			Directory.CreateDirectory(_paths.ImagenesTemporalesDNIFrenteAbsolute);
 			var imagen = ImagenUtility.Comprimir(vm.FotoDNIFrente);
 			GuardarImagenEnDisco(imagePath, imagen);
 		}
 
 		private static void GuardarFotoDNIDorsoTemporal(JugadorDTO vm)
 		{
-			var path = $"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{vm.DNI}.jpg";
+			var path = $"{_paths.ImagenesTemporalesDNIDorsoAbsolute}/{vm.DNI}.jpg";
 
 			if (File.Exists(path))
 				File.Delete(path);
 
-			Directory.CreateDirectory(_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute);
+			Directory.CreateDirectory(_paths.ImagenesTemporalesDNIDorsoAbsolute);
 			var imagen = ImagenUtility.Comprimir(vm.FotoDNIDorso);
 			
 			GuardarImagenEnDisco(path, imagen);
@@ -164,12 +164,12 @@ namespace Api.Persistencia.Repositorios
 		//{
 		//	if (vm.FotoDNIFrente != null)
 		//	{
-		//		var imagePath = $"{Paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{vm.DNI}.jpg";
+		//		var imagePath = $"{Paths.ImagenesTemporalesDNIFrenteAbsolute}/{vm.DNI}.jpg";
 
 		//		if (File.Exists(imagePath))
 		//			File.Delete(imagePath);
 
-		//		Directory.CreateDirectory(Paths.ImagenesTemporalesJugadorDNIFrenteAbsolute);
+		//		Directory.CreateDirectory(Paths.ImagenesTemporalesDNIFrenteAbsolute);
 		//		var result = ImagenUtility.RotarAHorizontalYComprimir(vm.FotoDNIFrente.InputStream);
 		//		result.Save(imagePath);
 		//	}
@@ -181,7 +181,7 @@ namespace Api.Persistencia.Repositorios
 
 			if (!File.Exists(imagePath))
 			{
-				imagePath = $"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{dni}.jpg";
+				imagePath = $"{_paths.ImagenesTemporalesCarnetAbsolute}/{dni}.jpg";
 				if (!File.Exists(imagePath))
 					return string.Empty;
 			}
@@ -247,9 +247,9 @@ namespace Api.Persistencia.Repositorios
 
 		public void RenombrarFotosTemporalesPorCambioDeDNI(string dniAnterior, string dniNuevo)
 		{
-			RenombrarFoto($"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{dniAnterior}.jpg", $"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{dniNuevo}.jpg");
-			RenombrarFoto($"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{dniAnterior}.jpg", $"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{dniNuevo}.jpg");
-			RenombrarFoto($"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{dniAnterior}.jpg", $"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{dniNuevo}.jpg");
+			RenombrarFoto($"{_paths.ImagenesTemporalesDNIFrenteAbsolute}/{dniAnterior}.jpg", $"{_paths.ImagenesTemporalesDNIFrenteAbsolute}/{dniNuevo}.jpg");
+			RenombrarFoto($"{_paths.ImagenesTemporalesDNIDorsoAbsolute}/{dniAnterior}.jpg", $"{_paths.ImagenesTemporalesDNIDorsoAbsolute}/{dniNuevo}.jpg");
+			RenombrarFoto($"{_paths.ImagenesTemporalesCarnetAbsolute}/{dniAnterior}.jpg", $"{_paths.ImagenesTemporalesCarnetAbsolute}/{dniNuevo}.jpg");
 		}
 
 		private static void RenombrarFoto(string pathAnterior, string pathNuevo)
@@ -267,15 +267,15 @@ namespace Api.Persistencia.Repositorios
 			if (File.Exists(pathJugador))
 				File.Delete(pathJugador);
 			
-			var pathCarnet = $"{_paths.ImagenesTemporalesJugadorCarnetAbsolute}/{dni}.jpg";
+			var pathCarnet = $"{_paths.ImagenesTemporalesCarnetAbsolute}/{dni}.jpg";
 			if (File.Exists(pathCarnet))
 				File.Delete(pathCarnet);
 
-			var pathDNIFrente = $"{_paths.ImagenesTemporalesJugadorDNIFrenteAbsolute}/{dni}.jpg";
+			var pathDNIFrente = $"{_paths.ImagenesTemporalesDNIFrenteAbsolute}/{dni}.jpg";
 			if (File.Exists(pathDNIFrente))
 				File.Delete(pathDNIFrente);
 
-			var pathDNIDorso = $"{_paths.ImagenesTemporalesJugadorDNIDorsoAbsolute}/{dni}.jpg";
+			var pathDNIDorso = $"{_paths.ImagenesTemporalesDNIDorsoAbsolute}/{dni}.jpg";
 			if (File.Exists(pathDNIDorso))
 				File.Delete(pathDNIDorso);
 		}

@@ -51,8 +51,11 @@ public class DelegadoIT : TestBase
         
         var delegadoDTO = new DelegadoDTO
         {
+            DNI = "12345678",
             Nombre = "Juan",
             Apellido = "Pérez",
+            FechaNacimiento = new DateTime(1990, 5, 15),
+            CodigoAlfanumerico = "",
             ClubId = _club!.Id
         };
         
@@ -86,8 +89,11 @@ public class DelegadoIT : TestBase
         
         var delegadoDTO = new DelegadoDTO
         {
+            DNI = "23456789",
             Nombre = "Ana",
             Apellido = "García",
+            FechaNacimiento = new DateTime(1985, 3, 20),
+            CodigoAlfanumerico = "",
             ClubId = _club!.Id
         };
         
@@ -116,8 +122,11 @@ public class DelegadoIT : TestBase
         
         var delegadoDTO = new DelegadoDTO
         {
+            DNI = "34567890",
             Nombre = "Carlos",
             Apellido = "López",
+            FechaNacimiento = new DateTime(1988, 11, 10),
+            CodigoAlfanumerico = "",
             ClubId = _club!.Id
         };
         
@@ -129,8 +138,11 @@ public class DelegadoIT : TestBase
         var delegadoModificadoDTO = new DelegadoDTO
         {
             Id = createContent!.Id,
+            DNI = "34567890",
             Nombre = "CarlosModif",
             Apellido = "LópezModif",
+            FechaNacimiento = new DateTime(1988, 11, 10),
+            CodigoAlfanumerico = "",
             ClubId = _club.Id
         };
         

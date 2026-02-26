@@ -19,6 +19,11 @@ public class DelegadoRepo : RepositorioABM<Delegado>, IDelegadoRepo
             .AsQueryable();
     }
     
+    public virtual async Task<Delegado?> ObtenerPorDNI(string dni)
+    {
+        return await Set().AsNoTracking().FirstOrDefaultAsync(x => x.DNI == dni);
+    }
+
     public virtual async Task<Delegado> ObtenerPorUsuario(string usuario)
     {
         return await Set()

@@ -1,5 +1,6 @@
 using Api.Core.DTOs;
 using Api.Core.Servicios.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers
@@ -10,6 +11,13 @@ namespace Api.Api.Controllers
         {
         }
         
+        [HttpPost]
+        [AllowAnonymous]
+        public override async Task<ActionResult<DelegadoDTO>> Crear(DelegadoDTO dto)
+        {
+            return await base.Crear(dto);
+        }
+
         [HttpPost("blanquear-clave")]
         public async Task<ActionResult<bool>> BlanquearClave(int id)
         {
