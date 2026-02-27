@@ -36,4 +36,5 @@ public class DelegadoDTO : DTO, IFotosDTO
     public EstadoDelegadoDTO? EstadoDelegado { get; set; }
     public string ClubNombre { get; set; } = string.Empty;
     public List<string> EquiposDelClub { get; set; } = new();
+    public int? JugadorId { get; set; }
 }

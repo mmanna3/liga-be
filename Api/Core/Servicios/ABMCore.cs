@@ -23,7 +23,7 @@ public abstract class ABMCore<TRepo, TEntidad, TDTO> : ICoreABM<TDTO>
         Mapper = mapper;
     }
     
-    public async Task<IEnumerable<TDTO>> Listar()
+    public virtual async Task<IEnumerable<TDTO>> Listar()
     {
         var entidades = await Repo.Listar();
         var dtos = Mapper.Map<List<TDTO>>(entidades);
@@ -44,7 +44,7 @@ public abstract class ABMCore<TRepo, TEntidad, TDTO> : ICoreABM<TDTO>
         return Task.FromResult(entidad);
     }
 
-    public async Task<TDTO> ObtenerPorId(int id)
+    public virtual async Task<TDTO> ObtenerPorId(int id)
     {
         var entidad = await Repo.ObtenerPorId(id);
         var dto = Mapper.Map<TDTO>(entidad);

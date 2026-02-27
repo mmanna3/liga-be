@@ -38,6 +38,20 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
             .ToListAsync();
     }
 
+    public async Task<List<(Jugador Jugador, int? DelegadoId)>> ListarConFiltroConDelegadoIds(IList<EstadoJugadorEnum> estados)
+    {
+        IQueryable<Jugador> baseQuery = estados.Count == 0
+            ? Set()
+            : Set().Where(j => j.JugadorEquipos.Any(je => estados.Contains((EstadoJugadorEnum)je.EstadoJugadorId)));
+
+        var query = from j in baseQuery
+                    join d in Context.Delegados on j.DNI equals d.DNI into dGroup
+                    from d in dGroup.DefaultIfEmpty()
+                    select new { Jugador = j, DelegadoId = (int?)d.Id };
+        var result = await query.ToListAsync();
+        return result.Select(x => (x.Jugador, x.DelegadoId)).ToList();
+    }
+
 
     public virtual async Task<Jugador?> ObtenerPorDNI(string dni)
     {
@@ -92,6 +106,14 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
         {
             Context.JugadorEquipo.Remove(jugadorEquipo);
         }
+    }
+
+    public async Task<int?> ObtenerDelegadoIdPorDNI(string dni)
+    {
+        return await Context.Delegados
+            .Where(d => d.DNI == dni)
+            .Select(d => (int?)d.Id)
+            .FirstOrDefaultAsync();
     }
 
     public async Task<bool> JugadorYaJuegaEnTorneoDelEquipoDestino(int jugadorId, int equipoOrigenId, int equipoDestinoId)

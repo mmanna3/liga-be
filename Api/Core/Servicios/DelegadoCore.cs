@@ -9,6 +9,7 @@ using Api.Core.Servicios.Interfaces;
 using AutoMapper;
 using System.Text;
 using Api.Persistencia._Config;
+using Microsoft.EntityFrameworkCore;
 
 namespace Api.Core.Servicios;
 
@@ -56,6 +57,18 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         return texto.Replace(" ", "");
     }
 
+    public override async Task<IEnumerable<DelegadoDTO>> Listar()
+    {
+        var delegadosConJugador = await Repo.ListarConJugadorIds();
+        var dtos = delegadosConJugador.Select(x =>
+        {
+            var dto = Mapper.Map<DelegadoDTO>(x.Delegado);
+            dto.JugadorId = x.JugadorId;
+            return dto;
+        }).ToList();
+        return dtos;
+    }
+
     public async Task<int> Aprobar(AprobarDelegadoDTO dto)
     {
         var delegado = await Repo.ObtenerPorId(dto.Id);
@@ -76,6 +89,13 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         Repo.Modificar(delegado, delegado);
         await BDVirtual.GuardarCambios();
         return delegado.Id;
+    }
+
+    public override async Task<DelegadoDTO> ObtenerPorId(int id)
+    {
+        var dto = await base.ObtenerPorId(id);
+        dto.JugadorId = await Repo.ObtenerJugadorIdPorDNI(dto.DNI);
+        return dto;
     }
 
     protected override DelegadoDTO AntesDeObtenerPorId(Delegado entidad, DelegadoDTO dto)

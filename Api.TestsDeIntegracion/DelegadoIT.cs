@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using Api.Core.DTOs;
 using Api.Core.DTOs.CambiosDeEstadoDelegado;
 using Api.Core.Entidades;
+using Api.Core.Enums;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
 using Api.TestsUtilidades;
@@ -25,10 +26,14 @@ public class DelegadoIT : TestBase
         SeedData(context);
     }
 
+    private Equipo? _equipo;
+
     private void SeedData(AppDbContext context)
     {
         _utilidades = new Utilidades(context);
         _club = _utilidades.DadoQueExisteElClub();
+        context.SaveChanges();
+        _equipo = _utilidades.DadoQueExisteElEquipo(_club);
         context.SaveChanges();
     }
 
@@ -175,5 +180,131 @@ public class DelegadoIT : TestBase
         Assert.Equal("CarlosModif", content.Nombre);
         Assert.Equal("LópezModif", content.Apellido);
         Assert.Equal(_club.Id, content.ClubId);
+    }
+
+    [Fact]
+    public async Task ListarDelegados_ConJugadorMismoDNI_DevuelveJugadorId()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var jugador = new Jugador
+        {
+            Id = 6001,
+            DNI = "55556666",
+            Nombre = "Pedro",
+            Apellido = "Delegado",
+            FechaNacimiento = new DateTime(1992, 1, 1)
+        };
+        context.Jugadores.Add(jugador);
+        context.SaveChanges();
+
+        context.JugadorEquipo.Add(new JugadorEquipo
+        {
+            Id = 6011,
+            JugadorId = jugador.Id,
+            EquipoId = _equipo!.Id,
+            FechaFichaje = DateTime.Now,
+            EstadoJugadorId = (int)EstadoJugadorEnum.Activo
+        });
+
+        context.Delegados.Add(new Delegado
+        {
+            Id = 6021,
+            DNI = "55556666",
+            Nombre = "Pedro",
+            Apellido = "Delegado",
+            FechaNacimiento = new DateTime(1992, 1, 1),
+            ClubId = _club!.Id,
+            EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo
+        });
+        context.SaveChanges();
+
+        var client = await GetAuthenticatedClient();
+        var response = await client.GetAsync("/api/Delegado");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<List<DelegadoDTO>>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+
+        var delegadoConJugador = content.SingleOrDefault(d => d.DNI == "55556666");
+        Assert.NotNull(delegadoConJugador);
+        Assert.Equal(jugador.Id, delegadoConJugador.JugadorId);
+    }
+
+    [Fact]
+    public async Task ObtenerDelegadoPorId_ConJugadorMismoDNI_DevuelveJugadorId()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var jugador = new Jugador
+        {
+            Id = 6031,
+            DNI = "66667777",
+            Nombre = "Laura",
+            Apellido = "Delegada",
+            FechaNacimiento = new DateTime(1995, 5, 10)
+        };
+        context.Jugadores.Add(jugador);
+        context.SaveChanges();
+
+        context.JugadorEquipo.Add(new JugadorEquipo
+        {
+            Id = 6041,
+            JugadorId = jugador.Id,
+            EquipoId = _equipo!.Id,
+            FechaFichaje = DateTime.Now,
+            EstadoJugadorId = (int)EstadoJugadorEnum.Activo
+        });
+
+        var delegado = new Delegado
+        {
+            Id = 6051,
+            DNI = "66667777",
+            Nombre = "Laura",
+            Apellido = "Delegada",
+            FechaNacimiento = new DateTime(1995, 5, 10),
+            ClubId = _club!.Id,
+            EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo
+        };
+        context.Delegados.Add(delegado);
+        context.SaveChanges();
+
+        var client = await GetAuthenticatedClient();
+        var response = await client.GetAsync($"/api/Delegado/{delegado.Id}");
+        response.EnsureSuccessStatusCode();
+
+        var dto = JsonConvert.DeserializeObject<DelegadoDTO>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(dto);
+        Assert.Equal(jugador.Id, dto.JugadorId);
+    }
+
+    [Fact]
+    public async Task ListarDelegados_SinJugadorMismoDNI_JugadorIdEsNull()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        context.Delegados.Add(new Delegado
+        {
+            Id = 6061,
+            DNI = "88889999",
+            Nombre = "Solo",
+            Apellido = "Delegado",
+            FechaNacimiento = new DateTime(1988, 8, 8),
+            ClubId = _club!.Id,
+            EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo
+        });
+        context.SaveChanges();
+
+        var client = await GetAuthenticatedClient();
+        var response = await client.GetAsync("/api/Delegado");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<List<DelegadoDTO>>(await response.Content.ReadAsStringAsync());
+        var delegadoSolo = content?.SingleOrDefault(d => d.DNI == "88889999");
+        Assert.NotNull(delegadoSolo);
+        Assert.Null(delegadoSolo.JugadorId);
     }
 } 

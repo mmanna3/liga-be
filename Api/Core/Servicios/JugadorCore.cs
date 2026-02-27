@@ -7,6 +7,8 @@ using Api.Core.Otros;
 using Api.Core.Repositorios;
 using Api.Core.Servicios.Interfaces;
 using AutoMapper;
+using Api.Persistencia._Config;
+using Microsoft.EntityFrameworkCore;
 
 namespace Api.Core.Servicios;
 
@@ -51,18 +53,25 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         return new string(dni.Where(char.IsDigit).ToArray());
     }
 
+    public override async Task<JugadorDTO> ObtenerPorId(int id)
+    {
+        var dto = await base.ObtenerPorId(id);
+        dto.DelegadoId = await Repo.ObtenerDelegadoIdPorDNI(dto.DNI);
+        return dto;
+    }
+
     protected override JugadorDTO AntesDeObtenerPorId(Jugador entidad, JugadorDTO dto)
     {
         dto.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoCarnetEnBase64(dto.DNI));
-        
+
         dto.FotoDNIDorso = ImagenUtility.AgregarMimeType(
             _imagenJugadorRepo.GetFotoEnBase64ConPathAbsoluto(
                     $"{_paths.ImagenesTemporalesDNIDorsoAbsolute}/{dto.DNI}.jpg"));
-        
+
         dto.FotoDNIFrente = ImagenUtility.AgregarMimeType(
             _imagenJugadorRepo.GetFotoEnBase64ConPathAbsoluto(
                 $"{_paths.ImagenesTemporalesDNIFrenteAbsolute}/{dto.DNI}.jpg"));
-        
+
         return dto;
     }
     
@@ -105,19 +114,21 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
 
     public async Task<IEnumerable<JugadorDTO>> ListarConFiltro(IList<EstadoJugadorEnum> estados)
     {
-        var jugadores = await Repo.ListarConFiltro(estados);
+        var jugadoresConDelegado = await Repo.ListarConFiltroConDelegadoIds(estados);
 
         var dtos = new List<JugadorDTO>();
-        foreach (var jug in jugadores)
+        foreach (var (jug, delegadoId) in jugadoresConDelegado)
         {
             foreach (var jugEquipo in jug.JugadorEquipos)
             {
                 var jugadorConUnSoloEquipo = jugEquipo.Jugador;
                 jugadorConUnSoloEquipo.JugadorEquipos = new List<JugadorEquipo> { jugEquipo };
                 var dto = Mapper.Map<JugadorDTO>(jugadorConUnSoloEquipo);
+                dto.DelegadoId = delegadoId;
                 dtos.Add(dto);
             }
         }
+
         return dtos;
     }
 

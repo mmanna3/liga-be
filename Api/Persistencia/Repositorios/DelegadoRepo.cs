@@ -41,4 +41,22 @@ public class DelegadoRepo : RepositorioABM<Delegado>, IDelegadoRepo
     {
         Context.Delegados.Remove(delegado);
     }
+
+    public async Task<List<(Delegado Delegado, int? JugadorId)>> ListarConJugadorIds()
+    {
+        var query = from d in Set()
+                    join j in Context.Jugadores on d.DNI equals j.DNI into jGroup
+                    from j in jGroup.DefaultIfEmpty()
+                    select new { Delegado = d, JugadorId = (int?)j.Id };
+        var result = await query.AsNoTracking().ToListAsync();
+        return result.Select(x => (x.Delegado, x.JugadorId)).ToList();
+    }
+
+    public async Task<int?> ObtenerJugadorIdPorDNI(string dni)
+    {
+        return await Context.Jugadores
+            .Where(j => j.DNI == dni)
+            .Select(j => (int?)j.Id)
+            .FirstOrDefaultAsync();
+    }
 }
