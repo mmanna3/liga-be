@@ -69,6 +69,7 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         delegado.UsuarioId = usuario.Id;
         delegado.Usuario = usuario;
         delegado.EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo;
+        delegado.EstadoDelegado = null!; // EF usa la navegación si está cargada; al limpiarla usa el FK EstadoDelegadoId
 
         _imagenDelegadoRepo.FicharPersonaTemporal(delegado.DNI);
 
@@ -107,6 +108,7 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
             throw new ExcepcionControlada("Ya existe un delegado con este DNI");
 
         entidad.DNI = dto.DNI;
+        entidad.ClubId = dto.ClubId;
         entidad.EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion;
 
         _imagenDelegadoRepo.GuardarFotosTemporalesDePersonaFichada(dto.DNI, dto);
@@ -165,10 +167,12 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         var delegado = await Repo.ObtenerPorId(id);
         if (delegado == null)
             return -1;
-        
+
+        _imagenDelegadoRepo.EliminarTodasLasFotos(delegado.DNI);
+
         Repo.Eliminar(delegado);
         await BDVirtual.GuardarCambios();
-        
+
         return id;
     }
 }

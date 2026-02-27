@@ -33,4 +33,7 @@ public class DelegadoDTO : DTO, IFotosDTO
     
     public bool BlanqueoPendiente { get; set; }
     public virtual required int ClubId { get; set; }
+    public EstadoDelegadoDTO? EstadoDelegado { get; set; }
+    public string ClubNombre { get; set; } = string.Empty;
+    public List<string> EquiposDelClub { get; set; } = new();
 }

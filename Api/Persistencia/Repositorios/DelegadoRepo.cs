@@ -15,7 +15,9 @@ public class DelegadoRepo : RepositorioABM<Delegado>, IDelegadoRepo
     {
         return Context.Set<Delegado>()
             .Include(x => x.Club)
+                .ThenInclude(x => x.Equipos)
             .Include(x => x.Usuario)
+            .Include(x => x.EstadoDelegado)
             .AsQueryable();
     }
     
