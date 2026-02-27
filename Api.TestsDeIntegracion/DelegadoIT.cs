@@ -82,7 +82,7 @@ public class DelegadoIT : TestBase
         Assert.Equal(_club.Id, content.ClubId);
 
         // Aprobar delegado para crear el usuario
-        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado", new AprobarDelegadoDTO { Id = content.Id });
+        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar", new AprobarDelegadoDTO { Id = content.Id });
         aprobarResponse.EnsureSuccessStatusCode();
 
         // Verificar el nombre de usuario generado

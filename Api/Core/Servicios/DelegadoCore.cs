@@ -18,13 +18,15 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
     private readonly AppDbContext _context;
     private readonly IImagenDelegadoRepo _imagenDelegadoRepo;
     private readonly IJugadorRepo _jugadorRepo;
+    private readonly IUsuarioRepo _usuarioRepo;
     private readonly AppPaths _paths;
 
-    public DelegadoCore(IBDVirtual bd, IDelegadoRepo repo, IMapper mapper, AppDbContext context, IImagenDelegadoRepo imagenDelegadoRepo, IJugadorRepo jugadorRepo, AppPaths paths) : base(bd, repo, mapper)
+    public DelegadoCore(IBDVirtual bd, IDelegadoRepo repo, IMapper mapper, AppDbContext context, IImagenDelegadoRepo imagenDelegadoRepo, IJugadorRepo jugadorRepo, IUsuarioRepo usuarioRepo, AppPaths paths) : base(bd, repo, mapper)
     {
         _context = context;
         _imagenDelegadoRepo = imagenDelegadoRepo;
         _jugadorRepo = jugadorRepo;
+        _usuarioRepo = usuarioRepo;
         _paths = paths;
     }
 
@@ -126,8 +128,18 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         dto.DNI = QuitarCaracteresNoNumericos(dto.DNI);
 
         var delegadoExistente = await Repo.ObtenerPorDNI(dto.DNI);
-        if (delegadoExistente != null && delegadoExistente.EstadoDelegadoId != (int)EstadoDelegadoEnum.Rechazado)
-            throw new ExcepcionControlada("Ya existe un delegado con este DNI");
+        if (delegadoExistente != null)
+        {
+            if (PersonaExisteHelper.DelegadoEstaPendiente(delegadoExistente))
+                throw new ExcepcionControlada("El DNI está pendiente de aprobación como delegado. La administración debe aprobarlo antes de poder fichar.");
+            if (PersonaExisteHelper.DelegadoExiste(delegadoExistente))
+                throw new ExcepcionControlada("DNI ya existente en el sistema. Probá ficharte desde el flujo 'Solo con DNI'.");
+            throw new ExcepcionControlada("DNI ya existente como delegado en el sistema.");
+        }
+
+        var jugadorExistente = await _jugadorRepo.ObtenerPorDNI(dto.DNI);
+        if (PersonaExisteHelper.JugadorExiste(jugadorExistente))
+            throw new ExcepcionControlada("DNI ya existente en el sistema. Probá ficharte desde el flujo 'Solo con DNI'.");
 
         entidad.DNI = dto.DNI;
         entidad.ClubId = dto.ClubId;
@@ -140,7 +152,7 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
 
     private async Task<Usuario> CrearUsuarioParaElDelegado(string nombre, string apellido)
     {
-        var nombreUsuario = ObtenerNombreUsuario(nombre, apellido);
+        var nombreUsuario = await ObtenerNombreUsuarioDisponible(nombre, apellido);
         var usuario = new Usuario
         {
             Id = 0,
@@ -154,19 +166,9 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         return usuario;
     }
 
-    private static string ObtenerNombreUsuario(string nombre, string apellido)
+    public async Task<string> ObtenerNombreUsuarioDisponible(string nombre, string apellido)
     {
-        // Generar el nombre de usuario tomando la primera letra del nombre y el apellido completo
-        var nombreNormalizado = NormalizarTexto(nombre);
-        var apellidoNormalizado = NormalizarTexto(apellido);
-        
-        if (string.IsNullOrEmpty(nombreNormalizado) || string.IsNullOrEmpty(apellidoNormalizado))
-        {
-            throw new ArgumentException("El nombre y el apellido no pueden estar vacíos");
-        }
-        
-        var nombreUsuario = nombreNormalizado[0] + apellidoNormalizado;
-        return nombreUsuario;
+        return await GeneradorNombreUsuario.ObtenerDisponible(nombre, apellido, _usuarioRepo.ExisteNombreUsuario);
     }
 
     public async Task<bool> BlanquearClave(int id)
@@ -189,15 +191,21 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         var dni = QuitarCaracteresNoNumericos(dto.DNI);
 
         var delegadoExistente = await Repo.ObtenerPorDNI(dni);
-        if (delegadoExistente != null)
-        {
-            return await FicharDesdeDelegadoExistente(delegadoExistente, dto.ClubId);
-        }
+        if (PersonaExisteHelper.DelegadoEstaPendiente(delegadoExistente))
+            throw new ExcepcionControlada("El DNI está pendiente de aprobación como delegado. La administración debe aprobarlo antes de poder fichar.");
 
         var jugadorExistente = await _jugadorRepo.ObtenerPorDNI(dni);
-        if (jugadorExistente != null)
+        if (PersonaExisteHelper.JugadorEstaPendiente(jugadorExistente))
+            throw new ExcepcionControlada("El DNI está pendiente de aprobación como jugador. La administración debe aprobarlo antes de poder fichar como delegado.");
+
+        if (PersonaExisteHelper.DelegadoExiste(delegadoExistente))
         {
-            return await FicharDesdeJugadorExistente(jugadorExistente, dto);
+            return await FicharDesdeDelegadoExistente(delegadoExistente!, dto.ClubId);
+        }
+
+        if (PersonaExisteHelper.JugadorExiste(jugadorExistente))
+        {
+            return await FicharDesdeJugadorExistente(jugadorExistente!, dto);
         }
 
         throw new ExcepcionControlada("No existe ni un delegado ni un jugador con el DNI indicado.");
@@ -207,22 +215,13 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
     {
         _imagenDelegadoRepo.CopiarFotosDeDelegadoExistenteATemporales(delegadoExistente.DNI);
 
-        var nuevoDelegado = new Delegado
-        {
-            Id = 0,
-            DNI = delegadoExistente.DNI,
-            Nombre = delegadoExistente.Nombre,
-            Apellido = delegadoExistente.Apellido,
-            FechaNacimiento = delegadoExistente.FechaNacimiento,
-            TelefonoCelular = delegadoExistente.TelefonoCelular,
-            Email = delegadoExistente.Email,
-            ClubId = clubId,
-            EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion
-        };
-
-        Repo.Crear(nuevoDelegado);
+        var delegado = await _context.Delegados.FindAsync(delegadoExistente.Id);
+        if (delegado == null)
+            throw new InvalidOperationException("Delegado no encontrado");
+        delegado.ClubId = clubId;
+        delegado.EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion;
         await BDVirtual.GuardarCambios();
-        return nuevoDelegado.Id;
+        return delegado.Id;
     }
 
     private async Task<int> FicharDesdeJugadorExistente(Jugador jugador, FicharDelegadoSoloConDniYClubDTO dto)

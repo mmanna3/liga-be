@@ -14,6 +14,8 @@ public class PublicoCoreTest
 {
     private readonly Mock<IJugadorRepo> _jugadorRepoMock;
     private readonly Mock<IJugadorCore> _jugadorCoreMock;
+    private readonly Mock<IDelegadoRepo> _delegadoRepoMock;
+    private readonly Mock<IImagenJugadorRepo> _imagenJugadorRepoMock;
     private readonly Mock<IBDVirtual> _bdVirtualMock;
     private readonly PublicoCore _publicoCore;
 
@@ -21,8 +23,10 @@ public class PublicoCoreTest
     {
         _jugadorRepoMock = new Mock<IJugadorRepo>();
         _jugadorCoreMock = new Mock<IJugadorCore>();
+        _delegadoRepoMock = new Mock<IDelegadoRepo>();
+        _imagenJugadorRepoMock = new Mock<IImagenJugadorRepo>();
         _bdVirtualMock = new Mock<IBDVirtual>();
-        _publicoCore = new PublicoCore(_jugadorRepoMock.Object, _jugadorCoreMock.Object, _bdVirtualMock.Object);
+        _publicoCore = new PublicoCore(_jugadorRepoMock.Object, _jugadorCoreMock.Object, _delegadoRepoMock.Object, _imagenJugadorRepoMock.Object, _bdVirtualMock.Object);
     }
 
     [Fact]
@@ -164,11 +168,12 @@ public class PublicoCoreTest
     }
 
     [Fact]
-    public async Task FicharEnOtroEquipo_JugadorNoExiste_LanzaExcepcionControlada()
+    public async Task FicharEnOtroEquipo_JugadorNiDelegadoExisten_LanzaExcepcionControlada()
     {
         // Arrange
         var dto = new FicharEnOtroEquipoDTO { DNI = "99999999", CodigoAlfanumerico = "ABC1234" };
         _jugadorRepoMock.Setup(x => x.ObtenerPorDNI(dto.DNI)).ReturnsAsync((Jugador?)null);
+        _delegadoRepoMock.Setup(x => x.ObtenerPorDNI(dto.DNI)).ReturnsAsync((Delegado?)null);
 
         // Act & Assert
         await Assert.ThrowsAsync<ExcepcionControlada>(() => _publicoCore.FicharEnOtroEquipo(dto));
@@ -177,7 +182,7 @@ public class PublicoCoreTest
     [Fact]
     public async Task FicharEnOtroEquipo_JugadorExiste_LlamaFicharYRetornaId()
     {
-        // Arrange
+        // Arrange - jugador debe tener al menos un JugadorEquipo con estado "existente" (Activo, etc.)
         var jugador = new Jugador
         {
             Id = 5,
@@ -185,7 +190,15 @@ public class PublicoCoreTest
             Nombre = "Juan",
             Apellido = "Perez",
             FechaNacimiento = new DateTime(2000, 1, 1),
-            JugadorEquipos = new List<JugadorEquipo>()
+            JugadorEquipos =
+            [
+                new JugadorEquipo
+                {
+                    Id = 1,
+                    EstadoJugadorId = (int)EstadoJugadorEnum.Activo,
+                    EstadoJugador = new EstadoJugador { Id = (int)EstadoJugadorEnum.Activo }
+                }
+            ]
         };
         var codigoAlfanumerico = GeneradorDeHash.GenerarAlfanumerico7Digitos(1);
         var dto = new FicharEnOtroEquipoDTO { DNI = jugador.DNI, CodigoAlfanumerico = codigoAlfanumerico };

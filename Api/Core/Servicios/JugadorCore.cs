@@ -18,13 +18,15 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
     private readonly IImagenJugadorRepo _imagenJugadorRepo;
     private static AppPaths _paths = null!;
     private readonly IHistorialDePagosRepo _historialDePagosRepo;
+    private readonly IDelegadoRepo _delegadoRepo;
 
-    public JugadorCore(IBDVirtual bd, IJugadorRepo repo, IMapper mapper, IEquipoRepo equipoRepo, IImagenJugadorRepo imagenJugadorRepo, AppPaths paths, IHistorialDePagosRepo historialDePagosRepo) : base(bd, repo, mapper)
+    public JugadorCore(IBDVirtual bd, IJugadorRepo repo, IMapper mapper, IEquipoRepo equipoRepo, IImagenJugadorRepo imagenJugadorRepo, AppPaths paths, IHistorialDePagosRepo historialDePagosRepo, IDelegadoRepo delegadoRepo) : base(bd, repo, mapper)
     {
         _equipoRepo = equipoRepo;
         _imagenJugadorRepo = imagenJugadorRepo;
         _paths = paths;
         _historialDePagosRepo = historialDePagosRepo;
+        _delegadoRepo = delegadoRepo;
     }
     
     protected override async Task<Jugador> AntesDeCrear(JugadorDTO dto, Jugador entidad)
@@ -36,8 +38,23 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         dto.DNI = QuitarCaracteresNoNumericos(dto.DNI);
 
         var jugadorExistente = await Repo.ObtenerPorDNI(dto.DNI);
-        if (jugadorExistente != null && jugadorExistente.JugadorEquipos.Any(je => je.EstadoJugadorId != (int)EstadoJugadorEnum.FichajeRechazado))
-            throw new ExcepcionControlada("Ya existe un jugador activo con este DNI");
+        if (jugadorExistente != null)
+        {
+            if (PersonaExisteHelper.JugadorEstaPendiente(jugadorExistente))
+                throw new ExcepcionControlada("El DNI está pendiente de aprobación como jugador. La administración debe aprobarlo antes de poder fichar.");
+            if (PersonaExisteHelper.JugadorExiste(jugadorExistente))
+                throw new ExcepcionControlada("DNI ya existente en el sistema. Probá ficharte desde el flujo 'Solo con DNI'.");
+            // Rechazado: SiElDNISeHabiaFichadoYEstaRechazadoEliminarJugador lo elimina más abajo
+        }
+
+        var delegadoExistente = await _delegadoRepo.ObtenerPorDNI(dto.DNI);
+        if (delegadoExistente != null)
+        {
+            if (PersonaExisteHelper.DelegadoEstaPendiente(delegadoExistente))
+                throw new ExcepcionControlada("El DNI está pendiente de aprobación como delegado. La administración debe aprobarlo antes de poder fichar como jugador.");
+            if (PersonaExisteHelper.DelegadoExiste(delegadoExistente))
+                throw new ExcepcionControlada("DNI ya existente en el sistema. Probá ficharte desde el flujo 'Solo con DNI'.");
+        }
         
         var resultado = await FicharJugadorEnElEquipo(dto.EquipoInicialId, entidad);
         

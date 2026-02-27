@@ -42,7 +42,12 @@ namespace Api.Persistencia.Repositorios
 
 			try
 			{
-				if (extensionTemporal is ".jpg" or ".jpeg")
+				if (File.Exists(pathDestino))
+				{
+					// Las fotos ya están en definitivas (ej. mismo DNI fichado en otro club/delegado)
+					File.Delete(pathTemporal);
+				}
+				else if (extensionTemporal is ".jpg" or ".jpeg")
 					File.Move(pathTemporal, pathDestino);
 				else
 				{

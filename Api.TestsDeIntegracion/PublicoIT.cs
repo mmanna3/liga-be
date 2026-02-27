@@ -25,14 +25,22 @@ public class PublicoIT : TestBase
         var club = new Club { Id = 1, Nombre = "Club de Prueba" };
         context.Clubs.Add(club);
 
-        var equipo = new Equipo
+        var equipo1 = new Equipo
         {
             Id = 1,
             Nombre = "Equipo de Prueba",
             ClubId = 1,
             Jugadores = new List<JugadorEquipo>()
         };
-        context.Equipos.Add(equipo);
+        var equipo2 = new Equipo
+        {
+            Id = 2,
+            Nombre = "Equipo Destino",
+            ClubId = 1,
+            Jugadores = new List<JugadorEquipo>()
+        };
+        context.Equipos.Add(equipo1);
+        context.Equipos.Add(equipo2);
 
         // Jugador con equipo activo (para ElDniEstaFichado_JugadorActivo_RetornaTrue)
         var jugadorActivo = new Jugador
@@ -55,8 +63,8 @@ public class PublicoIT : TestBase
             EstadoJugadorId = (int)EstadoJugadorEnum.Activo
         });
 
-        // Jugador sin equipo (para FicharEnOtroEquipo_JugadorActivoYCodigoValido_200)
-        var jugadorSinEquipo = new Jugador
+        // Jugador aprobado en otro equipo (para FicharEnOtroEquipo - debe tener estado "existente": Activo, etc.)
+        var jugadorParaFicharEnOtroEquipo = new Jugador
         {
             Id = 2,
             DNI = "22222222",
@@ -64,7 +72,17 @@ public class PublicoIT : TestBase
             Apellido = "Garcia",
             FechaNacimiento = new DateTime(1995, 6, 15)
         };
-        context.Jugadores.Add(jugadorSinEquipo);
+        context.Jugadores.Add(jugadorParaFicharEnOtroEquipo);
+        context.SaveChanges();
+
+        context.JugadorEquipo.Add(new JugadorEquipo
+        {
+            Id = 2,
+            JugadorId = 2,
+            EquipoId = 1,
+            FechaFichaje = DateTime.Now,
+            EstadoJugadorId = (int)EstadoJugadorEnum.Activo
+        });
 
         context.SaveChanges();
     }
@@ -126,7 +144,8 @@ public class PublicoIT : TestBase
     public async Task FicharEnOtroEquipo_JugadorExistenteYCodigoValido_RetornaJugadorId()
     {
         var client = Factory.CreateClient();
-        var codigo = GeneradorDeHash.GenerarAlfanumerico7Digitos(1);
+        // Jugador 22222222 está en equipo 1; lo fichamos en equipo 2
+        var codigo = GeneradorDeHash.GenerarAlfanumerico7Digitos(2);
         var dto = new FicharEnOtroEquipoDTO { DNI = "22222222", CodigoAlfanumerico = codigo };
 
         var response = await client.PostAsJsonAsync("/api/publico/fichar-en-otro-equipo", dto);

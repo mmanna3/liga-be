@@ -46,6 +46,9 @@ public class AppDbContext : DbContext
         builder.Entity<Delegado>()
             .Property(d => d.EstadoDelegadoId)
             .HasDefaultValue(3); // Activo para delegados existentes
+        builder.Entity<Delegado>()
+            .HasIndex(d => d.DNI)
+            .IsUnique();
         
         builder.Entity<Jugador>()
             .HasIndex(u => u.DNI)

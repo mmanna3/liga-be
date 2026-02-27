@@ -55,4 +55,27 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
         
         return ObtenerNombreEquipoDTO.Exito(equipo.Nombre);
     }
+
+    public async Task<ObtenerNombreEquipoDTO> ObtenerClubPorCodigoAlfanumericoDelEquipo(string codigoAlfanumerico)
+    {
+        int id;
+        try
+        {
+            id = GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos(codigoAlfanumerico);
+        }
+        catch (ExcepcionControlada e)
+        {
+            return ObtenerNombreEquipoDTO.Error(e.Message);
+        }
+
+        var equipo = await Repo.ObtenerPorId(id);
+        if (equipo == null)
+            return ObtenerNombreEquipoDTO.Error("El código alfanumérico no pertenece a ningún equipo.");
+
+        var club = equipo.Club;
+        if (club == null)
+            return ObtenerNombreEquipoDTO.Error("El equipo no tiene club asociado.");
+
+        return ObtenerNombreEquipoDTO.Exito(club.Nombre);
+    }
 }

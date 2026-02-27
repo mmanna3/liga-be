@@ -10,4 +10,5 @@ public interface IDelegadoCore : ICoreABM<DelegadoDTO>
     Task<bool> BlanquearClave(int id);
     Task<int> Eliminar(int id);
     Task<int> FicharDelegadoSoloConDniYClub(FicharDelegadoSoloConDniYClubDTO dto);
+    Task<string> ObtenerNombreUsuarioDisponible(string nombre, string apellido);
 }

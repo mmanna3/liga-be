@@ -35,6 +35,7 @@ namespace Api.Api.Controllers
         }
 
         [HttpPost("fichar-delegado-solo-con-dni-y-club")]
+        [AllowAnonymous]
         public async Task<ActionResult<int>> FicharDelegadoSoloConDniYClub(FicharDelegadoSoloConDniYClubDTO dto)
         {
             var id = await Core.FicharDelegadoSoloConDniYClub(dto);
