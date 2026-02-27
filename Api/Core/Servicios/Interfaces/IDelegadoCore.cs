@@ -9,4 +9,5 @@ public interface IDelegadoCore : ICoreABM<DelegadoDTO>
     Task<int> Aprobar(AprobarDelegadoDTO dto);
     Task<bool> BlanquearClave(int id);
     Task<int> Eliminar(int id);
+    Task<int> FicharDelegadoSoloConDniYClub(FicharDelegadoSoloConDniYClubDTO dto);
 }

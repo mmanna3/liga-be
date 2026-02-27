@@ -17,12 +17,14 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
 {
     private readonly AppDbContext _context;
     private readonly IImagenDelegadoRepo _imagenDelegadoRepo;
+    private readonly IJugadorRepo _jugadorRepo;
     private readonly AppPaths _paths;
 
-    public DelegadoCore(IBDVirtual bd, IDelegadoRepo repo, IMapper mapper, AppDbContext context, IImagenDelegadoRepo imagenDelegadoRepo, AppPaths paths) : base(bd, repo, mapper)
+    public DelegadoCore(IBDVirtual bd, IDelegadoRepo repo, IMapper mapper, AppDbContext context, IImagenDelegadoRepo imagenDelegadoRepo, IJugadorRepo jugadorRepo, AppPaths paths) : base(bd, repo, mapper)
     {
         _context = context;
         _imagenDelegadoRepo = imagenDelegadoRepo;
+        _jugadorRepo = jugadorRepo;
         _paths = paths;
     }
 
@@ -180,6 +182,72 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         usuario.Password = null;
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<int> FicharDelegadoSoloConDniYClub(FicharDelegadoSoloConDniYClubDTO dto)
+    {
+        var dni = QuitarCaracteresNoNumericos(dto.DNI);
+
+        var delegadoExistente = await Repo.ObtenerPorDNI(dni);
+        if (delegadoExistente != null)
+        {
+            return await FicharDesdeDelegadoExistente(delegadoExistente, dto.ClubId);
+        }
+
+        var jugadorExistente = await _jugadorRepo.ObtenerPorDNI(dni);
+        if (jugadorExistente != null)
+        {
+            return await FicharDesdeJugadorExistente(jugadorExistente, dto);
+        }
+
+        throw new ExcepcionControlada("No existe ni un delegado ni un jugador con el DNI indicado.");
+    }
+
+    private async Task<int> FicharDesdeDelegadoExistente(Delegado delegadoExistente, int clubId)
+    {
+        _imagenDelegadoRepo.CopiarFotosDeDelegadoExistenteATemporales(delegadoExistente.DNI);
+
+        var nuevoDelegado = new Delegado
+        {
+            Id = 0,
+            DNI = delegadoExistente.DNI,
+            Nombre = delegadoExistente.Nombre,
+            Apellido = delegadoExistente.Apellido,
+            FechaNacimiento = delegadoExistente.FechaNacimiento,
+            TelefonoCelular = delegadoExistente.TelefonoCelular,
+            Email = delegadoExistente.Email,
+            ClubId = clubId,
+            EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion
+        };
+
+        Repo.Crear(nuevoDelegado);
+        await BDVirtual.GuardarCambios();
+        return nuevoDelegado.Id;
+    }
+
+    private async Task<int> FicharDesdeJugadorExistente(Jugador jugador, FicharDelegadoSoloConDniYClubDTO dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.TelefonoCelular))
+            throw new ExcepcionControlada("Email y Teléfono son requeridos.");
+
+        _imagenDelegadoRepo.CopiarFotosDeJugadorATemporales(jugador.DNI);
+
+        var nuevoDelegado = new Delegado
+        {
+            Id = 0,
+            DNI = jugador.DNI,
+            Nombre = jugador.Nombre,
+            Apellido = jugador.Apellido,
+            FechaNacimiento = jugador.FechaNacimiento,
+            TelefonoCelular = dto.TelefonoCelular,
+            Email = dto.Email,
+            ClubId = dto.ClubId,
+            EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion
+        };
+
+        Repo.Crear(nuevoDelegado);
+        await BDVirtual.GuardarCambios();
+        return nuevoDelegado.Id;
     }
     
     public async Task<int> Eliminar(int id)

@@ -33,6 +33,13 @@ namespace Api.Api.Controllers
         {
             return await Core.BlanquearClave(id);
         }
+
+        [HttpPost("fichar-delegado-solo-con-dni-y-club")]
+        public async Task<ActionResult<int>> FicharDelegadoSoloConDniYClub(FicharDelegadoSoloConDniYClubDTO dto)
+        {
+            var id = await Core.FicharDelegadoSoloConDniYClub(dto);
+            return Ok(id);
+        }
         
         [HttpDelete("{id}")]
         public async Task<ActionResult<int>> Eliminar(int id)
