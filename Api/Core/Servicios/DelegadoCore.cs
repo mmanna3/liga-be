@@ -1,6 +1,8 @@
 using Api.Core.DTOs;
+using Api.Core.DTOs.CambiosDeEstadoDelegado;
 using Api.Core.Entidades;
 using Api.Core.Enums;
+using Api.Core.Logica;
 using Api.Core.Otros;
 using Api.Core.Repositorios;
 using Api.Core.Servicios.Interfaces;
@@ -13,10 +15,14 @@ namespace Api.Core.Servicios;
 public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDelegadoCore
 {
     private readonly AppDbContext _context;
+    private readonly IImagenDelegadoRepo _imagenDelegadoRepo;
+    private readonly AppPaths _paths;
 
-    public DelegadoCore(IBDVirtual bd, IDelegadoRepo repo, IMapper mapper, AppDbContext context) : base(bd, repo, mapper)
+    public DelegadoCore(IBDVirtual bd, IDelegadoRepo repo, IMapper mapper, AppDbContext context, IImagenDelegadoRepo imagenDelegadoRepo, AppPaths paths) : base(bd, repo, mapper)
     {
         _context = context;
+        _imagenDelegadoRepo = imagenDelegadoRepo;
+        _paths = paths;
     }
 
     private static string QuitarCaracteresNoNumericos(string dni) => new string(dni.Where(char.IsDigit).ToArray());
@@ -50,9 +56,40 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         return texto.Replace(" ", "");
     }
 
+    public async Task<int> Aprobar(AprobarDelegadoDTO dto)
+    {
+        var delegado = await Repo.ObtenerPorId(dto.Id);
+        if (delegado == null)
+            return -1;
+
+        if (delegado.EstadoDelegadoId != (int)EstadoDelegadoEnum.PendienteDeAprobacion)
+            throw new ExcepcionControlada("Solo se pueden aprobar delegados pendientes de aprobación");
+
+        var usuario = await CrearUsuarioParaElDelegado(delegado.Nombre, delegado.Apellido);
+        delegado.UsuarioId = usuario.Id;
+        delegado.Usuario = usuario;
+        delegado.EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo;
+
+        _imagenDelegadoRepo.FicharPersonaTemporal(delegado.DNI);
+
+        Repo.Modificar(delegado, delegado);
+        await BDVirtual.GuardarCambios();
+        return delegado.Id;
+    }
+
+    protected override DelegadoDTO AntesDeObtenerPorId(Delegado entidad, DelegadoDTO dto)
+    {
+        dto.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenDelegadoRepo.GetFotoCarnetEnBase64(dto.DNI));
+        dto.FotoDNIFrente = ImagenUtility.AgregarMimeType(
+            _imagenDelegadoRepo.GetFotoEnBase64ConPathAbsoluto($"{_paths.ImagenesTemporalesDNIFrenteAbsolute}/{dto.DNI}.jpg"));
+        dto.FotoDNIDorso = ImagenUtility.AgregarMimeType(
+            _imagenDelegadoRepo.GetFotoEnBase64ConPathAbsoluto($"{_paths.ImagenesTemporalesDNIDorsoAbsolute}/{dto.DNI}.jpg"));
+        return dto;
+    }
+
     protected override Task<Delegado> AntesDeModificar(int id, DelegadoDTO dto, Delegado entidadAnterior, Delegado entidadNueva)
     {
-        entidadNueva.Usuario = null!;
+        entidadNueva.Usuario = entidadAnterior.Usuario;
         entidadNueva.UsuarioId = entidadAnterior.UsuarioId;
         entidadNueva.EstadoDelegadoId = entidadAnterior.EstadoDelegadoId;
         return Task.FromResult(entidadNueva);
@@ -60,35 +97,44 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
     
     protected override async Task<Delegado> AntesDeCrear(DelegadoDTO dto, Delegado entidad)
     {
-        var nombreUsuario = ObtenerNombreUsuario(dto);
-        
+        if (string.IsNullOrEmpty(dto.FotoCarnet) || string.IsNullOrEmpty(dto.FotoDNIFrente) || string.IsNullOrEmpty(dto.FotoDNIDorso))
+            throw new ExcepcionControlada("Las fotos de carnet, DNI frente y DNI dorso son obligatorias");
+
         dto.DNI = QuitarCaracteresNoNumericos(dto.DNI);
 
         var delegadoExistente = await Repo.ObtenerPorDNI(dto.DNI);
         if (delegadoExistente != null && delegadoExistente.EstadoDelegadoId != (int)EstadoDelegadoEnum.Rechazado)
             throw new ExcepcionControlada("Ya existe un delegado con este DNI");
 
+        entidad.DNI = dto.DNI;
+        entidad.EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion;
+
+        _imagenDelegadoRepo.GuardarFotosTemporalesDePersonaFichada(dto.DNI, dto);
+
+        return entidad;
+    }
+
+    private async Task<Usuario> CrearUsuarioParaElDelegado(string nombre, string apellido)
+    {
+        var nombreUsuario = ObtenerNombreUsuario(nombre, apellido);
         var usuario = new Usuario
         {
             Id = 0,
             NombreUsuario = nombreUsuario,
-            Password = null
+            Password = null,
+            RolId = (int)RolEnum.Delegado
         };
-        
-        await _context.Usuarios.AddAsync(usuario);        
-        entidad.Usuario = usuario;
 
+        await _context.Usuarios.AddAsync(usuario);
         await BDVirtual.GuardarCambios();
-        // TODO: Guardar fotos temporales del delegado cuando exista IImagenDelegadoRepo
-        
-        return entidad;
+        return usuario;
     }
 
-    private static string ObtenerNombreUsuario(DelegadoDTO dto)
+    private static string ObtenerNombreUsuario(string nombre, string apellido)
     {
         // Generar el nombre de usuario tomando la primera letra del nombre y el apellido completo
-        var nombreNormalizado = NormalizarTexto(dto.Nombre);
-        var apellidoNormalizado = NormalizarTexto(dto.Apellido);
+        var nombreNormalizado = NormalizarTexto(nombre);
+        var apellidoNormalizado = NormalizarTexto(apellido);
         
         if (string.IsNullOrEmpty(nombreNormalizado) || string.IsNullOrEmpty(apellidoNormalizado))
         {
@@ -102,16 +148,16 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
     public async Task<bool> BlanquearClave(int id)
     {
         var delegado = await Repo.ObtenerPorId(id);
+        if (delegado?.UsuarioId == null)
+            return false;
 
-        if (delegado != null)
-        {
-            delegado.Usuario.Password = null;
-            _context.Update(delegado);
-            await _context.SaveChangesAsync();
-            return true;
-        }
+        var usuario = await _context.Usuarios.FindAsync(delegado.UsuarioId);
+        if (usuario == null)
+            return false;
 
-        return false;
+        usuario.Password = null;
+        await _context.SaveChangesAsync();
+        return true;
     }
     
     public async Task<int> Eliminar(int id)

@@ -4,6 +4,7 @@ using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260227045900_AgregaTelefonoCelularEnDelegado")]
+    partial class AgregaTelefonoCelularEnDelegado
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,10 +62,6 @@ namespace Api.Migrations
                         .IsRequired()
                         .HasMaxLength(9)
                         .HasColumnType("nvarchar(9)");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("EstadoDelegadoId")
                         .ValueGeneratedOnAdd()
@@ -335,11 +334,6 @@ namespace Api.Migrations
                         {
                             Id = 3,
                             Nombre = "Consulta"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Nombre = "Delegado"
                         });
                 });
 
@@ -396,21 +390,21 @@ namespace Api.Migrations
                         {
                             Id = 1,
                             NombreUsuario = "mati",
-                            Password = "$2a$12$hSHCz9NjNbgnIT.x7EJHAu7DDRrLORD04Q/m2e8iX5q4jObskwuXO",
+                            Password = "$2a$12$2hehmBciBV4Tnu5wi.fgXOhOqNHtVjFJWDJGDg9xAeA2UQa48Ip6y",
                             RolId = 1
                         },
                         new
                         {
                             Id = 2,
                             NombreUsuario = "pipa",
-                            Password = "$2a$12$3B4fsrg0MfTR73dvHD/wQeE81E1ewSkMRHNAGrTiasALCD2ARXgkW",
+                            Password = "$2a$12$5Tbva3oE/nWo5J.8hOZeres6a6mS1GxBiV7R0WU70PBuYBKL.mQ3W",
                             RolId = 1
                         },
                         new
                         {
                             Id = 101,
                             NombreUsuario = "consulta",
-                            Password = "$2a$12$BGHqFLIR6jGrcOfBH4ITquXDw/jv8rBScmatUFrPYVQB.4LV3cDW2",
+                            Password = "$2a$12$LroM9cU5.nsg2jZVge05teQ3rIBModG9xme.p.G0R/IEkIg6zMUbG",
                             RolId = 3
                         });
                 });

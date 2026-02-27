@@ -20,7 +20,8 @@ public class AppDbContext : DbContext
         builder.Entity<Rol>().HasData(
             new Rol { Id = 1, Nombre = "Administrador" },
             new Rol { Id = 2, Nombre = "Usuario" },
-            new Rol { Id = 3, Nombre = "Consulta" }
+            new Rol { Id = 3, Nombre = "Consulta" },
+            new Rol { Id = 4, Nombre = "Delegado" }
         );
         
         builder.Entity<Usuario>()

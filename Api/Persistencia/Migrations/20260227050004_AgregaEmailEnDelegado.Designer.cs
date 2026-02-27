@@ -4,6 +4,7 @@ using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260227050004_AgregaEmailEnDelegado")]
+    partial class AgregaEmailEnDelegado
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -335,11 +338,6 @@ namespace Api.Migrations
                         {
                             Id = 3,
                             Nombre = "Consulta"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Nombre = "Delegado"
                         });
                 });
 
@@ -396,21 +394,21 @@ namespace Api.Migrations
                         {
                             Id = 1,
                             NombreUsuario = "mati",
-                            Password = "$2a$12$hSHCz9NjNbgnIT.x7EJHAu7DDRrLORD04Q/m2e8iX5q4jObskwuXO",
+                            Password = "$2a$12$ajvcshOF22ogZLqMYtcHNeyzo5yUJNu5CrKH.1hDLC3ij6ZWpvjX6",
                             RolId = 1
                         },
                         new
                         {
                             Id = 2,
                             NombreUsuario = "pipa",
-                            Password = "$2a$12$3B4fsrg0MfTR73dvHD/wQeE81E1ewSkMRHNAGrTiasALCD2ARXgkW",
+                            Password = "$2a$12$oO2P8.wOCZjT.yVShd1rxulG1AJyllFJT1qn3oFx6VAckahAB7rIy",
                             RolId = 1
                         },
                         new
                         {
                             Id = 101,
                             NombreUsuario = "consulta",
-                            Password = "$2a$12$BGHqFLIR6jGrcOfBH4ITquXDw/jv8rBScmatUFrPYVQB.4LV3cDW2",
+                            Password = "$2a$12$UghhqG.nSXkbOziu.X62wuX9pMhqSPUAqhNw3KvyPBcAQBO4zXHLG",
                             RolId = 3
                         });
                 });

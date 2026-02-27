@@ -13,10 +13,10 @@ namespace Api.Core.Repositorios
 		string PathFotoTemporalCarnet(string dni);
 		string PathFotoTemporalDNIFrente(string dni);
 		string PathFotoTemporalDNIDorso(string dni);
-		void FicharJugadorTemporal(string dniJugadorTemporal);
-		void GuardarFotosTemporalesDeJugadorAutofichado(JugadorDTO vm);
-		void GuardarFotosTemporalesDeJugadorAutofichadoSiendoEditado(JugadorDTO vm);
+		void FicharPersonaTemporal(string dni);
+		void GuardarFotosTemporalesDePersonaFichada(string dni, IFotosDTO fotos);
+		void GuardarFotosTemporalesDePersonaFichadaSiendoEditada(string dni, IFotosDTO fotos);
 		void RenombrarFotosTemporalesPorCambioDeDNI(string dniAnterior, string dni);
-		void EliminarFotosDelJugador(string dni);
+		void EliminarTodasLasFotos(string dni);
 	}
 }

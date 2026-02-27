@@ -4,6 +4,7 @@ using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260226232955_UsuarioIdNullableEnDelegado")]
+    partial class UsuarioIdNullableEnDelegado
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -60,10 +63,6 @@ namespace Api.Migrations
                         .HasMaxLength(9)
                         .HasColumnType("nvarchar(9)");
 
-                    b.Property<string>("Email")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<int>("EstadoDelegadoId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -76,10 +75,6 @@ namespace Api.Migrations
                         .IsRequired()
                         .HasMaxLength(14)
                         .HasColumnType("nvarchar(14)");
-
-                    b.Property<string>("TelefonoCelular")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int?>("UsuarioId")
                         .HasColumnType("int");
@@ -335,11 +330,6 @@ namespace Api.Migrations
                         {
                             Id = 3,
                             Nombre = "Consulta"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Nombre = "Delegado"
                         });
                 });
 
@@ -396,21 +386,21 @@ namespace Api.Migrations
                         {
                             Id = 1,
                             NombreUsuario = "mati",
-                            Password = "$2a$12$hSHCz9NjNbgnIT.x7EJHAu7DDRrLORD04Q/m2e8iX5q4jObskwuXO",
+                            Password = "$2a$12$cDxNAMhKOTqruLA5aBw7xeZQNiF/.DdEmvT6WoKrK3/AzlIdmaCqC",
                             RolId = 1
                         },
                         new
                         {
                             Id = 2,
                             NombreUsuario = "pipa",
-                            Password = "$2a$12$3B4fsrg0MfTR73dvHD/wQeE81E1ewSkMRHNAGrTiasALCD2ARXgkW",
+                            Password = "$2a$12$fRu06.F9ooqrgzKY.sQ32uGXsmrZp8s10qtF5MU1OMXx4qJ.6Iv0W",
                             RolId = 1
                         },
                         new
                         {
                             Id = 101,
                             NombreUsuario = "consulta",
-                            Password = "$2a$12$BGHqFLIR6jGrcOfBH4ITquXDw/jv8rBScmatUFrPYVQB.4LV3cDW2",
+                            Password = "$2a$12$tvFKYNAdjDFn.jKTHBcHDOL3tY8V4mRkFBcuemVDyjluHBM8Xq4we",
                             RolId = 3
                         });
                 });

@@ -27,6 +27,9 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
     
     protected override async Task<Jugador> AntesDeCrear(JugadorDTO dto, Jugador entidad)
     {
+        if (string.IsNullOrEmpty(dto.FotoCarnet) || string.IsNullOrEmpty(dto.FotoDNIFrente) || string.IsNullOrEmpty(dto.FotoDNIDorso))
+            throw new ExcepcionControlada("Las fotos de carnet, DNI frente y DNI dorso son obligatorias");
+
         dto.EquipoInicialId = GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos(dto.CodigoAlfanumerico);
         dto.DNI = QuitarCaracteresNoNumericos(dto.DNI);
 

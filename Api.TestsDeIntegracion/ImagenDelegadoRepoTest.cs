@@ -1,5 +1,3 @@
-using Api.Core.DTOs;
-using Api.Core.Logica;
 using Api.Core.Repositorios;
 using Api.Persistencia.Repositorios;
 using SkiaSharp;
@@ -7,23 +5,23 @@ using SkiaSharp;
 namespace Api.TestsDeIntegracion;
 
 [Collection("ImagenPersonaFichada")]
-public class ImagenJugadorRepoTest : ImagenPersonaFichadaBaseTest
+public class ImagenDelegadoRepoTest : ImagenPersonaFichadaBaseTest
 {
-    private readonly ImagenJugadorRepo _imagenJugadorRepo;
+    private readonly ImagenDelegadoRepo _imagenDelegadoRepo;
 
-    public ImagenJugadorRepoTest()
+    public ImagenDelegadoRepoTest()
     {
-        _imagenJugadorRepo = new ImagenJugadorRepo(Paths);
+        _imagenDelegadoRepo = new ImagenDelegadoRepo(Paths);
         LimpiarCarpetasDeFotos();
     }
 
-    protected override IImagenPersonaFichadaRepo Repo => _imagenJugadorRepo;
-    protected override string ImagenesDefinitivasAbsolute => Paths.ImagenesJugadoresAbsolute;
+    protected override IImagenPersonaFichadaRepo Repo => _imagenDelegadoRepo;
+    protected override string ImagenesDefinitivasAbsolute => Paths.ImagenesDelegadosAbsolute;
 
     [Fact]
     public void GuardarFotosTemporalesDePersonaFichada_CreaArchivosEnCarpetasTemporales()
     {
-        var fotos = CrearFotosDto(DNI);
+        var fotos = CrearFotosDtoDelegado(DNI);
 
         Repo.GuardarFotosTemporalesDePersonaFichada(DNI, fotos);
 
@@ -33,27 +31,9 @@ public class ImagenJugadorRepoTest : ImagenPersonaFichadaBaseTest
     }
 
     [Fact]
-    public void GuardarFotosTemporalesDeJugadorAutofichado_CreaArchivosEnCarpetasTemporales()
-    {
-        var vm = new JugadorDTO
-        {
-            DNI = DNI,
-            FotoCarnet = PuntoRojoBase64,
-            FotoDNIFrente = PuntoRojoBase64,
-            FotoDNIDorso = PuntoRojoBase64
-        };
-
-        _imagenJugadorRepo.GuardarFotosTemporalesDeJugadorAutofichado(vm);
-
-        Assert.True(File.Exists($"{Paths.ImagenesTemporalesCarnetAbsolute}/{DNI}.jpg"));
-        Assert.True(File.Exists($"{Paths.ImagenesTemporalesDNIFrenteAbsolute}/{DNI}.jpg"));
-        Assert.True(File.Exists($"{Paths.ImagenesTemporalesDNIDorsoAbsolute}/{DNI}.jpg"));
-    }
-
-    [Fact]
     public void GuardarFotosTemporalesDePersonaFichadaSiendoEditada_CreaArchivosEnCarpetasTemporales()
     {
-        var fotos = CrearFotosDto(DNI);
+        var fotos = CrearFotosDtoDelegado(DNI);
 
         Repo.GuardarFotosTemporalesDePersonaFichadaSiendoEditada(DNI, fotos);
 
@@ -63,7 +43,7 @@ public class ImagenJugadorRepoTest : ImagenPersonaFichadaBaseTest
     }
 
     [Fact]
-    public void FicharJugadorTemporal_MueveFotoDeTemporalADefinitiva()
+    public void FicharPersonaTemporal_MueveFotoDeTemporalADefinitiva()
     {
         Directory.CreateDirectory(Paths.ImagenesTemporalesCarnetAbsolute);
         Directory.CreateDirectory(Paths.ImagenesTemporalesDNIFrenteAbsolute);
@@ -78,29 +58,29 @@ public class ImagenJugadorRepoTest : ImagenPersonaFichadaBaseTest
             File.WriteAllBytes(Path.Combine(Paths.ImagenesTemporalesDNIDorsoAbsolute, $"{DNI}.png"), data.ToArray());
         }
 
-        _imagenJugadorRepo.FicharJugadorTemporal(DNI);
+        Repo.FicharPersonaTemporal(DNI);
 
-        Assert.True(File.Exists(Path.Combine(Paths.ImagenesJugadoresAbsolute, $"{DNI}.jpg")));
+        Assert.True(File.Exists(Path.Combine(Paths.ImagenesDelegadosAbsolute, $"{DNI}.jpg")));
         Assert.False(File.Exists(Path.Combine(Paths.ImagenesTemporalesCarnetAbsolute, $"{DNI}.png")));
         Assert.False(File.Exists(Path.Combine(Paths.ImagenesTemporalesDNIFrenteAbsolute, $"{DNI}.png")));
         Assert.False(File.Exists(Path.Combine(Paths.ImagenesTemporalesDNIDorsoAbsolute, $"{DNI}.png")));
     }
 
     [Fact]
-    public void EliminarFotosDelJugador_EliminaTodasLasFotos()
+    public void EliminarTodasLasFotos_EliminaTodasLasFotos()
     {
-        var fotos = CrearFotosDto(DNI);
+        var fotos = CrearFotosDtoDelegado(DNI);
         Repo.GuardarFotosTemporalesDePersonaFichada(DNI, fotos);
-        _imagenJugadorRepo.FicharJugadorTemporal(DNI);
+        Repo.FicharPersonaTemporal(DNI);
 
-        var pathDefinitivo = $"{Paths.ImagenesJugadoresAbsolute}/{DNI}.jpg";
+        var pathDefinitivo = $"{Paths.ImagenesDelegadosAbsolute}/{DNI}.jpg";
         var pathCarnet = $"{Paths.ImagenesTemporalesCarnetAbsolute}/{DNI}.jpg";
         var pathDNIFrente = $"{Paths.ImagenesTemporalesDNIFrenteAbsolute}/{DNI}.jpg";
         var pathDNIDorso = $"{Paths.ImagenesTemporalesDNIDorsoAbsolute}/{DNI}.jpg";
 
         Assert.True(File.Exists(pathDefinitivo));
 
-        _imagenJugadorRepo.EliminarFotosDelJugador(DNI);
+        Repo.EliminarTodasLasFotos(DNI);
 
         Assert.False(File.Exists(pathDefinitivo));
         Assert.False(File.Exists(pathCarnet));
@@ -111,9 +91,9 @@ public class ImagenJugadorRepoTest : ImagenPersonaFichadaBaseTest
     [Fact]
     public void GetFotoCarnetEnBase64_ConFotoDefinitiva_RetornaBase64()
     {
-        var fotos = CrearFotosDto(DNI);
+        var fotos = CrearFotosDtoDelegado(DNI);
         Repo.GuardarFotosTemporalesDePersonaFichada(DNI, fotos);
-        _imagenJugadorRepo.FicharJugadorTemporal(DNI);
+        Repo.FicharPersonaTemporal(DNI);
 
         var result = Repo.GetFotoCarnetEnBase64(DNI);
 
@@ -131,7 +111,7 @@ public class ImagenJugadorRepoTest : ImagenPersonaFichadaBaseTest
     [Fact]
     public void GetFotoEnBase64ConPathAbsoluto_ConArchivoExistente_RetornaBase64()
     {
-        var fotos = CrearFotosDto(DNI);
+        var fotos = CrearFotosDtoDelegado(DNI);
         Repo.GuardarFotosTemporalesDePersonaFichada(DNI, fotos);
         var pathAbsoluto = $"{Paths.ImagenesTemporalesCarnetAbsolute}/{DNI}.jpg";
 
@@ -145,7 +125,7 @@ public class ImagenJugadorRepoTest : ImagenPersonaFichadaBaseTest
     {
         var result = Repo.Path(DNI);
 
-        Assert.Equal($"{Paths.ImagenesJugadoresRelative}/{DNI}.jpg", result);
+        Assert.Equal($"{Paths.ImagenesDelegadosRelative}/{DNI}.jpg", result);
     }
 
     [Fact]
@@ -169,33 +149,33 @@ public class ImagenJugadorRepoTest : ImagenPersonaFichadaBaseTest
     [Fact]
     public void Eliminar_ConFotoDefinitiva_EliminaArchivo()
     {
-        var fotos = CrearFotosDto(DNI);
+        var fotos = CrearFotosDtoDelegado(DNI);
         Repo.GuardarFotosTemporalesDePersonaFichada(DNI, fotos);
-        _imagenJugadorRepo.FicharJugadorTemporal(DNI);
+        Repo.FicharPersonaTemporal(DNI);
 
         Repo.Eliminar(DNI);
 
-        Assert.False(File.Exists($"{Paths.ImagenesJugadoresAbsolute}/{DNI}.jpg"));
+        Assert.False(File.Exists($"{Paths.ImagenesDelegadosAbsolute}/{DNI}.jpg"));
     }
 
     [Fact]
     public void CambiarDNI_RenombraArchivoDefinitivo()
     {
-        var fotos = CrearFotosDto(DNI);
+        var fotos = CrearFotosDtoDelegado(DNI);
         Repo.GuardarFotosTemporalesDePersonaFichada(DNI, fotos);
-        _imagenJugadorRepo.FicharJugadorTemporal(DNI);
+        Repo.FicharPersonaTemporal(DNI);
         const string dniNuevo = "87654321";
 
         Repo.CambiarDNI(DNI, dniNuevo);
 
-        Assert.False(File.Exists($"{Paths.ImagenesJugadoresAbsolute}/{DNI}.jpg"));
-        Assert.True(File.Exists($"{Paths.ImagenesJugadoresAbsolute}/{dniNuevo}.jpg"));
+        Assert.False(File.Exists($"{Paths.ImagenesDelegadosAbsolute}/{DNI}.jpg"));
+        Assert.True(File.Exists($"{Paths.ImagenesDelegadosAbsolute}/{dniNuevo}.jpg"));
     }
 
     [Fact]
     public void RenombrarFotosTemporalesPorCambioDeDNI_RenombraArchivosTemporales()
     {
-        var fotos = CrearFotosDto(DNI);
+        var fotos = CrearFotosDtoDelegado(DNI);
         Repo.GuardarFotosTemporalesDePersonaFichada(DNI, fotos);
         const string dniNuevo = "87654321";
 
@@ -210,14 +190,14 @@ public class ImagenJugadorRepoTest : ImagenPersonaFichadaBaseTest
     {
         var dni1 = "11111111";
         var dni2 = "22222222";
-        Repo.GuardarFotosTemporalesDePersonaFichada(dni1, CrearFotosDto(dni1));
-        Repo.GuardarFotosTemporalesDePersonaFichada(dni2, CrearFotosDto(dni2));
-        _imagenJugadorRepo.FicharJugadorTemporal(dni1);
-        _imagenJugadorRepo.FicharJugadorTemporal(dni2);
+        Repo.GuardarFotosTemporalesDePersonaFichada(dni1, CrearFotosDtoDelegado(dni1));
+        Repo.GuardarFotosTemporalesDePersonaFichada(dni2, CrearFotosDtoDelegado(dni2));
+        Repo.FicharPersonaTemporal(dni1);
+        Repo.FicharPersonaTemporal(dni2);
 
         Repo.EliminarLista(new[] { dni1, dni2 });
 
-        Assert.False(File.Exists($"{Paths.ImagenesJugadoresAbsolute}/{dni1}.jpg"));
-        Assert.False(File.Exists($"{Paths.ImagenesJugadoresAbsolute}/{dni2}.jpg"));
+        Assert.False(File.Exists($"{Paths.ImagenesDelegadosAbsolute}/{dni1}.jpg"));
+        Assert.False(File.Exists($"{Paths.ImagenesDelegadosAbsolute}/{dni2}.jpg"));
     }
 }

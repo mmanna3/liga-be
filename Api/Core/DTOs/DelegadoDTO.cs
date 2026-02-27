@@ -15,13 +15,20 @@ public class DelegadoDTO : DTO, IFotosDTO
 
     [Required]
     public DateTime FechaNacimiento { get; set; }
+
+    [MaxLength(20)]
+    public string? TelefonoCelular { get; set; }
+
+    [MaxLength(100)]
+    public string? Email { get; set; }
     
     public string? NombreUsuario { get; set; }
 
-    public string CodigoAlfanumerico { get; set; }
-    
+    [Required]
     public string FotoCarnet { get; set; } = string.Empty;
+    [Required]
     public string FotoDNIFrente { get; set; } = string.Empty;
+    [Required]
     public string FotoDNIDorso { get; set; } = string.Empty;
     
     public bool BlanqueoPendiente { get; set; }

@@ -30,7 +30,8 @@ public class DelegadoRepo : RepositorioABM<Delegado>, IDelegadoRepo
             .AsNoTracking()
             .Include(x => x.Club.Equipos)
                 .ThenInclude(x => x.Torneo)
-            .SingleOrDefaultAsync(x => x.Usuario.NombreUsuario == usuario) 
+            .Where(x => x.Usuario != null && x.Usuario.NombreUsuario == usuario)
+            .SingleOrDefaultAsync() 
                ?? throw new InvalidOperationException();
     }
     

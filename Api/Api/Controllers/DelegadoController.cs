@@ -1,4 +1,5 @@
 using Api.Core.DTOs;
+using Api.Core.DTOs.CambiosDeEstadoDelegado;
 using Api.Core.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,15 @@ namespace Api.Api.Controllers
         public override async Task<ActionResult<DelegadoDTO>> Crear(DelegadoDTO dto)
         {
             return await base.Crear(dto);
+        }
+
+        [HttpPost("aprobar")]
+        public async Task<ActionResult<int>> Aprobar(AprobarDelegadoDTO dto)
+        {
+            var id = await Core.Aprobar(dto);
+            if (id == -1)
+                return NotFound();
+            return Ok(id);
         }
 
         [HttpPost("blanquear-clave")]

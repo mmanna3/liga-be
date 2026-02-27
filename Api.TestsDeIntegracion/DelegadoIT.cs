@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using Api.Core.DTOs;
+using Api.Core.DTOs.CambiosDeEstadoDelegado;
 using Api.Core.Entidades;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
@@ -11,6 +12,8 @@ namespace Api.TestsDeIntegracion;
 
 public class DelegadoIT : TestBase
 {
+    private const string FotoBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
+
     private Utilidades? _utilidades;
     private Club? _club;
 
@@ -55,8 +58,10 @@ public class DelegadoIT : TestBase
             Nombre = "Juan",
             Apellido = "Pérez",
             FechaNacimiento = new DateTime(1990, 5, 15),
-            CodigoAlfanumerico = "",
-            ClubId = _club!.Id
+            ClubId = _club!.Id,
+            FotoCarnet = FotoBase64,
+            FotoDNIFrente = FotoBase64,
+            FotoDNIDorso = FotoBase64
         };
         
         var response = await client.PostAsJsonAsync("/api/delegado", delegadoDTO);
@@ -70,6 +75,10 @@ public class DelegadoIT : TestBase
         Assert.Equal("Juan", content.Nombre);
         Assert.Equal("Pérez", content.Apellido);
         Assert.Equal(_club.Id, content.ClubId);
+
+        // Aprobar delegado para crear el usuario
+        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado", new AprobarDelegadoDTO { Id = content.Id });
+        aprobarResponse.EnsureSuccessStatusCode();
 
         // Verificar el nombre de usuario generado
         using var scope = Factory.Services.CreateScope();
@@ -93,8 +102,10 @@ public class DelegadoIT : TestBase
             Nombre = "Ana",
             Apellido = "García",
             FechaNacimiento = new DateTime(1985, 3, 20),
-            CodigoAlfanumerico = "",
-            ClubId = _club!.Id
+            ClubId = _club!.Id,
+            FotoCarnet = FotoBase64,
+            FotoDNIFrente = FotoBase64,
+            FotoDNIDorso = FotoBase64
         };
         
         var createResponse = await client.PostAsJsonAsync("/api/delegado", delegadoDTO);
@@ -126,8 +137,10 @@ public class DelegadoIT : TestBase
             Nombre = "Carlos",
             Apellido = "López",
             FechaNacimiento = new DateTime(1988, 11, 10),
-            CodigoAlfanumerico = "",
-            ClubId = _club!.Id
+            ClubId = _club!.Id,
+            FotoCarnet = FotoBase64,
+            FotoDNIFrente = FotoBase64,
+            FotoDNIDorso = FotoBase64
         };
         
         var createResponse = await client.PostAsJsonAsync("/api/delegado", delegadoDTO);
@@ -142,8 +155,10 @@ public class DelegadoIT : TestBase
             Nombre = "CarlosModif",
             Apellido = "LópezModif",
             FechaNacimiento = new DateTime(1988, 11, 10),
-            CodigoAlfanumerico = "",
-            ClubId = _club.Id
+            ClubId = _club.Id,
+            FotoCarnet = FotoBase64,
+            FotoDNIFrente = FotoBase64,
+            FotoDNIDorso = FotoBase64
         };
         
         var response = await client.PutAsJsonAsync($"/api/delegado/{createContent.Id}", delegadoModificadoDTO);
