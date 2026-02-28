@@ -40,6 +40,7 @@ namespace Api.Api.Controllers
         }
 
         [HttpGet("obtener-nombre-usuario-disponible")]
+        [Produces("application/json")]
         public async Task<string> ObtenerNombreUsuarioDisponible([FromQuery] string nombre, [FromQuery] string apellido)
         {
             return await _delegadoCore.ObtenerNombreUsuarioDisponible(nombre, apellido);
