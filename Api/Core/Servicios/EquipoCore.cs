@@ -56,7 +56,7 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
         return ObtenerNombreEquipoDTO.Exito(equipo.Nombre);
     }
 
-    public async Task<ObtenerNombreEquipoDTO> ObtenerClubPorCodigoAlfanumericoDelEquipo(string codigoAlfanumerico)
+    public async Task<ObtenerClubDTO> ObtenerClubPorCodigoAlfanumericoDelEquipo(string codigoAlfanumerico)
     {
         int id;
         try
@@ -65,17 +65,17 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
         }
         catch (ExcepcionControlada e)
         {
-            return ObtenerNombreEquipoDTO.Error(e.Message);
+            return ObtenerClubDTO.Error(e.Message);
         }
 
         var equipo = await Repo.ObtenerPorId(id);
         if (equipo == null)
-            return ObtenerNombreEquipoDTO.Error("El código alfanumérico no pertenece a ningún equipo.");
+            return ObtenerClubDTO.Error("El código alfanumérico no pertenece a ningún equipo.");
 
         var club = equipo.Club;
         if (club == null)
-            return ObtenerNombreEquipoDTO.Error("El equipo no tiene club asociado.");
+            return ObtenerClubDTO.Error("El equipo no tiene club asociado.");
 
-        return ObtenerNombreEquipoDTO.Exito(club.Nombre);
+        return ObtenerClubDTO.Exito(club.Id, club.Nombre);
     }
 }

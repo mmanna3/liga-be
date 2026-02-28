@@ -34,7 +34,8 @@ public class EquipoCoreTests
         var result = await core.ObtenerClubPorCodigoAlfanumericoDelEquipo(codigo);
 
         Assert.False(result.HayError);
-        Assert.Equal("Club de Prueba", result.Respuesta);
+        Assert.Equal(1, result.ClubId);
+        Assert.Equal("Club de Prueba", result.ClubNombre);
     }
 
     [Fact]

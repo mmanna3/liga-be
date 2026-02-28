@@ -34,7 +34,7 @@ namespace Api.Api.Controllers
         }
 
         [HttpGet("obtener-club")]
-        public async Task<ObtenerNombreEquipoDTO> ObtenerClubPorCodigoAlfanumericoDelEquipo([FromQuery] string codigoAlfanumerico)
+        public async Task<ObtenerClubDTO> ObtenerClubPorCodigoAlfanumericoDelEquipo([FromQuery] string codigoAlfanumerico)
         {
             return await _equipoCore.ObtenerClubPorCodigoAlfanumericoDelEquipo(codigoAlfanumerico);
         }
@@ -44,6 +44,12 @@ namespace Api.Api.Controllers
         public async Task<string> ObtenerNombreUsuarioDisponible([FromQuery] string nombre, [FromQuery] string apellido)
         {
             return await _delegadoCore.ObtenerNombreUsuarioDisponible(nombre, apellido);
+        }
+
+        [HttpGet("obtener-nombre-usuario-por-dni")]
+        public async Task<ObtenerNombreUsuarioPorDniDTO> ObtenerNombreUsuarioPorDni([FromQuery] string dni)
+        {
+            return await _delegadoCore.ObtenerNombreUsuarioPorDni(dni);
         }
 
         [HttpPost("fichar-en-otro-equipo")]

@@ -171,6 +171,29 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         return await GeneradorNombreUsuario.ObtenerDisponible(nombre, apellido, _usuarioRepo.ExisteNombreUsuario);
     }
 
+    public async Task<ObtenerNombreUsuarioPorDniDTO> ObtenerNombreUsuarioPorDni(string dni)
+    {
+        var dniLimpio = QuitarCaracteresNoNumericos(dni);
+        var delegado = await Repo.ObtenerPorDNI(dniLimpio);
+        if (PersonaExisteHelper.DelegadoExiste(delegado) && delegado!.Usuario != null)
+            return ObtenerNombreUsuarioPorDniDTO.Exito(delegado.Usuario.NombreUsuario);
+
+        var jugador = await _jugadorRepo.ObtenerPorDNI(dniLimpio);
+        if (PersonaExisteHelper.JugadorExiste(jugador))
+        {
+            var nombreUsuario = await ObtenerNombreUsuarioDisponible(jugador!.Nombre, jugador.Apellido);
+            return ObtenerNombreUsuarioPorDniDTO.Exito(nombreUsuario);
+        }
+
+        if (PersonaExisteHelper.DelegadoEstaPendiente(delegado))
+        {
+            var nombreUsuario = await ObtenerNombreUsuarioDisponible(delegado!.Nombre, delegado.Apellido);
+            return ObtenerNombreUsuarioPorDniDTO.Exito(nombreUsuario);
+        }
+
+        return ObtenerNombreUsuarioPorDniDTO.Error("No existe un delegado ni jugador aprobado con el DNI indicado.");
+    }
+
     public async Task<bool> BlanquearClave(int id)
     {
         var delegado = await Repo.ObtenerPorId(id);
@@ -226,9 +249,6 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
 
     private async Task<int> FicharDesdeJugadorExistente(Jugador jugador, FicharDelegadoSoloConDniYClubDTO dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.TelefonoCelular))
-            throw new ExcepcionControlada("Email y Teléfono son requeridos.");
-
         _imagenDelegadoRepo.CopiarFotosDeJugadorATemporales(jugador.DNI);
 
         var nuevoDelegado = new Delegado
@@ -238,8 +258,8 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
             Nombre = jugador.Nombre,
             Apellido = jugador.Apellido,
             FechaNacimiento = jugador.FechaNacimiento,
-            TelefonoCelular = dto.TelefonoCelular,
-            Email = dto.Email,
+            TelefonoCelular = string.IsNullOrWhiteSpace(dto.TelefonoCelular) ? null : dto.TelefonoCelular.Trim(),
+            Email = string.IsNullOrWhiteSpace(dto.Email) ? null : dto.Email.Trim(),
             ClubId = dto.ClubId,
             EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion
         };
