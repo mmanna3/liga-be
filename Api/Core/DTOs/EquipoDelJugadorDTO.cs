@@ -4,6 +4,7 @@ namespace Api.Core.DTOs;
 
 public class EquipoDelJugadorDTO : DTO
 {
+    public int EquipoId { get; set; }
     public string Nombre { get; set; } = string.Empty;
 
     public string Club { get; set; } = string.Empty;

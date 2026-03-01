@@ -22,7 +22,7 @@ public class DelegadoDTO : DTO, IFotosDTO
     [MaxLength(100)]
     public string? Email { get; set; }
     
-    public string? NombreUsuario { get; set; }
+    public UsuarioDTO? Usuario { get; set; }
 
     [Required]
     public string FotoCarnet { get; set; } = string.Empty;
