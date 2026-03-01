@@ -71,7 +71,7 @@ jobs:
           $dest = "contentPath=$env:MS_DEPLOY_SITE,computerName=$server,username=$env:DEPLOY_USERNAME,password=$env:DEPLOY_PASSWORD,AuthType='Basic'"
           $skipDirs = @("App_Data", "Imagenes", "logs", "aspnet_client", "wwwroot", ".well-known")
           $skipArgs = $skipDirs | ForEach-Object { "-skip:Directory=$_" }
-          & $msdeploy -verb:sync -allowUntrusted "-source:contentPath=$sourcePath" "-dest:$dest" -enableRule:AppOffline @skipArgs
+          & $msdeploy -verb:sync -allowUntrusted "-source:contentPath=$sourcePath" "-dest:$dest" -enableRule:AppOffline -verbose @skipArgs
         env:
           DEPLOY_PUBLISH_URL: ${{ secrets.DEPLOY_PUBLISH_URL }}
           MS_DEPLOY_SITE: ${{ secrets.MS_DEPLOY_SITE }}
