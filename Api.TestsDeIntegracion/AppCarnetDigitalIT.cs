@@ -134,46 +134,67 @@ public class AppCarnetDigitalIT : TestBase
 
         // Crear directorio de imágenes y agregar una imagen de prueba
         Directory.CreateDirectory(paths.ImagenesJugadoresAbsolute);
-        
+        Directory.CreateDirectory(paths.ImagenesDelegadosAbsolute);
+
         // Crear una imagen de prueba de 240x240 píxeles
         using var bitmap = new SKBitmap(240, 240);
         using var canvas = new SKCanvas(bitmap);
         using var paint = new SKPaint();
         paint.Color = SKColors.Blue;
         canvas.DrawRect(0, 0, 240, 240, paint);
-        
+
         // Guardar la imagen para el primer jugador
-        using var stream1 = new FileStream($"{paths.ImagenesJugadoresAbsolute}/12345678.jpg", FileMode.Create);
-        using var image1 = SKImage.FromBitmap(bitmap);
-        using var data1 = image1.Encode(SKEncodedImageFormat.Jpeg, 75);
-        data1.SaveTo(stream1);
-        
+        using (var stream1 = new FileStream($"{paths.ImagenesJugadoresAbsolute}/12345678.jpg", FileMode.Create))
+        {
+            using var image1 = SKImage.FromBitmap(bitmap);
+            using var data1 = image1.Encode(SKEncodedImageFormat.Jpeg, 75);
+            data1.SaveTo(stream1);
+        }
+
         // Guardar la imagen para el segundo jugador
-        using var stream2 = new FileStream($"{paths.ImagenesJugadoresAbsolute}/87654321.jpg", FileMode.Create);
-        using var image2 = SKImage.FromBitmap(bitmap);
-        using var data2 = image2.Encode(SKEncodedImageFormat.Jpeg, 75);
-        data2.SaveTo(stream2);
+        using (var stream2 = new FileStream($"{paths.ImagenesJugadoresAbsolute}/87654321.jpg", FileMode.Create))
+        {
+            using var image2 = SKImage.FromBitmap(bitmap);
+            using var data2 = image2.Encode(SKEncodedImageFormat.Jpeg, 75);
+            data2.SaveTo(stream2);
+        }
+
+        // Guardar la imagen para el delegado (mismo club que el equipo)
+        using (var streamDelegado = new FileStream($"{paths.ImagenesDelegadosAbsolute}/11111111.jpg", FileMode.Create))
+        {
+            using var imageDelegado = SKImage.FromBitmap(bitmap);
+            using var dataDelegado = imageDelegado.Encode(SKEncodedImageFormat.Jpeg, 75);
+            dataDelegado.SaveTo(streamDelegado);
+        }
     }
     
     [Fact]
-    public async Task Carnets_EquipoExistente_DevuelveCarnetsCorrectos()
+    public async Task Carnets_EquipoExistente_DevuelveJugadoresYDelegadosDelClub()
     {
         var client = await GetAuthenticatedClient();
-        
+
         var response = await client.GetAsync("/api/carnet-digital/carnets?equipoId=1");
-        
+
         response.EnsureSuccessStatusCode();
-        
+
         var carnets = await response.Content.ReadFromJsonAsync<List<CarnetDigitalDTO>>();
-        
+
         Assert.NotNull(carnets);
-        Assert.Single(carnets);
-        
-        var primerCarnet = carnets.First();
-        Assert.Equal("Juan", primerCarnet.Nombre);
-        Assert.Equal("Pérez", primerCarnet.Apellido);
-        Assert.Equal("12345678", primerCarnet.DNI);
-        Assert.Equal((int)EstadoJugadorEnum.Activo, primerCarnet.Estado);
+        Assert.Equal(2, carnets.Count); // 1 jugador activo + 1 delegado del club
+
+        var carnetJugador = carnets.First(c => !c.EsDelegado);
+        Assert.Equal("Juan", carnetJugador.Nombre);
+        Assert.Equal("Pérez", carnetJugador.Apellido);
+        Assert.Equal("12345678", carnetJugador.DNI);
+        Assert.Equal((int)EstadoJugadorEnum.Activo, carnetJugador.Estado);
+        Assert.Equal("Equipo de Prueba", carnetJugador.Equipo);
+
+        var carnetDelegado = carnets.First(c => c.EsDelegado);
+        Assert.Equal("Delegado", carnetDelegado.Nombre);
+        Assert.Equal("Test", carnetDelegado.Apellido);
+        Assert.Equal("11111111", carnetDelegado.DNI);
+        Assert.Equal((int)EstadoDelegadoEnum.Activo, carnetDelegado.Estado);
+        Assert.Equal("Club de Prueba", carnetDelegado.Equipo);
     }
     
     [Fact]

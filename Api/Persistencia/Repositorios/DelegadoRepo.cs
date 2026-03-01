@@ -12,6 +12,16 @@ public class DelegadoRepo : RepositorioABM<Delegado>, IDelegadoRepo
     {
     }
     
+    public async Task<List<Delegado>> ListarActivosDelClub(int clubId)
+    {
+        return await Context.DelegadoClub
+            .Where(dc => dc.ClubId == clubId && dc.EstadoDelegadoId == (int)EstadoDelegadoEnum.Activo)
+            .Select(dc => dc.Delegado)
+            .Distinct()
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
     protected override IQueryable<Delegado> Set()
     {
         return Context.Set<Delegado>()

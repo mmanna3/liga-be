@@ -13,12 +13,14 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
     private readonly IMapper _mapper;
     private readonly IEquipoRepo _equipoRepo;
     private readonly IImagenJugadorRepo _imagenJugadorRepo;
+    private readonly IImagenDelegadoRepo _imagenDelegadoRepo;
 
-    public AppCarnetDigitalCore(IDelegadoRepo delegadoRepo, IEquipoRepo equipoRepo, IMapper mapper, IImagenJugadorRepo imagenJugadorRepo)
+    public AppCarnetDigitalCore(IDelegadoRepo delegadoRepo, IEquipoRepo equipoRepo, IMapper mapper, IImagenJugadorRepo imagenJugadorRepo, IImagenDelegadoRepo imagenDelegadoRepo)
     {
         _delegadoRepo = delegadoRepo;
         _mapper = mapper;
         _imagenJugadorRepo = imagenJugadorRepo;
+        _imagenDelegadoRepo = imagenDelegadoRepo;
         _equipoRepo = equipoRepo;
     }
 
@@ -57,11 +59,24 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             return null;
 
         var lista = new List<CarnetDigitalDTO>();
+        var club = equipo.Club ?? throw new InvalidOperationException("El equipo debe tener un club asociado.");
+
         foreach (var jugador in equipo.Jugadores.Where(x => x.EstadoJugadorId != (int)EstadoJugadorEnum.FichajeRechazado && x.EstadoJugadorId != (int)EstadoJugadorEnum.FichajePendienteDeAprobacion && x.EstadoJugadorId != (int)EstadoJugadorEnum.AprobadoPendienteDePago))
         {
             var carnet = _mapper.Map<CarnetDigitalDTO>(jugador);
             carnet.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoCarnetEnBase64(carnet.DNI));
             carnet.Equipo = equipo.Nombre;  // Porque le cuesta por referencia circular para hacerlo con Automapper
+            carnet.EsDelegado = false;
+            lista.Add(carnet);
+        }
+
+        var delegados = await _delegadoRepo.ListarActivosDelClub(club.Id);
+        foreach (var delegado in delegados)
+        {
+            var carnet = _mapper.Map<CarnetDigitalDTO>(delegado);
+            carnet.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenDelegadoRepo.GetFotoCarnetEnBase64(delegado.DNI));
+            carnet.Equipo = equipo.Nombre;
+            carnet.EsDelegado = true;
             lista.Add(carnet);
         }
 
