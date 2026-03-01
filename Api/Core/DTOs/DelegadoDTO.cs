@@ -33,8 +33,6 @@ public class DelegadoDTO : DTO, IFotosDTO
     
     public bool BlanqueoPendiente { get; set; }
     public List<int> ClubIds { get; set; } = new();
-    public EstadoDelegadoDTO? EstadoDelegado { get; set; }
-    public List<string> ClubNombres { get; set; } = new();
-    public List<string> EquiposDelClub { get; set; } = new();
+    public List<DelegadoClubDTO> DelegadoClubs { get; set; } = new();
     public int? JugadorId { get; set; }
 }

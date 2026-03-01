@@ -9,4 +9,6 @@ public class DelegadoClub : Entidad
     public virtual Delegado Delegado { get; set; } = null!;
     public int ClubId { get; set; }
     public virtual Club Club { get; set; } = null!;
+    public int EstadoDelegadoId { get; set; }
+    public virtual EstadoDelegado EstadoDelegado { get; set; } = null!;
 }

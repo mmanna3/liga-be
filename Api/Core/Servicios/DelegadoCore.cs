@@ -73,26 +73,43 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         return dtos;
     }
 
-    public async Task<int> Aprobar(AprobarDelegadoDTO dto)
+    public async Task<IEnumerable<DelegadoDTO>> ListarConFiltro(IList<EstadoDelegadoEnum> estados)
     {
-        var delegado = await Repo.ObtenerPorId(dto.Id);
-        if (delegado == null)
+        var delegadosConJugador = await Repo.ListarConFiltroConJugadorIds(estados);
+        var dtos = delegadosConJugador.Select(x =>
+        {
+            var dto = Mapper.Map<DelegadoDTO>(x.Delegado);
+            dto.JugadorId = x.JugadorId;
+            return dto;
+        }).ToList();
+        return dtos;
+    }
+
+    public async Task<int> AprobarDelegadoEnElClub(int delegadoClubId)
+    {
+        var delegadoClub = await _context.DelegadoClub
+            .Include(dc => dc.Delegado)
+            .FirstOrDefaultAsync(dc => dc.Id == delegadoClubId);
+        if (delegadoClub == null)
             return -1;
 
-        if (delegado.EstadoDelegadoId != (int)EstadoDelegadoEnum.PendienteDeAprobacion)
-            throw new ExcepcionControlada("Solo se pueden aprobar delegados pendientes de aprobación");
+        if (delegadoClub.EstadoDelegadoId != (int)EstadoDelegadoEnum.PendienteDeAprobacion)
+            throw new ExcepcionControlada("Solo se pueden aprobar delegados pendientes de aprobación en ese club");
 
-        var usuario = await CrearUsuarioParaElDelegado(delegado.Nombre, delegado.Apellido);
-        delegado.UsuarioId = usuario.Id;
-        delegado.Usuario = usuario;
-        delegado.EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo;
-        delegado.EstadoDelegado = null!; // EF usa la navegación si está cargada; al limpiarla usa el FK EstadoDelegadoId
+        var delegado = delegadoClub.Delegado;
+
+        if (delegado.Usuario == null)
+        {
+            var usuario = await CrearUsuarioParaElDelegado(delegado.Nombre, delegado.Apellido, delegado.Id);
+            delegado.Usuario = usuario;
+        }
+
+        delegadoClub.EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo;
 
         _imagenDelegadoRepo.FicharPersonaTemporal(delegado.DNI);
 
-        Repo.Modificar(delegado, delegado);
         await BDVirtual.GuardarCambios();
-        return delegado.Id;
+        return delegadoClubId;
     }
 
     public override async Task<DelegadoDTO> ObtenerPorId(int id)
@@ -115,8 +132,6 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
     protected override Task<Delegado> AntesDeModificar(int id, DelegadoDTO dto, Delegado entidadAnterior, Delegado entidadNueva)
     {
         entidadNueva.Usuario = entidadAnterior.Usuario;
-        entidadNueva.UsuarioId = entidadAnterior.UsuarioId;
-        entidadNueva.EstadoDelegadoId = entidadAnterior.EstadoDelegadoId;
         return Task.FromResult(entidadNueva);
     }
     
@@ -142,15 +157,19 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
             throw new ExcepcionControlada("DNI ya existente en el sistema. Probá ficharte desde el flujo 'Solo con DNI'.");
 
         entidad.DNI = dto.DNI;
-        entidad.EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion;
-        entidad.DelegadoClubs = dto.ClubIds.Select(clubId => new DelegadoClub { Id = 0, ClubId = clubId }).ToList();
+        entidad.DelegadoClubs = dto.ClubIds.Select(clubId => new DelegadoClub
+        {
+            Id = 0,
+            ClubId = clubId,
+            EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion
+        }).ToList();
 
         _imagenDelegadoRepo.GuardarFotosTemporalesDePersonaFichada(dto.DNI, dto);
 
         return entidad;
     }
 
-    private async Task<Usuario> CrearUsuarioParaElDelegado(string nombre, string apellido)
+    private async Task<Usuario> CrearUsuarioParaElDelegado(string nombre, string apellido, int delegadoId)
     {
         var nombreUsuario = await ObtenerNombreUsuarioDisponible(nombre, apellido);
         var usuario = new Usuario
@@ -158,7 +177,8 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
             Id = 0,
             NombreUsuario = nombreUsuario,
             Password = null,
-            RolId = (int)RolEnum.Delegado
+            RolId = (int)RolEnum.Delegado,
+            DelegadoId = delegadoId
         };
 
         await _context.Usuarios.AddAsync(usuario);
@@ -197,10 +217,10 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
     public async Task<bool> BlanquearClave(int id)
     {
         var delegado = await Repo.ObtenerPorId(id);
-        if (delegado?.UsuarioId == null)
+        if (delegado?.Usuario == null)
             return false;
 
-        var usuario = await _context.Usuarios.FindAsync(delegado.UsuarioId);
+        var usuario = await _context.Usuarios.FindAsync(delegado.Usuario.Id);
         if (usuario == null)
             return false;
 
@@ -242,11 +262,17 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         if (delegado == null)
             throw new InvalidOperationException("Delegado no encontrado");
 
-        var yaAsociado = await _context.DelegadoClub.AnyAsync(dc => dc.DelegadoId == delegado.Id && dc.ClubId == clubId);
-        if (!yaAsociado)
-            _context.DelegadoClub.Add(new DelegadoClub { Id = 0, DelegadoId = delegado.Id, ClubId = clubId });
-
-        delegado.EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion;
+        var delegadoClubExistente = await _context.DelegadoClub.FirstOrDefaultAsync(dc => dc.DelegadoId == delegado.Id && dc.ClubId == clubId);
+        if (delegadoClubExistente == null)
+            _context.DelegadoClub.Add(new DelegadoClub
+            {
+                Id = 0,
+                DelegadoId = delegado.Id,
+                ClubId = clubId,
+                EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion
+            });
+        else
+            delegadoClubExistente.EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion;
         await BDVirtual.GuardarCambios();
         return delegado.Id;
     }
@@ -264,8 +290,15 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
             FechaNacimiento = jugador.FechaNacimiento,
             TelefonoCelular = string.IsNullOrWhiteSpace(dto.TelefonoCelular) ? null : dto.TelefonoCelular.Trim(),
             Email = string.IsNullOrWhiteSpace(dto.Email) ? null : dto.Email.Trim(),
-            EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion,
-            DelegadoClubs = new List<DelegadoClub> { new DelegadoClub { Id = 0, ClubId = dto.ClubId } }
+            DelegadoClubs = new List<DelegadoClub>
+            {
+                new DelegadoClub
+                {
+                    Id = 0,
+                    ClubId = dto.ClubId,
+                    EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion
+                }
+            }
         };
 
         Repo.Crear(nuevoDelegado);

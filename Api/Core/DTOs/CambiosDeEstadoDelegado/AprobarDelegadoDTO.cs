@@ -1,6 +1,6 @@
 namespace Api.Core.DTOs.CambiosDeEstadoDelegado;
 
-public class AprobarDelegadoDTO
+public class AprobarDelegadoEnElClubDTO
 {
-    public int Id { get; set; }
+    public int DelegadoClubId { get; set; }
 }

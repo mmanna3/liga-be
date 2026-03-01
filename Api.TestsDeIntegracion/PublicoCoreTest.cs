@@ -163,7 +163,7 @@ public class PublicoCoreTest
             Nombre = "Delegado",
             Apellido = "Activo",
             FechaNacimiento = new DateTime(1990, 1, 1),
-            EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo
+            DelegadoClubs = [new DelegadoClub { Id = 0, EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo }]
         };
         _jugadorRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync((Jugador?)null);
         _delegadoRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync(delegado);
@@ -184,7 +184,7 @@ public class PublicoCoreTest
             Nombre = "Delegado",
             Apellido = "Pendiente",
             FechaNacimiento = new DateTime(1990, 1, 1),
-            EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion
+            DelegadoClubs = [new DelegadoClub { Id = 0, EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion }]
         };
         _jugadorRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync((Jugador?)null);
         _delegadoRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync(delegado);

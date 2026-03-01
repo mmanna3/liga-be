@@ -54,14 +54,15 @@ public abstract class ImagenPersonaFichadaBaseTest
     };
 
     [Fact]
-    public void FicharPersonaTemporal_SinFotosTemporales_LanzaExcepcionControlada()
+    public void FicharPersonaTemporal_SinFotosTemporales_NoLanzaExcepcion()
     {
         LimpiarCarpetasDeFotos();
         const string dniSinFotos = "99999999";
 
-        var ex = Assert.Throws<ExcepcionControlada>(() => Repo.FicharPersonaTemporal(dniSinFotos));
+        // Ya estaba fichado en otro club/equipo, las fotos están en definitivas
+        var ex = Record.Exception(() => Repo.FicharPersonaTemporal(dniSinFotos));
 
-        Assert.Equal("No se encontró una foto temporal del carnet para la persona", ex.Message);
+        Assert.Null(ex);
     }
 
     protected static IFotosDTO CrearFotosDtoDelegado(string dni, string fotoBase64 = PuntoRojoBase64) => new DelegadoDTO

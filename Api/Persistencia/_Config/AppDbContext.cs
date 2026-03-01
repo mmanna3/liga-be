@@ -44,11 +44,14 @@ public class AppDbContext : DbContext
         );
 
         builder.Entity<Delegado>()
-            .Property(d => d.EstadoDelegadoId)
-            .HasDefaultValue(3); // Activo para delegados existentes
-        builder.Entity<Delegado>()
             .HasIndex(d => d.DNI)
             .IsUnique();
+
+        builder.Entity<Usuario>()
+            .HasOne(u => u.Delegado)
+            .WithOne(d => d.Usuario)
+            .HasForeignKey<Usuario>(u => u.DelegadoId)
+            .OnDelete(DeleteBehavior.Cascade);
         
         builder.Entity<Jugador>()
             .HasIndex(u => u.DNI)
@@ -67,6 +70,11 @@ public class AppDbContext : DbContext
             .HasOne(dc => dc.Club)
             .WithMany(c => c.DelegadoClubs)
             .HasForeignKey(dc => dc.ClubId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<DelegadoClub>()
+            .HasOne(dc => dc.EstadoDelegado)
+            .WithMany()
+            .HasForeignKey(dc => dc.EstadoDelegadoId)
             .OnDelete(DeleteBehavior.Restrict);
         
         builder.Entity<Usuario>().HasData(

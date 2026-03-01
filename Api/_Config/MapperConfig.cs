@@ -48,18 +48,19 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Motivo, x => x.MapFrom(src => src.Motivo))
             .PreserveReferences().ReverseMap();
 
+        CreateMap<DelegadoClub, DelegadoClubDTO>()
+            .ForMember(dest => dest.ClubNombre, x => x.MapFrom(src => src.Club.Nombre))
+            .ForMember(dest => dest.EquiposDelClub, x => x.MapFrom(src => src.Club.Equipos.Select(e => e.Nombre).ToList()))
+            .PreserveReferences();
+
         CreateMap<Delegado, DelegadoDTO>()
             .ForMember(dest => dest.NombreUsuario, x => x.MapFrom(src => src.Usuario != null ? src.Usuario.NombreUsuario : null))
             .ForMember(dest => dest.BlanqueoPendiente, x => x.MapFrom(src => src.Usuario != null && src.Usuario.Password == null))
-            .ForMember(dest => dest.EstadoDelegado, x => x.MapFrom(src => src.EstadoDelegado))
             .ForMember(dest => dest.ClubIds, x => x.MapFrom(src => src.DelegadoClubs.Select(dc => dc.ClubId).ToList()))
-            .ForMember(dest => dest.ClubNombres, x => x.MapFrom(src => src.DelegadoClubs.Select(dc => dc.Club.Nombre).ToList()))
-            .ForMember(dest => dest.EquiposDelClub, x => x.MapFrom(src => src.DelegadoClubs.SelectMany(dc => dc.Club.Equipos.Select(e => e.Nombre)).ToList()))
+            .ForMember(dest => dest.DelegadoClubs, x => x.MapFrom(src => src.DelegadoClubs))
             .PreserveReferences()
             .ReverseMap()
-            .ForMember(dest => dest.DelegadoClubs, opt => opt.Ignore())
-            .ForMember(dest => dest.EstadoDelegado, opt => opt.Ignore())
-            .ForMember(dest => dest.EstadoDelegadoId, opt => opt.Ignore());
+            .ForMember(dest => dest.DelegadoClubs, opt => opt.Ignore());
         
         
         CreateMap<Jugador, JugadorDTO>()

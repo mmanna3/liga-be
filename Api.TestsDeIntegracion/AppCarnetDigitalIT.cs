@@ -105,17 +105,7 @@ public class AppCarnetDigitalIT : TestBase
         // Guardar los cambios
         context.SaveChanges();
 
-        // Crear usuario y delegado para el endpoint equipos-del-delegado
-        var rolDelegado = context.Roles.First(r => r.Nombre == "Delegado");
-        var usuarioDelegado = new Usuario
-        {
-            Id = 100,
-            NombreUsuario = "delegadoTest",
-            Password = AuthCore.HashPassword("delegado123"),
-            RolId = rolDelegado.Id
-        };
-        context.Usuarios.Add(usuarioDelegado);
-
+        // Crear delegado y usuario para el endpoint equipos-del-delegado
         var estadoActivo = context.EstadoDelegado.First(e => e.Estado == "Activo");
         var delegado = new Delegado
         {
@@ -124,12 +114,22 @@ public class AppCarnetDigitalIT : TestBase
             Nombre = "Delegado",
             Apellido = "Test",
             FechaNacimiento = new DateTime(1990, 1, 1),
-            UsuarioId = usuarioDelegado.Id,
-            EstadoDelegadoId = estadoActivo.Id,
             DelegadoClubs = new List<DelegadoClub>()
         };
         context.Delegados.Add(delegado);
-        context.DelegadoClub.Add(new DelegadoClub { Id = 1, DelegadoId = delegado.Id, ClubId = club.Id });
+        context.DelegadoClub.Add(new DelegadoClub { Id = 1, DelegadoId = delegado.Id, ClubId = club.Id, EstadoDelegadoId = estadoActivo.Id });
+        context.SaveChanges();
+
+        var rolDelegado = context.Roles.First(r => r.Nombre == "Delegado");
+        var usuarioDelegado = new Usuario
+        {
+            Id = 100,
+            NombreUsuario = "delegadoTest",
+            Password = AuthCore.HashPassword("delegado123"),
+            RolId = rolDelegado.Id,
+            DelegadoId = delegado.Id
+        };
+        context.Usuarios.Add(usuarioDelegado);
         context.SaveChanges();
 
         // Crear directorio de imágenes y agregar una imagen de prueba

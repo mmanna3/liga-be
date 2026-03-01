@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Api.Core.DTOs;
 using Api.Core.DTOs.CambiosDeEstadoDelegado;
+using Microsoft.EntityFrameworkCore;
 using Api.Core.Entidades;
 using Api.Core.Enums;
 using Api.Persistencia._Config;
@@ -82,17 +83,62 @@ public class DelegadoIT : TestBase
         Assert.Contains(_club.Id, content.ClubIds);
 
         // Aprobar delegado para crear el usuario
-        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar", new AprobarDelegadoDTO { Id = content.Id });
+        var delegadoClubId = content.DelegadoClubs.First().Id;
+        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO { DelegadoClubId = delegadoClubId });
         aprobarResponse.EnsureSuccessStatusCode();
 
         // Verificar el nombre de usuario generado
         using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var delegado = await context.Delegados.FindAsync(content.Id);
-        var usuario = await context.Usuarios.FindAsync(delegado!.UsuarioId);
+        var usuario = await context.Usuarios.FirstOrDefaultAsync(u => u.DelegadoId == content.Id);
         
         Assert.NotNull(usuario);
         Assert.Equal("jperez", usuario.NombreUsuario);
+    }
+
+    [Fact]
+    public async Task EliminarDelegado_ConUsuarioAsociado_BorraTambienElUsuario()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var delegadoDTO = new DelegadoDTO
+        {
+            DNI = "99998888",
+            Nombre = "Eliminar",
+            Apellido = "Usuario",
+            FechaNacimiento = new DateTime(1990, 1, 1),
+            ClubIds = new List<int> { _club!.Id },
+            FotoCarnet = FotoBase64,
+            FotoDNIFrente = FotoBase64,
+            FotoDNIDorso = FotoBase64
+        };
+
+        var createResponse = await client.PostAsJsonAsync("/api/delegado", delegadoDTO);
+        createResponse.EnsureSuccessStatusCode();
+        var delegadoCreado = JsonConvert.DeserializeObject<DelegadoDTO>(await createResponse.Content.ReadAsStringAsync())!;
+
+        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO { DelegadoClubId = delegadoCreado.DelegadoClubs.First().Id });
+        aprobarResponse.EnsureSuccessStatusCode();
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var usuario = await context.Usuarios.FirstOrDefaultAsync(u => u.DelegadoId == delegadoCreado.Id);
+            Assert.NotNull(usuario);
+        }
+
+        var deleteResponse = await client.DeleteAsync($"/api/delegado/{delegadoCreado.Id}");
+        deleteResponse.EnsureSuccessStatusCode();
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var delegadoEliminado = context.Delegados.Find(delegadoCreado.Id);
+            var usuarioEliminado = await context.Usuarios.FirstOrDefaultAsync(u => u.DelegadoId == delegadoCreado.Id);
+
+            Assert.Null(delegadoEliminado);
+            Assert.Null(usuarioEliminado);
+        }
     }
 
     [Fact]
@@ -214,12 +260,11 @@ public class DelegadoIT : TestBase
             DNI = "55556666",
             Nombre = "Pedro",
             Apellido = "Delegado",
-            FechaNacimiento = new DateTime(1992, 1, 1),
-            EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo
+            FechaNacimiento = new DateTime(1992, 1, 1)
         };
         context.Delegados.Add(delegadoPedro);
         context.SaveChanges();
-        context.DelegadoClub.Add(new DelegadoClub { Id = 0, DelegadoId = delegadoPedro.Id, ClubId = _club!.Id });
+        context.DelegadoClub.Add(new DelegadoClub { Id = 0, DelegadoId = delegadoPedro.Id, ClubId = _club!.Id, EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo });
         context.SaveChanges();
 
         var client = await GetAuthenticatedClient();
@@ -266,12 +311,11 @@ public class DelegadoIT : TestBase
             DNI = "66667777",
             Nombre = "Laura",
             Apellido = "Delegada",
-            FechaNacimiento = new DateTime(1995, 5, 10),
-            EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo
+            FechaNacimiento = new DateTime(1995, 5, 10)
         };
         context.Delegados.Add(delegado);
         context.SaveChanges();
-        context.DelegadoClub.Add(new DelegadoClub { Id = 0, DelegadoId = delegado.Id, ClubId = _club!.Id });
+        context.DelegadoClub.Add(new DelegadoClub { Id = 0, DelegadoId = delegado.Id, ClubId = _club!.Id, EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo });
         context.SaveChanges();
 
         var client = await GetAuthenticatedClient();
@@ -295,12 +339,11 @@ public class DelegadoIT : TestBase
             DNI = "88889999",
             Nombre = "Solo",
             Apellido = "Delegado",
-            FechaNacimiento = new DateTime(1988, 8, 8),
-            EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo
+            FechaNacimiento = new DateTime(1988, 8, 8)
         };
         context.Delegados.Add(delegadoEntidad);
         context.SaveChanges();
-        context.DelegadoClub.Add(new DelegadoClub { Id = 0, DelegadoId = delegadoEntidad.Id, ClubId = _club!.Id });
+        context.DelegadoClub.Add(new DelegadoClub { Id = 0, DelegadoId = delegadoEntidad.Id, ClubId = _club!.Id, EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo });
         context.SaveChanges();
 
         var client = await GetAuthenticatedClient();

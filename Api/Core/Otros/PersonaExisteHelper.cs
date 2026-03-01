@@ -18,10 +18,10 @@ public static class PersonaExisteHelper
     ];
 
     /// <summary>
-    /// Un delegado existe solo si está Activo (aprobado).
+    /// Un delegado existe solo si tiene al menos un DelegadoClub Activo (aprobado).
     /// </summary>
     public static bool DelegadoExiste(Delegado? delegado) =>
-        delegado != null && delegado.EstadoDelegadoId == (int)EstadoDelegadoEnum.Activo;
+        delegado != null && (delegado.DelegadoClubs ?? []).Any(dc => dc.EstadoDelegadoId == (int)EstadoDelegadoEnum.Activo);
 
     /// <summary>
     /// Un jugador existe si tiene al menos un JugadorEquipo con estado Activo, Suspendido, Inhabilitado o AprobadoPendienteDePago.
@@ -30,10 +30,10 @@ public static class PersonaExisteHelper
         jugador != null && jugador.JugadorEquipos.Any(je => EstadosJugadorExistentes.Contains(je.EstadoJugadorId));
 
     /// <summary>
-    /// Un delegado está pendiente si existe y su estado es PendienteDeAprobacion.
+    /// Un delegado está pendiente si tiene al menos un DelegadoClub con estado PendienteDeAprobacion.
     /// </summary>
     public static bool DelegadoEstaPendiente(Delegado? delegado) =>
-        delegado != null && delegado.EstadoDelegadoId == (int)EstadoDelegadoEnum.PendienteDeAprobacion;
+        delegado != null && (delegado.DelegadoClubs ?? []).Any(dc => dc.EstadoDelegadoId == (int)EstadoDelegadoEnum.PendienteDeAprobacion);
 
     /// <summary>
     /// Un jugador está pendiente si existe pero solo tiene JugadorEquipos con FichajePendienteDeAprobacion (ninguno aprobado).

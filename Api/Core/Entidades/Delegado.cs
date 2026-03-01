@@ -24,9 +24,5 @@ public class Delegado : Entidad
     
     public virtual ICollection<DelegadoClub> DelegadoClubs { get; set; } = new List<DelegadoClub>();
 
-    public int? UsuarioId { get; set; }
     public virtual Usuario? Usuario { get; set; }
-
-    public int EstadoDelegadoId { get; set; }
-    public virtual EstadoDelegado EstadoDelegado { get; set; } = null!;
 }

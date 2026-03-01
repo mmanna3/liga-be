@@ -186,7 +186,7 @@ public class FichajeJugadoresIT : TestBase
         var createDelegadoResponse = await client.PostAsJsonAsync("/api/delegado", delegadoDTO);
         createDelegadoResponse.EnsureSuccessStatusCode();
         var delegadoCreado = JsonConvert.DeserializeObject<DelegadoDTO>(await createDelegadoResponse.Content.ReadAsStringAsync())!;
-        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar", new AprobarDelegadoDTO { Id = delegadoCreado.Id });
+        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO { DelegadoClubId = delegadoCreado.DelegadoClubs.First().Id });
         aprobarResponse.EnsureSuccessStatusCode();
 
         // Intentar crear jugador con el mismo DNI vía POST normal → debe fallar
@@ -295,7 +295,7 @@ public class FichajeJugadoresIT : TestBase
         createDelegadoResponse.EnsureSuccessStatusCode();
         var delegadoCreado = JsonConvert.DeserializeObject<DelegadoDTO>(await createDelegadoResponse.Content.ReadAsStringAsync())!;
 
-        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar", new AprobarDelegadoDTO { Id = delegadoCreado.Id });
+        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO { DelegadoClubId = delegadoCreado.DelegadoClubs.First().Id });
         aprobarResponse.EnsureSuccessStatusCode();
 
         // Fichar como jugador en equipo2 vía fichar-en-otro-equipo → debe tener éxito

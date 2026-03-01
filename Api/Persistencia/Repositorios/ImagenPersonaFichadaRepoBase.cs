@@ -31,7 +31,9 @@ namespace Api.Persistencia.Repositorios
 		public void FicharPersonaTemporal(string dni)
 		{
 			var archivosTemporales = Directory.GetFiles(Paths.ImagenesTemporalesCarnetAbsolute, $"{dni}.*");
-			if (archivosTemporales.Length != 1)
+			if (archivosTemporales.Length == 0)
+				return; // Ya estaba fichado en otro club/equipo, las fotos están en definitivas
+			if (archivosTemporales.Length > 1)
 				throw new ExcepcionControlada("No se encontró una foto temporal del carnet para la persona");
 
 			Directory.CreateDirectory(ImagenesDefinitivasAbsolute);

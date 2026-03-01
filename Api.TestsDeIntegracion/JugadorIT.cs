@@ -385,12 +385,11 @@ public class JugadorIT : TestBase
             DNI = "33334444",
             Nombre = "Jugador",
             Apellido = "Delegado",
-            FechaNacimiento = new DateTime(1990, 1, 1),
-            EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo
+            FechaNacimiento = new DateTime(1990, 1, 1)
         };
         context.Delegados.Add(delegado);
         context.SaveChanges();
-        context.DelegadoClub.Add(new DelegadoClub { Id = 0, DelegadoId = delegado.Id, ClubId = club.Id });
+        context.DelegadoClub.Add(new DelegadoClub { Id = 0, DelegadoId = delegado.Id, ClubId = club.Id, EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo });
         context.SaveChanges();
 
         var jugador = new Jugador
@@ -439,12 +438,11 @@ public class JugadorIT : TestBase
             DNI = "44445555",
             Nombre = "Maria",
             Apellido = "Delegada",
-            FechaNacimiento = new DateTime(1993, 4, 4),
-            EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo
+            FechaNacimiento = new DateTime(1993, 4, 4)
         };
         context.Delegados.Add(delegado);
         context.SaveChanges();
-        context.DelegadoClub.Add(new DelegadoClub { Id = 0, DelegadoId = delegado.Id, ClubId = club.Id });
+        context.DelegadoClub.Add(new DelegadoClub { Id = 0, DelegadoId = delegado.Id, ClubId = club.Id, EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo });
         context.SaveChanges();
 
         var jugador = new Jugador

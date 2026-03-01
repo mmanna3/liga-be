@@ -1,4 +1,5 @@
 using Api.Core.Entidades;
+using Api.Core.Enums;
 using Api.Core.Repositorios;
 using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
@@ -18,9 +19,24 @@ public class DelegadoRepo : RepositorioABM<Delegado>, IDelegadoRepo
                 .ThenInclude(dc => dc.Club)
                     .ThenInclude(c => c.Equipos)
                         .ThenInclude(e => e.Torneo)
+            .Include(x => x.DelegadoClubs)
+                .ThenInclude(dc => dc.EstadoDelegado)
             .Include(x => x.Usuario)
-            .Include(x => x.EstadoDelegado)
             .AsQueryable();
+    }
+
+    public async Task<List<(Delegado Delegado, int? JugadorId)>> ListarConFiltroConJugadorIds(IList<EstadoDelegadoEnum> estados)
+    {
+        if (estados == null || estados.Count == 0)
+            return await ListarConJugadorIds();
+        var estadoIds = estados.Select(e => (int)e).ToHashSet();
+        var query = from d in Set()
+                    join j in Context.Jugadores on d.DNI equals j.DNI into jGroup
+                    from j in jGroup.DefaultIfEmpty()
+                    where d.DelegadoClubs.Any(dc => estadoIds.Contains(dc.EstadoDelegadoId))
+                    select new { Delegado = d, JugadorId = (int?)j.Id };
+        var result = await query.AsNoTracking().ToListAsync();
+        return result.Select(x => (x.Delegado, x.JugadorId)).ToList();
     }
 
     public virtual async Task<Delegado?> ObtenerPorDNI(string dni)

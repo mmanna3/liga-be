@@ -12,4 +12,7 @@ public class Usuario : Entidad
 
     public int RolId { get; set; }
     public virtual Rol Rol { get; set; } = null!;
+
+    public int? DelegadoId { get; set; }
+    public virtual Delegado? Delegado { get; set; }
 } 

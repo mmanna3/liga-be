@@ -4,6 +4,7 @@ using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260301011316_EstadoDelegadoEnDelegadoClub")]
+    partial class EstadoDelegadoEnDelegadoClub
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -61,6 +64,9 @@ namespace Api.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int?>("EstadoDelegadoId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("FechaNacimiento")
                         .HasColumnType("datetime2");
 
@@ -73,10 +79,17 @@ namespace Api.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("DNI")
                         .IsUnique();
+
+                    b.HasIndex("EstadoDelegadoId");
+
+                    b.HasIndex("UsuarioId");
 
                     b.ToTable("Delegados");
                 });
@@ -383,9 +396,6 @@ namespace Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("DelegadoId")
-                        .HasColumnType("int");
-
                     b.Property<string>("NombreUsuario")
                         .IsRequired()
                         .HasMaxLength(14)
@@ -402,10 +412,6 @@ namespace Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DelegadoId")
-                        .IsUnique()
-                        .HasFilter("[DelegadoId] IS NOT NULL");
-
                     b.HasIndex("NombreUsuario")
                         .IsUnique();
 
@@ -418,23 +424,36 @@ namespace Api.Migrations
                         {
                             Id = 1,
                             NombreUsuario = "mati",
-                            Password = "$2a$12$Ur/a7aStH/qkw6QDyWVQsOjXa94.olzgDPnXy4qLCBvDAC6P0IDUC",
+                            Password = "$2a$12$QVfJTIzwGHFZq9JsYGxBseg7soPF0DuLSfxFB5A03VvSaMb1cUemS",
                             RolId = 1
                         },
                         new
                         {
                             Id = 2,
                             NombreUsuario = "pipa",
-                            Password = "$2a$12$SGi.IWRHc95SQWGdhxplr.hoS5CEbBYKxDA0ulS5erqlMe7TnHtrK",
+                            Password = "$2a$12$urZ//SoEDQcoM38JrNkJLu2x1EJQ9jKOR2T9.6ejECUo9TBmg0HVq",
                             RolId = 1
                         },
                         new
                         {
                             Id = 101,
                             NombreUsuario = "consulta",
-                            Password = "$2a$12$IPZt7gh0Y5pxLYsFhHsWreE4zR4zOkFMHFamkNvJzxBcYpoCiuX.W",
+                            Password = "$2a$12$lImcMT3Hxkr5A/WxpQxqx.51z1x7V8lnyCGFShsKqZGh2mjGtJgcG",
                             RolId = 3
                         });
+                });
+
+            modelBuilder.Entity("Api.Core.Entidades.Delegado", b =>
+                {
+                    b.HasOne("Api.Core.Entidades.EstadoDelegado", null)
+                        .WithMany("Delegados")
+                        .HasForeignKey("EstadoDelegadoId");
+
+                    b.HasOne("Api.Core.Entidades.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("Api.Core.Entidades.DelegadoClub", b =>
@@ -521,18 +540,11 @@ namespace Api.Migrations
 
             modelBuilder.Entity("Api.Core.Entidades.Usuario", b =>
                 {
-                    b.HasOne("Api.Core.Entidades.Delegado", "Delegado")
-                        .WithOne("Usuario")
-                        .HasForeignKey("Api.Core.Entidades.Usuario", "DelegadoId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("Api.Core.Entidades.Rol", "Rol")
                         .WithMany()
                         .HasForeignKey("RolId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Delegado");
 
                     b.Navigation("Rol");
                 });
@@ -547,13 +559,16 @@ namespace Api.Migrations
             modelBuilder.Entity("Api.Core.Entidades.Delegado", b =>
                 {
                     b.Navigation("DelegadoClubs");
-
-                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("Api.Core.Entidades.Equipo", b =>
                 {
                     b.Navigation("Jugadores");
+                });
+
+            modelBuilder.Entity("Api.Core.Entidades.EstadoDelegado", b =>
+                {
+                    b.Navigation("Delegados");
                 });
 
             modelBuilder.Entity("Api.Core.Entidades.EstadoJugador", b =>
