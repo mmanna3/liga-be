@@ -7,12 +7,15 @@ namespace Api.TestsDeIntegracion._Config;
 
 public static class AuthTestHelper
 {
-    public static async Task<HttpClient> GetAuthenticatedClient(HttpClient client)
+    public static async Task<HttpClient> GetAuthenticatedClient(HttpClient client) =>
+        await GetAuthenticatedClient(client, "test", "test123");
+
+    public static async Task<HttpClient> GetAuthenticatedClient(HttpClient client, string usuario, string password)
     {
         var loginRequest = new LoginDTO
         {
-            Usuario = "test",
-            Password = "test123"
+            Usuario = usuario,
+            Password = password
         };
         
         var loginJson = JsonContent.Create(loginRequest);

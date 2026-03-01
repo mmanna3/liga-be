@@ -32,21 +32,18 @@ public class PublicoCoreTest
     [Fact]
     public async Task ElDniEstaFichado_CuandoElJugadorNoExiste_RetornaFalse()
     {
-        // Arrange
         const string dni = "12345678";
         _jugadorRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync((Jugador?)null);
+        _delegadoRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync((Delegado?)null);
 
-        // Act
         var result = await _publicoCore.ElDniEstaFichado(dni);
 
-        // Assert
         Assert.False(result);
     }
 
     [Fact]
     public async Task ElDniEstaFichado_CuandoElJugadorExisteYEstaActivo_RetornaTrue()
     {
-        // Arrange
         const string dni = "12345678";
         var jugador = new Jugador
         {
@@ -63,18 +60,16 @@ public class PublicoCoreTest
             }
         };
         _jugadorRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync(jugador);
+        _delegadoRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync((Delegado?)null);
 
-        // Act
         var result = await _publicoCore.ElDniEstaFichado(dni);
 
-        // Assert
         Assert.True(result);
     }
 
     [Fact]
     public async Task ElDniEstaFichado_CuandoElJugadorExisteYEstaPendiente_RetornaFalse()
     {
-        // Arrange
         const string dni = "12345678";
         var jugador = new Jugador
         {
@@ -91,18 +86,16 @@ public class PublicoCoreTest
             }
         };
         _jugadorRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync(jugador);
+        _delegadoRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync((Delegado?)null);
 
-        // Act
         var result = await _publicoCore.ElDniEstaFichado(dni);
 
-        // Assert
         Assert.False(result);
     }
 
     [Fact]
     public async Task ElDniEstaFichado_CuandoElJugadorExisteYEstaRechazado_RetornaFalse()
     {
-        // Arrange
         const string dni = "12345678";
         var jugador = new Jugador
         {
@@ -119,18 +112,17 @@ public class PublicoCoreTest
             }
         };
         _jugadorRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync(jugador);
+        _delegadoRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync((Delegado?)null);
 
-        // Act
         var result = await _publicoCore.ElDniEstaFichado(dni);
 
-        // Assert
         Assert.False(result);
     }
 
     [Fact]
-    public async Task ElDniEstaFichado_CuandoElJugadorExisteConMultiplesEquipos_RetornaFalseSiAlgunEquipoEstaPendienteORechazado()
+    public async Task ElDniEstaFichado_CuandoElJugadorExisteConAlMenosUnEquipoAprobado_RetornaTrue()
     {
-        // Arrange
+        // JugadorExiste: true si tiene al menos un JugadorEquipo con estado Activo, Suspendido, Inhabilitado o AprobadoPendienteDePago
         const string dni = "12345678";
         var jugador = new Jugador
         {
@@ -149,21 +141,56 @@ public class PublicoCoreTest
                     Id = 2,
                     EstadoJugadorId = (int)EstadoJugadorEnum.Activo,
                     EstadoJugador = new EstadoJugador { Id = (int)EstadoJugadorEnum.Activo }
-                },
-                new() 
-                { 
-                    Id = 3,
-                    EstadoJugadorId = (int)EstadoJugadorEnum.FichajeRechazado,
-                    EstadoJugador = new EstadoJugador { Id = (int)EstadoJugadorEnum.FichajeRechazado }
                 }
             }
         };
         _jugadorRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync(jugador);
+        _delegadoRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync((Delegado?)null);
 
-        // Act
         var result = await _publicoCore.ElDniEstaFichado(dni);
 
-        // Assert
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task ElDniEstaFichado_CuandoElDelegadoActivoExiste_RetornaTrue()
+    {
+        const string dni = "33333333";
+        var delegado = new Delegado
+        {
+            Id = 1,
+            DNI = dni,
+            Nombre = "Delegado",
+            Apellido = "Activo",
+            FechaNacimiento = new DateTime(1990, 1, 1),
+            EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo
+        };
+        _jugadorRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync((Jugador?)null);
+        _delegadoRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync(delegado);
+
+        var result = await _publicoCore.ElDniEstaFichado(dni);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task ElDniEstaFichado_CuandoElDelegadoPendienteExiste_RetornaFalse()
+    {
+        const string dni = "44444444";
+        var delegado = new Delegado
+        {
+            Id = 1,
+            DNI = dni,
+            Nombre = "Delegado",
+            Apellido = "Pendiente",
+            FechaNacimiento = new DateTime(1990, 1, 1),
+            EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion
+        };
+        _jugadorRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync((Jugador?)null);
+        _delegadoRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync(delegado);
+
+        var result = await _publicoCore.ElDniEstaFichado(dni);
+
         Assert.False(result);
     }
 
@@ -218,7 +245,6 @@ public class PublicoCoreTest
     [Fact]
     public async Task ElDniEstaFichado_CuandoElJugadorExisteConMultiplesEquipos_RetornaTrueSiTodosLosEquiposEstanActivos()
     {
-        // Arrange
         const string dni = "12345678";
         var jugador = new Jugador
         {
@@ -241,11 +267,10 @@ public class PublicoCoreTest
             }
         };
         _jugadorRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync(jugador);
+        _delegadoRepoMock.Setup(x => x.ObtenerPorDNI(dni)).ReturnsAsync((Delegado?)null);
 
-        // Act
         var result = await _publicoCore.ElDniEstaFichado(dni);
 
-        // Assert
         Assert.True(result);
     }
 } 

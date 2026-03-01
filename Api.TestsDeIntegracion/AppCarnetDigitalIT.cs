@@ -3,6 +3,7 @@ using Api.Core.DTOs.AppCarnetDigital;
 using Api.Core.Entidades;
 using Api.Core.Enums;
 using Api.Core.Logica;
+using Api.Core.Servicios;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
 using Microsoft.Extensions.DependencyInjection;
@@ -104,6 +105,33 @@ public class AppCarnetDigitalIT : TestBase
         // Guardar los cambios
         context.SaveChanges();
 
+        // Crear usuario y delegado para el endpoint equipos-del-delegado
+        var rolDelegado = context.Roles.First(r => r.Nombre == "Delegado");
+        var usuarioDelegado = new Usuario
+        {
+            Id = 100,
+            NombreUsuario = "delegadoTest",
+            Password = AuthCore.HashPassword("delegado123"),
+            RolId = rolDelegado.Id
+        };
+        context.Usuarios.Add(usuarioDelegado);
+
+        var estadoActivo = context.EstadoDelegado.First(e => e.Estado == "Activo");
+        var delegado = new Delegado
+        {
+            Id = 1,
+            DNI = "11111111",
+            Nombre = "Delegado",
+            Apellido = "Test",
+            FechaNacimiento = new DateTime(1990, 1, 1),
+            UsuarioId = usuarioDelegado.Id,
+            EstadoDelegadoId = estadoActivo.Id,
+            DelegadoClubs = new List<DelegadoClub>()
+        };
+        context.Delegados.Add(delegado);
+        context.DelegadoClub.Add(new DelegadoClub { Id = 1, DelegadoId = delegado.Id, ClubId = club.Id });
+        context.SaveChanges();
+
         // Crear directorio de imágenes y agregar una imagen de prueba
         Directory.CreateDirectory(paths.ImagenesJugadoresAbsolute);
         
@@ -176,6 +204,34 @@ public class AppCarnetDigitalIT : TestBase
         var response = await client.GetAsync("/api/carnet-digital/carnets?equipoId=999");
         
         Assert.Equal(System.Net.HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task EquiposDelDelegado_DelegadoConClubYEquipos_DevuelveEquipos()
+    {
+        var client = Factory.CreateClient();
+        client = await AuthTestHelper.GetAuthenticatedClient(client, "delegadoTest", "delegado123");
+
+        var response = await client.GetAsync("/api/carnet-digital/equipos-del-delegado");
+
+        response.EnsureSuccessStatusCode();
+
+        var resultado = await response.Content.ReadFromJsonAsync<EquiposDelDelegadoDTO>();
+
+        Assert.NotNull(resultado);
+        Assert.NotNull(resultado.ClubsConEquipos);
+        Assert.NotEmpty(resultado.ClubsConEquipos);
+
+        var clubConEquipos = resultado.ClubsConEquipos.First();
+        Assert.Equal("Club de Prueba", clubConEquipos.Nombre);
+        Assert.NotNull(clubConEquipos.Equipos);
+        Assert.NotEmpty(clubConEquipos.Equipos);
+
+        var equipo = clubConEquipos.Equipos.First();
+        Assert.Equal(1, equipo.Id);
+        Assert.Equal("Equipo de Prueba", equipo.Nombre);
+        Assert.Equal("Torneo 2024", equipo.Torneo);
+        Assert.NotNull(equipo.CodigoAlfanumerico);
     }
     
     // [Fact]
