@@ -75,7 +75,7 @@ jobs:
           $skipDirs = @("App_Data", "Imagenes", "logs", "aspnet_client", "wwwroot", ".well-known")
           $skipArgs = $skipDirs | ForEach-Object { "-skip:Directory=$_" }
           # Retry en caso de fallos transitorios (archivos aún bloqueados)
-          & $msdeploy -verb:sync -allowUntrusted "-source:contentPath=$sourcePath" "-dest:$dest" -enableRule:AppOffline -retryAttempts:3 -retryInterval:5000 -verbose @skipArgs
+          & $msdeploy -verb:sync -allowUntrusted "-source:contentPath=$sourcePath" "-dest:$dest" -enableRule:AppOffline -retryAttempts:2 -retryInterval:5000 -verbose @skipArgs
         env:
           DEPLOY_PUBLISH_URL: ${{ secrets.DEPLOY_PUBLISH_URL }}
           MS_DEPLOY_SITE: ${{ secrets.MS_DEPLOY_SITE }}
