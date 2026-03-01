@@ -61,28 +61,26 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         var lista = new List<CarnetDigitalDTO>();
         var club = equipo.Club ?? throw new InvalidOperationException("El equipo debe tener un club asociado.");
 
-        foreach (var jugador in equipo.Jugadores.Where(x => x.EstadoJugadorId != (int)EstadoJugadorEnum.FichajeRechazado && x.EstadoJugadorId != (int)EstadoJugadorEnum.FichajePendienteDeAprobacion && x.EstadoJugadorId != (int)EstadoJugadorEnum.AprobadoPendienteDePago))
-        {
-            var carnet = _mapper.Map<CarnetDigitalDTO>(jugador);
-            carnet.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoCarnetEnBase64(carnet.DNI));
-            carnet.Equipo = equipo.Nombre;  // Porque le cuesta por referencia circular para hacerlo con Automapper
-            carnet.EsDelegado = false;
-            lista.Add(carnet);
-        }
-
-        var dnisYaIncluidos = lista.Select(c => c.DNI).ToHashSet();
+        // 1. Delegados primero (arriba de todo). Si son también jugadores, aparecerán otra vez más abajo.
         var delegados = await _delegadoRepo.ListarActivosDelClub(club.Id);
         foreach (var delegado in delegados)
         {
-            if (dnisYaIncluidos.Contains(delegado.DNI))
-                continue;
-            dnisYaIncluidos.Add(delegado.DNI);
             var carnet = _mapper.Map<CarnetDigitalDTO>(delegado);
             carnet.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenDelegadoRepo.GetFotoCarnetEnBase64(delegado.DNI));
             carnet.Equipo = club.Nombre;
             carnet.Torneo = "";
             carnet.Estado = (int)EstadoDelegadoEnum.Activo;
             carnet.EsDelegado = true;
+            lista.Add(carnet);
+        }
+
+        // 2. Jugadores (en su categoría correspondiente). Los que también son delegados ya aparecieron arriba.
+        foreach (var jugador in equipo.Jugadores.Where(x => x.EstadoJugadorId != (int)EstadoJugadorEnum.FichajeRechazado && x.EstadoJugadorId != (int)EstadoJugadorEnum.FichajePendienteDeAprobacion && x.EstadoJugadorId != (int)EstadoJugadorEnum.AprobadoPendienteDePago))
+        {
+            var carnet = _mapper.Map<CarnetDigitalDTO>(jugador);
+            carnet.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenJugadorRepo.GetFotoCarnetEnBase64(carnet.DNI));
+            carnet.Equipo = equipo.Nombre;  // Porque le cuesta por referencia circular para hacerlo con Automapper
+            carnet.EsDelegado = false;
             lista.Add(carnet);
         }
 
