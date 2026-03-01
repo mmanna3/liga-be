@@ -70,12 +70,18 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             lista.Add(carnet);
         }
 
+        var dnisYaIncluidos = lista.Select(c => c.DNI).ToHashSet();
         var delegados = await _delegadoRepo.ListarActivosDelClub(club.Id);
         foreach (var delegado in delegados)
         {
+            if (dnisYaIncluidos.Contains(delegado.DNI))
+                continue;
+            dnisYaIncluidos.Add(delegado.DNI);
             var carnet = _mapper.Map<CarnetDigitalDTO>(delegado);
             carnet.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenDelegadoRepo.GetFotoCarnetEnBase64(delegado.DNI));
-            carnet.Equipo = equipo.Nombre;
+            carnet.Equipo = club.Nombre;
+            carnet.Torneo = "";
+            carnet.Estado = (int)EstadoDelegadoEnum.Activo;
             carnet.EsDelegado = true;
             lista.Add(carnet);
         }

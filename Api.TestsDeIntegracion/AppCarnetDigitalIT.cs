@@ -118,6 +118,20 @@ public class AppCarnetDigitalIT : TestBase
         };
         context.Delegados.Add(delegado);
         context.DelegadoClub.Add(new DelegadoClub { Id = 1, DelegadoId = delegado.Id, ClubId = club.Id, EstadoDelegadoId = estadoActivo.Id });
+
+        // Delegado con mismo DNI que Juan (jugador) para probar deduplicación
+        var delegadoMismoDniQueJuan = new Delegado
+        {
+            Id = 2,
+            DNI = "12345678",
+            Nombre = "Juan",
+            Apellido = "Pérez",
+            FechaNacimiento = new DateTime(2000, 1, 1),
+            DelegadoClubs = new List<DelegadoClub>()
+        };
+        context.Delegados.Add(delegadoMismoDniQueJuan);
+        context.DelegadoClub.Add(new DelegadoClub { Id = 2, DelegadoId = delegadoMismoDniQueJuan.Id, ClubId = club.Id, EstadoDelegadoId = estadoActivo.Id });
+
         context.SaveChanges();
 
         var rolDelegado = context.Roles.First(r => r.Nombre == "Delegado");
@@ -195,6 +209,28 @@ public class AppCarnetDigitalIT : TestBase
         Assert.Equal("11111111", carnetDelegado.DNI);
         Assert.Equal((int)EstadoDelegadoEnum.Activo, carnetDelegado.Estado);
         Assert.Equal("Club de Prueba", carnetDelegado.Equipo);
+
+        // Juan es jugador Y delegado (mismo DNI): debe aparecer solo una vez como jugador
+        Assert.Single(carnets, c => c.DNI == "12345678");
+        Assert.Equal(2, carnets.Count); // No 3 (Juan no duplicado)
+    }
+
+    [Fact]
+    public async Task Carnets_JugadorYDelegadoMismoDNI_NoDuplicaEnLaLista()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var response = await client.GetAsync("/api/carnet-digital/carnets?equipoId=1");
+
+        response.EnsureSuccessStatusCode();
+
+        var carnets = await response.Content.ReadFromJsonAsync<List<CarnetDigitalDTO>>();
+
+        Assert.NotNull(carnets);
+        // 1 jugador (Juan) + 1 delegado (Delegado Test). Juan también es delegado pero se omite por duplicado.
+        Assert.Equal(2, carnets.Count);
+        Assert.Single(carnets, c => c.DNI == "12345678");
+        Assert.False(carnets.Single(c => c.DNI == "12345678").EsDelegado); // Se prioriza como jugador
     }
     
     [Fact]
