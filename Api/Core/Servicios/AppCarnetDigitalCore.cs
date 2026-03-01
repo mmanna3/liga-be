@@ -22,25 +22,32 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         _equipoRepo = equipoRepo;
     }
 
-    public async Task<List<EquiposDelDelegadoDTO>> ObtenerEquiposPorUsuarioDeDelegado(string usuario)
+    public async Task<EquiposDelDelegadoDTO> ObtenerEquiposPorUsuarioDeDelegado(string usuario)
     {
         var delegado = await _delegadoRepo.ObtenerPorUsuario(usuario);
-        var resultado = new List<EquiposDelDelegadoDTO>();
+        var clubsConEquipos = new List<ClubConEquiposDTO>();
 
-        foreach (var delegadoClub in delegado.DelegadoClubs)
+        foreach (var delegadoClub in delegado.DelegadoClubs ?? [])
         {
-            var lista = delegadoClub.Club.Equipos
+            var club = delegadoClub.Club;
+            if (club == null)
+                continue;
+
+            var equipos = (club.Equipos ?? [])
                 .Select(equipo => _mapper.Map<EquipoBaseDTO>(equipo))
                 .ToList();
 
-            resultado.Add(new EquiposDelDelegadoDTO
+            clubsConEquipos.Add(new ClubConEquiposDTO
             {
-                Club = delegadoClub.Club.Nombre,
-                Equipos = lista
+                Nombre = club.Nombre,
+                Equipos = equipos
             });
         }
 
-        return resultado;
+        return new EquiposDelDelegadoDTO
+        {
+            ClubsConEquipos = clubsConEquipos
+        };
     }
 
     public async Task<ICollection<CarnetDigitalDTO>> Carnets(int equipoId)

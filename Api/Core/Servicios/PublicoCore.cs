@@ -28,14 +28,9 @@ public class PublicoCore : IPublicoCore
     public async Task<bool> ElDniEstaFichado(string dni)
     {
         var jugador = await _jugadorRepo.ObtenerPorDNI(dni);
-        
-        if (jugador != null)
-        {
-            var elJugadorNoEstaAprobado = jugador.JugadorEquipos.Any(x => x.EstadoJugador.Id is (int)EstadoJugadorEnum.FichajeRechazado or (int)EstadoJugadorEnum.FichajePendienteDeAprobacion);
-            return !elJugadorNoEstaAprobado;
-        }
+        var delegado = await _delegadoRepo.ObtenerPorDNI(dni);
 
-        return false;
+        return PersonaExisteHelper.JugadorExiste(jugador) || PersonaExisteHelper.DelegadoExiste(delegado);
     }
 
     public async Task<int> FicharEnOtroEquipo(FicharEnOtroEquipoDTO dto)

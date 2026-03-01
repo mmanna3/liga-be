@@ -2,8 +2,12 @@ namespace Api.Core.DTOs.AppCarnetDigital;
 
 public class EquiposDelDelegadoDTO
 {
-    public required string Club { get; set; }
-    
+    public ICollection<ClubConEquiposDTO> ClubsConEquipos { get; set; } = null!;
+}
+
+public class ClubConEquiposDTO
+{
+    public required string Nombre { get; set; }
     public ICollection<EquipoBaseDTO>? Equipos { get; set; }
 }
 
