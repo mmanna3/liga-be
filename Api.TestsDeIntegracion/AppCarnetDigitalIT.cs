@@ -119,7 +119,7 @@ public class AppCarnetDigitalIT : TestBase
         context.Delegados.Add(delegado);
         context.DelegadoClub.Add(new DelegadoClub { Id = 1, DelegadoId = delegado.Id, ClubId = club.Id, EstadoDelegadoId = estadoActivo.Id });
 
-        // Delegado con mismo DNI que Juan (jugador) para probar deduplicación
+        // Delegado con mismo DNI que Juan (jugador) para probar que aparece en ambas listas
         var delegadoMismoDniQueJuan = new Delegado
         {
             Id = 2,
@@ -194,29 +194,32 @@ public class AppCarnetDigitalIT : TestBase
         var carnets = await response.Content.ReadFromJsonAsync<List<CarnetDigitalDTO>>();
 
         Assert.NotNull(carnets);
-        Assert.Equal(2, carnets.Count); // 1 jugador activo + 1 delegado del club
+        // 2 delegados + 1 jugador activo (primero delegados, después jugadores)
+        Assert.Equal(3, carnets.Count);
 
-        var carnetJugador = carnets.First(c => !c.EsDelegado);
+        var delegados = carnets.Where(c => c.EsDelegado).ToList();
+        var jugadores = carnets.Where(c => !c.EsDelegado).ToList();
+        Assert.Equal(2, delegados.Count);
+        Assert.Single(jugadores);
+        Assert.True(carnets.Take(2).All(c => c.EsDelegado)); // Delegados primero
+        Assert.False(carnets.Last().EsDelegado); // Jugadores después
+
+        var carnetJugador = jugadores.Single();
         Assert.Equal("Juan", carnetJugador.Nombre);
         Assert.Equal("Pérez", carnetJugador.Apellido);
         Assert.Equal("12345678", carnetJugador.DNI);
         Assert.Equal((int)EstadoJugadorEnum.Activo, carnetJugador.Estado);
         Assert.Equal("Equipo de Prueba", carnetJugador.Equipo);
 
-        var carnetDelegado = carnets.First(c => c.EsDelegado);
-        Assert.Equal("Delegado", carnetDelegado.Nombre);
-        Assert.Equal("Test", carnetDelegado.Apellido);
-        Assert.Equal("11111111", carnetDelegado.DNI);
-        Assert.Equal((int)EstadoDelegadoEnum.Activo, carnetDelegado.Estado);
-        Assert.Equal("Club de Prueba", carnetDelegado.Equipo);
-
-        // Juan es jugador Y delegado (mismo DNI): debe aparecer solo una vez como jugador
-        Assert.Single(carnets, c => c.DNI == "12345678");
-        Assert.Equal(2, carnets.Count); // No 3 (Juan no duplicado)
+        var carnetDelegadoTest = delegados.Single(c => c.DNI == "11111111");
+        Assert.Equal("Delegado", carnetDelegadoTest.Nombre);
+        Assert.Equal("Test", carnetDelegadoTest.Apellido);
+        Assert.Equal((int)EstadoDelegadoEnum.Activo, carnetDelegadoTest.Estado);
+        Assert.Equal("Club de Prueba", carnetDelegadoTest.Equipo);
     }
 
     [Fact]
-    public async Task Carnets_JugadorYDelegadoMismoDNI_NoDuplicaEnLaLista()
+    public async Task Carnets_JugadorYDelegadoMismoDNI_ApareceEnAmbasListas()
     {
         var client = await GetAuthenticatedClient();
 
@@ -227,10 +230,11 @@ public class AppCarnetDigitalIT : TestBase
         var carnets = await response.Content.ReadFromJsonAsync<List<CarnetDigitalDTO>>();
 
         Assert.NotNull(carnets);
-        // 1 jugador (Juan) + 1 delegado (Delegado Test). Juan también es delegado pero se omite por duplicado.
-        Assert.Equal(2, carnets.Count);
-        Assert.Single(carnets, c => c.DNI == "12345678");
-        Assert.False(carnets.Single(c => c.DNI == "12345678").EsDelegado); // Se prioriza como jugador
+        // Primero delegados (2), después jugadores (1). Juan es delegado Y jugador: aparece en ambas listas.
+        Assert.Equal(3, carnets.Count);
+        Assert.Equal(2, carnets.Count(c => c.DNI == "12345678")); // Juan como delegado y como jugador
+        Assert.True(carnets.First(c => c.DNI == "12345678").EsDelegado); // Primera aparición como delegado
+        Assert.False(carnets.Last(c => c.DNI == "12345678").EsDelegado); // Segunda aparición como jugador
     }
     
     [Fact]
