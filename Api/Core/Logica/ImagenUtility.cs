@@ -1,4 +1,5 @@
-﻿using SkiaSharp;
+using Api.Core.Otros;
+using SkiaSharp;
 
 namespace Api.Core.Logica
 {
@@ -50,7 +51,11 @@ namespace Api.Core.Logica
         
         public static SKBitmap Comprimir(string imagenBase64)
         {
+            if (string.IsNullOrWhiteSpace(imagenBase64))
+                throw new ExcepcionControlada("La imagen está vacía. Verificá que hayas seleccionado una foto válida.");
             var image = ConvertirAImageYQuitarMimeType(imagenBase64);
+            if (image == null)
+                throw new ExcepcionControlada("La imagen no pudo procesarse. Verificá que sea una foto válida e intentá de nuevo.");
             return RedimensionarImagenConAnchoFijo(image, 500);
         }
 
@@ -69,6 +74,10 @@ namespace Api.Core.Logica
 
         private static SKBitmap RedimensionarImagenConAnchoFijo(SKBitmap image, int anchoFijo)
         {
+            if (image == null)
+                throw new ExcepcionControlada("La imagen no pudo procesarse. Verificá que sea una foto válida e intentá de nuevo.");
+            if (image.Width <= 0 || image.Height <= 0)
+                throw new ExcepcionControlada("La imagen tiene dimensiones inválidas. Probá con otra foto.");
             // Calcular la altura proporcional basada en el ancho fijo
             var ratio = (float)anchoFijo / image.Width;
             int nuevaAltura = (int)(image.Height * ratio);
@@ -123,9 +132,24 @@ namespace Api.Core.Logica
 
         private static SKBitmap Base64ToBitmap(string base64)
         {
-            byte[] imageBytes = Convert.FromBase64String(base64);
+            if (string.IsNullOrWhiteSpace(base64))
+                throw new ExcepcionControlada("La imagen está vacía. Verificá que hayas seleccionado una foto válida.");
+            byte[] imageBytes;
+            try
+            {
+                imageBytes = Convert.FromBase64String(base64);
+            }
+            catch (FormatException)
+            {
+                throw new ExcepcionControlada("La imagen tiene un formato inválido. Probá seleccionar la foto de nuevo.");
+            }
+            if (imageBytes.Length == 0)
+                throw new ExcepcionControlada("La imagen está vacía. Verificá que hayas seleccionado una foto válida.");
             using var stream = new SKMemoryStream(imageBytes);
-            return SKBitmap.Decode(stream);
+            var bitmap = SKBitmap.Decode(stream);
+            if (bitmap == null)
+                throw new ExcepcionControlada("La imagen no pudo procesarse. Verificá que sea una foto válida (JPG o PNG) e intentá de nuevo.");
+            return bitmap;
         }
 
         private static SKBitmap RedimensionarFoto(SKBitmap foto, int tamanioEnPixeles)

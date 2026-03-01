@@ -185,6 +185,8 @@ namespace Api.Persistencia.Repositorios
 
 		protected void GuardarFotoDNIFrenteTemporal(string dni, IFotosDTO fotos)
 		{
+			if (string.IsNullOrWhiteSpace(fotos.FotoDNIFrente))
+				return;
 			var imagePath = $"{Paths.ImagenesTemporalesDNIFrenteAbsolute}/{dni}.jpg";
 
 			if (File.Exists(imagePath))
@@ -197,6 +199,8 @@ namespace Api.Persistencia.Repositorios
 
 		protected void GuardarFotoDNIDorsoTemporal(string dni, IFotosDTO fotos)
 		{
+			if (string.IsNullOrWhiteSpace(fotos.FotoDNIDorso))
+				return;
 			var path = $"{Paths.ImagenesTemporalesDNIDorsoAbsolute}/{dni}.jpg";
 
 			if (File.Exists(path))
