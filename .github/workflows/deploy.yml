@@ -51,6 +51,9 @@ jobs:
       - name: Publish
         run: dotnet publish Api/Api.csproj --configuration Release --framework net8.0 --self-contained true -r win-x64 -p:EnvironmentName=Production -o dist
 
+      - name: Aplicar web.config con Shadow Copy
+        run: cp .github/web.config dist/web.config
+
       - name: Aplicar migraciones
         shell: pwsh
         run: |
@@ -71,7 +74,8 @@ jobs:
           $dest = "contentPath=$env:MS_DEPLOY_SITE,computerName=$server,username=$env:DEPLOY_USERNAME,password=$env:DEPLOY_PASSWORD,AuthType='Basic'"
           $skipDirs = @("App_Data", "Imagenes", "logs", "aspnet_client", "wwwroot", ".well-known")
           $skipArgs = $skipDirs | ForEach-Object { "-skip:Directory=$_" }
-          & $msdeploy -verb:sync -allowUntrusted "-source:contentPath=$sourcePath" "-dest:$dest" -enableRule:AppOffline -verbose @skipArgs
+          # Retry en caso de fallos transitorios (archivos aún bloqueados)
+          & $msdeploy -verb:sync -allowUntrusted "-source:contentPath=$sourcePath" "-dest:$dest" -enableRule:AppOffline -retryAttempts:3 -retryInterval:5000 -verbose @skipArgs
         env:
           DEPLOY_PUBLISH_URL: ${{ secrets.DEPLOY_PUBLISH_URL }}
           MS_DEPLOY_SITE: ${{ secrets.MS_DEPLOY_SITE }}
