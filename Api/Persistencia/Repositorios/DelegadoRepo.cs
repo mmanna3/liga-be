@@ -14,13 +14,15 @@ public class DelegadoRepo : RepositorioABM<Delegado>, IDelegadoRepo
     protected override IQueryable<Delegado> Set()
     {
         return Context.Set<Delegado>()
-            .Include(x => x.Club)
-                .ThenInclude(x => x.Equipos)
+            .Include(x => x.DelegadoClubs)
+                .ThenInclude(dc => dc.Club)
+                    .ThenInclude(c => c.Equipos)
+                        .ThenInclude(e => e.Torneo)
             .Include(x => x.Usuario)
             .Include(x => x.EstadoDelegado)
             .AsQueryable();
     }
-    
+
     public virtual async Task<Delegado?> ObtenerPorDNI(string dni)
     {
         return await Set().AsNoTracking().FirstOrDefaultAsync(x => x.DNI == dni);
@@ -30,10 +32,8 @@ public class DelegadoRepo : RepositorioABM<Delegado>, IDelegadoRepo
     {
         return await Set()
             .AsNoTracking()
-            .Include(x => x.Club.Equipos)
-                .ThenInclude(x => x.Torneo)
             .Where(x => x.Usuario != null && x.Usuario.NombreUsuario == usuario)
-            .SingleOrDefaultAsync() 
+            .SingleOrDefaultAsync()
                ?? throw new InvalidOperationException();
     }
     

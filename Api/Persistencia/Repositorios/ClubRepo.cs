@@ -14,7 +14,8 @@ public class ClubRepo : RepositorioABM<Club>, IClubRepo
     protected override IQueryable<Club> Set()
     {
         return Context.Set<Club>()
-            .Include(x => x.Delegados)
+            .Include(x => x.DelegadoClubs)
+                .ThenInclude(dc => dc.Delegado)
             .Include(x => x.Equipos)
                 .ThenInclude(e => e.Torneo)
             .AsQueryable();

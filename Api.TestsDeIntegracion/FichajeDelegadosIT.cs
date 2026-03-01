@@ -58,7 +58,7 @@ public class FichajeDelegadosIT : TestBase
             Nombre = "Nuevo",
             Apellido = "Delegado",
             FechaNacimiento = new DateTime(1990, 5, 15),
-            ClubId = _club1!.Id,
+            ClubIds = new List<int> { _club1!.Id },
             FotoCarnet = FotoBase64,
             FotoDNIFrente = FotoBase64,
             FotoDNIDorso = FotoBase64
@@ -70,7 +70,7 @@ public class FichajeDelegadosIT : TestBase
         var content = JsonConvert.DeserializeObject<DelegadoDTO>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.Equal("Nuevo", content.Nombre);
-        Assert.Equal(_club1.Id, content.ClubId);
+        Assert.Contains(_club1.Id, content.ClubIds);
     }
 
     /// <summary>
@@ -87,7 +87,7 @@ public class FichajeDelegadosIT : TestBase
             Nombre = "Pendiente",
             Apellido = "Delegado",
             FechaNacimiento = new DateTime(1988, 3, 10),
-            ClubId = _club1!.Id,
+            ClubIds = new List<int> { _club1!.Id },
             FotoCarnet = FotoBase64,
             FotoDNIFrente = FotoBase64,
             FotoDNIDorso = FotoBase64
@@ -102,7 +102,7 @@ public class FichajeDelegadosIT : TestBase
             Nombre = "Segundo",
             Apellido = "Delegado",
             FechaNacimiento = new DateTime(1988, 3, 10),
-            ClubId = _club2!.Id,
+            ClubIds = new List<int> { _club2!.Id },
             FotoCarnet = FotoBase64,
             FotoDNIFrente = FotoBase64,
             FotoDNIDorso = FotoBase64
@@ -145,7 +145,7 @@ public class FichajeDelegadosIT : TestBase
             Nombre = "Delegado",
             Apellido = "Intent",
             FechaNacimiento = new DateTime(1995, 1, 1),
-            ClubId = _club1!.Id,
+            ClubIds = new List<int> { _club1!.Id },
             FotoCarnet = FotoBase64,
             FotoDNIFrente = FotoBase64,
             FotoDNIDorso = FotoBase64
@@ -171,7 +171,7 @@ public class FichajeDelegadosIT : TestBase
             Nombre = "Juan",
             Apellido = "Pérez",
             FechaNacimiento = new DateTime(1985, 1, 1),
-            ClubId = _club1!.Id,
+            ClubIds = new List<int> { _club1!.Id },
             FotoCarnet = FotoBase64,
             FotoDNIFrente = FotoBase64,
             FotoDNIDorso = FotoBase64
@@ -189,7 +189,7 @@ public class FichajeDelegadosIT : TestBase
             Nombre = "José",
             Apellido = "Pérez",
             FechaNacimiento = new DateTime(1986, 2, 2),
-            ClubId = _club1.Id,
+            ClubIds = new List<int> { _club1.Id },
             FotoCarnet = FotoBase64,
             FotoDNIFrente = FotoBase64,
             FotoDNIDorso = FotoBase64
@@ -225,7 +225,7 @@ public class FichajeDelegadosIT : TestBase
             Nombre = "Existente",
             Apellido = "Delegado",
             FechaNacimiento = new DateTime(1988, 3, 10),
-            ClubId = _club1!.Id,
+            ClubIds = new List<int> { _club1!.Id },
             FotoCarnet = FotoBase64,
             FotoDNIFrente = FotoBase64,
             FotoDNIDorso = FotoBase64
@@ -245,7 +245,7 @@ public class FichajeDelegadosIT : TestBase
             Nombre = "Duplicado",
             Apellido = "Intent",
             FechaNacimiento = new DateTime(1988, 3, 10),
-            ClubId = _club2!.Id,
+            ClubIds = new List<int> { _club2!.Id },
             FotoCarnet = FotoBase64,
             FotoDNIFrente = FotoBase64,
             FotoDNIDorso = FotoBase64
@@ -294,7 +294,7 @@ public class FichajeDelegadosIT : TestBase
             Nombre = "Delegado",
             Apellido = "Intent",
             FechaNacimiento = new DateTime(1995, 1, 1),
-            ClubId = _club1!.Id,
+            ClubIds = new List<int> { _club1!.Id },
             FotoCarnet = FotoBase64,
             FotoDNIFrente = FotoBase64,
             FotoDNIDorso = FotoBase64
@@ -321,7 +321,7 @@ public class FichajeDelegadosIT : TestBase
             Nombre = "Delegado",
             Apellido = "MultiClub",
             FechaNacimiento = new DateTime(1985, 7, 20),
-            ClubId = _club1!.Id,
+            ClubIds = new List<int> { _club1!.Id },
             FotoCarnet = FotoBase64,
             FotoDNIFrente = FotoBase64,
             FotoDNIDorso = FotoBase64
@@ -345,7 +345,7 @@ public class FichajeDelegadosIT : TestBase
         var verifyContext = verifyScope.ServiceProvider.GetRequiredService<AppDbContext>();
         var nuevoDelegado = await verifyContext.Delegados.FindAsync(nuevoId);
         Assert.NotNull(nuevoDelegado);
-        Assert.Equal(_club2.Id, nuevoDelegado.ClubId);
+        Assert.True(verifyContext.DelegadoClub.Any(dc => dc.DelegadoId == nuevoId && dc.ClubId == _club2.Id));
         Assert.Equal((int)EstadoDelegadoEnum.PendienteDeAprobacion, nuevoDelegado.EstadoDelegadoId);
     }
 
@@ -429,7 +429,7 @@ public class FichajeDelegadosIT : TestBase
             Nombre = "Pendiente",
             Apellido = "Delegado",
             FechaNacimiento = new DateTime(1985, 1, 1),
-            ClubId = _club1!.Id,
+            ClubIds = new List<int> { _club1!.Id },
             FotoCarnet = FotoBase64,
             FotoDNIFrente = FotoBase64,
             FotoDNIDorso = FotoBase64
@@ -498,5 +498,45 @@ public class FichajeDelegadosIT : TestBase
         Assert.False(response.IsSuccessStatusCode);
         var errorContent = await response.Content.ReadAsStringAsync();
         Assert.Contains("No existe ni un delegado ni un jugador", errorContent);
+    }
+
+    /// <summary>
+    /// Un delegado aprobado en club1 ficha en club2 y queda asociado a ambos clubs.
+    /// </summary>
+    [Fact]
+    public async Task Delegado_FichadoEnDosClubs_TieneAmbosClubs()
+    {
+        var client = await GetAuthenticatedClient();
+
+        // Crear y aprobar en club1
+        var delegadoDTO = new DelegadoDTO
+        {
+            DNI = "12341234",
+            Nombre = "BiClub",
+            Apellido = "Delegado",
+            FechaNacimiento = new DateTime(1987, 6, 15),
+            ClubIds = new List<int> { _club1!.Id },
+            FotoCarnet = FotoBase64,
+            FotoDNIFrente = FotoBase64,
+            FotoDNIDorso = FotoBase64
+        };
+        var createResponse = await client.PostAsJsonAsync("/api/delegado", delegadoDTO);
+        createResponse.EnsureSuccessStatusCode();
+        var created = JsonConvert.DeserializeObject<DelegadoDTO>(await createResponse.Content.ReadAsStringAsync())!;
+        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar", new AprobarDelegadoDTO { Id = created.Id });
+        aprobarResponse.EnsureSuccessStatusCode();
+
+        // Fichar en club2 vía flujo "solo con DNI"
+        var ficharDTO = new FicharDelegadoSoloConDniYClubDTO { DNI = "12341234", ClubId = _club2!.Id };
+        var ficharResponse = await client.PostAsJsonAsync("/api/delegado/fichar-delegado-solo-con-dni-y-club", ficharDTO);
+        ficharResponse.EnsureSuccessStatusCode();
+
+        // Verificar que el delegado ahora tiene ambos clubs
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var clubs = context.DelegadoClub.Where(dc => dc.DelegadoId == created.Id).Select(dc => dc.ClubId).ToList();
+        Assert.Equal(2, clubs.Count);
+        Assert.Contains(_club1.Id, clubs);
+        Assert.Contains(_club2.Id, clubs);
     }
 }

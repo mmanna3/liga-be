@@ -142,8 +142,8 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
             throw new ExcepcionControlada("DNI ya existente en el sistema. Probá ficharte desde el flujo 'Solo con DNI'.");
 
         entidad.DNI = dto.DNI;
-        entidad.ClubId = dto.ClubId;
         entidad.EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion;
+        entidad.DelegadoClubs = dto.ClubIds.Select(clubId => new DelegadoClub { Id = 0, ClubId = clubId }).ToList();
 
         _imagenDelegadoRepo.GuardarFotosTemporalesDePersonaFichada(dto.DNI, dto);
 
@@ -241,7 +241,11 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         var delegado = await _context.Delegados.FindAsync(delegadoExistente.Id);
         if (delegado == null)
             throw new InvalidOperationException("Delegado no encontrado");
-        delegado.ClubId = clubId;
+
+        var yaAsociado = await _context.DelegadoClub.AnyAsync(dc => dc.DelegadoId == delegado.Id && dc.ClubId == clubId);
+        if (!yaAsociado)
+            _context.DelegadoClub.Add(new DelegadoClub { Id = 0, DelegadoId = delegado.Id, ClubId = clubId });
+
         delegado.EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion;
         await BDVirtual.GuardarCambios();
         return delegado.Id;
@@ -260,8 +264,8 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
             FechaNacimiento = jugador.FechaNacimiento,
             TelefonoCelular = string.IsNullOrWhiteSpace(dto.TelefonoCelular) ? null : dto.TelefonoCelular.Trim(),
             Email = string.IsNullOrWhiteSpace(dto.Email) ? null : dto.Email.Trim(),
-            ClubId = dto.ClubId,
-            EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion
+            EstadoDelegadoId = (int)EstadoDelegadoEnum.PendienteDeAprobacion,
+            DelegadoClubs = new List<DelegadoClub> { new DelegadoClub { Id = 0, ClubId = dto.ClubId } }
         };
 
         Repo.Crear(nuevoDelegado);

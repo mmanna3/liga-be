@@ -90,7 +90,7 @@ public class FichajeJugadoresIT : TestBase
             Nombre = "Pendiente",
             Apellido = "Delegado",
             FechaNacimiento = new DateTime(1990, 5, 10),
-            ClubId = _club1!.Id,
+            ClubIds = new List<int> { _club1!.Id },
             FotoCarnet = FotoBase64,
             FotoDNIFrente = FotoBase64,
             FotoDNIDorso = FotoBase64
@@ -178,7 +178,7 @@ public class FichajeJugadoresIT : TestBase
             Nombre = "Delegado",
             Apellido = "Existente",
             FechaNacimiento = new DateTime(1990, 5, 10),
-            ClubId = _club1!.Id,
+            ClubIds = new List<int> { _club1!.Id },
             FotoCarnet = FotoBase64,
             FotoDNIFrente = FotoBase64,
             FotoDNIDorso = FotoBase64
@@ -286,7 +286,7 @@ public class FichajeJugadoresIT : TestBase
             Nombre = "Delegado",
             Apellido = "Jugador",
             FechaNacimiento = new DateTime(1988, 8, 8),
-            ClubId = _club1!.Id,
+            ClubIds = new List<int> { _club1!.Id },
             FotoCarnet = FotoBase64,
             FotoDNIFrente = FotoBase64,
             FotoDNIDorso = FotoBase64
@@ -422,7 +422,7 @@ public class FichajeJugadoresIT : TestBase
             Nombre = "Pendiente",
             Apellido = "Delegado",
             FechaNacimiento = new DateTime(1985, 1, 1),
-            ClubId = _club1!.Id,
+            ClubIds = new List<int> { _club1!.Id },
             FotoCarnet = FotoBase64,
             FotoDNIFrente = FotoBase64,
             FotoDNIDorso = FotoBase64

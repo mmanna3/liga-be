@@ -70,7 +70,7 @@ public abstract class ImagenPersonaFichadaBaseTest
         Nombre = "Test",
         Apellido = "Test",
         FechaNacimiento = new DateTime(1990, 1, 1),
-        ClubId = 1,
+        ClubIds = new List<int> { 1 },
         FotoCarnet = fotoBase64,
         FotoDNIFrente = fotoBase64,
         FotoDNIDorso = fotoBase64

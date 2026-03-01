@@ -62,6 +62,12 @@ public class AppDbContext : DbContext
             .HasOne(je => je.HistorialDePagos)
             .WithOne(hp => hp.JugadorEquipo)
             .HasForeignKey<HistorialDePagos>(hp => hp.JugadorEquipoId);
+
+        builder.Entity<DelegadoClub>()
+            .HasOne(dc => dc.Club)
+            .WithMany(c => c.DelegadoClubs)
+            .HasForeignKey(dc => dc.ClubId)
+            .OnDelete(DeleteBehavior.Restrict);
         
         builder.Entity<Usuario>().HasData(
             new Usuario 
@@ -91,6 +97,7 @@ public class AppDbContext : DbContext
     public DbSet<Club> Clubs { get; set; } = null!;
     public DbSet<Equipo> Equipos { get; set; } = null!;
     public DbSet<Delegado> Delegados { get; set; } = null!;
+    public DbSet<DelegadoClub> DelegadoClub { get; set; } = null!;
     public DbSet<Jugador> Jugadores { get; set; } = null!;
     public DbSet<JugadorEquipo> JugadorEquipo { get; set; } = null!;
     public DbSet<EstadoJugador> EstadoJugador { get; set; } = null!;

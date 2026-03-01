@@ -22,8 +22,7 @@ public class Delegado : Entidad
     [MaxLength(100)]
     public string? Email { get; set; }
     
-    public required int ClubId { get; set; }
-    public virtual Club Club { get; set; } = null!;
+    public virtual ICollection<DelegadoClub> DelegadoClubs { get; set; } = new List<DelegadoClub>();
 
     public int? UsuarioId { get; set; }
     public virtual Usuario? Usuario { get; set; }

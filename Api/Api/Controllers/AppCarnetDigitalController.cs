@@ -23,7 +23,7 @@ namespace Api.Api.Controllers
         }
         
         [HttpGet("equipos-del-delegado")]
-        public async Task<ActionResult<EquiposDelDelegadoDTO>> Equipos()
+        public async Task<ActionResult<List<EquiposDelDelegadoDTO>>> Equipos()
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
             if (identity != null)

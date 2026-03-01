@@ -386,10 +386,11 @@ public class JugadorIT : TestBase
             Nombre = "Jugador",
             Apellido = "Delegado",
             FechaNacimiento = new DateTime(1990, 1, 1),
-            ClubId = club.Id,
             EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo
         };
         context.Delegados.Add(delegado);
+        context.SaveChanges();
+        context.DelegadoClub.Add(new DelegadoClub { Id = 0, DelegadoId = delegado.Id, ClubId = club.Id });
         context.SaveChanges();
 
         var jugador = new Jugador
@@ -439,10 +440,11 @@ public class JugadorIT : TestBase
             Nombre = "Maria",
             Apellido = "Delegada",
             FechaNacimiento = new DateTime(1993, 4, 4),
-            ClubId = club.Id,
             EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo
         };
         context.Delegados.Add(delegado);
+        context.SaveChanges();
+        context.DelegadoClub.Add(new DelegadoClub { Id = 0, DelegadoId = delegado.Id, ClubId = club.Id });
         context.SaveChanges();
 
         var jugador = new Jugador
