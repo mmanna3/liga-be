@@ -137,6 +137,17 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
     
     protected override async Task<Delegado> AntesDeCrear(DelegadoDTO dto, Delegado entidad)
     {
+        if (dto.ClubIds == null || !dto.ClubIds.Any())
+            throw new ExcepcionControlada("El delegado debe tener al menos un club asociado.");
+
+        var clubsExistentes = await _context.Clubs
+            .Where(c => dto.ClubIds.Contains(c.Id))
+            .Select(c => c.Id)
+            .ToListAsync();
+        var clubIdsNoExistentes = dto.ClubIds.Except(clubsExistentes).ToList();
+        if (clubIdsNoExistentes.Any())
+            throw new ExcepcionControlada("Uno o más clubs no existen en el sistema.");
+
         if (string.IsNullOrEmpty(dto.FotoCarnet) || string.IsNullOrEmpty(dto.FotoDNIFrente) || string.IsNullOrEmpty(dto.FotoDNIDorso))
             throw new ExcepcionControlada("Las fotos de carnet, DNI frente y DNI dorso son obligatorias");
 
