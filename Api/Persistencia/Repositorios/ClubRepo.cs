@@ -22,4 +22,9 @@ public class ClubRepo : RepositorioABM<Club>, IClubRepo
                 .ThenInclude(e => e.Torneo)
             .AsQueryable();
     }
+
+    public void Eliminar(Club club)
+    {
+        Context.Clubs.Remove(club);
+    }
 }

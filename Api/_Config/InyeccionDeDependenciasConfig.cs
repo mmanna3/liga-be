@@ -18,6 +18,7 @@ public static class InyeccionDeDependenciasConfig
         builder.Services.AddScoped<IBDVirtual, BDVirtual>();
         
         builder.Services.AddScoped<IClubRepo, ClubRepo>();
+        builder.Services.AddScoped<IImagenEscudoRepo, ImagenEscudoRepo>();
         builder.Services.AddScoped<IClubCore, ClubCore>();
         
         builder.Services.AddScoped<IJugadorRepo, JugadorRepo>();
