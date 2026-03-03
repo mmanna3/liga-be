@@ -50,16 +50,20 @@ public class ClubIT : TestBase
     }
 
     [Fact]
-    public async Task ObtenerClub_PorId_DevuelveEscudo()
+    public async Task ObtenerClub_PorId_DevuelveEscudoEnBase64()
     {
+        const string fotoBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
         var client = await GetAuthenticatedClient();
-        var response = await client.GetAsync($"/api/club/{_club!.Id}");
+        await client.PostAsJsonAsync($"/api/club/{_club!.Id}/cambiar-escudo", new CambiarEscudoDTO { ImagenBase64 = fotoBase64 });
+
+        var response = await client.GetAsync($"/api/club/{_club.Id}");
         response.EnsureSuccessStatusCode();
 
         var content = JsonConvert.DeserializeObject<ClubDTO>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.NotNull(content.Escudo);
-        Assert.Contains("Escudos", content.Escudo);
+        Assert.StartsWith("data:image/", content.Escudo);
+        Assert.Contains("base64,", content.Escudo);
     }
 
     [Fact]
@@ -75,7 +79,8 @@ public class ClubIT : TestBase
         getResponse.EnsureSuccessStatusCode();
         var club = JsonConvert.DeserializeObject<ClubDTO>(await getResponse.Content.ReadAsStringAsync());
         Assert.NotNull(club);
-        Assert.Equal($"/Imagenes/Escudos/{_club.Id}.jpg", club.Escudo);
+        Assert.StartsWith("data:image/", club.Escudo);
+        Assert.Contains("base64,", club.Escudo);
     }
 
     [Fact]

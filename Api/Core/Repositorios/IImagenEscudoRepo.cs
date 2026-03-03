@@ -3,10 +3,9 @@ namespace Api.Core.Repositorios
 	public interface IImagenEscudoRepo
 	{
 		/// <summary>
-		/// Ruta relativa del escudo del club. Si tiene escudo propio: /Imagenes/Escudos/{clubId}.jpg.
-		/// Si no: /Imagenes/Escudos/default.jpg.
+		/// Obtiene el escudo del club en base64 (sin prefijo data:image). Si tiene escudo propio lo devuelve; si no, el default.
 		/// </summary>
-		string PathRelativo(int clubId);
+		string GetEscudoEnBase64(int clubId);
 
 		/// <summary>
 		/// Guarda o reemplaza el escudo del club con la imagen en base64.

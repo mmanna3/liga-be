@@ -14,12 +14,17 @@ namespace Api.Persistencia.Repositorios
 			_paths = paths;
 		}
 
-		public string PathRelativo(int clubId)
+		public string GetEscudoEnBase64(int clubId)
 		{
-			var pathAbsoluto = $"{_paths.ImagenesEscudosAbsolute}/{clubId}.jpg";
-			return File.Exists(pathAbsoluto)
-				? $"{_paths.ImagenesEscudosRelative}/{clubId}.jpg"
-				: _paths.EscudoDefaultRelative;
+			var pathCustom = $"{_paths.ImagenesEscudosAbsolute}/{clubId}.jpg";
+			var pathUsar = File.Exists(pathCustom) ? pathCustom : _paths.EscudoDefaultFileAbsolute;
+
+			if (!File.Exists(pathUsar))
+				return string.Empty;
+
+			using var stream = new FileStream(pathUsar, FileMode.Open);
+			using var img = SKImage.FromEncodedData(stream);
+			return ImagenUtility.ImageToBase64(img);
 		}
 
 		public void Guardar(int clubId, string imagenBase64)

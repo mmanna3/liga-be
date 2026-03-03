@@ -8,7 +8,7 @@ public class ClubDTO : DTO
     public required string Nombre { get; set; }
 
     /// <summary>
-    /// Ruta relativa del escudo del club (ej. /Imagenes/Escudos/1.jpg o /Imagenes/Escudos/default.jpg).
+    /// Escudo del club en base64 con prefijo data:image (ej. data:image/jpeg;base64,...).
     /// </summary>
     public string Escudo { get; set; } = string.Empty;
     

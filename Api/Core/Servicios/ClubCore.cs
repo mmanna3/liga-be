@@ -1,5 +1,6 @@
 using Api.Core.DTOs;
 using Api.Core.Entidades;
+using Api.Core.Logica;
 using Api.Core.Otros;
 using Api.Core.Repositorios;
 using Api.Core.Servicios.Interfaces;
@@ -21,13 +22,13 @@ public class ClubCore : ABMCore<IClubRepo, Club, ClubDTO>, IClubCore
     {
         var dtos = await base.Listar();
         foreach (var dto in dtos)
-            dto.Escudo = _imagenEscudoRepo.PathRelativo(dto.Id);
+            dto.Escudo = ImagenUtility.AgregarMimeType(_imagenEscudoRepo.GetEscudoEnBase64(dto.Id));
         return dtos;
     }
 
     protected override ClubDTO AntesDeObtenerPorId(Club entidad, ClubDTO dto)
     {
-        dto.Escudo = _imagenEscudoRepo.PathRelativo(entidad.Id);
+        dto.Escudo = ImagenUtility.AgregarMimeType(_imagenEscudoRepo.GetEscudoEnBase64(entidad.Id));
         return dto;
     }
 

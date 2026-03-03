@@ -34,23 +34,28 @@ public class ImagenEscudoRepoTest
     }
 
     [Fact]
-    public void PathRelativo_SinEscudoPropio_RetornaDefault()
+    public void GetEscudoEnBase64_SinEscudoPropio_RetornaDefault()
     {
-        const int clubId = 999;
-        var result = _repo.PathRelativo(clubId);
+        Directory.CreateDirectory(_paths.ImagenesEscudosAbsolute);
+        var defaultPath = _paths.EscudoDefaultFileAbsolute;
+        if (!File.Exists(defaultPath))
+            File.WriteAllBytes(defaultPath, Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="));
 
-        Assert.Equal(_paths.EscudoDefaultRelative, result);
+        const int clubId = 999;
+        var result = _repo.GetEscudoEnBase64(clubId);
+
+        Assert.False(string.IsNullOrEmpty(result));
     }
 
     [Fact]
-    public void PathRelativo_ConEscudoPropio_RetornaRutaDelClub()
+    public void GetEscudoEnBase64_ConEscudoPropio_RetornaBase64()
     {
         const int clubId = 1;
         _repo.Guardar(clubId, PuntoRojoBase64);
 
-        var result = _repo.PathRelativo(clubId);
+        var result = _repo.GetEscudoEnBase64(clubId);
 
-        Assert.Equal($"{_paths.ImagenesEscudosRelative}/{clubId}.jpg", result);
+        Assert.False(string.IsNullOrEmpty(result));
     }
 
     [Fact]
