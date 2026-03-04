@@ -71,6 +71,8 @@ public class MapperConfig : Profile
         CreateMap<Jugador, JugadorDTO>()
             .ForMember(dest => dest.Equipos, x => x.MapFrom(src => src.JugadorEquipos))
             .PreserveReferences().ReverseMap();
+
+        CreateMap<Jugador, JugadorBaseDTO>();
         
         CreateMap<JugadorEquipo, JugadorEquipoDTO>().PreserveReferences().ReverseMap();
         CreateMap<EstadoJugador, EstadoJugadorDTO>().PreserveReferences().ReverseMap();

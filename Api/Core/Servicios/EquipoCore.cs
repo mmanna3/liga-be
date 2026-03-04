@@ -84,6 +84,23 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
         return ObtenerClubDTO.Exito(club.Id, club.Nombre);
     }
 
+    public async Task<IEnumerable<JugadorBaseDTO>> JugadoresQueSoloJueganEnEsteEquipo(int equipoId)
+    {
+        var equipo = await Repo.ObtenerPorId(equipoId);
+        if (equipo == null)
+            return [];
+
+        var jugadoresQueSoloJueganEnEsteEquipo = new List<Jugador>();
+        foreach (var je in equipo.Jugadores)
+        {
+            var cantidadEquipos = await Repo.ContarEquiposDelJugador(je.JugadorId);
+            if (cantidadEquipos == 1 && je.Jugador != null)
+                jugadoresQueSoloJueganEnEsteEquipo.Add(je.Jugador);
+        }
+
+        return Mapper.Map<List<JugadorBaseDTO>>(jugadoresQueSoloJueganEnEsteEquipo);
+    }
+
     protected override async Task AntesDeEliminar(int id, Equipo entidad)
     {
         var jugadoresQueSoloJueganEnEsteEquipo = new List<Jugador>();

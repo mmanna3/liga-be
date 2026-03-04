@@ -1,5 +1,7 @@
 using Api.Core.DTOs;
 using Api.Core.Servicios.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers
 {
@@ -7,6 +9,14 @@ namespace Api.Api.Controllers
     {
         public EquipoController(IEquipoCore core) : base(core)
         {
+        }
+
+        [HttpGet("{id}/jugadores-que-solo-juegan-en-este-equipo")]
+        [Authorize(Roles = "Administrador,Consulta")]
+        public async Task<ActionResult<IEnumerable<JugadorBaseDTO>>> JugadoresQueSoloJueganEnEsteEquipo(int id)
+        {
+            var jugadores = await Core.JugadoresQueSoloJueganEnEsteEquipo(id);
+            return Ok(jugadores);
         }
     }
 }

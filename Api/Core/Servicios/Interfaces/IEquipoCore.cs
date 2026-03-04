@@ -7,4 +7,5 @@ public interface IEquipoCore : ICoreABM<EquipoDTO>
 {
     Task<ObtenerNombreEquipoDTO> ObtenerNombrePorCodigoAlfanumerico(string codigoAlfanumerico);
     Task<ObtenerClubDTO> ObtenerClubPorCodigoAlfanumericoDelEquipo(string codigoAlfanumerico);
+    Task<IEnumerable<JugadorBaseDTO>> JugadoresQueSoloJueganEnEsteEquipo(int equipoId);
 }
