@@ -94,7 +94,7 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
         }
     }
 
-    public void Eliminar(Jugador jugador)
+    public override void Eliminar(Jugador jugador)
     {
         Context.Jugadores.Remove(jugador);
     }

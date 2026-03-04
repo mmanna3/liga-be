@@ -69,4 +69,55 @@ public class EquipoIT : TestBase
         Assert.NotNull(content);
         Assert.Equal("Nuevo Equipo", content.Nombre);
     }
+
+    [Fact]
+    public async Task EliminarEquipo_EliminaJugadoresQueSoloJugabanEnEseEquipo()
+    {
+        var client = await GetAuthenticatedClient();
+
+        int equipoId;
+        int jugadorSoloEnEsteEquipoId;
+        int jugadorEnVariosEquiposId;
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var torneo = new Torneo { Id = 0, Nombre = "Torneo Elim" };
+            context.Torneos.Add(torneo);
+            context.SaveChanges();
+            torneo = context.Torneos.First();
+
+            var equipoOtro = context.Equipos.First(e => e.ClubId == _club!.Id);
+
+            var equipoParaEliminar = new Equipo { Id = 0, Nombre = "Equipo a Eliminar", ClubId = _club.Id, TorneoId = torneo.Id, Jugadores = [] };
+            context.Equipos.Add(equipoParaEliminar);
+            context.SaveChanges();
+            equipoId = equipoParaEliminar.Id;
+
+            var jugadorSolo = new Jugador { Id = 0, DNI = "11112222", Nombre = "Solo", Apellido = "Equipo", FechaNacimiento = new DateTime(1995, 1, 1) };
+            var jugadorVarios = new Jugador { Id = 0, DNI = "33334444", Nombre = "Varios", Apellido = "Equipos", FechaNacimiento = new DateTime(1995, 1, 1) };
+            context.Jugadores.Add(jugadorSolo);
+            context.Jugadores.Add(jugadorVarios);
+            context.SaveChanges();
+            jugadorSoloEnEsteEquipoId = jugadorSolo.Id;
+            jugadorEnVariosEquiposId = jugadorVarios.Id;
+
+            context.JugadorEquipo.Add(new JugadorEquipo { Id = 0, JugadorId = jugadorSolo.Id, EquipoId = equipoId, FechaFichaje = DateTime.Now, EstadoJugadorId = (int)EstadoJugadorEnum.Activo });
+            context.JugadorEquipo.Add(new JugadorEquipo { Id = 0, JugadorId = jugadorVarios.Id, EquipoId = equipoId, FechaFichaje = DateTime.Now, EstadoJugadorId = (int)EstadoJugadorEnum.Activo });
+            context.JugadorEquipo.Add(new JugadorEquipo { Id = 0, JugadorId = jugadorVarios.Id, EquipoId = equipoOtro.Id, FechaFichaje = DateTime.Now, EstadoJugadorId = (int)EstadoJugadorEnum.Activo });
+            context.SaveChanges();
+        }
+
+        var deleteResponse = await client.DeleteAsync($"/api/equipo/{equipoId}");
+        deleteResponse.EnsureSuccessStatusCode();
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Assert.Null(context.Equipos.Find(equipoId));
+            Assert.Null(context.Jugadores.Find(jugadorSoloEnEsteEquipoId));
+            Assert.NotNull(context.Jugadores.Find(jugadorEnVariosEquiposId));
+            Assert.Empty(context.JugadorEquipo.Where(je => je.EquipoId == equipoId));
+        }
+    }
 }

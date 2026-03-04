@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Api.Core.DTOs;
 using Api.Core.Entidades;
+using Api.Core.Enums;
 using Api.Core.Logica;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
@@ -111,6 +112,58 @@ public class ClubIT : TestBase
             var paths = scope.ServiceProvider.GetRequiredService<AppPaths>();
             var pathEscudo = Path.Combine(paths.ImagenesEscudosAbsolute, $"{clubParaEliminar.Id}.jpg");
             Assert.False(File.Exists(pathEscudo));
+        }
+    }
+
+    [Fact]
+    public async Task EliminarClub_EliminaEquiposYDelegadosSoloDeEseClub()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var clubParaEliminar = new Club { Id = 0, Nombre = "Club a Eliminar" };
+        var torneo = new Torneo { Id = 0, Nombre = "Torneo Test" };
+        var equipo1 = new Equipo { Id = 0, Nombre = "Equipo 1", ClubId = 0, TorneoId = 0, Jugadores = [] };
+        var delegadoSoloEnEsteClub = new Delegado { Id = 0, DNI = "11223344", Nombre = "Solo", Apellido = "Club", FechaNacimiento = new DateTime(1990, 1, 1) };
+        var delegadoEnVariosClubs = new Delegado { Id = 0, DNI = "55667788", Nombre = "Varios", Apellido = "Clubs", FechaNacimiento = new DateTime(1990, 1, 1) };
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            context.Clubs.Add(clubParaEliminar);
+            context.Torneos.Add(torneo);
+            context.SaveChanges();
+
+            clubParaEliminar = context.Clubs.First(c => c.Nombre == "Club a Eliminar");
+            torneo = context.Torneos.First();
+
+            equipo1.ClubId = clubParaEliminar.Id;
+            equipo1.TorneoId = torneo.Id;
+            context.Equipos.Add(equipo1);
+
+            context.Delegados.Add(delegadoSoloEnEsteClub);
+            context.Delegados.Add(delegadoEnVariosClubs);
+            context.SaveChanges();
+
+            delegadoSoloEnEsteClub = context.Delegados.First(d => d.DNI == "11223344");
+            delegadoEnVariosClubs = context.Delegados.First(d => d.DNI == "55667788");
+
+            context.DelegadoClub.Add(new DelegadoClub { Id = 0, DelegadoId = delegadoSoloEnEsteClub.Id, ClubId = clubParaEliminar.Id, EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo });
+            context.DelegadoClub.Add(new DelegadoClub { Id = 0, DelegadoId = delegadoEnVariosClubs.Id, ClubId = clubParaEliminar.Id, EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo });
+            context.DelegadoClub.Add(new DelegadoClub { Id = 0, DelegadoId = delegadoEnVariosClubs.Id, ClubId = _club!.Id, EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo });
+            context.SaveChanges();
+        }
+
+        var deleteResponse = await client.DeleteAsync($"/api/club/{clubParaEliminar.Id}");
+        deleteResponse.EnsureSuccessStatusCode();
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Assert.Null(context.Clubs.Find(clubParaEliminar.Id));
+            Assert.Empty(context.Equipos.Where(e => e.ClubId == clubParaEliminar.Id));
+            Assert.Null(context.Delegados.Find(delegadoSoloEnEsteClub.Id));
+            Assert.NotNull(context.Delegados.Find(delegadoEnVariosClubs.Id));
+            Assert.Empty(context.DelegadoClub.Where(dc => dc.ClubId == clubParaEliminar.Id));
         }
     }
 }

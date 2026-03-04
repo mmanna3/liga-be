@@ -35,4 +35,16 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
         
         return await query.AnyAsync();
     }
+
+    public async Task<int> ContarEquiposDelJugador(int jugadorId)
+    {
+        return await Context.JugadorEquipo.CountAsync(je => je.JugadorId == jugadorId);
+    }
+
+    public async Task AnularTorneoEnEquipos(int torneoId)
+    {
+        await Context.Equipos
+            .Where(e => e.TorneoId == torneoId)
+            .ExecuteUpdateAsync(s => s.SetProperty(e => e.TorneoId, (int?)null));
+    }
 }

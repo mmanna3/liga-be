@@ -10,4 +10,5 @@ public interface IRepositorioABM<TModel>
     EntityEntry<TModel> Crear(TModel reserva);
     Task<TModel?> ObtenerPorId(int id);
     void Modificar(TModel anterior, TModel nuevo);
+    void Eliminar(TModel modelo);
 }

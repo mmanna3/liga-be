@@ -190,6 +190,8 @@ public class JugadorIT : TestBase
         var verifyContext = verifyScope.ServiceProvider.GetRequiredService<AppDbContext>();
         var jugadorEliminado = verifyContext.Jugadores.Find(50);
         Assert.Null(jugadorEliminado);
+        var jugadorEquipoEliminado = verifyContext.JugadorEquipo.Find(501);
+        Assert.Null(jugadorEquipoEliminado);
     }
 
     [Fact]

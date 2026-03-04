@@ -317,17 +317,9 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         return nuevoDelegado.Id;
     }
     
-    public async Task<int> Eliminar(int id)
+    protected override async Task AntesDeEliminar(int id, Delegado entidad)
     {
-        var delegado = await Repo.ObtenerPorId(id);
-        if (delegado == null)
-            return -1;
-
-        _imagenDelegadoRepo.EliminarTodasLasFotos(delegado.DNI);
-
-        Repo.Eliminar(delegado);
-        await BDVirtual.GuardarCambios();
-
-        return id;
+        _imagenDelegadoRepo.EliminarTodasLasFotos(entidad.DNI);
+        await Task.CompletedTask;
     }
 }

@@ -76,16 +76,6 @@ namespace Api.Api.Controllers
             return Ok(jugadorDTO);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<int>> Eliminar(int id)
-        {
-            var resultado = await Core.Eliminar(id);
-            if (resultado == -1)
-                return NotFound();
-            return Ok(resultado);
-        }
-        
-                
         [HttpPost("desvincular-jugador-del-equipo")]
         public async Task<ActionResult<int>> DesvincularJugadorDelEquipo(DesvincularJugadorDelEquipoDTO dto)
         {

@@ -23,8 +23,20 @@ public class ClubRepo : RepositorioABM<Club>, IClubRepo
             .AsQueryable();
     }
 
-    public void Eliminar(Club club)
+    public override void Eliminar(Club club)
     {
         Context.Clubs.Remove(club);
+    }
+
+    public async Task EliminarClubPorId(int clubId)
+    {
+        await Context.Clubs.Where(c => c.Id == clubId).ExecuteDeleteAsync();
+    }
+
+    public async Task EliminarDelegadoClubsDelClub(int clubId)
+    {
+        await Context.DelegadoClub
+            .Where(dc => dc.ClubId == clubId)
+            .ExecuteDeleteAsync();
     }
 }

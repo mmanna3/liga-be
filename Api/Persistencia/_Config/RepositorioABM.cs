@@ -39,6 +39,11 @@ public abstract class RepositorioABM<TModel> : RepositorioBase, IRepositorioABM<
         Context.Update(nuevo);
         DespuesDeModificar(anterior, nuevo);
     }
+
+    public virtual void Eliminar(TModel modelo)
+    {
+        Context.Remove(modelo);
+    }
     
     protected virtual void AntesDeModificar(TModel entidadAnterior, TModel entidadNueva)
     {

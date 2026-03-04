@@ -51,14 +51,5 @@ namespace Api.Api.Controllers
             var id = await Core.FicharDelegadoSoloConDniYClub(dto);
             return Ok(id);
         }
-        
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<int>> Eliminar(int id)
-        {
-            var resultado = await Core.Eliminar(id);
-            if (resultado == -1)
-                return NotFound();
-            return Ok(resultado);
-        }
     }
 }

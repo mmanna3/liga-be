@@ -149,7 +149,7 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         return dtos;
     }
 
-    public async Task<int> Eliminar(int id)
+    public override async Task<int> Eliminar(int id)
     {
         var jugador = await Repo.ObtenerPorIdParaEliminar(id);
         if (jugador == null)

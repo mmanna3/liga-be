@@ -10,19 +10,19 @@ namespace Api.Core.Servicios;
 public abstract class ABMCore<TRepo, TEntidad, TDTO> : ICoreABM<TDTO>
     where TRepo : IRepositorioABM<TEntidad>
     where TEntidad : Entidad
-    where TDTO: DTO
+    where TDTO : DTO
 {
     protected readonly IBDVirtual BDVirtual;
     protected readonly TRepo Repo;
-    protected readonly IMapper Mapper; 
-    
+    protected readonly IMapper Mapper;
+
     protected ABMCore(IBDVirtual bd, TRepo repo, IMapper mapper)
     {
         BDVirtual = bd;
         Repo = repo;
         Mapper = mapper;
     }
-    
+
     public virtual async Task<IEnumerable<TDTO>> Listar()
     {
         var entidades = await Repo.Listar();
@@ -66,16 +66,33 @@ public abstract class ABMCore<TRepo, TEntidad, TDTO> : ICoreABM<TDTO>
         var entidadNueva = Mapper.Map<TEntidad>(nuevo);
         if (entidadNueva == null)
             throw new ExcepcionControlada("Hubo un problema mapeando la entidad");
-        
+
         await AntesDeModificar(id, nuevo, entidadAnterior, entidadNueva);
-        
+
         Repo.Modificar(entidadAnterior, entidadNueva);
         await BDVirtual.GuardarCambios();
-        return id;    
+        return id;
     }
-    
+
     protected virtual Task<TEntidad> AntesDeModificar(int id, TDTO dto, TEntidad entidadAnterior, TEntidad entidadNueva)
     {
         return Task.FromResult(entidadNueva);
+    }
+
+    public virtual async Task<int> Eliminar(int id)
+    {
+        var entidad = await Repo.ObtenerPorId(id);
+        if (entidad == null)
+            return -1;
+
+        await AntesDeEliminar(id, entidad);
+        Repo.Eliminar(entidad);
+        await BDVirtual.GuardarCambios();
+        return id;
+    }
+
+    protected virtual Task AntesDeEliminar(int id, TEntidad entidad)
+    {
+        return Task.CompletedTask;
     }
 }

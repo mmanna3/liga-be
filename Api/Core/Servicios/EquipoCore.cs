@@ -10,8 +10,13 @@ namespace Api.Core.Servicios;
 
 public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
 {
-    public EquipoCore(IBDVirtual bd, IEquipoRepo repo, IMapper mapper) : base(bd, repo, mapper)
+    private readonly IJugadorRepo _jugadorRepo;
+    private readonly IImagenJugadorRepo _imagenJugadorRepo;
+
+    public EquipoCore(IBDVirtual bd, IEquipoRepo repo, IMapper mapper, IJugadorRepo jugadorRepo, IImagenJugadorRepo imagenJugadorRepo) : base(bd, repo, mapper)
     {
+        _jugadorRepo = jugadorRepo;
+        _imagenJugadorRepo = imagenJugadorRepo;
     }
 
     protected override async Task<Equipo> AntesDeCrear(EquipoDTO dto, Equipo entidad)
@@ -21,14 +26,14 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
         {
             throw new ExcepcionControlada("Ya existe un equipo con el mismo nombre en este torneo.");
         }
-        
+
         return await base.AntesDeCrear(dto, entidad);
     }
 
     protected override async Task<Equipo> AntesDeModificar(int id, EquipoDTO dto, Equipo entidadAnterior, Equipo entidadNueva)
     {
         // Si el nombre o el torneo cambiaron, verificar que no exista otro equipo con el mismo nombre en el mismo torneo
-        if ((entidadAnterior.Nombre != entidadNueva.Nombre || entidadAnterior.TorneoId != entidadNueva.TorneoId) && 
+        if ((entidadAnterior.Nombre != entidadNueva.Nombre || entidadAnterior.TorneoId != entidadNueva.TorneoId) &&
             await Repo.ExisteEquipoConMismoNombreEnTorneo(entidadNueva.Nombre, entidadNueva.TorneoId, id))
         {
             throw new ExcepcionControlada("Ya existe un equipo con el mismo nombre en este torneo.");
@@ -48,11 +53,11 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
         {
             return ObtenerNombreEquipoDTO.Error(e.Message);
         }
-        
+
         var equipo = await Repo.ObtenerPorId(id);
         if (equipo == null)
             return ObtenerNombreEquipoDTO.Error("El código alfanumérico no pertenece a ningún equipo.");
-        
+
         return ObtenerNombreEquipoDTO.Exito(equipo.Nombre);
     }
 
@@ -77,5 +82,28 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
             return ObtenerClubDTO.Error("El equipo no tiene club asociado.");
 
         return ObtenerClubDTO.Exito(club.Id, club.Nombre);
+    }
+
+    protected override async Task AntesDeEliminar(int id, Equipo entidad)
+    {
+        var jugadoresQueSoloJueganEnEsteEquipo = new List<Jugador>();
+
+        foreach (var je in entidad.Jugadores)
+        {
+            var cantidadEquipos = await Repo.ContarEquiposDelJugador(je.JugadorId);
+            if (cantidadEquipos == 1 && je.Jugador != null)
+                jugadoresQueSoloJueganEnEsteEquipo.Add(je.Jugador);
+        }
+
+        foreach (var je in entidad.Jugadores)
+            _jugadorRepo.EliminarJugadorEquipo(je.Id);
+
+        foreach (var jugador in jugadoresQueSoloJueganEnEsteEquipo)
+        {
+            _jugadorRepo.Eliminar(jugador);
+            _imagenJugadorRepo.EliminarFotosDelJugador(jugador.DNI);
+        }
+
+        await Task.CompletedTask;
     }
 }

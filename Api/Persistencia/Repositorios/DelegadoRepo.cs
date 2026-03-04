@@ -63,7 +63,7 @@ public class DelegadoRepo : RepositorioABM<Delegado>, IDelegadoRepo
                ?? throw new InvalidOperationException();
     }
     
-    public void Eliminar(Delegado delegado)
+    public override void Eliminar(Delegado delegado)
     {
         Context.Delegados.Remove(delegado);
     }
@@ -84,5 +84,10 @@ public class DelegadoRepo : RepositorioABM<Delegado>, IDelegadoRepo
             .Where(j => j.DNI == dni)
             .Select(j => (int?)j.Id)
             .FirstOrDefaultAsync();
+    }
+
+    public async Task<int> ContarClubsDelDelegado(int delegadoId)
+    {
+        return await Context.DelegadoClub.CountAsync(dc => dc.DelegadoId == delegadoId);
     }
 }

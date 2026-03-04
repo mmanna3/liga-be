@@ -5,4 +5,6 @@ namespace Api.Core.Repositorios;
 public interface IEquipoRepo : IRepositorioABM<Equipo>
 {
     Task<bool> ExisteEquipoConMismoNombreEnTorneo(string nombre, int? torneoId, int? equipoIdExcluir = null);
+    Task<int> ContarEquiposDelJugador(int jugadorId);
+    Task AnularTorneoEnEquipos(int torneoId);
 }

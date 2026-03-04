@@ -26,15 +26,5 @@ namespace Api.Api.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
-        [HttpDelete("{id}")]
-        [Authorize(Roles = "Administrador")]
-        public async Task<ActionResult<int>> Eliminar(int id)
-        {
-            var resultado = await Core.Eliminar(id);
-            if (resultado == -1)
-                return NotFound();
-            return Ok(resultado);
-        }
     }
 }
