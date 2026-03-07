@@ -119,6 +119,14 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         return dto;
     }
 
+    public override async Task<IEnumerable<DelegadoDTO>> ObtenerPorId(IEnumerable<int> ids)
+    {
+        var dtos = (await base.ObtenerPorId(ids)).ToList();
+        foreach (var dto in dtos)
+            dto.JugadorId = await Repo.ObtenerJugadorIdPorDNI(dto.DNI);
+        return dtos;
+    }
+
     protected override DelegadoDTO AntesDeObtenerPorId(Delegado entidad, DelegadoDTO dto)
     {
         dto.FotoCarnet = ImagenUtility.AgregarMimeType(_imagenDelegadoRepo.GetFotoCarnetEnBase64(dto.DNI));

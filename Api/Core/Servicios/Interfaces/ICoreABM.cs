@@ -9,6 +9,7 @@ public interface ICoreABM<TDTO>
     Task<IEnumerable<TDTO>> Listar();
     Task<int> Crear(TDTO dto);
     Task<TDTO> ObtenerPorId(int id);
+    Task<IEnumerable<TDTO>> ObtenerPorId(IEnumerable<int> ids);
     Task<int> Modificar(int id, TDTO nuevo);
     Task<int> Eliminar(int id);
 }

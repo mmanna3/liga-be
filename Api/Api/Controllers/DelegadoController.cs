@@ -12,7 +12,12 @@ namespace Api.Api.Controllers
         public DelegadoController(IDelegadoCore core) : base(core)
         {
         }
-        
+
+        [HttpGet("por-ids", Name = "delegadosPorIds")]
+        [Authorize(Roles = "Administrador,Consulta")]
+        public async Task<ActionResult<IEnumerable<DelegadoDTO>>> ObtenerPorIds([FromQuery] IEnumerable<int> ids) =>
+            await ObtenerPorIdsCore(ids);
+
         [HttpPost]
         [AllowAnonymous]
         public override async Task<ActionResult<DelegadoDTO>> Crear(DelegadoDTO dto)

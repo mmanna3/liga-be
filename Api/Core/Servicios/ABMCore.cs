@@ -57,6 +57,19 @@ public abstract class ABMCore<TRepo, TEntidad, TDTO> : ICoreABM<TDTO>
         return dto;
     }
 
+    public virtual async Task<IEnumerable<TDTO>> ObtenerPorId(IEnumerable<int> ids)
+    {
+        var entidades = await Repo.ObtenerPorIds(ids);
+        var dtos = new List<TDTO>();
+        foreach (var entidad in entidades)
+        {
+            var dto = Mapper.Map<TDTO>(entidad);
+            dto = AntesDeObtenerPorId(entidad, dto);
+            dtos.Add(dto);
+        }
+        return dtos;
+    }
+
     public virtual async Task<int> Modificar(int id, TDTO nuevo)
     {
         var entidadAnterior = await Repo.ObtenerPorId(id);

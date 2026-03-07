@@ -11,6 +11,11 @@ namespace Api.Api.Controllers
         {
         }
 
+        [HttpGet("por-ids", Name = "equiposPorIds")]
+        [Authorize(Roles = "Administrador,Consulta")]
+        public async Task<ActionResult<IEnumerable<EquipoDTO>>> ObtenerPorIds([FromQuery] IEnumerable<int> ids) =>
+            await ObtenerPorIdsCore(ids);
+
         [HttpGet("{id}/jugadores-que-solo-juegan-en-este-equipo")]
         [Authorize(Roles = "Administrador,Consulta")]
         public async Task<ActionResult<IEnumerable<JugadorBaseDTO>>> JugadoresQueSoloJueganEnEsteEquipo(int id)

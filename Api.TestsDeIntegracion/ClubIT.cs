@@ -51,6 +51,43 @@ public class ClubIT : TestBase
     }
 
     [Fact]
+    public async Task ObtenerClub_PorIds_DevuelveClubesSolicitados()
+    {
+        var client = await GetAuthenticatedClient();
+
+        int club2Id;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var club2 = new Club { Id = 0, Nombre = "Club Segundo" };
+            context.Clubs.Add(club2);
+            context.SaveChanges();
+            club2Id = club2.Id;
+        }
+
+        var response = await client.GetAsync($"/api/club/por-ids?ids={_club!.Id}&ids={club2Id}");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<List<ClubDTO>>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+        Assert.Equal(2, content.Count);
+        Assert.Contains(content, c => c.Id == _club.Id && c.Nombre == "Club de Prueba");
+        Assert.Contains(content, c => c.Id == club2Id && c.Nombre == "Club Segundo");
+    }
+
+    [Fact]
+    public async Task ObtenerClub_PorIds_ListaVacia_DevuelveListaVacia()
+    {
+        var client = await GetAuthenticatedClient();
+        var response = await client.GetAsync("/api/club/por-ids");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<List<ClubDTO>>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+        Assert.Empty(content);
+    }
+
+    [Fact]
     public async Task ObtenerClub_PorId_DevuelveEscudoEnBase64()
     {
         const string fotoBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";

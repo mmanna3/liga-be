@@ -33,6 +33,17 @@ public abstract class RepositorioABM<TModel> : RepositorioBase, IRepositorioABM<
         return await Set().AsNoTracking().SingleOrDefaultAsync(x => x.Id == id);
     }
 
+    public virtual async Task<IEnumerable<TModel>> ObtenerPorIds(IEnumerable<int> ids)
+    {
+        var idList = ids.Distinct().ToList();
+        if (idList.Count == 0)
+            return [];
+
+        var entidades = await Set().AsNoTracking().Where(x => idList.Contains(x.Id)).ToListAsync();
+        var idToIndex = idList.Select((id, idx) => (id, idx)).ToDictionary(x => x.id, x => x.idx);
+        return entidades.OrderBy(e => idToIndex[e.Id]);
+    }
+
     public void Modificar(TModel anterior, TModel nuevo)
     {
         AntesDeModificar(anterior, nuevo);

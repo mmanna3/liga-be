@@ -14,16 +14,26 @@ public abstract class ABMController<TDTO, TCore> : ControllerBase
     where TCore : ICoreABM<TDTO>
 {
     protected readonly TCore Core = default!;
-    
+
     protected ABMController()
     {
     }
-    
+
     protected ABMController(TCore core)
     {
         Core = core;
     }
-    
+
+    /// <summary>
+    /// Helper para obtener entidades por IDs. Cada controller debe exponer su propio endpoint
+    /// con [HttpGet("por-ids", Name = "nombreDescriptivo")] para definir el operationId en el contrato.
+    /// </summary>
+    protected async Task<ActionResult<IEnumerable<TDTO>>> ObtenerPorIdsCore(IEnumerable<int> ids)
+    {
+        var dtos = await Core.ObtenerPorId(ids);
+        return Ok(dtos);
+    }
+
     [HttpGet]
     [Authorize(Roles = "Administrador,Consulta")]
     public async Task<ActionResult<IEnumerable<TDTO>>> Get()
@@ -31,7 +41,7 @@ public abstract class ABMController<TDTO, TCore> : ControllerBase
         var dto = await Core.Listar();
         return Ok(dto);
     }
-    
+
     [HttpGet("{id}")]
     [Authorize(Roles = "Administrador,Consulta")]
     public async Task<ActionResult<TDTO>> Get(int id)
@@ -40,7 +50,7 @@ public abstract class ABMController<TDTO, TCore> : ControllerBase
 
         return dto;
     }
-    
+
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPost]
     [Authorize(Roles = "Administrador")]
@@ -51,7 +61,7 @@ public abstract class ABMController<TDTO, TCore> : ControllerBase
 
         return Ok(dto);
     }
-    
+
     // PUT: api/Servicio/5
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPut("{id}")]
@@ -65,7 +75,7 @@ public abstract class ABMController<TDTO, TCore> : ControllerBase
         {
             await Core.Modificar(id, dto);
         }
-        catch (Exception e) 
+        catch (Exception e)
         {
             if (e is DbUpdateConcurrencyException)
                 return NotFound();
