@@ -37,6 +37,8 @@ public static class InyeccionDeDependenciasConfig
         
         builder.Services.AddScoped<IHistorialDePagosRepo, HistorialDePagosRepo>();
         builder.Services.AddScoped<IReporteCore, ReporteCore>();
+
+        builder.Services.AddScoped<IBackupCore, BackupCore>();
         
         builder.Services.AddScoped<IPublicoCore, PublicoCore>();
         
