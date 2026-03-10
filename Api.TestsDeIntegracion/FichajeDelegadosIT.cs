@@ -180,7 +180,16 @@ public class FichajeDelegadosIT : TestBase
         var createJuan = await client.PostAsJsonAsync("/api/delegado", juanDTO);
         createJuan.EnsureSuccessStatusCode();
         var juanCreado = JsonConvert.DeserializeObject<DelegadoDTO>(await createJuan.Content.ReadAsStringAsync())!;
-        var aprobarJuan = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO { DelegadoClubId = juanCreado.DelegadoClubs.First().Id });
+        var aprobarJuan = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO
+        {
+            DelegadoClubId = juanCreado.DelegadoClubs.First().Id,
+            DNI = juanCreado.DNI,
+            Nombre = juanCreado.Nombre,
+            Apellido = juanCreado.Apellido,
+            FechaNacimiento = juanCreado.FechaNacimiento,
+            TelefonoCelular = juanCreado.TelefonoCelular,
+            Email = juanCreado.Email
+        });
         aprobarJuan.EnsureSuccessStatusCode();
 
         // Crear y aprobar José Pérez → usuario "joperez" (jperez ya existe)
@@ -198,7 +207,16 @@ public class FichajeDelegadosIT : TestBase
         var createJose = await client.PostAsJsonAsync("/api/delegado", joseDTO);
         createJose.EnsureSuccessStatusCode();
         var joseCreado = JsonConvert.DeserializeObject<DelegadoDTO>(await createJose.Content.ReadAsStringAsync())!;
-        var aprobarJose = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO { DelegadoClubId = joseCreado.DelegadoClubs.First().Id });
+        var aprobarJose = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO
+        {
+            DelegadoClubId = joseCreado.DelegadoClubs.First().Id,
+            DNI = joseCreado.DNI,
+            Nombre = joseCreado.Nombre,
+            Apellido = joseCreado.Apellido,
+            FechaNacimiento = joseCreado.FechaNacimiento,
+            TelefonoCelular = joseCreado.TelefonoCelular,
+            Email = joseCreado.Email
+        });
         aprobarJose.EnsureSuccessStatusCode();
 
         using var scope = Factory.Services.CreateScope();
@@ -235,7 +253,16 @@ public class FichajeDelegadosIT : TestBase
         createResponse.EnsureSuccessStatusCode();
         var created = JsonConvert.DeserializeObject<DelegadoDTO>(await createResponse.Content.ReadAsStringAsync())!;
 
-        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO { DelegadoClubId = created.DelegadoClubs.First().Id });
+        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO
+        {
+            DelegadoClubId = created.DelegadoClubs.First().Id,
+            DNI = created.DNI,
+            Nombre = created.Nombre,
+            Apellido = created.Apellido,
+            FechaNacimiento = created.FechaNacimiento,
+            TelefonoCelular = created.TelefonoCelular,
+            Email = created.Email
+        });
         aprobarResponse.EnsureSuccessStatusCode();
 
         // Intentar crear otro delegado con el mismo DNI en club2 vía POST normal → debe fallar
@@ -331,7 +358,16 @@ public class FichajeDelegadosIT : TestBase
         createResponse.EnsureSuccessStatusCode();
         var created = JsonConvert.DeserializeObject<DelegadoDTO>(await createResponse.Content.ReadAsStringAsync())!;
 
-        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO { DelegadoClubId = created.DelegadoClubs.First().Id });
+        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO
+        {
+            DelegadoClubId = created.DelegadoClubs.First().Id,
+            DNI = created.DNI,
+            Nombre = created.Nombre,
+            Apellido = created.Apellido,
+            FechaNacimiento = created.FechaNacimiento,
+            TelefonoCelular = created.TelefonoCelular,
+            Email = created.Email
+        });
         aprobarResponse.EnsureSuccessStatusCode();
 
         // Fichar en club2 vía flujo "solo con DNI" → debe tener éxito
@@ -525,7 +561,16 @@ public class FichajeDelegadosIT : TestBase
         var createResponse = await client.PostAsJsonAsync("/api/delegado", delegadoDTO);
         createResponse.EnsureSuccessStatusCode();
         var created = JsonConvert.DeserializeObject<DelegadoDTO>(await createResponse.Content.ReadAsStringAsync())!;
-        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO { DelegadoClubId = created.DelegadoClubs.First().Id });
+        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO
+        {
+            DelegadoClubId = created.DelegadoClubs.First().Id,
+            DNI = created.DNI,
+            Nombre = created.Nombre,
+            Apellido = created.Apellido,
+            FechaNacimiento = created.FechaNacimiento,
+            TelefonoCelular = created.TelefonoCelular,
+            Email = created.Email
+        });
         aprobarResponse.EnsureSuccessStatusCode();
 
         // Fichar en club2 vía flujo "solo con DNI"

@@ -85,12 +85,12 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         return dtos;
     }
 
-    public async Task<int> AprobarDelegadoEnElClub(int delegadoClubId)
+    public async Task<int> AprobarDelegadoEnElClub(AprobarDelegadoEnElClubDTO dto)
     {
         var delegadoClub = await _context.DelegadoClub
             .Include(dc => dc.Delegado)
                 .ThenInclude(d => d!.Usuario)
-            .FirstOrDefaultAsync(dc => dc.Id == delegadoClubId);
+            .FirstOrDefaultAsync(dc => dc.Id == dto.DelegadoClubId);
         if (delegadoClub == null)
             return -1;
 
@@ -98,6 +98,19 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
             throw new ExcepcionControlada("Solo se pueden aprobar delegados pendientes de aprobación en ese club");
 
         var delegado = delegadoClub.Delegado;
+
+        var dniNuevo = QuitarCaracteresNoNumericos(dto.DNI);
+        var dniAnterior = delegado.DNI;
+
+        delegado.DNI = dniNuevo;
+        delegado.Nombre = dto.Nombre;
+        delegado.Apellido = dto.Apellido;
+        delegado.FechaNacimiento = dto.FechaNacimiento;
+        delegado.TelefonoCelular = string.IsNullOrWhiteSpace(dto.TelefonoCelular) ? null : dto.TelefonoCelular.Trim();
+        delegado.Email = string.IsNullOrWhiteSpace(dto.Email) ? null : dto.Email.Trim();
+
+        if (dniAnterior != dniNuevo)
+            _imagenDelegadoRepo.RenombrarFotosTemporalesPorCambioDeDNI(dniAnterior, dniNuevo);
 
         if (delegado.Usuario == null)
         {
@@ -110,7 +123,7 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         _imagenDelegadoRepo.FicharPersonaTemporal(delegado.DNI);
 
         await BDVirtual.GuardarCambios();
-        return delegadoClubId;
+        return dto.DelegadoClubId;
     }
 
     public override async Task<DelegadoDTO> ObtenerPorId(int id)
@@ -326,6 +339,18 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         return nuevoDelegado.Id;
     }
     
+    public override async Task<int> Eliminar(int id)
+    {
+        var entidad = await Repo.ObtenerPorIdParaEliminar(id);
+        if (entidad == null)
+            return -1;
+
+        await AntesDeEliminar(id, entidad);
+        Repo.Eliminar(entidad);
+        await BDVirtual.GuardarCambios();
+        return id;
+    }
+
     protected override async Task AntesDeEliminar(int id, Delegado entidad)
     {
         _imagenDelegadoRepo.EliminarTodasLasFotos(entidad.DNI);

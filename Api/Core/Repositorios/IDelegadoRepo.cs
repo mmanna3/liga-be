@@ -5,6 +5,7 @@ namespace Api.Core.Repositorios;
 
 public interface IDelegadoRepo : IRepositorioABM<Delegado>
 {
+    Task<Delegado?> ObtenerPorIdParaEliminar(int id);
     Task<List<Delegado>> ListarActivosDelClub(int clubId);
     Task<List<(Delegado Delegado, int? JugadorId)>> ListarConFiltroConJugadorIds(IList<EstadoDelegadoEnum> estados);
     Task<Delegado?> ObtenerPorDNI(string dni);

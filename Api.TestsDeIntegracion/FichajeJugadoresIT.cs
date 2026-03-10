@@ -186,7 +186,16 @@ public class FichajeJugadoresIT : TestBase
         var createDelegadoResponse = await client.PostAsJsonAsync("/api/delegado", delegadoDTO);
         createDelegadoResponse.EnsureSuccessStatusCode();
         var delegadoCreado = JsonConvert.DeserializeObject<DelegadoDTO>(await createDelegadoResponse.Content.ReadAsStringAsync())!;
-        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO { DelegadoClubId = delegadoCreado.DelegadoClubs.First().Id });
+        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO
+        {
+            DelegadoClubId = delegadoCreado.DelegadoClubs.First().Id,
+            DNI = delegadoCreado.DNI,
+            Nombre = delegadoCreado.Nombre,
+            Apellido = delegadoCreado.Apellido,
+            FechaNacimiento = delegadoCreado.FechaNacimiento,
+            TelefonoCelular = delegadoCreado.TelefonoCelular,
+            Email = delegadoCreado.Email
+        });
         aprobarResponse.EnsureSuccessStatusCode();
 
         // Intentar crear jugador con el mismo DNI vía POST normal → debe fallar
@@ -295,7 +304,16 @@ public class FichajeJugadoresIT : TestBase
         createDelegadoResponse.EnsureSuccessStatusCode();
         var delegadoCreado = JsonConvert.DeserializeObject<DelegadoDTO>(await createDelegadoResponse.Content.ReadAsStringAsync())!;
 
-        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO { DelegadoClubId = delegadoCreado.DelegadoClubs.First().Id });
+        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO
+        {
+            DelegadoClubId = delegadoCreado.DelegadoClubs.First().Id,
+            DNI = delegadoCreado.DNI,
+            Nombre = delegadoCreado.Nombre,
+            Apellido = delegadoCreado.Apellido,
+            FechaNacimiento = delegadoCreado.FechaNacimiento,
+            TelefonoCelular = delegadoCreado.TelefonoCelular,
+            Email = delegadoCreado.Email
+        });
         aprobarResponse.EnsureSuccessStatusCode();
 
         // Fichar como jugador en equipo2 vía fichar-en-otro-equipo → debe tener éxito

@@ -30,7 +30,7 @@ namespace Api.Api.Controllers
         [HttpPost("aprobar-delegado-en-el-club")]
         public async Task<ActionResult<int>> AprobarDelegadoEnElClub(AprobarDelegadoEnElClubDTO dto)
         {
-            var id = await Core.AprobarDelegadoEnElClub(dto.DelegadoClubId);
+            var id = await Core.AprobarDelegadoEnElClub(dto);
             if (id == -1)
                 return NotFound();
             return Ok(id);

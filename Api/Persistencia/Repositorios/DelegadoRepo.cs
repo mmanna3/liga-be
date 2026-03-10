@@ -22,6 +22,20 @@ public class DelegadoRepo : RepositorioABM<Delegado>, IDelegadoRepo
             .ToListAsync();
     }
 
+    /// <summary>
+    /// Carga el delegado con solo las relaciones necesarias para eliminar.
+    /// Evita el Include profundo Club->Equipos->ZonaActual que provoca tracking duplicado
+    /// cuando varios equipos comparten la misma TorneoZona.
+    /// </summary>
+    public async Task<Delegado?> ObtenerPorIdParaEliminar(int id)
+    {
+        return await Context.Delegados
+            .Include(d => d.DelegadoClubs)
+            .Include(d => d.Usuario)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(d => d.Id == id);
+    }
+
     protected override IQueryable<Delegado> Set()
     {
         return Context.Set<Delegado>()

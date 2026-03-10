@@ -1,9 +1,9 @@
 using System.Net.Http.Json;
 using Api.Core.DTOs;
 using Api.Core.DTOs.CambiosDeEstadoDelegado;
+using Api.Core.Enums;
 using Microsoft.EntityFrameworkCore;
 using Api.Core.Entidades;
-using Api.Core.Enums;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
 using Api.TestsUtilidades;
@@ -87,7 +87,16 @@ public class DelegadoIT : TestBase
 
         // Aprobar delegado para crear el usuario
         var delegadoClubId = content.DelegadoClubs.First().Id;
-        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO { DelegadoClubId = delegadoClubId });
+        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO
+        {
+            DelegadoClubId = delegadoClubId,
+            DNI = content.DNI,
+            Nombre = content.Nombre,
+            Apellido = content.Apellido,
+            FechaNacimiento = content.FechaNacimiento,
+            TelefonoCelular = content.TelefonoCelular,
+            Email = content.Email
+        });
         aprobarResponse.EnsureSuccessStatusCode();
 
         // Verificar el nombre de usuario generado
@@ -120,7 +129,16 @@ public class DelegadoIT : TestBase
         createResponse.EnsureSuccessStatusCode();
         var delegadoCreado = JsonConvert.DeserializeObject<DelegadoDTO>(await createResponse.Content.ReadAsStringAsync())!;
 
-        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO { DelegadoClubId = delegadoCreado.DelegadoClubs.First().Id });
+        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO
+        {
+            DelegadoClubId = delegadoCreado.DelegadoClubs.First().Id,
+            DNI = delegadoCreado.DNI,
+            Nombre = delegadoCreado.Nombre,
+            Apellido = delegadoCreado.Apellido,
+            FechaNacimiento = delegadoCreado.FechaNacimiento,
+            TelefonoCelular = delegadoCreado.TelefonoCelular,
+            Email = delegadoCreado.Email
+        });
         aprobarResponse.EnsureSuccessStatusCode();
 
         using (var scope = Factory.Services.CreateScope())
@@ -142,6 +160,84 @@ public class DelegadoIT : TestBase
             Assert.Null(delegadoEliminado);
             Assert.Null(usuarioEliminado);
         }
+    }
+
+    /// <summary>
+    /// Al eliminar un delegado cuyo club tiene varios equipos en la misma TorneoZona,
+    /// el Include profundo de DelegadoRepo carga la misma TorneoZona varias veces.
+    /// EF falla con: "another instance with the same key value for {'Id'} is already being tracked".
+    /// </summary>
+    [Fact]
+    public async Task EliminarDelegado_ClubConEquiposEnMismaZona_NoDebeFallarPorTorneoZonaDuplicado()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var torneo = new Torneo { Id = 0, Nombre = "Torneo Test", Anio = 2025, TorneoAgrupadorId = 1 };
+        context.Torneos.Add(torneo);
+        await context.SaveChangesAsync();
+
+        var fase = new TorneoFase
+        {
+            Id = 0,
+            TorneoId = torneo.Id,
+            Numero = 1,
+            FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
+            FaseTipoDeVueltaId = (int)TipoVueltaDeLaFaseEnum.SoloIda,
+            EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
+            EsVisibleEnApp = true
+        };
+        context.TorneoFases.Add(fase);
+        await context.SaveChangesAsync();
+
+        var zona = new TorneoZona { Id = 0, TorneoFaseId = fase.Id, Nombre = "Zona única" };
+        context.TorneoZonas.Add(zona);
+        await context.SaveChangesAsync();
+
+        var clubConZona = new Club { Id = 0, Nombre = "Club con equipos en zona" };
+        context.Clubs.Add(clubConZona);
+        await context.SaveChangesAsync();
+
+        var equipo1 = new Equipo { Id = 0, Nombre = "Equipo A", ClubId = clubConZona.Id, ZonaActualId = zona.Id, Jugadores = new List<JugadorEquipo>() };
+        var equipo2 = new Equipo { Id = 0, Nombre = "Equipo B", ClubId = clubConZona.Id, ZonaActualId = zona.Id, Jugadores = new List<JugadorEquipo>() };
+        context.Equipos.Add(equipo1);
+        context.Equipos.Add(equipo2);
+        await context.SaveChangesAsync();
+
+        var client = await GetAuthenticatedClient();
+        var delegadoDTO = new DelegadoDTO
+        {
+            DNI = "11112222",
+            Nombre = "Delegado",
+            Apellido = "Zona",
+            FechaNacimiento = new DateTime(1988, 4, 4),
+            ClubIds = new List<int> { clubConZona.Id },
+            FotoCarnet = FotoBase64,
+            FotoDNIFrente = FotoBase64,
+            FotoDNIDorso = FotoBase64
+        };
+
+        var createResponse = await client.PostAsJsonAsync("/api/delegado", delegadoDTO);
+        createResponse.EnsureSuccessStatusCode();
+        var delegadoCreado = JsonConvert.DeserializeObject<DelegadoDTO>(await createResponse.Content.ReadAsStringAsync())!;
+
+        var aprobarResponse = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO
+        {
+            DelegadoClubId = delegadoCreado.DelegadoClubs!.First().Id,
+            DNI = delegadoCreado.DNI,
+            Nombre = delegadoCreado.Nombre,
+            Apellido = delegadoCreado.Apellido,
+            FechaNacimiento = delegadoCreado.FechaNacimiento,
+            TelefonoCelular = delegadoCreado.TelefonoCelular,
+            Email = delegadoCreado.Email
+        });
+        aprobarResponse.EnsureSuccessStatusCode();
+
+        var deleteResponse = await client.DeleteAsync($"/api/delegado/{delegadoCreado.Id}");
+        deleteResponse.EnsureSuccessStatusCode();
+
+        var delegadoEliminado = context.Delegados.Find(delegadoCreado.Id);
+        Assert.Null(delegadoEliminado);
     }
 
     [Fact]
@@ -359,10 +455,28 @@ public class DelegadoIT : TestBase
         var delegadoClub1 = delegadoClubs.First(dc => dc.ClubId == _club.Id);
         var delegadoClub2 = delegadoClubs.First(dc => dc.ClubId == _club2.Id);
 
-        var aprobar1 = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO { DelegadoClubId = delegadoClub1.Id });
+        var aprobar1 = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO
+        {
+            DelegadoClubId = delegadoClub1.Id,
+            DNI = created.DNI,
+            Nombre = created.Nombre,
+            Apellido = created.Apellido,
+            FechaNacimiento = created.FechaNacimiento,
+            TelefonoCelular = created.TelefonoCelular,
+            Email = created.Email
+        });
         aprobar1.EnsureSuccessStatusCode();
 
-        var aprobar2 = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO { DelegadoClubId = delegadoClub2.Id });
+        var aprobar2 = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO
+        {
+            DelegadoClubId = delegadoClub2.Id,
+            DNI = created.DNI,
+            Nombre = created.Nombre,
+            Apellido = created.Apellido,
+            FechaNacimiento = created.FechaNacimiento,
+            TelefonoCelular = created.TelefonoCelular,
+            Email = created.Email
+        });
         aprobar2.EnsureSuccessStatusCode();
 
         using var scope = Factory.Services.CreateScope();
