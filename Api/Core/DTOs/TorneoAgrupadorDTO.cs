@@ -8,4 +8,6 @@ public class TorneoAgrupadorDTO : DTO
     public required string Nombre { get; set; }
 
     public bool VisibleEnApp { get; set; }
+
+    public int CantidadDeTorneos { get; set; }
 }
