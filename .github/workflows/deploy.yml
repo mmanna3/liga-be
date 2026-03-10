@@ -14,7 +14,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        environment: [edefi, luefi]
+        # environment: [edefi, luefi]
+        environment: [edefi]
     environment: ${{ matrix.environment }}
     steps:
       - name: Checkout

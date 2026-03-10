@@ -21,6 +21,9 @@ public class AppDbContext : DbContext
         builder.Entity<EstadoDelegado>().ToTable("_EstadoDelegado");
         builder.Entity<EstadoJugador>().ToTable("_EstadoJugador");
         builder.Entity<Rol>().ToTable("_Rol");
+        builder.Entity<FormatoDeLaFase>().ToTable("_FormatoDeLaFase");
+        builder.Entity<InstanciaEliminacionDirecta>().ToTable("_InstanciaEliminacionDirecta");
+        builder.Entity<TipoVueltaDeLaFase>().ToTable("_TipoVueltaDeLaFase");
         
         builder.Entity<Rol>().HasData(
             new Rol { Id = 1, Nombre = "Administrador" },
@@ -46,6 +49,23 @@ public class AppDbContext : DbContext
             new EstadoDelegado { Id = 1, Estado = "Pendiente de aprobación" },
             new EstadoDelegado { Id = 2, Estado = "Rechazado" },
             new EstadoDelegado { Id = 3, Estado = "Activo" }
+        );
+
+        builder.Entity<FormatoDeLaFase>().HasData(
+            new FormatoDeLaFase { Id = 1, Nombre = "Todos contra todos" },
+            new FormatoDeLaFase { Id = 2, Nombre = "Eliminación directa" }
+        );
+
+        builder.Entity<InstanciaEliminacionDirecta>().HasData(
+            new InstanciaEliminacionDirecta { Id = 16, Nombre = "Octavos de final" },
+            new InstanciaEliminacionDirecta { Id = 8, Nombre = "Cuartos de final" },
+            new InstanciaEliminacionDirecta { Id = 4, Nombre = "Semifinal" },
+            new InstanciaEliminacionDirecta { Id = 2, Nombre = "Final" }
+        );
+
+        builder.Entity<TipoVueltaDeLaFase>().HasData(
+            new TipoVueltaDeLaFase { Id = 1, Nombre = "Solo ida" },
+            new TipoVueltaDeLaFase { Id = 2, Nombre = "Ida y vuelta" }
         );
 
         builder.Entity<TorneoAgrupador>()
@@ -128,6 +148,9 @@ public class AppDbContext : DbContext
     public DbSet<JugadorEquipo> JugadorEquipo { get; set; } = null!;
     public DbSet<EstadoJugador> EstadoJugador { get; set; } = null!;
     public DbSet<EstadoDelegado> EstadoDelegado { get; set; } = null!;
+    public DbSet<FormatoDeLaFase> FormatoDeLaFase { get; set; } = null!;
+    public DbSet<InstanciaEliminacionDirecta> InstanciaEliminacionDirecta { get; set; } = null!;
+    public DbSet<TipoVueltaDeLaFase> TipoVueltaDeLaFase { get; set; } = null!;
     public DbSet<Usuario> Usuarios { get; set; } = null!;
     public DbSet<Rol> Roles { get; set; } = null!;
     public DbSet<Torneo> Torneos { get; set; } = null!;
