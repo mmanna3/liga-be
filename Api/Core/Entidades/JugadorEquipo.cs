@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Api.Core.Entidades.EntidadesConValoresPredefinidos;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.Core.Entidades;

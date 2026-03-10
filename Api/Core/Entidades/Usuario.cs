@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Api.Core.Entidades.EntidadesConValoresPredefinidos;
 
 namespace Api.Core.Entidades;
 

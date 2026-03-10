@@ -1,4 +1,5 @@
 using Api.Core.Entidades;
+using Api.Core.Entidades.EntidadesConValoresPredefinidos;
 using Api.Core.Enums;
 using Api.Core.Logica;
 using Api.Core.Servicios;

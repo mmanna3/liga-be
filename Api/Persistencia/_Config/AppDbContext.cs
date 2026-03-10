@@ -1,4 +1,5 @@
 using Api.Core.Entidades;
+using Api.Core.Entidades.EntidadesConValoresPredefinidos;
 using Api.Core.Servicios;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,10 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        builder.Entity<EstadoDelegado>().ToTable("_EstadoDelegado");
+        builder.Entity<EstadoJugador>().ToTable("_EstadoJugador");
+        builder.Entity<Rol>().ToTable("_Rol");
         
         builder.Entity<Rol>().HasData(
             new Rol { Id = 1, Nombre = "Administrador" },

@@ -1,6 +1,7 @@
 using System.Globalization;
 using Api.Core.DTOs;
 using Api.Core.Entidades;
+using Api.Core.Entidades.EntidadesConValoresPredefinidos;
 using Api.Core.Logica;
 using AutoMapper;
 using System.Linq;
