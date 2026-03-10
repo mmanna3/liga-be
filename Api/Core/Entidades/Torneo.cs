@@ -10,4 +10,5 @@ public class Torneo : Entidad
 
     public virtual ICollection<Equipo> Equipos { get; set; } = null!;
     public virtual ICollection<TorneoCategoria> Categorias { get; set; } = null!;
+    public virtual ICollection<TorneoFase> Fases { get; set; } = null!;
 }

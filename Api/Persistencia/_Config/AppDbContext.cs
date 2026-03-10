@@ -21,9 +21,9 @@ public class AppDbContext : DbContext
         builder.Entity<EstadoDelegado>().ToTable("_EstadoDelegado");
         builder.Entity<EstadoJugador>().ToTable("_EstadoJugador");
         builder.Entity<Rol>().ToTable("_Rol");
-        builder.Entity<FormatoDeLaFase>().ToTable("_FormatoDeLaFase");
+        builder.Entity<FaseFormato>().ToTable("_FaseFormato");
         builder.Entity<InstanciaEliminacionDirecta>().ToTable("_InstanciaEliminacionDirecta");
-        builder.Entity<TipoVueltaDeLaFase>().ToTable("_TipoVueltaDeLaFase");
+        builder.Entity<FaseTipoDeVuelta>().ToTable("_FaseTipoDeVuelta");
         builder.Entity<EstadoFase>().ToTable("_EstadoFase");
         
         builder.Entity<Rol>().HasData(
@@ -52,9 +52,9 @@ public class AppDbContext : DbContext
             new EstadoDelegado { Id = 3, Estado = "Activo" }
         );
 
-        builder.Entity<FormatoDeLaFase>().HasData(
-            new FormatoDeLaFase { Id = 1, Nombre = "Todos contra todos" },
-            new FormatoDeLaFase { Id = 2, Nombre = "Eliminación directa" }
+        builder.Entity<FaseFormato>().HasData(
+            new FaseFormato { Id = 1, Nombre = "Todos contra todos" },
+            new FaseFormato { Id = 2, Nombre = "Eliminación directa" }
         );
 
         builder.Entity<InstanciaEliminacionDirecta>().HasData(
@@ -64,9 +64,9 @@ public class AppDbContext : DbContext
             new InstanciaEliminacionDirecta { Id = 2, Nombre = "Final" }
         );
 
-        builder.Entity<TipoVueltaDeLaFase>().HasData(
-            new TipoVueltaDeLaFase { Id = 1, Nombre = "Solo ida" },
-            new TipoVueltaDeLaFase { Id = 2, Nombre = "Ida y vuelta" }
+        builder.Entity<FaseTipoDeVuelta>().HasData(
+            new FaseTipoDeVuelta { Id = 1, Nombre = "Solo ida" },
+            new FaseTipoDeVuelta { Id = 2, Nombre = "Ida y vuelta" }
         );
 
         builder.Entity<EstadoFase>().HasData(
@@ -87,6 +87,15 @@ public class AppDbContext : DbContext
             .WithMany(t => t.Categorias)
             .HasForeignKey(tc => tc.TorneoId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<TorneoFase>()
+            .HasOne(tf => tf.Torneo)
+            .WithMany(t => t.Fases)
+            .HasForeignKey(tf => tf.TorneoId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<TorneoFase>()
+            .HasIndex(tf => new { tf.TorneoId, tf.Numero })
+            .IsUnique();
 
         builder.Entity<Delegado>()
             .HasIndex(d => d.DNI)
@@ -155,14 +164,15 @@ public class AppDbContext : DbContext
     public DbSet<JugadorEquipo> JugadorEquipo { get; set; } = null!;
     public DbSet<EstadoJugador> EstadoJugador { get; set; } = null!;
     public DbSet<EstadoDelegado> EstadoDelegado { get; set; } = null!;
-    public DbSet<FormatoDeLaFase> FormatoDeLaFase { get; set; } = null!;
+    public DbSet<FaseFormato> FaseFormato { get; set; } = null!;
     public DbSet<InstanciaEliminacionDirecta> InstanciaEliminacionDirecta { get; set; } = null!;
-    public DbSet<TipoVueltaDeLaFase> TipoVueltaDeLaFase { get; set; } = null!;
+    public DbSet<FaseTipoDeVuelta> FaseTipoDeVuelta { get; set; } = null!;
     public DbSet<EstadoFase> EstadoFase { get; set; } = null!;
     public DbSet<Usuario> Usuarios { get; set; } = null!;
     public DbSet<Rol> Roles { get; set; } = null!;
     public DbSet<Torneo> Torneos { get; set; } = null!;
     public DbSet<TorneoAgrupador> TorneoAgrupadores { get; set; } = null!;
     public DbSet<TorneoCategoria> TorneoCategorias { get; set; } = null!;
+    public DbSet<TorneoFase> TorneoFases { get; set; } = null!;
     public DbSet<HistorialDePagos> HistorialDePagos { get; set; } = null!;
 }
