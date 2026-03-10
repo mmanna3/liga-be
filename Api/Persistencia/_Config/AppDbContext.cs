@@ -48,6 +48,10 @@ public class AppDbContext : DbContext
             new EstadoDelegado { Id = 3, Estado = "Activo" }
         );
 
+        builder.Entity<TorneoAgrupador>().HasData(
+            new TorneoAgrupador { Id = 1, Nombre = "General", VisibleEnApp = true }
+        );
+
         builder.Entity<Delegado>()
             .HasIndex(d => d.DNI)
             .IsUnique();
@@ -118,5 +122,6 @@ public class AppDbContext : DbContext
     public DbSet<Usuario> Usuarios { get; set; } = null!;
     public DbSet<Rol> Roles { get; set; } = null!;
     public DbSet<Torneo> Torneos { get; set; } = null!;
+    public DbSet<TorneoAgrupador> TorneoAgrupadores { get; set; } = null!;
     public DbSet<HistorialDePagos> HistorialDePagos { get; set; } = null!;
 }

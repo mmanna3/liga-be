@@ -36,7 +36,8 @@ public class AppCarnetDigitalIT : TestBase
         var torneo = new Torneo
         {
             Id = 1,
-            Nombre = "Torneo 2024"
+            Nombre = "Torneo 2024",
+            TorneoAgrupadorId = 1
         };
         context.Torneos.Add(torneo);
         
