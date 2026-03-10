@@ -6,4 +6,5 @@ public class TorneoZona : Entidad
     public virtual TorneoFase TorneoFase { get; set; } = null!;
     public required int TorneoFaseId { get; set; }
     public virtual ICollection<Equipo> Equipos { get; set; } = null!;
+    public virtual ICollection<TorneoFecha> Fechas { get; set; } = null!;
 }

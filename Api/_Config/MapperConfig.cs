@@ -47,7 +47,15 @@ public class MapperConfig : Profile
             .PreserveReferences()
             .ReverseMap()
             .ForMember(dest => dest.TorneoFase, opt => opt.Ignore())
-            .ForMember(dest => dest.Equipos, opt => opt.Ignore());
+            .ForMember(dest => dest.Equipos, opt => opt.Ignore())
+            .ForMember(dest => dest.Fechas, opt => opt.Ignore());
+        CreateMap<TorneoFecha, TorneoFechaDTO>()
+            .ForMember(dest => dest.InstanciaEliminacionDirectaNombre, opt => opt.MapFrom(src => src.InstanciaEliminacionDirecta != null ? src.InstanciaEliminacionDirecta.Nombre : null))
+            .PreserveReferences()
+            .ReverseMap()
+            .ForMember(dest => dest.Zona, opt => opt.Ignore())
+            .ForMember(dest => dest.InstanciaEliminacionDirecta, opt => opt.Ignore())
+            .ForSourceMember(src => src.InstanciaEliminacionDirectaNombre, opt => opt.DoNotValidate());
         CreateMap<TorneoAgrupador, TorneoAgrupadorDTO>()
             .ForMember(dest => dest.CantidadDeTorneos, opt => opt.MapFrom(src => src.Torneos != null ? src.Torneos.Count : 0))
             .ForMember(dest => dest.Torneos, opt => opt.MapFrom(src => src.Torneos))

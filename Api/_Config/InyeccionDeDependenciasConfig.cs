@@ -41,6 +41,9 @@ public static class InyeccionDeDependenciasConfig
 
         builder.Services.AddScoped<ITorneoZonaRepo, TorneoZonaRepo>();
         builder.Services.AddScoped<ITorneoZonaCore, TorneoZonaCore>();
+
+        builder.Services.AddScoped<ITorneoFechaRepo, TorneoFechaRepo>();
+        builder.Services.AddScoped<ITorneoFechaCore, TorneoFechaCore>();
         
         builder.Services.AddScoped<IDelegadoRepo, DelegadoRepo>();
         builder.Services.AddScoped<IImagenDelegadoRepo, ImagenDelegadoRepo>();

@@ -103,6 +103,15 @@ public class AppDbContext : DbContext
             .HasForeignKey(tz => tz.TorneoFaseId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<TorneoFecha>()
+            .HasOne(tf => tf.Zona)
+            .WithMany(z => z.Fechas)
+            .HasForeignKey(tf => tf.ZonaId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<TorneoFecha>()
+            .HasIndex(tf => new { tf.ZonaId, tf.Numero })
+            .IsUnique();
+
         builder.Entity<Equipo>()
             .HasOne(e => e.ZonaActual)
             .WithMany(z => z.Equipos)
@@ -191,5 +200,6 @@ public class AppDbContext : DbContext
     public DbSet<TorneoCategoria> TorneoCategorias { get; set; } = null!;
     public DbSet<TorneoFase> TorneoFases { get; set; } = null!;
     public DbSet<TorneoZona> TorneoZonas { get; set; } = null!;
+    public DbSet<TorneoFecha> TorneoFechas { get; set; } = null!;
     public DbSet<HistorialDePagos> HistorialDePagos { get; set; } = null!;
 }

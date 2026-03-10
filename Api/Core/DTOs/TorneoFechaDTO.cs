@@ -1,0 +1,18 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace Api.Core.DTOs;
+
+public class TorneoFechaDTO : DTO
+{
+    [Required]
+    public required DateOnly Dia { get; set; }
+
+    public required int Numero { get; set; }
+
+    public int ZonaId { get; set; }
+
+    public int? InstanciaEliminacionDirectaId { get; set; }
+    public string? InstanciaEliminacionDirectaNombre { get; set; }
+
+    public required bool EsVisibleEnApp { get; set; }
+}
