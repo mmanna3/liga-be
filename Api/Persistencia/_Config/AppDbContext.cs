@@ -24,6 +24,7 @@ public class AppDbContext : DbContext
         builder.Entity<FormatoDeLaFase>().ToTable("_FormatoDeLaFase");
         builder.Entity<InstanciaEliminacionDirecta>().ToTable("_InstanciaEliminacionDirecta");
         builder.Entity<TipoVueltaDeLaFase>().ToTable("_TipoVueltaDeLaFase");
+        builder.Entity<EstadoFase>().ToTable("_EstadoFase");
         
         builder.Entity<Rol>().HasData(
             new Rol { Id = 1, Nombre = "Administrador" },
@@ -66,6 +67,12 @@ public class AppDbContext : DbContext
         builder.Entity<TipoVueltaDeLaFase>().HasData(
             new TipoVueltaDeLaFase { Id = 1, Nombre = "Solo ida" },
             new TipoVueltaDeLaFase { Id = 2, Nombre = "Ida y vuelta" }
+        );
+
+        builder.Entity<EstadoFase>().HasData(
+            new EstadoFase { Id = 100, Estado = "Inicio pendiente" },
+            new EstadoFase { Id = 200, Estado = "En curso" },
+            new EstadoFase { Id = 300, Estado = "Finalizada" }
         );
 
         builder.Entity<TorneoAgrupador>()
@@ -151,6 +158,7 @@ public class AppDbContext : DbContext
     public DbSet<FormatoDeLaFase> FormatoDeLaFase { get; set; } = null!;
     public DbSet<InstanciaEliminacionDirecta> InstanciaEliminacionDirecta { get; set; } = null!;
     public DbSet<TipoVueltaDeLaFase> TipoVueltaDeLaFase { get; set; } = null!;
+    public DbSet<EstadoFase> EstadoFase { get; set; } = null!;
     public DbSet<Usuario> Usuarios { get; set; } = null!;
     public DbSet<Rol> Roles { get; set; } = null!;
     public DbSet<Torneo> Torneos { get; set; } = null!;
