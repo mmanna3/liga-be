@@ -97,6 +97,18 @@ public class AppDbContext : DbContext
             .HasIndex(tf => new { tf.TorneoId, tf.Numero })
             .IsUnique();
 
+        builder.Entity<TorneoZona>()
+            .HasOne(tz => tz.TorneoFase)
+            .WithMany(tf => tf.Zonas)
+            .HasForeignKey(tz => tz.TorneoFaseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<Equipo>()
+            .HasOne(e => e.ZonaActual)
+            .WithMany(z => z.Equipos)
+            .HasForeignKey(e => e.ZonaActualId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.Entity<Delegado>()
             .HasIndex(d => d.DNI)
             .IsUnique();
@@ -174,5 +186,6 @@ public class AppDbContext : DbContext
     public DbSet<TorneoAgrupador> TorneoAgrupadores { get; set; } = null!;
     public DbSet<TorneoCategoria> TorneoCategorias { get; set; } = null!;
     public DbSet<TorneoFase> TorneoFases { get; set; } = null!;
+    public DbSet<TorneoZona> TorneoZonas { get; set; } = null!;
     public DbSet<HistorialDePagos> HistorialDePagos { get; set; } = null!;
 }

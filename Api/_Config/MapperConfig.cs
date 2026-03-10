@@ -43,6 +43,11 @@ public class MapperConfig : Profile
             .ForSourceMember(src => src.InstanciaEliminacionDirectaNombre, opt => opt.DoNotValidate())
             .ForSourceMember(src => src.FaseTipoDeVueltaNombre, opt => opt.DoNotValidate())
             .ForSourceMember(src => src.EstadoFaseNombre, opt => opt.DoNotValidate());
+        CreateMap<TorneoZona, TorneoZonaDTO>()
+            .PreserveReferences()
+            .ReverseMap()
+            .ForMember(dest => dest.TorneoFase, opt => opt.Ignore())
+            .ForMember(dest => dest.Equipos, opt => opt.Ignore());
         CreateMap<TorneoAgrupador, TorneoAgrupadorDTO>()
             .ForMember(dest => dest.CantidadDeTorneos, opt => opt.MapFrom(src => src.Torneos != null ? src.Torneos.Count : 0))
             .ForMember(dest => dest.Torneos, opt => opt.MapFrom(src => src.Torneos))

@@ -19,6 +19,7 @@ public class TorneoFase : Entidad
 
     public int EstadoFaseId { get; set; }
     public virtual EstadoFase EstadoFase { get; set; } = null!;
+    public virtual ICollection<TorneoZona> Zonas { get; set; } = null!;
 
     public bool EsVisibleEnApp { get; set; }
 }

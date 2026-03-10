@@ -4,6 +4,7 @@ using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260310191649_AgregaTorneoZonaYTorneoZonaIdEnEquipo")]
+    partial class AgregaTorneoZonaYTorneoZonaIdEnEquipo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -400,7 +403,7 @@ namespace Api.Migrations
                     b.Property<int?>("TorneoId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ZonaActualId")
+                    b.Property<int?>("TorneoZonaId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -409,7 +412,7 @@ namespace Api.Migrations
 
                     b.HasIndex("TorneoId");
 
-                    b.HasIndex("ZonaActualId");
+                    b.HasIndex("TorneoZonaId");
 
                     b.HasIndex(new[] { "Nombre", "TorneoId" }, "IX_Equipo_Nombre_TorneoId")
                         .IsUnique()
@@ -701,21 +704,21 @@ namespace Api.Migrations
                         {
                             Id = 1,
                             NombreUsuario = "mati",
-                            Password = "$2a$12$ELlmZj3FFROmsnkzARQSjO5XIGCCckjrDowtD7NAUjoYM279VfahW",
+                            Password = "$2a$12$NQAWlihrAaH9Yt.QWwgdLOD3oyD/IOxCvdV7TqNyXp1xzgKaSQHOy",
                             RolId = 1
                         },
                         new
                         {
                             Id = 2,
                             NombreUsuario = "pipa",
-                            Password = "$2a$12$Xtf43yi52WenUiUBtaasWuuYDdYfCWNbLZVBtfYyDxMQFyg04pfRy",
+                            Password = "$2a$12$bZwvHSy3io.YmZQ71a7MYOKtHaMCHYQAEFUELuGoSeuD8XesZfzrC",
                             RolId = 1
                         },
                         new
                         {
                             Id = 101,
                             NombreUsuario = "consulta",
-                            Password = "$2a$12$ziEGftzpDCuZZgKQ4iRuJuSpAzL1SYUZItf8mw4jH2CjERkIc7/zO",
+                            Password = "$2a$12$Ha.Wj5ldIOD/hblxNQG.Be0.Pc9QH2uAuHpuO2aIwnMFhUZOIULGa",
                             RolId = 3
                         });
                 });
@@ -759,16 +762,16 @@ namespace Api.Migrations
                         .WithMany("Equipos")
                         .HasForeignKey("TorneoId");
 
-                    b.HasOne("Api.Core.Entidades.TorneoZona", "ZonaActual")
+                    b.HasOne("Api.Core.Entidades.TorneoZona", "Zona")
                         .WithMany("Equipos")
-                        .HasForeignKey("ZonaActualId")
+                        .HasForeignKey("TorneoZonaId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Club");
 
                     b.Navigation("Torneo");
 
-                    b.Navigation("ZonaActual");
+                    b.Navigation("Zona");
                 });
 
             modelBuilder.Entity("Api.Core.Entidades.HistorialDePagos", b =>

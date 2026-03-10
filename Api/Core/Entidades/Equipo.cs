@@ -7,14 +7,17 @@ namespace Api.Core.Entidades;
 public class Equipo : Entidad
 {
     public required string Nombre { get; set; }
-    
-    [ForeignKey("Club")] 
+
+    [ForeignKey("Club")]
     public required int ClubId { get; set; }
-    public virtual Club? Club { get; set; }
-    
+    public virtual Club Club { get; set; } = null!;
+
     [ForeignKey("Torneo")]
     public int? TorneoId { get; set; }
     public virtual Torneo? Torneo { get; set; }
-    
+
     public virtual required ICollection<JugadorEquipo> Jugadores { get; set; }
+
+    public int? ZonaActualId { get; set; }
+    public virtual TorneoZona? ZonaActual { get; set; }
 }
