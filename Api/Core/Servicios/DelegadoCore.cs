@@ -89,6 +89,7 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
     {
         var delegadoClub = await _context.DelegadoClub
             .Include(dc => dc.Delegado)
+                .ThenInclude(d => d!.Usuario)
             .FirstOrDefaultAsync(dc => dc.Id == delegadoClubId);
         if (delegadoClub == null)
             return -1;

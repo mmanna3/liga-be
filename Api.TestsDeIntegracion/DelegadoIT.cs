@@ -18,6 +18,7 @@ public class DelegadoIT : TestBase
 
     private Utilidades? _utilidades;
     private Club? _club;
+    private Club? _club2;
 
     public DelegadoIT(CustomWebApplicationFactory<Program> factory) : base(factory)
     {
@@ -33,6 +34,8 @@ public class DelegadoIT : TestBase
     {
         _utilidades = new Utilidades(context);
         _club = _utilidades.DadoQueExisteElClub();
+        context.SaveChanges();
+        _club2 = _utilidades.DadoQueExisteElClub();
         context.SaveChanges();
         _equipo = _utilidades.DadoQueExisteElEquipo(_club);
         context.SaveChanges();
@@ -325,6 +328,51 @@ public class DelegadoIT : TestBase
         var dto = JsonConvert.DeserializeObject<DelegadoDTO>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(dto);
         Assert.Equal(jugador.Id, dto.JugadorId);
+    }
+
+    /// <summary>
+    /// Aprobar un delegado en el segundo club cuando ya fue aprobado en el primero.
+    /// El delegado comparte Usuario entre clubs; no debe intentar crear un segundo Usuario.
+    /// </summary>
+    [Fact]
+    public async Task AprobarDelegadoEnElClub_DelegadoYaAprobadoEnOtroClub_200()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var delegadoDTO = new DelegadoDTO
+        {
+            DNI = "77778888",
+            Nombre = "Multi",
+            Apellido = "Club",
+            FechaNacimiento = new DateTime(1985, 7, 20),
+            ClubIds = new List<int> { _club!.Id, _club2!.Id },
+            FotoCarnet = FotoBase64,
+            FotoDNIFrente = FotoBase64,
+            FotoDNIDorso = FotoBase64
+        };
+
+        var createResponse = await client.PostAsJsonAsync("/api/delegado", delegadoDTO);
+        createResponse.EnsureSuccessStatusCode();
+        var created = JsonConvert.DeserializeObject<DelegadoDTO>(await createResponse.Content.ReadAsStringAsync())!;
+
+        var delegadoClubs = created.DelegadoClubs!.OrderBy(dc => dc.ClubId).ToList();
+        var delegadoClub1 = delegadoClubs.First(dc => dc.ClubId == _club.Id);
+        var delegadoClub2 = delegadoClubs.First(dc => dc.ClubId == _club2.Id);
+
+        var aprobar1 = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO { DelegadoClubId = delegadoClub1.Id });
+        aprobar1.EnsureSuccessStatusCode();
+
+        var aprobar2 = await client.PostAsJsonAsync("/api/delegado/aprobar-delegado-en-el-club", new AprobarDelegadoEnElClubDTO { DelegadoClubId = delegadoClub2.Id });
+        aprobar2.EnsureSuccessStatusCode();
+
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var dc1 = await context.DelegadoClub.FindAsync(delegadoClub1.Id);
+        var dc2 = await context.DelegadoClub.FindAsync(delegadoClub2.Id);
+        Assert.NotNull(dc1);
+        Assert.NotNull(dc2);
+        Assert.Equal((int)EstadoDelegadoEnum.Activo, dc1.EstadoDelegadoId);
+        Assert.Equal((int)EstadoDelegadoEnum.Activo, dc2.EstadoDelegadoId);
     }
 
     [Fact]
