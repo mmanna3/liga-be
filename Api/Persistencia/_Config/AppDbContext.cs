@@ -48,9 +48,11 @@ public class AppDbContext : DbContext
             new EstadoDelegado { Id = 3, Estado = "Activo" }
         );
 
-        builder.Entity<TorneoAgrupador>().HasData(
-            new TorneoAgrupador { Id = 1, Nombre = "General", VisibleEnApp = true }
-        );
+        builder.Entity<TorneoAgrupador>()
+            .ToTable("TorneoAgrupadores")
+            .HasData(
+                new TorneoAgrupador { Id = 1, Nombre = "General", VisibleEnApp = false }
+            );
 
         builder.Entity<Delegado>()
             .HasIndex(d => d.DNI)

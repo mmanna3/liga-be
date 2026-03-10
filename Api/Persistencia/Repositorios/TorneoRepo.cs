@@ -14,6 +14,7 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
     protected override IQueryable<Torneo> Set()
     {
         return Context.Set<Torneo>()
+            .Include(x => x.TorneoAgrupador)
             .Include(x => x.Equipos)
             .AsQueryable();
     }
