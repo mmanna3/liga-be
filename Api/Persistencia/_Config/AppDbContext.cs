@@ -54,6 +54,13 @@ public class AppDbContext : DbContext
                 new TorneoAgrupador { Id = 1, Nombre = "General", VisibleEnApp = false }
             );
 
+        builder.Entity<TorneoCategoria>()
+            .ToTable("TorneoCategorias")
+            .HasOne(tc => tc.Torneo)
+            .WithMany(t => t.Categorias)
+            .HasForeignKey(tc => tc.TorneoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Entity<Delegado>()
             .HasIndex(d => d.DNI)
             .IsUnique();
@@ -125,5 +132,6 @@ public class AppDbContext : DbContext
     public DbSet<Rol> Roles { get; set; } = null!;
     public DbSet<Torneo> Torneos { get; set; } = null!;
     public DbSet<TorneoAgrupador> TorneoAgrupadores { get; set; } = null!;
+    public DbSet<TorneoCategoria> TorneoCategorias { get; set; } = null!;
     public DbSet<HistorialDePagos> HistorialDePagos { get; set; } = null!;
 }

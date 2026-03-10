@@ -23,6 +23,10 @@ public class MapperConfig : Profile
             .ReverseMap()
             .ForMember(dest => dest.TorneoAgrupador, opt => opt.Ignore());
 
+        CreateMap<TorneoCategoria, TorneoCategoriaDTO>()
+            .PreserveReferences()
+            .ReverseMap()
+            .ForMember(dest => dest.Torneo, opt => opt.Ignore());
         CreateMap<TorneoAgrupador, TorneoAgrupadorDTO>()
             .ForMember(dest => dest.CantidadDeTorneos, opt => opt.MapFrom(src => src.Torneos != null ? src.Torneos.Count : 0))
             .ForMember(dest => dest.Torneos, opt => opt.MapFrom(src => src.Torneos))
