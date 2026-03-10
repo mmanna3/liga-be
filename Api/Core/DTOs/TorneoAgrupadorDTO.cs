@@ -10,4 +10,9 @@ public class TorneoAgrupadorDTO : DTO
     public bool VisibleEnApp { get; set; }
 
     public int CantidadDeTorneos { get; set; }
+
+    /// <summary>
+    /// Lista de torneos del agrupador. Solo se incluye al obtener por ID.
+    /// </summary>
+    public ICollection<TorneoDTO>? Torneos { get; set; }
 }
