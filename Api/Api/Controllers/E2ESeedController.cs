@@ -78,7 +78,7 @@ public class E2ESeedController : ControllerBase
         var club = new Club { Id = 0, Nombre = "Club de Prueba" };
         _context.Clubs.Add(club);
 
-        var torneo = new Torneo { Id = 0, Nombre = "Torneo E2E" };
+        var torneo = new Torneo { Id = 0, Nombre = "Torneo E2E", Anio = 2026 };
         _context.Torneos.Add(torneo);
         _context.SaveChanges();
 

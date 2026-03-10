@@ -158,7 +158,7 @@ public class ClubIT : TestBase
         var client = await GetAuthenticatedClient();
 
         var clubParaEliminar = new Club { Id = 0, Nombre = "Club a Eliminar" };
-        var torneo = new Torneo { Id = 0, Nombre = "Torneo Test", TorneoAgrupadorId = 1 };
+        var torneo = new Torneo { Id = 0, Nombre = "Torneo Test", Anio = 2026, TorneoAgrupadorId = 1 };
         var equipo1 = new Equipo { Id = 0, Nombre = "Equipo 1", ClubId = 0, TorneoId = 0, Jugadores = [] };
         var delegadoSoloEnEsteClub = new Delegado { Id = 0, DNI = "11223344", Nombre = "Solo", Apellido = "Club", FechaNacimiento = new DateTime(1990, 1, 1) };
         var delegadoEnVariosClubs = new Delegado { Id = 0, DNI = "55667788", Nombre = "Varios", Apellido = "Clubs", FechaNacimiento = new DateTime(1990, 1, 1) };

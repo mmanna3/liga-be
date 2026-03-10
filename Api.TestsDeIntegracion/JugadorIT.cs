@@ -221,8 +221,8 @@ public class JugadorIT : TestBase
         jugadorId = baseId + 20;
 
         context.Torneos.AddRange(
-            new Torneo { Id = torneoOroId,   Nombre = $"Oro {baseId}",   TorneoAgrupadorId = 1 },
-            new Torneo { Id = torneoPlataId, Nombre = $"Plata {baseId}", TorneoAgrupadorId = 1 }
+            new Torneo { Id = torneoOroId,   Nombre = $"Oro {baseId}",   Anio = 2026, TorneoAgrupadorId = 1 },
+            new Torneo { Id = torneoPlataId, Nombre = $"Plata {baseId}", Anio = 2026, TorneoAgrupadorId = 1 }
         );
         context.Equipos.AddRange(
             new Equipo { Id = azulId,  Nombre = $"Azul {baseId}",  ClubId = 1, TorneoId = torneoOroId,   Jugadores = new List<JugadorEquipo>() },
