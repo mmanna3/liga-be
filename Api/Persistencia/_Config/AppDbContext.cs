@@ -108,6 +108,10 @@ public class AppDbContext : DbContext
             .WithMany(z => z.Equipos)
             .HasForeignKey(e => e.ZonaActualId)
             .OnDelete(DeleteBehavior.SetNull);
+        builder.Entity<Equipo>()
+            .HasIndex(e => new { e.Nombre, e.ZonaActualId })
+            .IsUnique()
+            .HasFilter("[ZonaActualId] IS NOT NULL");
 
         builder.Entity<Delegado>()
             .HasIndex(d => d.DNI)

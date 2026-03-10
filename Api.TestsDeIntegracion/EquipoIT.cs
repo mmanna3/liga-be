@@ -87,9 +87,16 @@ public class EquipoIT : TestBase
             context.SaveChanges();
             torneo = context.Torneos.First();
 
+            var fase = new TorneoFase { Id = 0, TorneoId = torneo.Id, Numero = 1, FaseFormatoId = 1, FaseTipoDeVueltaId = 1, EstadoFaseId = 100, EsVisibleEnApp = true };
+            context.TorneoFases.Add(fase);
+            context.SaveChanges();
+            var zona = new TorneoZona { Id = 0, TorneoFaseId = fase.Id, Nombre = "Zona única" };
+            context.TorneoZonas.Add(zona);
+            context.SaveChanges();
+
             var equipoOtro = context.Equipos.First(e => e.ClubId == _club!.Id);
 
-            var equipoParaEliminar = new Equipo { Id = 0, Nombre = "Equipo a Eliminar", ClubId = _club.Id, TorneoId = torneo.Id, Jugadores = [] };
+            var equipoParaEliminar = new Equipo { Id = 0, Nombre = "Equipo a Eliminar", ClubId = _club.Id, ZonaActualId = zona.Id, Jugadores = [] };
             context.Equipos.Add(equipoParaEliminar);
             context.SaveChanges();
             equipoId = equipoParaEliminar.Id;

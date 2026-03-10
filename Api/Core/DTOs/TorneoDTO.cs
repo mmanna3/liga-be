@@ -10,6 +10,4 @@ public class TorneoDTO : DTO
     public required int Anio { get; set; }
     public int TorneoAgrupadorId { get; set; }
     public string TorneoAgrupadorNombre { get; set; } = string.Empty;
-
-    public ICollection<EquipoDTO>? Equipos { get; set; }
 }

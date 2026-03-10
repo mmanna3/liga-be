@@ -20,7 +20,9 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
                     .ThenInclude(x => x.Club)
             .Include(x => x.JugadorEquipos)
                 .ThenInclude(x => x.Equipo)
-                    .ThenInclude(x => x.Torneo)
+                    .ThenInclude(x => x.ZonaActual)
+                        .ThenInclude(z => z!.TorneoFase)
+                            .ThenInclude(f => f.Torneo)
             .Include(x => x.JugadorEquipos)
                 .ThenInclude(x => x.EstadoJugador)
             .Include(x => x.JugadorEquipos)
@@ -119,17 +121,15 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
     public async Task<bool> JugadorYaJuegaEnTorneoDelEquipoDestino(int jugadorId, int equipoOrigenId, int equipoDestinoId)
     {
         var torneoDestinoId = await Context.Equipos
-            .Where(e => e.Id == equipoDestinoId)
-            .Select(e => e.TorneoId)
+            .Where(e => e.Id == equipoDestinoId && e.ZonaActual != null)
+            .Select(e => e.ZonaActual!.TorneoFase!.TorneoId)
             .FirstOrDefaultAsync();
 
-        if (torneoDestinoId == null)
+        if (torneoDestinoId == 0)
             return false;
 
         return await Context.JugadorEquipo
-            .AnyAsync(je =>
-                je.JugadorId == jugadorId &&
-                je.EquipoId != equipoOrigenId &&
-                je.Equipo.TorneoId == torneoDestinoId);
+            .Where(je => je.JugadorId == jugadorId && je.EquipoId != equipoOrigenId)
+            .AnyAsync(je => je.Equipo.ZonaActual != null && je.Equipo.ZonaActual.TorneoFase!.TorneoId == torneoDestinoId);
     }
 }

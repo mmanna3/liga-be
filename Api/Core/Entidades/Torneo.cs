@@ -8,7 +8,6 @@ public class Torneo : Entidad
     public int TorneoAgrupadorId { get; set; }
     public virtual TorneoAgrupador TorneoAgrupador { get; set; } = null!;
 
-    public virtual ICollection<Equipo> Equipos { get; set; } = null!;
     public virtual ICollection<TorneoCategoria> Categorias { get; set; } = null!;
     public virtual ICollection<TorneoFase> Fases { get; set; } = null!;
 }

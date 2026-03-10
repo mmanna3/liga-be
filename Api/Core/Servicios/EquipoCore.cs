@@ -12,17 +12,26 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
 {
     private readonly IJugadorRepo _jugadorRepo;
     private readonly IImagenJugadorRepo _imagenJugadorRepo;
+    private readonly ITorneoRepo _torneoRepo;
 
-    public EquipoCore(IBDVirtual bd, IEquipoRepo repo, IMapper mapper, IJugadorRepo jugadorRepo, IImagenJugadorRepo imagenJugadorRepo) : base(bd, repo, mapper)
+    public EquipoCore(IBDVirtual bd, IEquipoRepo repo, IMapper mapper, IJugadorRepo jugadorRepo, IImagenJugadorRepo imagenJugadorRepo, ITorneoRepo torneoRepo) : base(bd, repo, mapper)
     {
         _jugadorRepo = jugadorRepo;
         _imagenJugadorRepo = imagenJugadorRepo;
+        _torneoRepo = torneoRepo;
     }
 
     protected override async Task<Equipo> AntesDeCrear(EquipoDTO dto, Equipo entidad)
     {
-        // Verificar si ya existe un equipo con el mismo nombre en el mismo torneo
-        if (await Repo.ExisteEquipoConMismoNombreEnTorneo(entidad.Nombre, entidad.TorneoId))
+        if (dto.TorneoId.HasValue)
+        {
+            var zona = await _torneoRepo.ObtenerZonaUnicaDeTorneo(dto.TorneoId.Value);
+            if (zona == null)
+                throw new ExcepcionControlada("El torneo indicado no tiene la estructura de fase/zona esperada.");
+            entidad.ZonaActualId = zona.Id;
+        }
+
+        if (await Repo.ExisteEquipoConMismoNombreEnZona(entidad.Nombre, entidad.ZonaActualId))
         {
             throw new ExcepcionControlada("Ya existe un equipo con el mismo nombre en este torneo.");
         }
@@ -32,9 +41,20 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
 
     protected override async Task<Equipo> AntesDeModificar(int id, EquipoDTO dto, Equipo entidadAnterior, Equipo entidadNueva)
     {
-        // Si el nombre o el torneo cambiaron, verificar que no exista otro equipo con el mismo nombre en el mismo torneo
-        if ((entidadAnterior.Nombre != entidadNueva.Nombre || entidadAnterior.TorneoId != entidadNueva.TorneoId) &&
-            await Repo.ExisteEquipoConMismoNombreEnTorneo(entidadNueva.Nombre, entidadNueva.TorneoId, id))
+        if (dto.TorneoId.HasValue)
+        {
+            var zona = await _torneoRepo.ObtenerZonaUnicaDeTorneo(dto.TorneoId.Value);
+            if (zona == null)
+                throw new ExcepcionControlada("El torneo indicado no tiene la estructura de fase/zona esperada.");
+            entidadNueva.ZonaActualId = zona.Id;
+        }
+        else
+        {
+            entidadNueva.ZonaActualId = entidadAnterior.ZonaActualId;
+        }
+
+        if ((entidadAnterior.Nombre != entidadNueva.Nombre || entidadAnterior.ZonaActualId != entidadNueva.ZonaActualId) &&
+            await Repo.ExisteEquipoConMismoNombreEnZona(entidadNueva.Nombre, entidadNueva.ZonaActualId, id))
         {
             throw new ExcepcionControlada("Ya existe un equipo con el mismo nombre en este torneo.");
         }

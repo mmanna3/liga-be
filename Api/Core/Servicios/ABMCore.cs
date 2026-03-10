@@ -30,7 +30,7 @@ public abstract class ABMCore<TRepo, TEntidad, TDTO> : ICoreABM<TDTO>
         return dtos;
     }
 
-    public async Task<int> Crear(TDTO dto)
+    public virtual async Task<int> Crear(TDTO dto)
     {
         var entidad = Mapper.Map<TEntidad>(dto);
         entidad = await AntesDeCrear(dto, entidad);

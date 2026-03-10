@@ -159,7 +159,7 @@ public class ClubIT : TestBase
 
         var clubParaEliminar = new Club { Id = 0, Nombre = "Club a Eliminar" };
         var torneo = new Torneo { Id = 0, Nombre = "Torneo Test", Anio = 2026, TorneoAgrupadorId = 1 };
-        var equipo1 = new Equipo { Id = 0, Nombre = "Equipo 1", ClubId = 0, TorneoId = 0, Jugadores = [] };
+        var equipo1 = new Equipo { Id = 0, Nombre = "Equipo 1", ClubId = 0, Jugadores = [] };
         var delegadoSoloEnEsteClub = new Delegado { Id = 0, DNI = "11223344", Nombre = "Solo", Apellido = "Club", FechaNacimiento = new DateTime(1990, 1, 1) };
         var delegadoEnVariosClubs = new Delegado { Id = 0, DNI = "55667788", Nombre = "Varios", Apellido = "Clubs", FechaNacimiento = new DateTime(1990, 1, 1) };
 
@@ -173,8 +173,15 @@ public class ClubIT : TestBase
             clubParaEliminar = context.Clubs.First(c => c.Nombre == "Club a Eliminar");
             torneo = context.Torneos.First();
 
+            var fase = new TorneoFase { Id = 0, TorneoId = torneo.Id, Numero = 1, FaseFormatoId = 1, FaseTipoDeVueltaId = 1, EstadoFaseId = 100, EsVisibleEnApp = true };
+            context.TorneoFases.Add(fase);
+            context.SaveChanges();
+            var zona = new TorneoZona { Id = 0, TorneoFaseId = fase.Id, Nombre = "Zona única" };
+            context.TorneoZonas.Add(zona);
+            context.SaveChanges();
+
             equipo1.ClubId = clubParaEliminar.Id;
-            equipo1.TorneoId = torneo.Id;
+            equipo1.ZonaActualId = zona.Id;
             context.Equipos.Add(equipo1);
 
             context.Delegados.Add(delegadoSoloEnEsteClub);

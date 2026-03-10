@@ -15,7 +15,9 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
     {
         return Context.Set<Equipo>()
             .Include(x => x.Club)
-            .Include(x => x.Torneo)
+            .Include(x => x.ZonaActual)
+                .ThenInclude(z => z!.TorneoFase)
+                    .ThenInclude(f => f.Torneo)
             .Include(x => x.Jugadores)
                 .ThenInclude(x => x.Jugador)
             .Include(x => x.Jugadores)
@@ -23,10 +25,10 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
             .AsQueryable();
     }
 
-    public async Task<bool> ExisteEquipoConMismoNombreEnTorneo(string nombre, int? torneoId, int? equipoIdExcluir = null)
+    public async Task<bool> ExisteEquipoConMismoNombreEnZona(string nombre, int? zonaActualId, int? equipoIdExcluir = null)
     {
         var query = Context.Set<Equipo>()
-            .Where(e => e.Nombre.ToLower() == nombre.ToLower() && e.TorneoId == torneoId);
+            .Where(e => e.Nombre.ToLower() == nombre.ToLower() && e.ZonaActualId == zonaActualId);
             
         if (equipoIdExcluir.HasValue)
         {
@@ -39,12 +41,5 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
     public async Task<int> ContarEquiposDelJugador(int jugadorId)
     {
         return await Context.JugadorEquipo.CountAsync(je => je.JugadorId == jugadorId);
-    }
-
-    public async Task AnularTorneoEnEquipos(int torneoId)
-    {
-        await Context.Equipos
-            .Where(e => e.TorneoId == torneoId)
-            .ExecuteUpdateAsync(s => s.SetProperty(e => e.TorneoId, (int?)null));
     }
 }

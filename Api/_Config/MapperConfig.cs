@@ -57,13 +57,16 @@ public class MapperConfig : Profile
 
         CreateMap<Equipo, EquipoDTO>()
             .ForMember(dest => dest.ClubNombre, x => x.MapFrom(src => src.Club.Nombre))
-            .ForMember(dest => dest.TorneoNombre, x => x.MapFrom(src => src.Torneo != null ? src.Torneo.Nombre : null))
+            .ForMember(dest => dest.TorneoId, x => x.MapFrom(src => src.ZonaActual != null ? src.ZonaActual.TorneoFase!.TorneoId : (int?)null))
+            .ForMember(dest => dest.TorneoNombre, x => x.MapFrom(src => src.ZonaActual != null && src.ZonaActual.TorneoFase != null && src.ZonaActual.TorneoFase.Torneo != null ? src.ZonaActual.TorneoFase.Torneo.Nombre : null))
             .ForMember(dest => dest.CodigoAlfanumerico,
                 x => x.MapFrom(src => GeneradorDeHash.GenerarAlfanumerico7Digitos(src.Id)))
             .PreserveReferences();
 
         CreateMap<EquipoDTO, Equipo>()
             .ForMember(dest => dest.Club, opt => opt.Ignore())
+            .ForMember(dest => dest.ZonaActual, opt => opt.Ignore())
+            .ForMember(dest => dest.ZonaActualId, opt => opt.Ignore())
             .PreserveReferences();
         
         CreateMap<JugadorEquipo, JugadorDelEquipoDTO>()
@@ -80,7 +83,7 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.EquipoId, x => x.MapFrom(src => src.EquipoId))
             .ForMember(dest => dest.Nombre, x => x.MapFrom(src => src.Equipo.Nombre))
             .ForMember(dest => dest.Club, x => x.MapFrom(src => src.Equipo.Club.Nombre))
-            .ForMember(dest => dest.Torneo, x => x.MapFrom(src => src.Equipo.Torneo.Nombre))
+            .ForMember(dest => dest.Torneo, x => x.MapFrom(src => src.Equipo.ZonaActual != null && src.Equipo.ZonaActual.TorneoFase != null && src.Equipo.ZonaActual.TorneoFase.Torneo != null ? src.Equipo.ZonaActual.TorneoFase.Torneo.Nombre : ""))
             .ForMember(dest => dest.Estado, x => x.MapFrom(src => src.EstadoJugador.Id))
             .ForMember(dest => dest.FechaPagoDeFichaje, opt => opt.MapFrom<FechaPagoResolver>())
             .ForMember(dest => dest.Motivo, x => x.MapFrom(src => src.Motivo))
@@ -120,7 +123,7 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Equipo.Id));
 
         CreateMap<Equipo, EquipoBaseDTO>()
-            .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => src.Torneo != null ? src.Torneo.Nombre : ""))
+            .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => src.ZonaActual != null && src.ZonaActual.TorneoFase != null && src.ZonaActual.TorneoFase.Torneo != null ? src.ZonaActual.TorneoFase.Torneo.Nombre : ""))
             .ForMember(dest => dest.CodigoAlfanumerico, opt => opt.MapFrom(src => GeneradorDeHash.GenerarAlfanumerico7Digitos(src.Id)));
 
         CreateMap<Delegado, CarnetDigitalDTO>()
@@ -137,7 +140,7 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Apellido, opt => opt.MapFrom(src => src.Jugador.Apellido))
             .ForMember(dest => dest.FechaNacimiento, opt => opt.MapFrom(src => src.Jugador.FechaNacimiento))
             .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.EstadoJugadorId))
-            .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => src.Equipo.Torneo!.Nombre));
+            .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => src.Equipo.ZonaActual != null && src.Equipo.ZonaActual.TorneoFase != null && src.Equipo.ZonaActual.TorneoFase.Torneo != null ? src.Equipo.ZonaActual.TorneoFase.Torneo.Nombre : ""));
 
         CreateMap<JugadorEquipo, CarnetDigitalPendienteDTO>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Jugador.Id))
@@ -146,7 +149,7 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Apellido, opt => opt.MapFrom(src => src.Jugador.Apellido))
             .ForMember(dest => dest.FechaNacimiento, opt => opt.MapFrom(src => src.Jugador.FechaNacimiento))
             .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.EstadoJugadorId))
-            .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => src.Equipo.Torneo!.Nombre))
+            .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => src.Equipo.ZonaActual != null && src.Equipo.ZonaActual.TorneoFase != null && src.Equipo.ZonaActual.TorneoFase.Torneo != null ? src.Equipo.ZonaActual.TorneoFase.Torneo.Nombre : ""))
             .ForMember(dest => dest.Motivo, opt => opt.MapFrom(src => src.Motivo));
 
         // CreateMap<string, DateTime>().ConvertUsing(s => 

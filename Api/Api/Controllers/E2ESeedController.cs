@@ -78,18 +78,35 @@ public class E2ESeedController : ControllerBase
         var club = new Club { Id = 0, Nombre = "Club de Prueba" };
         _context.Clubs.Add(club);
 
-        var torneo = new Torneo { Id = 0, Nombre = "Torneo E2E", Anio = 2026 };
+        var torneo = new Torneo { Id = 0, Nombre = "Torneo E2E", Anio = 2026, TorneoAgrupadorId = 1 };
         _context.Torneos.Add(torneo);
+        _context.SaveChanges();
+
+        var fase = new TorneoFase
+        {
+            Id = 0,
+            TorneoId = torneo.Id,
+            Numero = 1,
+            FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
+            FaseTipoDeVueltaId = (int)TipoVueltaDeLaFaseEnum.SoloIda,
+            EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
+            EsVisibleEnApp = true
+        };
+        _context.TorneoFases.Add(fase);
+        _context.SaveChanges();
+
+        var zona = new TorneoZona { Id = 0, TorneoFaseId = fase.Id, Nombre = "Zona única" };
+        _context.TorneoZonas.Add(zona);
         _context.SaveChanges();
 
         // Equipo 1 → Id=1 → código MTD0001 (hardcodeado en los tests YAML)
         // Equipo 2 → Id=2 → item-equipo-2 en test 15 (cambiar equipo)
-        var equipo1 = new Equipo { Id = 0, Nombre = "Equipo de Prueba", ClubId = club.Id, TorneoId = torneo.Id, Jugadores = new List<JugadorEquipo>() };
+        var equipo1 = new Equipo { Id = 0, Nombre = "Equipo de Prueba", ClubId = club.Id, ZonaActualId = zona.Id, Jugadores = new List<JugadorEquipo>() };
         _context.Equipos.Add(equipo1);
 
         // Equipo 2: Pedro González (87654321) queda Activo acá, no en equipo 1,
         // para que los tests puedan ficharlo al equipo 1 sin "ya está fichado".
-        var equipo2 = new Equipo { Id = 0, Nombre = "Equipo B", ClubId = club.Id, TorneoId = torneo.Id, Jugadores = new List<JugadorEquipo>() };
+        var equipo2 = new Equipo { Id = 0, Nombre = "Equipo B", ClubId = club.Id, ZonaActualId = zona.Id, Jugadores = new List<JugadorEquipo>() };
         _context.Equipos.Add(equipo2);
         _context.SaveChanges();
 

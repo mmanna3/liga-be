@@ -8,16 +8,14 @@ namespace Api.Core.Servicios;
 
 public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
 {
-    private readonly IEquipoRepo _equipoRepo;
-
-    public TorneoCore(IBDVirtual bd, ITorneoRepo repo, IMapper mapper, IEquipoRepo equipoRepo) : base(bd, repo, mapper)
+    public TorneoCore(IBDVirtual bd, ITorneoRepo repo, IMapper mapper) : base(bd, repo, mapper)
     {
-        _equipoRepo = equipoRepo;
     }
 
-    protected override async Task AntesDeEliminar(int id, Torneo entidad)
+    public override async Task<int> Crear(TorneoDTO dto)
     {
-        await _equipoRepo.AnularTorneoEnEquipos(id);
-        await Task.CompletedTask;
+        var id = await base.Crear(dto);
+        await Repo.CrearFaseUnicaYZonaUnica(id);
+        return id;
     }
 } 

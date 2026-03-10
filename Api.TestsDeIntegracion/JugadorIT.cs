@@ -213,33 +213,39 @@ public class JugadorIT : TestBase
     private void SeedEscenarioPases(AppDbContext context, int baseId,
         out int azulId, out int rojoId, out int verdeId, out int jugadorId)
     {
-        var torneoOroId = baseId;
-        var torneoPlataId = baseId + 1;
-        azulId  = baseId + 10;
-        rojoId  = baseId + 11;
-        verdeId = baseId + 12;
-        jugadorId = baseId + 20;
+        var torneoOro = new Torneo { Id = 0, Nombre = $"Oro {baseId}", Anio = 2026, TorneoAgrupadorId = 1 };
+        var torneoPlata = new Torneo { Id = 0, Nombre = $"Plata {baseId}", Anio = 2026, TorneoAgrupadorId = 1 };
+        context.Torneos.AddRange(torneoOro, torneoPlata);
+        context.SaveChanges();
+        torneoOro = context.Torneos.First(t => t.Nombre == $"Oro {baseId}");
+        torneoPlata = context.Torneos.First(t => t.Nombre == $"Plata {baseId}");
 
-        context.Torneos.AddRange(
-            new Torneo { Id = torneoOroId,   Nombre = $"Oro {baseId}",   Anio = 2026, TorneoAgrupadorId = 1 },
-            new Torneo { Id = torneoPlataId, Nombre = $"Plata {baseId}", Anio = 2026, TorneoAgrupadorId = 1 }
-        );
-        context.Equipos.AddRange(
-            new Equipo { Id = azulId,  Nombre = $"Azul {baseId}",  ClubId = 1, TorneoId = torneoOroId,   Jugadores = new List<JugadorEquipo>() },
-            new Equipo { Id = rojoId,  Nombre = $"Rojo {baseId}",  ClubId = 1, TorneoId = torneoOroId,   Jugadores = new List<JugadorEquipo>() },
-            new Equipo { Id = verdeId, Nombre = $"Verde {baseId}", ClubId = 1, TorneoId = torneoPlataId, Jugadores = new List<JugadorEquipo>() }
-        );
-        context.Jugadores.Add(new Jugador
-        {
-            Id = jugadorId,
-            DNI = $"{baseId}12",
-            Nombre = "Test",
-            Apellido = "Jugador",
-            FechaNacimiento = new DateTime(2000, 1, 1)
-        });
+        var faseOro = new TorneoFase { Id = 0, TorneoId = torneoOro.Id, Numero = 1, FaseFormatoId = 1, FaseTipoDeVueltaId = 1, EstadoFaseId = 100, EsVisibleEnApp = true };
+        var fasePlata = new TorneoFase { Id = 0, TorneoId = torneoPlata.Id, Numero = 1, FaseFormatoId = 1, FaseTipoDeVueltaId = 1, EstadoFaseId = 100, EsVisibleEnApp = true };
+        context.TorneoFases.AddRange(faseOro, fasePlata);
+        context.SaveChanges();
+        var zonaOro = new TorneoZona { Id = 0, TorneoFaseId = faseOro.Id, Nombre = "Zona única" };
+        var zonaPlata = new TorneoZona { Id = 0, TorneoFaseId = fasePlata.Id, Nombre = "Zona única" };
+        context.TorneoZonas.AddRange(zonaOro, zonaPlata);
+        context.SaveChanges();
+
+        var equipoAzul = new Equipo { Id = 0, Nombre = $"Azul {baseId}", ClubId = 1, ZonaActualId = zonaOro.Id, Jugadores = new List<JugadorEquipo>() };
+        var equipoRojo = new Equipo { Id = 0, Nombre = $"Rojo {baseId}", ClubId = 1, ZonaActualId = zonaOro.Id, Jugadores = new List<JugadorEquipo>() };
+        var equipoVerde = new Equipo { Id = 0, Nombre = $"Verde {baseId}", ClubId = 1, ZonaActualId = zonaPlata.Id, Jugadores = new List<JugadorEquipo>() };
+        context.Equipos.AddRange(equipoAzul, equipoRojo, equipoVerde);
+        context.SaveChanges();
+        azulId = equipoAzul.Id;
+        rojoId = equipoRojo.Id;
+        verdeId = equipoVerde.Id;
+
+        var jugador = new Jugador { Id = 0, DNI = $"{baseId}12", Nombre = "Test", Apellido = "Jugador", FechaNacimiento = new DateTime(2000, 1, 1) };
+        context.Jugadores.Add(jugador);
+        context.SaveChanges();
+        jugadorId = jugador.Id;
+
         context.JugadorEquipo.AddRange(
-            new JugadorEquipo { Id = baseId + 30, JugadorId = jugadorId, EquipoId = rojoId,  FechaFichaje = DateTime.Now, EstadoJugadorId = (int)EstadoJugadorEnum.Activo },
-            new JugadorEquipo { Id = baseId + 31, JugadorId = jugadorId, EquipoId = verdeId, FechaFichaje = DateTime.Now, EstadoJugadorId = (int)EstadoJugadorEnum.Activo }
+            new JugadorEquipo { Id = 0, JugadorId = jugadorId, EquipoId = rojoId, FechaFichaje = DateTime.Now, EstadoJugadorId = (int)EstadoJugadorEnum.Activo },
+            new JugadorEquipo { Id = 0, JugadorId = jugadorId, EquipoId = verdeId, FechaFichaje = DateTime.Now, EstadoJugadorId = (int)EstadoJugadorEnum.Activo }
         );
         context.SaveChanges();
     }
@@ -249,9 +255,7 @@ public class JugadorIT : TestBase
     {
         using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        SeedEscenarioPases(context, 1000, out _, out _, out var verdeId, out var jugadorId);
-        // azulId = 1010, rojoId = 1011, verdeId = 1012
-        var azulId = 1010;
+        SeedEscenarioPases(context, 1000, out var azulId, out _, out var verdeId, out var jugadorId);
 
         var client = await GetAuthenticatedClient();
         var pases = new List<EfectuarPaseDTO>

@@ -40,7 +40,14 @@ public class EliminacionIT : TestBase
             context.SaveChanges();
             torneoId = context.Torneos.First(t => t.Nombre == "Torneo a Eliminar").Id;
 
-            var equipo = new Equipo { Id = 0, Nombre = "Equipo en Torneo", ClubId = _club!.Id, TorneoId = torneoId, Jugadores = [] };
+            var fase = new TorneoFase { Id = 0, TorneoId = torneoId, Numero = 1, FaseFormatoId = 1, FaseTipoDeVueltaId = 1, EstadoFaseId = 100, EsVisibleEnApp = true };
+            context.TorneoFases.Add(fase);
+            context.SaveChanges();
+            var zona = new TorneoZona { Id = 0, TorneoFaseId = fase.Id, Nombre = "Zona única" };
+            context.TorneoZonas.Add(zona);
+            context.SaveChanges();
+
+            var equipo = new Equipo { Id = 0, Nombre = "Equipo en Torneo", ClubId = _club!.Id, ZonaActualId = zona.Id, Jugadores = [] };
             context.Equipos.Add(equipo);
             context.SaveChanges();
             equipoId = equipo.Id;
@@ -55,7 +62,7 @@ public class EliminacionIT : TestBase
             Assert.Null(context.Torneos.Find(torneoId));
             var equipoRestante = context.Equipos.Find(equipoId);
             Assert.NotNull(equipoRestante);
-            Assert.Null(equipoRestante.TorneoId);
+            Assert.Null(equipoRestante.ZonaActualId);
         }
     }
 }
