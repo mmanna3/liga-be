@@ -4,7 +4,7 @@ namespace Api.Core.DTOs;
 
 public class TorneoFaseDTO : DTO
 {
-    [MaxLength(50)]
+    [Required, MaxLength(50)]
     public string Nombre { get; set; } = string.Empty;
     [Required]
     public required int Numero { get; set; }
