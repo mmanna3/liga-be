@@ -173,7 +173,7 @@ public class ClubIT : TestBase
             clubParaEliminar = context.Clubs.First(c => c.Nombre == "Club a Eliminar");
             torneo = context.Torneos.First();
 
-            var fase = new TorneoFase { Id = 0, TorneoId = torneo.Id, Numero = 1, FaseFormatoId = 1, FaseTipoDeVueltaId = 1, EstadoFaseId = 100, EsVisibleEnApp = true };
+            var fase = new TorneoFase { Id = 0, TorneoId = torneo.Id, Numero = 1, FaseFormatoId = 1, EstadoFaseId = 100, EsVisibleEnApp = true };
             context.TorneoFases.Add(fase);
             context.SaveChanges();
             var zona = new TorneoZona { Id = 0, TorneoFaseId = fase.Id, Nombre = "Zona única" };

@@ -41,7 +41,6 @@ public class TorneoFaseIT : TestBase
             Numero = numero,
             FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
             InstanciaEliminacionDirectaId = null,
-            FaseTipoDeVueltaId = (int)TipoVueltaDeLaFaseEnum.SoloIda,
             EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
             EsVisibleEnApp = true
         };
@@ -54,7 +53,6 @@ public class TorneoFaseIT : TestBase
             Numero = numero,
             FaseFormatoId = (int)FormatoDeLaFaseEnum.EliminacionDirecta,
             InstanciaEliminacionDirectaId = instanciaId,
-            FaseTipoDeVueltaId = (int)TipoVueltaDeLaFaseEnum.IdaYVuelta,
             EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
             EsVisibleEnApp = false
         };
@@ -95,7 +93,6 @@ public class TorneoFaseIT : TestBase
         Assert.Equal("Todos contra todos", content.FaseFormatoNombre);
         Assert.Null(content.InstanciaEliminacionDirectaId);
         Assert.Null(content.InstanciaEliminacionDirectaNombre);
-        Assert.Equal("Solo ida", content.FaseTipoDeVueltaNombre);
         Assert.Equal("Inicio pendiente", content.EstadoFaseNombre);
         Assert.Equal(torneoId, content.TorneoId);
     }
@@ -118,7 +115,6 @@ public class TorneoFaseIT : TestBase
         Assert.Equal(8, content.InstanciaEliminacionDirectaId);
         Assert.Equal("Cuartos de final", content.InstanciaEliminacionDirectaNombre);
         Assert.Equal("Eliminación directa", content.FaseFormatoNombre);
-        Assert.Equal("Ida y vuelta", content.FaseTipoDeVueltaNombre);
     }
 
     [Fact]
@@ -167,7 +163,6 @@ public class TorneoFaseIT : TestBase
                 Numero = 1,
                 TorneoId = torneoId,
                 FaseFormatoId = 1,
-                FaseTipoDeVueltaId = 1,
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
@@ -185,7 +180,6 @@ public class TorneoFaseIT : TestBase
         Assert.Equal(fase.Id, content.Id);
         Assert.Equal(1, content.Numero);
         Assert.Equal("Todos contra todos", content.FaseFormatoNombre);
-        Assert.Equal("Solo ida", content.FaseTipoDeVueltaNombre);
         Assert.Equal("Inicio pendiente", content.EstadoFaseNombre);
     }
 
@@ -209,7 +203,6 @@ public class TorneoFaseIT : TestBase
                 Numero = 1,
                 TorneoId = torneo2Id,
                 FaseFormatoId = 1,
-                FaseTipoDeVueltaId = 1,
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
@@ -238,7 +231,6 @@ public class TorneoFaseIT : TestBase
                 Numero = 1,
                 TorneoId = torneoId,
                 FaseFormatoId = 1,
-                FaseTipoDeVueltaId = 1,
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
@@ -280,7 +272,6 @@ public class TorneoFaseIT : TestBase
                 Numero = 1,
                 TorneoId = torneoId,
                 FaseFormatoId = 1,
-                FaseTipoDeVueltaId = 1,
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
@@ -320,7 +311,6 @@ public class TorneoFaseIT : TestBase
                 Numero = 1,
                 TorneoId = torneo2Id,
                 FaseFormatoId = 1,
-                FaseTipoDeVueltaId = 1,
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
@@ -362,12 +352,10 @@ public class TorneoFaseIT : TestBase
         var faseGrupos = content.Single(f => f.Numero == 1);
         Assert.Equal("Todos contra todos", faseGrupos.FaseFormatoNombre);
         Assert.Null(faseGrupos.InstanciaEliminacionDirectaNombre);
-        Assert.Equal("Solo ida", faseGrupos.FaseTipoDeVueltaNombre);
 
         var faseEliminacion = content.Single(f => f.Numero == 2);
         Assert.Equal("Eliminación directa", faseEliminacion.FaseFormatoNombre);
         Assert.Equal("Cuartos de final", faseEliminacion.InstanciaEliminacionDirectaNombre);
-        Assert.Equal("Ida y vuelta", faseEliminacion.FaseTipoDeVueltaNombre);
     }
 
     [Fact]
@@ -385,7 +373,6 @@ public class TorneoFaseIT : TestBase
                 TorneoId = torneoId,
                 FaseFormatoId = 2,
                 InstanciaEliminacionDirectaId = 4,
-                FaseTipoDeVueltaId = 2,
                 EstadoFaseId = 200,
                 EsVisibleEnApp = true
             };
@@ -401,7 +388,6 @@ public class TorneoFaseIT : TestBase
         Assert.NotNull(content);
         Assert.Equal("Eliminación directa", content.FaseFormatoNombre);
         Assert.Equal("Semifinal", content.InstanciaEliminacionDirectaNombre);
-        Assert.Equal("Ida y vuelta", content.FaseTipoDeVueltaNombre);
         Assert.Equal("En curso", content.EstadoFaseNombre);
     }
 }

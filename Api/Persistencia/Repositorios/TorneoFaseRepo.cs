@@ -22,7 +22,6 @@ public class TorneoFaseRepo : RepositorioABMAnidado<TorneoFase, int>, ITorneoFas
         return await Set()
             .Include(x => x.FaseFormato)
             .Include(x => x.InstanciaEliminacionDirecta)
-            .Include(x => x.FaseTipoDeVuelta)
             .Include(x => x.EstadoFase)
             .Where(FiltroPorPadre(padreId))
             .ToListAsync();
@@ -34,7 +33,6 @@ public class TorneoFaseRepo : RepositorioABMAnidado<TorneoFase, int>, ITorneoFas
             .AsNoTracking()
             .Include(x => x.FaseFormato)
             .Include(x => x.InstanciaEliminacionDirecta)
-            .Include(x => x.FaseTipoDeVuelta)
             .Include(x => x.EstadoFase)
             .Where(FiltroPorPadre(padreId))
             .SingleOrDefaultAsync(x => x.Id == id);

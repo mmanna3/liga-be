@@ -183,7 +183,6 @@ public class DelegadoIT : TestBase
             TorneoId = torneo.Id,
             Numero = 1,
             FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
-            FaseTipoDeVueltaId = (int)TipoVueltaDeLaFaseEnum.SoloIda,
             EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
             EsVisibleEnApp = true
         };

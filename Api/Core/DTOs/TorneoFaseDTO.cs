@@ -12,9 +12,8 @@ public class TorneoFaseDTO : DTO
     public string FaseFormatoNombre { get; set; } = string.Empty;
     public int? InstanciaEliminacionDirectaId { get; set; }
     public string? InstanciaEliminacionDirectaNombre { get; set; }
-    public int FaseTipoDeVueltaId { get; set; }
-    public string FaseTipoDeVueltaNombre { get; set; } = string.Empty;
     public int EstadoFaseId { get; set; }
     public string EstadoFaseNombre { get; set; } = string.Empty;
     public bool EsVisibleEnApp { get; set; }
+    public bool EsExcluyente { get; set; }
 }

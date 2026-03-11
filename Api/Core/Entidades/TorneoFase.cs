@@ -14,12 +14,10 @@ public class TorneoFase : Entidad
     public int? InstanciaEliminacionDirectaId { get; set; }
     public virtual InstanciaEliminacionDirecta? InstanciaEliminacionDirecta { get; set; }
 
-    public int FaseTipoDeVueltaId { get; set; }
-    public virtual FaseTipoDeVuelta FaseTipoDeVuelta { get; set; } = null!;
-
     public int EstadoFaseId { get; set; }
     public virtual EstadoFase EstadoFase { get; set; } = null!;
     public virtual ICollection<TorneoZona> Zonas { get; set; } = null!;
 
     public bool EsVisibleEnApp { get; set; }
+    public bool EsExcluyente { get; set; }
 }

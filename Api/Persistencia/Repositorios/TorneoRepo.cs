@@ -37,7 +37,6 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
             TorneoId = torneoId,
             Numero = 1,
             FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
-            FaseTipoDeVueltaId = (int)TipoVueltaDeLaFaseEnum.SoloIda,
             EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
             EsVisibleEnApp = true
         };

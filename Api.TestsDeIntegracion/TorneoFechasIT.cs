@@ -36,7 +36,6 @@ public class TorneoFechasIT : TestBase
             Numero = 1,
             TorneoId = torneo.Id,
             FaseFormatoId = 1,
-            FaseTipoDeVueltaId = 1,
             EstadoFaseId = 100,
             EsVisibleEnApp = true
         };
@@ -161,7 +160,6 @@ public class TorneoFechasIT : TestBase
                 Numero = 1,
                 TorneoId = torneo2.Id,
                 FaseFormatoId = 1,
-                FaseTipoDeVueltaId = 1,
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
@@ -288,7 +286,6 @@ public class TorneoFechasIT : TestBase
                 Numero = 1,
                 TorneoId = torneo2.Id,
                 FaseFormatoId = 1,
-                FaseTipoDeVueltaId = 1,
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
