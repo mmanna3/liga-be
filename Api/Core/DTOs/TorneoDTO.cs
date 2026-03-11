@@ -11,6 +11,12 @@ public class TorneoDTO : DTO
     public int TorneoAgrupadorId { get; set; }
     public string TorneoAgrupadorNombre { get; set; } = string.Empty;
     public bool SePuedeEditar { get; set; }
-    public List<TorneoFaseDTO> Fases { get; set; } = [];
-    public List<TorneoCategoriaDTO> Categorias { get; set; } = [];
+    /// <summary>
+    /// Null = no modificar. Lista vacía = borrar todas. Con items = reemplazar.
+    /// </summary>
+    public List<TorneoFaseDTO>? Fases { get; set; }
+    /// <summary>
+    /// Null = no modificar. Lista vacía = borrar todas. Con items = reemplazar.
+    /// </summary>
+    public List<TorneoCategoriaDTO>? Categorias { get; set; }
 }

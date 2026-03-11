@@ -37,6 +37,93 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
         return entidadNueva;
     }
 
+    public override async Task<int> Modificar(int id, TorneoDTO dto)
+    {
+        await base.Modificar(id, dto);
+
+        if (dto.Fases != null)
+        {
+            await ReemplazarFases(id, dto.Fases);
+        }
+
+        if (dto.Categorias != null)
+        {
+            await ReemplazarCategorias(id, dto.Categorias);
+        }
+
+        return id;
+    }
+
+    private async Task ReemplazarFases(int torneoId, List<TorneoFaseDTO> fasesDto)
+    {
+        var fasesExistentes = await _torneoFaseRepo.ListarPorPadre(torneoId);
+        foreach (var fase in fasesExistentes)
+        {
+            _torneoFaseRepo.Eliminar(fase);
+        }
+        await BDVirtual.GuardarCambios();
+
+        foreach (var dto in fasesDto)
+        {
+            if (dto.FaseFormatoId == (int)FormatoDeLaFaseEnum.TodosContraTodos && dto.InstanciaEliminacionDirectaId.HasValue)
+                throw new ExcepcionControlada("La instancia de eliminación directa solo aplica cuando el formato es eliminación directa.");
+
+            var fase = new TorneoFase
+            {
+                Id = 0,
+                TorneoId = torneoId,
+                Nombre = dto.Nombre ?? string.Empty,
+                Numero = dto.Numero,
+                FaseFormatoId = dto.FaseFormatoId,
+                InstanciaEliminacionDirectaId = dto.InstanciaEliminacionDirectaId,
+                EstadoFaseId = dto.EstadoFaseId,
+                EsVisibleEnApp = dto.EsVisibleEnApp,
+                EsExcluyente = dto.EsExcluyente
+            };
+            _torneoFaseRepo.Crear(fase);
+            await BDVirtual.GuardarCambios();
+
+            if (dto.FaseFormatoId == (int)FormatoDeLaFaseEnum.TodosContraTodos)
+            {
+                var zona = new TorneoZona
+                {
+                    Id = 0,
+                    TorneoFaseId = fase.Id,
+                    Nombre = "Zona única"
+                };
+                _torneoZonaRepo.Crear(zona);
+                await BDVirtual.GuardarCambios();
+            }
+        }
+    }
+
+    private async Task ReemplazarCategorias(int torneoId, List<TorneoCategoriaDTO> categoriasDto)
+    {
+        var categoriasExistentes = await _torneoCategoriaRepo.ListarPorPadre(torneoId);
+        foreach (var cat in categoriasExistentes)
+        {
+            _torneoCategoriaRepo.Eliminar(cat);
+        }
+        await BDVirtual.GuardarCambios();
+
+        foreach (var dto in categoriasDto)
+        {
+            if (dto.AnioDesde > dto.AnioHasta)
+                throw new ExcepcionControlada("El año desde no puede ser mayor que el año hasta.");
+
+            var categoria = new TorneoCategoria
+            {
+                Id = 0,
+                TorneoId = torneoId,
+                Nombre = dto.Nombre,
+                AnioDesde = dto.AnioDesde,
+                AnioHasta = dto.AnioHasta
+            };
+            _torneoCategoriaRepo.Crear(categoria);
+            await BDVirtual.GuardarCambios();
+        }
+    }
+
     public override async Task<int> Crear(TorneoDTO dto)
     {
         var id = await base.Crear(dto);

@@ -25,8 +25,8 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.SePuedeEditar, opt => opt.MapFrom(src =>
                 src.Fases == null || !src.Fases.Any() || src.Fases.All(f =>
                     f.Zonas == null || !f.Zonas.Any() || f.Zonas.All(z => z.Fechas == null || !z.Fechas.Any()))))
-            .ForMember(dest => dest.Fases, opt => opt.MapFrom(src => src.Fases))
-            .ForMember(dest => dest.Categorias, opt => opt.MapFrom(src => src.Categorias))
+            .ForMember(dest => dest.Fases, opt => opt.MapFrom(src => src.Fases != null ? src.Fases : new List<TorneoFase>()))
+            .ForMember(dest => dest.Categorias, opt => opt.MapFrom(src => src.Categorias != null ? src.Categorias : new List<TorneoCategoria>()))
             .PreserveReferences()
             .ReverseMap()
             .ForMember(dest => dest.TorneoAgrupador, opt => opt.Ignore())
