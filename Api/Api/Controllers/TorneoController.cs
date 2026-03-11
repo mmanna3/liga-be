@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers;
 
-public class TorneoController : ABMController<TorneoDTO, ITorneoCore>
+public class TorneoController : ABMController<TorneoDTO, ITorneoCore, CrearTorneoDTO>
 {
     public TorneoController(ITorneoCore core) : base(core)
     {

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers
 {
-    public class JugadorController : ABMController<JugadorDTO, IJugadorCore>
+    public class JugadorController : ABMController<JugadorDTO, IJugadorCore, JugadorDTO>
     {
         public JugadorController(IJugadorCore core) : base(core)
         {

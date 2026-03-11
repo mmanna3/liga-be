@@ -75,6 +75,10 @@ public class AppDbContext : DbContext
                 new TorneoAgrupador { Id = 1, Nombre = "General", VisibleEnApp = false }
             );
 
+        builder.Entity<Torneo>()
+            .HasIndex(t => new { t.Nombre, t.Anio, t.TorneoAgrupadorId })
+            .IsUnique();
+
         builder.Entity<TorneoCategoria>()
             .ToTable("TorneoCategorias")
             .HasOne(tc => tc.Torneo)

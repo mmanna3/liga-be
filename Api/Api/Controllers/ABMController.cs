@@ -9,8 +9,9 @@ namespace Api.Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
-public abstract class ABMController<TDTO, TCore> : ControllerBase
+public abstract class ABMController<TDTO, TCore, TCrearDTO> : ControllerBase
     where TDTO : DTO
+    where TCrearDTO : TDTO
     where TCore : ICoreABM<TDTO>
 {
     protected readonly TCore Core = default!;
@@ -54,7 +55,7 @@ public abstract class ABMController<TDTO, TCore> : ControllerBase
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPost]
     [Authorize(Roles = "Administrador")]
-    public virtual async Task<ActionResult<TDTO>> Crear(TDTO dto)
+    public virtual async Task<ActionResult<TDTO>> Crear(TCrearDTO dto)
     {
         var id = await Core.Crear(dto);
         dto.Id = id;

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers
 {
-    public class ClubController : ABMController<ClubDTO, IClubCore>
+    public class ClubController : ABMController<ClubDTO, IClubCore, ClubDTO>
     {
         public ClubController(IClubCore core) : base(core)
         {

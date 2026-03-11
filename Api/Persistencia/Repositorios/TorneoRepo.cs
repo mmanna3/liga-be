@@ -52,4 +52,12 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
         Context.TorneoZonas.Add(zona);
         await Context.SaveChangesAsync();
     }
+
+    public async Task<bool> ExisteTorneoConNombreAnioYAgrupador(string nombre, int anio, int torneoAgrupadorId, int? excluirId = null)
+    {
+        var query = Context.Torneos.Where(t => t.Nombre == nombre && t.Anio == anio && t.TorneoAgrupadorId == torneoAgrupadorId);
+        if (excluirId.HasValue)
+            query = query.Where(t => t.Id != excluirId.Value);
+        return await query.AnyAsync();
+    }
 } 

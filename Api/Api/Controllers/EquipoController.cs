@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers
 {
-    public class EquipoController : ABMController<EquipoDTO, IEquipoCore>
+    public class EquipoController : ABMController<EquipoDTO, IEquipoCore, EquipoDTO>
     {
         public EquipoController(IEquipoCore core) : base(core)
         {
