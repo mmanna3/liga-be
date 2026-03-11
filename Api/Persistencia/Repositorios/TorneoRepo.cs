@@ -16,8 +16,16 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
     {
         return Context.Set<Torneo>()
             .Include(x => x.TorneoAgrupador)
+            .Include(x => x.Categorias)
             .Include(x => x.Fases)
                 .ThenInclude(f => f.Zonas)
+                    .ThenInclude(z => z.Fechas)
+            .Include(x => x.Fases)
+                .ThenInclude(f => f.FaseFormato)
+            .Include(x => x.Fases)
+                .ThenInclude(f => f.InstanciaEliminacionDirecta)
+            .Include(x => x.Fases)
+                .ThenInclude(f => f.EstadoFase)
             .AsQueryable();
     }
 
@@ -59,5 +67,17 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
         if (excluirId.HasValue)
             query = query.Where(t => t.Id != excluirId.Value);
         return await query.AnyAsync();
+    }
+
+    public async Task<IEnumerable<Torneo>> ListarFiltrado(int? anio, int? torneoAgrupadorId)
+    {
+        var query = Set();
+
+        if (anio.HasValue)
+            query = query.Where(t => t.Anio == anio.Value);
+        if (torneoAgrupadorId.HasValue)
+            query = query.Where(t => t.TorneoAgrupadorId == torneoAgrupadorId.Value);
+
+        return await query.ToListAsync();
     }
 } 

@@ -359,6 +359,113 @@ public class TorneoFaseIT : TestBase
     }
 
     [Fact]
+    public async Task ObtenerFase_SinZonas_SePuedeEditarTrue()
+    {
+        var torneoId = await CrearTorneoDePrueba(Factory);
+        TorneoFase fase;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            fase = new TorneoFase
+            {
+                Id = 0,
+                Numero = 1,
+                TorneoId = torneoId,
+                FaseFormatoId = 1,
+                EstadoFaseId = 100,
+                EsVisibleEnApp = true
+            };
+            context.TorneoFases.Add(fase);
+            await context.SaveChangesAsync();
+        }
+
+        var client = await GetAuthenticatedClient();
+        var response = await client.GetAsync($"/api/Torneo/{torneoId}/fases/{fase.Id}");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<TorneoFaseDTO>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+        Assert.True(content.SePuedeEditar);
+    }
+
+    [Fact]
+    public async Task ObtenerFase_ConZonasSinFechas_SePuedeEditarTrue()
+    {
+        var torneoId = await CrearTorneoDePrueba(Factory);
+        TorneoFase fase;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            fase = new TorneoFase
+            {
+                Id = 0,
+                Numero = 1,
+                TorneoId = torneoId,
+                FaseFormatoId = 1,
+                EstadoFaseId = 100,
+                EsVisibleEnApp = true
+            };
+            context.TorneoFases.Add(fase);
+            await context.SaveChangesAsync();
+
+            context.TorneoZonas.Add(new TorneoZona { Id = 0, Nombre = "Zona A", TorneoFaseId = fase.Id });
+            await context.SaveChangesAsync();
+        }
+
+        var client = await GetAuthenticatedClient();
+        var response = await client.GetAsync($"/api/Torneo/{torneoId}/fases/{fase.Id}");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<TorneoFaseDTO>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+        Assert.True(content.SePuedeEditar);
+    }
+
+    [Fact]
+    public async Task ObtenerFase_ConZonasConFechas_SePuedeEditarFalse()
+    {
+        var torneoId = await CrearTorneoDePrueba(Factory);
+        TorneoFase fase;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            fase = new TorneoFase
+            {
+                Id = 0,
+                Numero = 1,
+                TorneoId = torneoId,
+                FaseFormatoId = 1,
+                EstadoFaseId = 100,
+                EsVisibleEnApp = true
+            };
+            context.TorneoFases.Add(fase);
+            await context.SaveChangesAsync();
+
+            var zona = new TorneoZona { Id = 0, Nombre = "Zona A", TorneoFaseId = fase.Id };
+            context.TorneoZonas.Add(zona);
+            await context.SaveChangesAsync();
+
+            context.TorneoFechas.Add(new TorneoFecha
+            {
+                Id = 0,
+                Dia = new DateOnly(2026, 5, 10),
+                Numero = 1,
+                ZonaId = zona.Id,
+                EsVisibleEnApp = true
+            });
+            await context.SaveChangesAsync();
+        }
+
+        var client = await GetAuthenticatedClient();
+        var response = await client.GetAsync($"/api/Torneo/{torneoId}/fases/{fase.Id}");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<TorneoFaseDTO>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+        Assert.False(content.SePuedeEditar);
+    }
+
+    [Fact]
     public async Task ObtenerFase_DevuelveNombresMapeadosCorrectamente()
     {
         var torneoId = await CrearTorneoDePrueba(Factory);

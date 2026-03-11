@@ -242,6 +242,80 @@ public class TorneoIT : TestBase
     }
 
     [Fact]
+    public async Task ObtenerTorneo_FasesSinFechas_SePuedeEditarTrue()
+    {
+        int torneoId;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var torneo = new Torneo { Id = 0, Nombre = "Torneo Editable", Anio = 2026, TorneoAgrupadorId = 1 };
+            context.Torneos.Add(torneo);
+            await context.SaveChangesAsync();
+            torneoId = torneo.Id;
+
+            var fase = new TorneoFase
+            {
+                Id = 0, Numero = 1, TorneoId = torneoId,
+                FaseFormatoId = 1, EstadoFaseId = 100, EsVisibleEnApp = true
+            };
+            context.TorneoFases.Add(fase);
+            await context.SaveChangesAsync();
+
+            context.TorneoZonas.Add(new TorneoZona { Id = 0, Nombre = "Zona A", TorneoFaseId = fase.Id });
+            await context.SaveChangesAsync();
+        }
+
+        var client = await GetAuthenticatedClient();
+        var response = await client.GetAsync($"/api/torneo/{torneoId}");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<TorneoDTO>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+        Assert.True(content.SePuedeEditar);
+    }
+
+    [Fact]
+    public async Task ObtenerTorneo_ConFasesConFechas_SePuedeEditarFalse()
+    {
+        int torneoId;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var torneo = new Torneo { Id = 0, Nombre = "Torneo No Editable", Anio = 2026, TorneoAgrupadorId = 1 };
+            context.Torneos.Add(torneo);
+            await context.SaveChangesAsync();
+            torneoId = torneo.Id;
+
+            var fase = new TorneoFase
+            {
+                Id = 0, Numero = 1, TorneoId = torneoId,
+                FaseFormatoId = 1, EstadoFaseId = 100, EsVisibleEnApp = true
+            };
+            context.TorneoFases.Add(fase);
+            await context.SaveChangesAsync();
+
+            var zona = new TorneoZona { Id = 0, Nombre = "Zona A", TorneoFaseId = fase.Id };
+            context.TorneoZonas.Add(zona);
+            await context.SaveChangesAsync();
+
+            context.TorneoFechas.Add(new TorneoFecha
+            {
+                Id = 0, Dia = new DateOnly(2026, 5, 10), Numero = 1,
+                ZonaId = zona.Id, EsVisibleEnApp = true
+            });
+            await context.SaveChangesAsync();
+        }
+
+        var client = await GetAuthenticatedClient();
+        var response = await client.GetAsync($"/api/torneo/{torneoId}");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<TorneoDTO>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+        Assert.False(content.SePuedeEditar);
+    }
+
+    [Fact]
     public async Task ModificarTorneo_NombreYAnioDuplicado_400()
     {
         var client = await GetAuthenticatedClient();
@@ -275,5 +349,85 @@ public class TorneoIT : TestBase
         Assert.Contains("nombre", mensaje.ToLowerInvariant());
         Assert.Contains("año", mensaje.ToLowerInvariant());
         Assert.Contains("agrupador", mensaje.ToLowerInvariant());
+    }
+
+    [Fact]
+    public async Task Filtrar_PorAnioYAgrupador_DevuelveTorneosConFases()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var dto = new CrearTorneoDTO
+        {
+            Nombre = "Torneo Filtrado",
+            Anio = 2025,
+            TorneoAgrupadorId = 1,
+            PrimeraFase = new TorneoFaseDTO
+            {
+                Nombre = "Fase grupos",
+                Numero = 1,
+                FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
+                EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
+                EsVisibleEnApp = true,
+                EsExcluyente = false
+            }
+        };
+        await client.PostAsJsonAsync("/api/torneo", dto);
+
+        var response = await client.GetAsync("/api/torneo/filtrar?anio=2025&agrupador=1");
+        response.EnsureSuccessStatusCode();
+
+        var torneos = JsonConvert.DeserializeObject<List<TorneoDTO>>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(torneos);
+        Assert.NotEmpty(torneos);
+        var torneo = torneos.First(t => t.Nombre == "Torneo Filtrado");
+        Assert.Equal(2025, torneo.Anio);
+        Assert.Equal(1, torneo.TorneoAgrupadorId);
+        Assert.NotEmpty(torneo.Fases);
+        var fase = torneo.Fases[0];
+        Assert.Equal("Fase grupos", fase.Nombre);
+        Assert.Equal(1, fase.Numero);
+        Assert.Equal("Todos contra todos", fase.FaseFormatoNombre);
+        Assert.False(fase.EsExcluyente);
+        Assert.True(fase.EsVisibleEnApp);
+    }
+
+    [Fact]
+    public async Task ObtenerPorId_DevuelveTorneoConFasesYCategorias()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var dto = new CrearTorneoDTO
+        {
+            Nombre = "Torneo Completo",
+            Anio = 2024,
+            TorneoAgrupadorId = 1,
+            PrimeraFase = new TorneoFaseDTO
+            {
+                Nombre = "Fase inicial",
+                Numero = 1,
+                FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
+                EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
+                EsVisibleEnApp = true,
+                EsExcluyente = false
+            },
+            Categorias =
+            [
+                new TorneoCategoriaDTO { Nombre = "Sub-15", AnioDesde = 2010, AnioHasta = 2015 }
+            ]
+        };
+        var crearResponse = await client.PostAsJsonAsync("/api/torneo", dto);
+        crearResponse.EnsureSuccessStatusCode();
+        var torneoCreado = JsonConvert.DeserializeObject<CrearTorneoDTO>(await crearResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(torneoCreado);
+
+        var response = await client.GetAsync($"/api/torneo/{torneoCreado.Id}");
+        response.EnsureSuccessStatusCode();
+
+        var torneo = JsonConvert.DeserializeObject<TorneoDTO>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(torneo);
+        Assert.NotEmpty(torneo.Fases);
+        Assert.Equal("Fase inicial", torneo.Fases[0].Nombre);
+        Assert.NotEmpty(torneo.Categorias);
+        Assert.Equal("Sub-15", torneo.Categorias[0].Nombre);
     }
 }

@@ -5,5 +5,5 @@ namespace Api.Core.Servicios.Interfaces;
 
 public interface ITorneoCore : ICoreABM<TorneoDTO>
 {
-    
+    Task<IEnumerable<TorneoDTO>> Filtrar(int? anio, int? agrupadorId);
 } 

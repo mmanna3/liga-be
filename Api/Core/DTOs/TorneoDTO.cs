@@ -10,4 +10,7 @@ public class TorneoDTO : DTO
     public required int Anio { get; set; }
     public int TorneoAgrupadorId { get; set; }
     public string TorneoAgrupadorNombre { get; set; } = string.Empty;
+    public bool SePuedeEditar { get; set; }
+    public List<TorneoFaseDTO> Fases { get; set; } = [];
+    public List<TorneoCategoriaDTO> Categorias { get; set; } = [];
 }

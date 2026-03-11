@@ -23,6 +23,8 @@ public class TorneoFaseRepo : RepositorioABMAnidado<TorneoFase, int>, ITorneoFas
             .Include(x => x.FaseFormato)
             .Include(x => x.InstanciaEliminacionDirecta)
             .Include(x => x.EstadoFase)
+            .Include(x => x.Zonas)
+                .ThenInclude(z => z.Fechas)
             .Where(FiltroPorPadre(padreId))
             .ToListAsync();
     }
@@ -34,6 +36,8 @@ public class TorneoFaseRepo : RepositorioABMAnidado<TorneoFase, int>, ITorneoFas
             .Include(x => x.FaseFormato)
             .Include(x => x.InstanciaEliminacionDirecta)
             .Include(x => x.EstadoFase)
+            .Include(x => x.Zonas)
+                .ThenInclude(z => z.Fechas)
             .Where(FiltroPorPadre(padreId))
             .SingleOrDefaultAsync(x => x.Id == id);
     }

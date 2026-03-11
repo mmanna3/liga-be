@@ -116,4 +116,10 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
         _torneoCategoriaRepo.Crear(categoria);
         await BDVirtual.GuardarCambios();
     }
+
+    public async Task<IEnumerable<TorneoDTO>> Filtrar(int? anio, int? agrupadorId)
+    {
+        var entidades = await Repo.ListarFiltrado(anio, agrupadorId);
+        return Mapper.Map<List<TorneoDTO>>(entidades);
+    }
 }

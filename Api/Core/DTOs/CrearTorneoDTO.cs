@@ -15,5 +15,5 @@ public class CrearTorneoDTO : TorneoDTO
     /// <summary>
     /// Categorías a crear junto con el torneo. Puede ser null o vacío.
     /// </summary>
-    public List<TorneoCategoriaDTO>? Categorias { get; set; }
+    public new List<TorneoCategoriaDTO>? Categorias { get; set; }
 }
