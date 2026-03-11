@@ -1,9 +1,12 @@
+using System.ComponentModel.DataAnnotations;
 using Api.Core.Entidades.EntidadesConValoresPredefinidos;
 
 namespace Api.Core.Entidades;
 
 public class TorneoFase : Entidad
 {
+    [MaxLength(50)]
+    public string Nombre { get; set; } = string.Empty;
     public required int Numero { get; set; }
     public virtual Torneo Torneo { get; set; } = null!;
     public required int TorneoId { get; set; }
