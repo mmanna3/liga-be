@@ -42,4 +42,30 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
     {
         return await Context.JugadorEquipo.CountAsync(je => je.JugadorId == jugadorId);
     }
+
+    public async Task QuitarEquiposDeZona(int zonaId)
+    {
+        var equipos = await Context.Set<Equipo>()
+            .Where(e => e.ZonaActualId == zonaId)
+            .ToListAsync();
+        foreach (var equipo in equipos)
+        {
+            equipo.ZonaActualId = null;
+        }
+    }
+
+    public async Task AsignarEquiposAZona(int zonaId, IEnumerable<int> equipoIds)
+    {
+        var ids = equipoIds.Distinct().ToList();
+        if (ids.Count == 0)
+            return;
+
+        var equipos = await Context.Set<Equipo>()
+            .Where(e => ids.Contains(e.Id))
+            .ToListAsync();
+        foreach (var equipo in equipos)
+        {
+            equipo.ZonaActualId = zonaId;
+        }
+    }
 }

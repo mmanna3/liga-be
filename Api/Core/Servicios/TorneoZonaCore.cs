@@ -10,11 +10,14 @@ namespace Api.Core.Servicios;
 public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, TorneoZonaDTO, int>, ITorneoZonaCore
 {
     private readonly ITorneoFaseRepo _torneoFaseRepo;
+    private readonly IEquipoRepo _equipoRepo;
 
-    public TorneoZonaCore(IBDVirtual bd, ITorneoZonaRepo repo, ITorneoFaseRepo torneoFaseRepo, IMapper mapper)
+    public TorneoZonaCore(IBDVirtual bd, ITorneoZonaRepo repo, ITorneoFaseRepo torneoFaseRepo,
+        IEquipoRepo equipoRepo, IMapper mapper)
         : base(bd, repo, mapper)
     {
         _torneoFaseRepo = torneoFaseRepo;
+        _equipoRepo = equipoRepo;
     }
 
     protected override async Task<TorneoZona> AntesDeCrear(int padreId, TorneoZonaDTO dto, TorneoZona entidad)
@@ -27,9 +30,77 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
         return entidad;
     }
 
+    public override async Task<int> Crear(int padreId, TorneoZonaDTO dto)
+    {
+        var id = await base.Crear(padreId, dto);
+
+        if (dto.Equipos is { Count: > 0 })
+        {
+            var equipoIds = ParsearEquipoIds(dto.Equipos);
+            await _equipoRepo.AsignarEquiposAZona(id, equipoIds);
+            await BDVirtual.GuardarCambios();
+        }
+
+        return id;
+    }
+
     protected override Task AntesDeModificar(int padreId, int id, TorneoZonaDTO dto, TorneoZona entidadAnterior, TorneoZona entidadNueva)
     {
         entidadNueva.TorneoFaseId = padreId;
         return Task.CompletedTask;
+    }
+
+    public override async Task<int> Modificar(int padreId, int id, TorneoZonaDTO dto)
+    {
+        await base.Modificar(padreId, id, dto);
+
+        if (dto.Equipos != null)
+        {
+            await _equipoRepo.QuitarEquiposDeZona(id);
+            await BDVirtual.GuardarCambios();
+
+            if (dto.Equipos.Count > 0)
+            {
+                var equipoIds = ParsearEquipoIds(dto.Equipos);
+                await _equipoRepo.AsignarEquiposAZona(id, equipoIds);
+                await BDVirtual.GuardarCambios();
+            }
+        }
+
+        return id;
+    }
+
+    public async Task<IEnumerable<TorneoZonaDTO>> CrearMasivamente(int padreId, IEnumerable<TorneoZonaDTO> dtos)
+    {
+        var creados = new List<TorneoZonaDTO>();
+        foreach (var dto in dtos)
+        {
+            var id = await Crear(padreId, dto);
+            var creado = await ObtenerPorId(padreId, id);
+            if (creado != null)
+                creados.Add(creado);
+        }
+        return creados;
+    }
+
+    public async Task ModificarMasivamente(int padreId, IEnumerable<TorneoZonaDTO> dtos)
+    {
+        foreach (var dto in dtos)
+        {
+            if (dto.Id <= 0)
+                continue;
+            await Modificar(padreId, dto.Id, dto);
+        }
+    }
+
+    private static List<int> ParsearEquipoIds(List<EquipoDeLaZonaDTO> equipos)
+    {
+        var ids = new List<int>();
+        foreach (var e in equipos)
+        {
+            if (int.TryParse(e.Id, out var equipoId))
+                ids.Add(equipoId);
+        }
+        return ids;
     }
 }
