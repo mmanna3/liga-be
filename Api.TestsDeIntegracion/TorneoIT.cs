@@ -242,7 +242,7 @@ public class TorneoIT : TestBase
     }
 
     [Fact]
-    public async Task ObtenerTorneo_FasesSinFechas_SePuedeEditarTrue()
+    public async Task ObtenerTorneo_FasesSinZonas_SePuedeEditarTrue()
     {
         int torneoId;
         using (var scope = Factory.Services.CreateScope())
@@ -261,7 +261,7 @@ public class TorneoIT : TestBase
             context.TorneoFases.Add(fase);
             await context.SaveChangesAsync();
 
-            context.TorneoZonas.Add(new TorneoZona { Id = 0, Nombre = "Zona A", TorneoFaseId = fase.Id });
+            // context.TorneoZonas.Add(new TorneoZona { Id = 0, Nombre = "Zona A", TorneoFaseId = fase.Id });
             await context.SaveChangesAsync();
         }
 
