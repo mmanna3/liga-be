@@ -24,7 +24,7 @@ public class DelegadoRepo : RepositorioABM<Delegado>, IDelegadoRepo
 
     /// <summary>
     /// Carga el delegado con solo las relaciones necesarias para eliminar.
-    /// Evita el Include profundo Club->Equipos->ZonaActual que provoca tracking duplicado
+    /// Evita el Include profundo Club->Equipos->ZonaExcluyente que provoca tracking duplicado
     /// cuando varios equipos comparten la misma TorneoZona.
     /// </summary>
     public async Task<Delegado?> ObtenerPorIdParaEliminar(int id)
@@ -42,7 +42,7 @@ public class DelegadoRepo : RepositorioABM<Delegado>, IDelegadoRepo
             .Include(x => x.DelegadoClubs)
                 .ThenInclude(dc => dc.Club)
                     .ThenInclude(c => c.Equipos)
-                        .ThenInclude(e => e.ZonaActual)
+                        .ThenInclude(e => e.ZonaExcluyente)
                             .ThenInclude(z => z!.TorneoFase)
                                 .ThenInclude(f => f.Torneo)
             .Include(x => x.DelegadoClubs)

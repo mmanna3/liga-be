@@ -10,7 +10,7 @@ public class EquipoDeLaZonaDTO
     public string Codigo { get; set; } = string.Empty;
     public string? Torneo { get; set; }
     public string? Zona { get; set; }
-    public int? ZonaActualId { get; set; }
+    public int? ZonaExcluyenteId { get; set; }
 }
 
 public class TorneoZonaDTO : DTO

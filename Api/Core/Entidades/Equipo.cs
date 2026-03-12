@@ -12,6 +12,7 @@ public class Equipo : Entidad
 
     public virtual required ICollection<JugadorEquipo> Jugadores { get; set; }
 
-    public int? ZonaActualId { get; set; }
-    public virtual TorneoZona? ZonaActual { get; set; }
+    public int? ZonaExcluyenteId { get; set; }
+    public virtual TorneoZona? ZonaExcluyente { get; set; }
+    public virtual ICollection<EquipoZonaNoExcluyente> ZonasNoExcluyentes { get; set; } = null!;
 }

@@ -13,8 +13,8 @@ public class EquipoDTO : DTO
     public string? Torneo { get; set; }
     public int? FaseId { get; set; }
     public string? Fase { get; set; }
-    public int? ZonaActualId { get; set; }
-    public string? ZonaActual { get; set; }
+    public int? ZonaExcluyenteId { get; set; }
+    public string? ZonaExcluyente { get; set; }
     
     public ICollection<JugadorDelEquipoDTO>? Jugadores { get; set; }
 }

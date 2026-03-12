@@ -21,7 +21,7 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
 
     protected override async Task<Equipo> AntesDeCrear(EquipoDTO dto, Equipo entidad)
     {
-        if (await Repo.ExisteEquipoConMismoNombreEnZona(entidad.Nombre, entidad.ZonaActualId))
+        if (await Repo.ExisteEquipoConMismoNombreEnZona(entidad.Nombre, entidad.ZonaExcluyenteId))
         {
             throw new ExcepcionControlada("Ya existe un equipo con el mismo nombre en este torneo.");
         }
@@ -31,8 +31,8 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
 
     protected override async Task<Equipo> AntesDeModificar(int id, EquipoDTO dto, Equipo entidadAnterior, Equipo entidadNueva)
     {
-        if ((entidadAnterior.Nombre != entidadNueva.Nombre || entidadAnterior.ZonaActualId != entidadNueva.ZonaActualId) &&
-            await Repo.ExisteEquipoConMismoNombreEnZona(entidadNueva.Nombre, entidadNueva.ZonaActualId, id))
+        if ((entidadAnterior.Nombre != entidadNueva.Nombre || entidadAnterior.ZonaExcluyenteId != entidadNueva.ZonaExcluyenteId) &&
+            await Repo.ExisteEquipoConMismoNombreEnZona(entidadNueva.Nombre, entidadNueva.ZonaExcluyenteId, id))
         {
             throw new ExcepcionControlada("Ya existe un equipo con el mismo nombre en este torneo.");
         }

@@ -15,7 +15,7 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
     {
         return Context.Set<Equipo>()
             .Include(x => x.Club)
-            .Include(x => x.ZonaActual)
+            .Include(x => x.ZonaExcluyente)
                 .ThenInclude(z => z!.TorneoFase)
                     .ThenInclude(f => f.Torneo)
             .Include(x => x.Jugadores)
@@ -28,7 +28,7 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
     public async Task<bool> ExisteEquipoConMismoNombreEnZona(string nombre, int? zonaActualId, int? equipoIdExcluir = null)
     {
         var query = Context.Set<Equipo>()
-            .Where(e => e.Nombre.ToLower() == nombre.ToLower() && e.ZonaActualId == zonaActualId);
+            .Where(e => e.Nombre.ToLower() == nombre.ToLower() && e.ZonaExcluyenteId == zonaActualId);
             
         if (equipoIdExcluir.HasValue)
         {
@@ -46,11 +46,11 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
     public async Task QuitarEquiposDeZona(int zonaId)
     {
         var equipos = await Context.Set<Equipo>()
-            .Where(e => e.ZonaActualId == zonaId)
+            .Where(e => e.ZonaExcluyenteId == zonaId)
             .ToListAsync();
         foreach (var equipo in equipos)
         {
-            equipo.ZonaActualId = null;
+            equipo.ZonaExcluyenteId = null;
         }
     }
 
@@ -65,7 +65,7 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
             .ToListAsync();
         foreach (var equipo in equipos)
         {
-            equipo.ZonaActualId = zonaId;
+            equipo.ZonaExcluyenteId = zonaId;
         }
     }
 }

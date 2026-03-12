@@ -100,12 +100,12 @@ public class E2ESeedController : ControllerBase
 
         // Equipo 1 → Id=1 → código MTD0001 (hardcodeado en los tests YAML)
         // Equipo 2 → Id=2 → item-equipo-2 en test 15 (cambiar equipo)
-        var equipo1 = new Equipo { Id = 0, Nombre = "Equipo de Prueba", ClubId = club.Id, ZonaActualId = zona.Id, Jugadores = new List<JugadorEquipo>() };
+        var equipo1 = new Equipo { Id = 0, Nombre = "Equipo de Prueba", ClubId = club.Id, ZonaExcluyenteId = zona.Id, Jugadores = new List<JugadorEquipo>() };
         _context.Equipos.Add(equipo1);
 
         // Equipo 2: Pedro González (87654321) queda Activo acá, no en equipo 1,
         // para que los tests puedan ficharlo al equipo 1 sin "ya está fichado".
-        var equipo2 = new Equipo { Id = 0, Nombre = "Equipo B", ClubId = club.Id, ZonaActualId = zona.Id, Jugadores = new List<JugadorEquipo>() };
+        var equipo2 = new Equipo { Id = 0, Nombre = "Equipo B", ClubId = club.Id, ZonaExcluyenteId = zona.Id, Jugadores = new List<JugadorEquipo>() };
         _context.Equipos.Add(equipo2);
         _context.SaveChanges();
 
