@@ -32,4 +32,5 @@ public class TorneoZonaController : ABMControllerAnidado<TorneoZonaDTO, ITorneoZ
         await Core.ModificarMasivamente(padreId, dtos);
         return NoContent();
     }
+
 }

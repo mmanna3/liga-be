@@ -10,4 +10,5 @@ public interface IEquipoRepo : IRepositorioABM<Equipo>
     Task AsignarEquiposAZona(int zonaId, IEnumerable<int> equipoIds);
     Task QuitarEquiposDeZonaNoExcluyente(int zonaId);
     Task AsignarEquiposAZonaNoExcluyente(int zonaId, IEnumerable<int> equipoIds);
+    Task<IEnumerable<Equipo>> ListarConZonasParaEquiposParaZonas();
 }

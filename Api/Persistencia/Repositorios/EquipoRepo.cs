@@ -98,4 +98,20 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
             }
         }
     }
+
+    public async Task<IEnumerable<Equipo>> ListarConZonasParaEquiposParaZonas()
+    {
+        return await Context.Set<Equipo>()
+            .Include(e => e.Club)
+            .Include(e => e.ZonaExcluyente)
+                .ThenInclude(z => z!.TorneoFase)
+                    .ThenInclude(f => f.Torneo)
+                        .ThenInclude(t => t!.TorneoAgrupador)
+            .Include(e => e.ZonasNoExcluyentes)
+                .ThenInclude(ez => ez.ZonaNoExcluyente)
+                    .ThenInclude(z => z.TorneoFase)
+                        .ThenInclude(f => f.Torneo)
+                            .ThenInclude(t => t!.TorneoAgrupador)
+            .ToListAsync();
+    }
 }

@@ -23,5 +23,13 @@ namespace Api.Api.Controllers
             var jugadores = await Core.JugadoresQueSoloJueganEnEsteEquipo(id);
             return Ok(jugadores);
         }
+
+        [HttpGet("equipos-para-zonas", Name = "equiposParaZonas")]
+        [Authorize(Roles = "Administrador,Consulta")]
+        public async Task<ActionResult<IEnumerable<EquipoParaZonasDTO>>> EquiposParaZonas()
+        {
+            var equipos = await Core.EquiposParaZonas();
+            return Ok(equipos);
+        }
     }
 }

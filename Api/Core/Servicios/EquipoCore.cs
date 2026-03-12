@@ -82,6 +82,59 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
         return ObtenerClubDTO.Exito(club.Id, club.Nombre);
     }
 
+    public async Task<IEnumerable<EquipoParaZonasDTO>> EquiposParaZonas()
+    {
+        var equipos = await Repo.ListarConZonasParaEquiposParaZonas();
+        var resultado = new List<EquipoParaZonasDTO>();
+
+        foreach (var equipo in equipos)
+        {
+            var zonas = new List<ZonaDTO>();
+
+            if (equipo.ZonaExcluyente != null)
+                zonas.Add(ZonaDesdeTorneoZona(equipo.ZonaExcluyente));
+
+            if (equipo.ZonasNoExcluyentes != null)
+            {
+                foreach (var ez in equipo.ZonasNoExcluyentes)
+                    zonas.Add(ZonaDesdeTorneoZona(ez.ZonaNoExcluyente));
+            }
+
+            var codigoAlfanumerico = equipo.Id > 0 && equipo.Id < 10000
+                ? GeneradorDeHash.GenerarAlfanumerico7Digitos(equipo.Id)
+                : string.Empty;
+
+            resultado.Add(new EquipoParaZonasDTO
+            {
+                Id = equipo.Id,
+                Nombre = equipo.Nombre,
+                Club = equipo.Club?.Nombre ?? string.Empty,
+                CodigoAlfanumerico = codigoAlfanumerico,
+                Zonas = zonas
+            });
+        }
+
+        return resultado;
+    }
+
+    private static ZonaDTO ZonaDesdeTorneoZona(TorneoZona zona)
+    {
+        var fase = zona.TorneoFase;
+        var torneo = fase?.Torneo;
+        return new ZonaDTO
+        {
+            Id = zona.Id,
+            Nombre = zona.Nombre,
+            TorneoId = torneo?.Id,
+            Torneo = torneo != null ? $"{torneo.Nombre} {torneo.Anio}" : string.Empty,
+            Agrupador = torneo?.TorneoAgrupador?.Nombre ?? string.Empty,
+            AgrupadorId = torneo?.TorneoAgrupadorId,
+            Fase = fase?.Nombre,
+            FaseId = fase?.Id,
+            EsExcluyente = fase?.EsExcluyente ?? false
+        };
+    }
+
     public async Task<IEnumerable<JugadorBaseDTO>> JugadoresQueSoloJueganEnEsteEquipo(int equipoId)
     {
         var equipo = await Repo.ObtenerPorId(equipoId);
