@@ -8,4 +8,6 @@ public interface IEquipoRepo : IRepositorioABM<Equipo>
     Task<int> ContarEquiposDelJugador(int jugadorId);
     Task QuitarEquiposDeZona(int zonaId);
     Task AsignarEquiposAZona(int zonaId, IEnumerable<int> equipoIds);
+    Task QuitarEquiposDeZonaNoExcluyente(int zonaId);
+    Task AsignarEquiposAZonaNoExcluyente(int zonaId, IEnumerable<int> equipoIds);
 }

@@ -34,10 +34,10 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
     {
         var id = await base.Crear(padreId, dto);
 
-        if (dto.Equipos is { Count: > 0 })
+        if (dto.Equipos != null)
         {
             var equipoIds = ParsearEquipoIds(dto.Equipos);
-            await _equipoRepo.AsignarEquiposAZona(id, equipoIds);
+            await AplicarEquiposEnZona(id, padreId, equipoIds);
             await BDVirtual.GuardarCambios();
         }
 
@@ -56,15 +56,9 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
 
         if (dto.Equipos != null)
         {
-            await _equipoRepo.QuitarEquiposDeZona(id);
+            var equipoIds = ParsearEquipoIds(dto.Equipos);
+            await AplicarEquiposEnZona(id, padreId, equipoIds);
             await BDVirtual.GuardarCambios();
-
-            if (dto.Equipos.Count > 0)
-            {
-                var equipoIds = ParsearEquipoIds(dto.Equipos);
-                await _equipoRepo.AsignarEquiposAZona(id, equipoIds);
-                await BDVirtual.GuardarCambios();
-            }
         }
 
         return id;
@@ -90,6 +84,8 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
             return -1;
 
         await AntesDeEliminar(padreId, id, entidad);
+        await AplicarEquiposEnZona(id, padreId, []);
+        await BDVirtual.GuardarCambios();
         Repo.Eliminar(entidad);
         await BDVirtual.GuardarCambios();
         return id;
@@ -115,6 +111,31 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
             if (dto.Id <= 0)
                 continue;
             await Modificar(padreId, dto.Id, dto);
+        }
+    }
+
+    /// <summary>
+    /// Quita o asigna equipos en una zona según su fase sea excluyente o no.
+    /// Fase excluyente: actualiza Equipo.ZonaExcluyenteId.
+    /// Fase no excluyente: crea/elimina registros en EquipoZonaNoExcluyente.
+    /// </summary>
+    private async Task AplicarEquiposEnZona(int zonaId, int faseId, IReadOnlyList<int> equipoIds)
+    {
+        var fase = await _torneoFaseRepo.ObtenerPorId(faseId);
+        if (fase == null)
+            return;
+
+        if (fase.EsExcluyente)
+        {
+            await _equipoRepo.QuitarEquiposDeZona(zonaId);
+            if (equipoIds.Count > 0)
+                await _equipoRepo.AsignarEquiposAZona(zonaId, equipoIds);
+        }
+        else
+        {
+            await _equipoRepo.QuitarEquiposDeZonaNoExcluyente(zonaId);
+            if (equipoIds.Count > 0)
+                await _equipoRepo.AsignarEquiposAZonaNoExcluyente(zonaId, equipoIds);
         }
     }
 

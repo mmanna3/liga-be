@@ -8,9 +8,6 @@ public class EquipoDeLaZonaDTO
     public string Club { get; set; } = string.Empty;
     public string Id { get; set; } = string.Empty;
     public string Codigo { get; set; } = string.Empty;
-    public string? Torneo { get; set; }
-    public string? Zona { get; set; }
-    public int? ZonaExcluyenteId { get; set; }
 }
 
 public class TorneoZonaDTO : DTO

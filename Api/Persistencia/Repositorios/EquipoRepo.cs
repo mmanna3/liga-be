@@ -68,4 +68,34 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
             equipo.ZonaExcluyenteId = zonaId;
         }
     }
+
+    public async Task QuitarEquiposDeZonaNoExcluyente(int zonaId)
+    {
+        var registros = await Context.Set<EquipoZonaNoExcluyente>()
+            .Where(e => e.ZonaNoExcluyenteId == zonaId)
+            .ToListAsync();
+        Context.Set<EquipoZonaNoExcluyente>().RemoveRange(registros);
+    }
+
+    public async Task AsignarEquiposAZonaNoExcluyente(int zonaId, IEnumerable<int> equipoIds)
+    {
+        var ids = equipoIds.Distinct().ToList();
+        if (ids.Count == 0)
+            return;
+
+        foreach (var equipoId in ids)
+        {
+            var existe = await Context.Set<EquipoZonaNoExcluyente>()
+                .AnyAsync(e => e.EquipoId == equipoId && e.ZonaNoExcluyenteId == zonaId);
+            if (!existe)
+            {
+                Context.Set<EquipoZonaNoExcluyente>().Add(new EquipoZonaNoExcluyente
+                {
+                    Id = 0,
+                    EquipoId = equipoId,
+                    ZonaNoExcluyenteId = zonaId
+                });
+            }
+        }
+    }
 }

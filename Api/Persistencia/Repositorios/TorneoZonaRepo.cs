@@ -19,6 +19,9 @@ public class TorneoZonaRepo : RepositorioABMAnidado<TorneoZona, int>, ITorneoZon
                 .ThenInclude(f => f.Torneo)
             .Include(x => x.Equipos)
                 .ThenInclude(e => e.Club)
+            .Include(x => x.EquiposZonaNoExcluyente)
+                .ThenInclude(e => e.Equipo)
+                    .ThenInclude(e => e.Club)
             .Include(x => x.Fechas)
             .AsQueryable();
     }
