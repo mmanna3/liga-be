@@ -38,6 +38,7 @@ public class TorneoFaseIT : TestBase
     {
         return new TorneoFaseDTO
         {
+            Nombre = $"Fase {numero}",
             Numero = numero,
             FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
             InstanciaEliminacionDirectaId = null,
@@ -50,6 +51,7 @@ public class TorneoFaseIT : TestBase
     {
         return new TorneoFaseDTO
         {
+            Nombre = $"Fase {numero}",
             Numero = numero,
             FaseFormatoId = (int)FormatoDeLaFaseEnum.EliminacionDirecta,
             InstanciaEliminacionDirectaId = instanciaId,
@@ -389,7 +391,7 @@ public class TorneoFaseIT : TestBase
     }
 
     [Fact]
-    public async Task ObtenerFase_ConZonasSinFechas_SePuedeEditarTrue()
+    public async Task ObtenerFase_ConZonasSinFechas_SePuedeEditarFalse()
     {
         var torneoId = await CrearTorneoDePrueba(Factory);
         TorneoFase fase;
@@ -418,7 +420,7 @@ public class TorneoFaseIT : TestBase
 
         var content = JsonConvert.DeserializeObject<TorneoFaseDTO>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
-        Assert.True(content.SePuedeEditar);
+        Assert.False(content.SePuedeEditar);
     }
 
     [Fact]
