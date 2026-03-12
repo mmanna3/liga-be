@@ -47,7 +47,7 @@ public class EliminacionIT : TestBase
             context.TorneoZonas.Add(zona);
             context.SaveChanges();
 
-            var equipo = new Equipo { Id = 0, Nombre = "Equipo en Torneo", ClubId = _club!.Id, ZonaActualId = zona.Id, Jugadores = [] };
+            var equipo = new Equipo { Id = 0, Nombre = "Equipo en Torneo", ClubId = _club!.Id, ZonaExcluyenteId = zona.Id, Jugadores = [] };
             context.Equipos.Add(equipo);
             context.SaveChanges();
             equipoId = equipo.Id;
@@ -62,7 +62,7 @@ public class EliminacionIT : TestBase
             Assert.Null(context.Torneos.Find(torneoId));
             var equipoRestante = context.Equipos.Find(equipoId);
             Assert.NotNull(equipoRestante);
-            Assert.Null(equipoRestante.ZonaActualId);
+            Assert.Null(equipoRestante.ZonaExcluyenteId);
         }
     }
 }

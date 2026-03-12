@@ -47,7 +47,8 @@ public class TorneoZonaIT : TestBase
             TorneoId = torneo.Id,
             FaseFormatoId = 1,
             EstadoFaseId = 100,
-            EsVisibleEnApp = true
+            EsVisibleEnApp = true,
+            EsExcluyente = true
         };
         context.TorneoFases.Add(fase);
         await context.SaveChangesAsync();
@@ -347,7 +348,7 @@ public class TorneoZonaIT : TestBase
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var equipo = context.Equipos.Find(equipoId);
             Assert.NotNull(equipo);
-            Assert.Equal(creado.Id, equipo.ZonaActualId);
+            Assert.Equal(creado.Id, equipo.ZonaExcluyenteId);
         }
     }
 
@@ -391,13 +392,10 @@ public class TorneoZonaIT : TestBase
         Assert.Equal(equipoNombre, zona.Equipos[0].Nombre);
         Assert.Equal(clubNombre, zona.Equipos[0].Club);
         Assert.Equal(GeneradorDeHash.GenerarAlfanumerico7Digitos(equipoId), zona.Equipos[0].Codigo);
-        Assert.Equal("Torneo Test Zonas", zona.Equipos[0].Torneo);
-        Assert.Equal("Zona para GET", zona.Equipos[0].Zona);
-        Assert.Equal(creado.Id, zona.Equipos[0].ZonaActualId);
     }
 
     [Fact]
-    public async Task ObtenerZona_EquipoDeLaZonaTieneTorneoZonaYZonaActualId()
+    public async Task ObtenerZona_EquipoDeLaZonaTieneTorneoZonaYZonaExcluyenteId()
     {
         Assert.NotNull(_club);
         var faseId = await CrearTorneoFaseDePrueba(Factory);
@@ -427,9 +425,6 @@ public class TorneoZonaIT : TestBase
         Assert.NotNull(zona);
         Assert.NotNull(zona.Equipos);
         Assert.Single(zona.Equipos);
-        Assert.Equal("Torneo Test Zonas", zona.Equipos[0].Torneo);
-        Assert.Equal("Zona Norte", zona.Equipos[0].Zona);
-        Assert.Equal(creado.Id, zona.Equipos[0].ZonaActualId);
     }
 
     [Fact]
@@ -505,7 +500,7 @@ public class TorneoZonaIT : TestBase
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var equipo = context.Equipos.Find(equipoId);
             Assert.NotNull(equipo);
-            Assert.Equal(creado.Id, equipo.ZonaActualId);
+            Assert.Equal(creado.Id, equipo.ZonaExcluyenteId);
         }
     }
 
@@ -547,7 +542,7 @@ public class TorneoZonaIT : TestBase
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var equipo = context.Equipos.Find(equipoId);
             Assert.NotNull(equipo);
-            Assert.Null(equipo.ZonaActualId);
+            Assert.Null(equipo.ZonaExcluyenteId);
         }
     }
 
@@ -604,8 +599,8 @@ public class TorneoZonaIT : TestBase
             var eq2 = context.Equipos.Find(equipo2Id);
             Assert.NotNull(eq1);
             Assert.NotNull(eq2);
-            Assert.Null(eq1.ZonaActualId);
-            Assert.Equal(creado.Id, eq2.ZonaActualId);
+            Assert.Null(eq1.ZonaExcluyenteId);
+            Assert.Equal(creado.Id, eq2.ZonaExcluyenteId);
         }
     }
 

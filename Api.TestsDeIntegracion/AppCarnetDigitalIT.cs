@@ -57,7 +57,7 @@ public class AppCarnetDigitalIT : TestBase
             Id = 1,
             Nombre = "Equipo de Prueba",
             ClubId = 1,
-            ZonaActualId = zona.Id,
+            ZonaExcluyenteId = zona.Id,
             Jugadores = new List<JugadorEquipo>()
         };
         context.Equipos.Add(equipo);

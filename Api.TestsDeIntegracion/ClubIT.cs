@@ -181,7 +181,7 @@ public class ClubIT : TestBase
             context.SaveChanges();
 
             equipo1.ClubId = clubParaEliminar.Id;
-            equipo1.ZonaActualId = zona.Id;
+            equipo1.ZonaExcluyenteId = zona.Id;
             context.Equipos.Add(equipo1);
 
             context.Delegados.Add(delegadoSoloEnEsteClub);

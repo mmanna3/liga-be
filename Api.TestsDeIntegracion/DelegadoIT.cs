@@ -197,8 +197,8 @@ public class DelegadoIT : TestBase
         context.Clubs.Add(clubConZona);
         await context.SaveChangesAsync();
 
-        var equipo1 = new Equipo { Id = 0, Nombre = "Equipo A", ClubId = clubConZona.Id, ZonaActualId = zona.Id, Jugadores = new List<JugadorEquipo>() };
-        var equipo2 = new Equipo { Id = 0, Nombre = "Equipo B", ClubId = clubConZona.Id, ZonaActualId = zona.Id, Jugadores = new List<JugadorEquipo>() };
+        var equipo1 = new Equipo { Id = 0, Nombre = "Equipo A", ClubId = clubConZona.Id, ZonaExcluyenteId = zona.Id, Jugadores = new List<JugadorEquipo>() };
+        var equipo2 = new Equipo { Id = 0, Nombre = "Equipo B", ClubId = clubConZona.Id, ZonaExcluyenteId = zona.Id, Jugadores = new List<JugadorEquipo>() };
         context.Equipos.Add(equipo1);
         context.Equipos.Add(equipo2);
         await context.SaveChangesAsync();

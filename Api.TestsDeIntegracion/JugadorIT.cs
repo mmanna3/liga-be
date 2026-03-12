@@ -229,9 +229,9 @@ public class JugadorIT : TestBase
         context.TorneoZonas.AddRange(zonaOro, zonaPlata);
         context.SaveChanges();
 
-        var equipoAzul = new Equipo { Id = 0, Nombre = $"Azul {baseId}", ClubId = 1, ZonaActualId = zonaOro.Id, Jugadores = new List<JugadorEquipo>() };
-        var equipoRojo = new Equipo { Id = 0, Nombre = $"Rojo {baseId}", ClubId = 1, ZonaActualId = zonaOro.Id, Jugadores = new List<JugadorEquipo>() };
-        var equipoVerde = new Equipo { Id = 0, Nombre = $"Verde {baseId}", ClubId = 1, ZonaActualId = zonaPlata.Id, Jugadores = new List<JugadorEquipo>() };
+        var equipoAzul = new Equipo { Id = 0, Nombre = $"Azul {baseId}", ClubId = 1, ZonaExcluyenteId = zonaOro.Id, Jugadores = new List<JugadorEquipo>() };
+        var equipoRojo = new Equipo { Id = 0, Nombre = $"Rojo {baseId}", ClubId = 1, ZonaExcluyenteId = zonaOro.Id, Jugadores = new List<JugadorEquipo>() };
+        var equipoVerde = new Equipo { Id = 0, Nombre = $"Verde {baseId}", ClubId = 1, ZonaExcluyenteId = zonaPlata.Id, Jugadores = new List<JugadorEquipo>() };
         context.Equipos.AddRange(equipoAzul, equipoRojo, equipoVerde);
         context.SaveChanges();
         azulId = equipoAzul.Id;
