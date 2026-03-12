@@ -9,7 +9,11 @@ public class EquipoDTO : DTO
     public string? ClubNombre { get; set; }
     
     public int? TorneoId { get; set; }
-    public string? TorneoNombre { get; set; }
+    public string? Torneo { get; set; }
+    public int? FaseId { get; set; }
+    public string? Fase { get; set; }
+    public int? ZonaActualId { get; set; }
+    public string? ZonaActual { get; set; }
     
     public ICollection<JugadorDelEquipoDTO>? Jugadores { get; set; }
 }

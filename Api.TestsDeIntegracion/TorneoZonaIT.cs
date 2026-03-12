@@ -391,6 +391,45 @@ public class TorneoZonaIT : TestBase
         Assert.Equal(equipoNombre, zona.Equipos[0].Nombre);
         Assert.Equal(clubNombre, zona.Equipos[0].Club);
         Assert.Equal(GeneradorDeHash.GenerarAlfanumerico7Digitos(equipoId), zona.Equipos[0].Codigo);
+        Assert.Equal("Torneo Test Zonas", zona.Equipos[0].Torneo);
+        Assert.Equal("Zona para GET", zona.Equipos[0].Zona);
+        Assert.Equal(creado.Id, zona.Equipos[0].ZonaActualId);
+    }
+
+    [Fact]
+    public async Task ObtenerZona_EquipoDeLaZonaTieneTorneoZonaYZonaActualId()
+    {
+        Assert.NotNull(_club);
+        var faseId = await CrearTorneoFaseDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        int equipoId;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var equipo = context.Equipos.FirstOrDefault(e => e.ClubId == _club.Id);
+            Assert.NotNull(equipo);
+            equipoId = equipo.Id;
+        }
+
+        var dtoCrear = new TorneoZonaDTO
+        {
+            Nombre = "Zona Norte",
+            Equipos = [new EquipoDeLaZonaDTO { Id = equipoId.ToString() }]
+        };
+        var postResponse = await client.PostAsJsonAsync($"/api/TorneoFase/{faseId}/zonas", dtoCrear);
+        postResponse.EnsureSuccessStatusCode();
+        var creado = JsonConvert.DeserializeObject<TorneoZonaDTO>(await postResponse.Content.ReadAsStringAsync())!;
+
+        var getResponse = await client.GetAsync($"/api/TorneoFase/{faseId}/zonas/{creado.Id}");
+        getResponse.EnsureSuccessStatusCode();
+        var zona = JsonConvert.DeserializeObject<TorneoZonaDTO>(await getResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(zona);
+        Assert.NotNull(zona.Equipos);
+        Assert.Single(zona.Equipos);
+        Assert.Equal("Torneo Test Zonas", zona.Equipos[0].Torneo);
+        Assert.Equal("Zona Norte", zona.Equipos[0].Zona);
+        Assert.Equal(creado.Id, zona.Equipos[0].ZonaActualId);
     }
 
     [Fact]

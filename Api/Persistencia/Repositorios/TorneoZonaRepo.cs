@@ -15,6 +15,8 @@ public class TorneoZonaRepo : RepositorioABMAnidado<TorneoZona, int>, ITorneoZon
     protected override IQueryable<TorneoZona> Set()
     {
         return Context.Set<TorneoZona>()
+            .Include(x => x.TorneoFase)
+                .ThenInclude(f => f.Torneo)
             .Include(x => x.Equipos)
                 .ThenInclude(e => e.Club)
             .Include(x => x.Fechas)
@@ -32,5 +34,12 @@ public class TorneoZonaRepo : RepositorioABMAnidado<TorneoZona, int>, ITorneoZon
             .Where(x => x.TorneoFaseId == padreId)
             .Select(x => x.Id)
             .ToListAsync();
+    }
+
+    public async Task<TorneoZona?> ObtenerPorIdYPadreParaEliminar(int padreId, int id)
+    {
+        return await Context.Set<TorneoZona>()
+            .Where(x => x.TorneoFaseId == padreId && x.Id == id)
+            .FirstOrDefaultAsync();
     }
 }

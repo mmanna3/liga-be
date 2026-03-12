@@ -30,8 +30,7 @@ public class EquipoCoreTests
 
         var jugadorRepoMock = new Mock<IJugadorRepo>();
         var imagenJugadorRepoMock = new Mock<IImagenJugadorRepo>();
-        var torneoRepoMock = new Mock<ITorneoRepo>();
-        var core = new EquipoCore(bdMock.Object, repoMock.Object, mapperMock.Object, jugadorRepoMock.Object, imagenJugadorRepoMock.Object, torneoRepoMock.Object);
+        var core = new EquipoCore(bdMock.Object, repoMock.Object, mapperMock.Object, jugadorRepoMock.Object, imagenJugadorRepoMock.Object);
         var codigo = GeneradorDeHash.GenerarAlfanumerico7Digitos(1);
 
         var result = await core.ObtenerClubPorCodigoAlfanumericoDelEquipo(codigo);
@@ -50,8 +49,7 @@ public class EquipoCoreTests
 
         var jugadorRepoMock = new Mock<IJugadorRepo>();
         var imagenJugadorRepoMock = new Mock<IImagenJugadorRepo>();
-        var torneoRepoMock = new Mock<ITorneoRepo>();
-        var core = new EquipoCore(bdMock.Object, repoMock.Object, mapperMock.Object, jugadorRepoMock.Object, imagenJugadorRepoMock.Object, torneoRepoMock.Object);
+        var core = new EquipoCore(bdMock.Object, repoMock.Object, mapperMock.Object, jugadorRepoMock.Object, imagenJugadorRepoMock.Object);
 
         var result = await core.ObtenerClubPorCodigoAlfanumericoDelEquipo("XXX0001");
 
@@ -69,8 +67,7 @@ public class EquipoCoreTests
 
         var jugadorRepoMock = new Mock<IJugadorRepo>();
         var imagenJugadorRepoMock = new Mock<IImagenJugadorRepo>();
-        var torneoRepoMock = new Mock<ITorneoRepo>();
-        var core = new EquipoCore(bdMock.Object, repoMock.Object, mapperMock.Object, jugadorRepoMock.Object, imagenJugadorRepoMock.Object, torneoRepoMock.Object);
+        var core = new EquipoCore(bdMock.Object, repoMock.Object, mapperMock.Object, jugadorRepoMock.Object, imagenJugadorRepoMock.Object);
         var codigo = GeneradorDeHash.GenerarAlfanumerico7Digitos(9999);
 
         var result = await core.ObtenerClubPorCodigoAlfanumericoDelEquipo(codigo);

@@ -83,6 +83,18 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
         return creados;
     }
 
+    public override async Task<int> Eliminar(int padreId, int id)
+    {
+        var entidad = await Repo.ObtenerPorIdYPadreParaEliminar(padreId, id);
+        if (entidad == null)
+            return -1;
+
+        await AntesDeEliminar(padreId, id, entidad);
+        Repo.Eliminar(entidad);
+        await BDVirtual.GuardarCambios();
+        return id;
+    }
+
     public async Task ModificarMasivamente(int padreId, IEnumerable<TorneoZonaDTO> dtos)
     {
         var list = dtos?.ToList() ?? [];
