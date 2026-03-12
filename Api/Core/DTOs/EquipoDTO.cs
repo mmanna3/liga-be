@@ -8,6 +8,7 @@ public class EquipoDTO : DTO
     public string? CodigoAlfanumerico { get; set; }
     public string? ClubNombre { get; set; }
     
+    public int? AgrupadorId { get; set; }
     public int? TorneoId { get; set; }
     public string? Torneo { get; set; }
     public int? FaseId { get; set; }

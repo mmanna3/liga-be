@@ -94,6 +94,7 @@ public class MapperConfig : Profile
 
         CreateMap<Equipo, EquipoDTO>()
             .ForMember(dest => dest.ClubNombre, x => x.MapFrom(src => src.Club.Nombre))
+            .ForMember(dest => dest.AgrupadorId, x => x.MapFrom(src => src.ZonaActual != null && src.ZonaActual.TorneoFase != null && src.ZonaActual.TorneoFase.Torneo != null ? (int?)src.ZonaActual.TorneoFase.Torneo.TorneoAgrupadorId : null))
             .ForMember(dest => dest.TorneoId, x => x.MapFrom(src => src.ZonaActual != null && src.ZonaActual.TorneoFase != null ? (int?)src.ZonaActual.TorneoFase.TorneoId : null))
             .ForMember(dest => dest.Torneo, x => x.MapFrom(src => src.ZonaActual != null && src.ZonaActual.TorneoFase != null && src.ZonaActual.TorneoFase.Torneo != null ? src.ZonaActual.TorneoFase.Torneo.Nombre : null))
             .ForMember(dest => dest.FaseId, x => x.MapFrom(src => src.ZonaActual != null && src.ZonaActual.TorneoFase != null ? (int?)src.ZonaActual.TorneoFase.Id : null))
