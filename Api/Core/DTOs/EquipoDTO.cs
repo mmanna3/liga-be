@@ -8,13 +8,8 @@ public class EquipoDTO : DTO
     public string? CodigoAlfanumerico { get; set; }
     public string? ClubNombre { get; set; }
     
-    public int? AgrupadorId { get; set; }
-    public int? TorneoId { get; set; }
-    public string? Torneo { get; set; }
-    public int? FaseId { get; set; }
-    public string? Fase { get; set; }
-    public int? ZonaExcluyenteId { get; set; }
-    public string? ZonaExcluyente { get; set; }
-    
+    public ZonaDTO? ZonaExcluyente { get; set; }
+    public List<ZonaDTO> ZonasNoExcluyentes { get; set; } = [];
+
     public ICollection<JugadorDelEquipoDTO>? Jugadores { get; set; }
 }

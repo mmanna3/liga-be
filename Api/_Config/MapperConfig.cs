@@ -42,6 +42,12 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombre))
             .ForMember(dest => dest.CantidadDeEquipos, opt => opt.MapFrom<CantidadEquiposDeZonaResolver>());
 
+        CreateMap<TorneoZona, ZonaDTO>()
+            .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => src.TorneoFase != null && src.TorneoFase.Torneo != null ? $"{src.TorneoFase.Torneo.Nombre} {src.TorneoFase.Torneo.Anio}" : string.Empty))
+            .ForMember(dest => dest.Agrupador, opt => opt.MapFrom(src => src.TorneoFase != null && src.TorneoFase.Torneo != null && src.TorneoFase.Torneo.TorneoAgrupador != null ? src.TorneoFase.Torneo.TorneoAgrupador.Nombre : string.Empty))
+            .ForMember(dest => dest.AgrupadorId, opt => opt.MapFrom(src => src.TorneoFase != null && src.TorneoFase.Torneo != null ? (int?)src.TorneoFase.Torneo.TorneoAgrupadorId : null))
+            .ForMember(dest => dest.EsExcluyente, opt => opt.MapFrom(src => src.TorneoFase != null && src.TorneoFase.EsExcluyente));
+
         CreateMap<TorneoFase, TorneoFaseDTO>()
             .ForMember(dest => dest.FaseFormatoNombre, opt => opt.MapFrom(src => src.FaseFormato != null ? src.FaseFormato.Nombre : string.Empty))
             .ForMember(dest => dest.InstanciaEliminacionDirectaNombre, opt => opt.MapFrom(src => src.InstanciaEliminacionDirecta != null ? src.InstanciaEliminacionDirecta.Nombre : null))
@@ -91,13 +97,8 @@ public class MapperConfig : Profile
 
         CreateMap<Equipo, EquipoDTO>()
             .ForMember(dest => dest.ClubNombre, x => x.MapFrom(src => src.Club.Nombre))
-            .ForMember(dest => dest.AgrupadorId, x => x.MapFrom(src => src.ZonaExcluyente != null && src.ZonaExcluyente.TorneoFase != null && src.ZonaExcluyente.TorneoFase.Torneo != null ? (int?)src.ZonaExcluyente.TorneoFase.Torneo.TorneoAgrupadorId : null))
-            .ForMember(dest => dest.TorneoId, x => x.MapFrom(src => src.ZonaExcluyente != null && src.ZonaExcluyente.TorneoFase != null ? (int?)src.ZonaExcluyente.TorneoFase.TorneoId : null))
-            .ForMember(dest => dest.Torneo, x => x.MapFrom(src => src.ZonaExcluyente != null && src.ZonaExcluyente.TorneoFase != null && src.ZonaExcluyente.TorneoFase.Torneo != null ? src.ZonaExcluyente.TorneoFase.Torneo.Nombre : null))
-            .ForMember(dest => dest.FaseId, x => x.MapFrom(src => src.ZonaExcluyente != null && src.ZonaExcluyente.TorneoFase != null ? (int?)src.ZonaExcluyente.TorneoFase.Id : null))
-            .ForMember(dest => dest.Fase, x => x.MapFrom(src => src.ZonaExcluyente != null && src.ZonaExcluyente.TorneoFase != null && src.ZonaExcluyente.TorneoFase.Nombre != null ? src.ZonaExcluyente.TorneoFase.Nombre : null))
-            .ForMember(dest => dest.ZonaExcluyenteId, x => x.MapFrom(src => src.ZonaExcluyenteId))
-            .ForMember(dest => dest.ZonaExcluyente, x => x.MapFrom(src => src.ZonaExcluyente != null ? src.ZonaExcluyente.Nombre : null))
+            .ForMember(dest => dest.ZonaExcluyente, x => x.MapFrom(src => src.ZonaExcluyente))
+            .ForMember(dest => dest.ZonasNoExcluyentes, x => x.MapFrom(src => src.ZonasNoExcluyentes != null ? src.ZonasNoExcluyentes.Select(ez => ez.ZonaNoExcluyente).ToList() : new List<TorneoZona>()))
             .ForMember(dest => dest.CodigoAlfanumerico,
                 x => x.MapFrom(src => GeneradorDeHash.GenerarAlfanumerico7Digitos(src.Id)))
             .PreserveReferences();
@@ -105,6 +106,8 @@ public class MapperConfig : Profile
         CreateMap<EquipoDTO, Equipo>()
             .ForMember(dest => dest.Club, opt => opt.Ignore())
             .ForMember(dest => dest.ZonaExcluyente, opt => opt.Ignore())
+            .ForMember(dest => dest.ZonaExcluyenteId, opt => opt.MapFrom(src => src.ZonaExcluyente != null ? src.ZonaExcluyente.Id : null))
+            .ForMember(dest => dest.ZonasNoExcluyentes, opt => opt.Ignore())
             .PreserveReferences();
 
         CreateMap<JugadorEquipo, JugadorDelEquipoDTO>()
