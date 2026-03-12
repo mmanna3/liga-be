@@ -2,6 +2,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Api.Core.DTOs;
 
+public class ZonaDeFaseDTO
+{
+    public string Nombre { get; set; } = string.Empty;
+    public int CantidadDeEquipos { get; set; }
+}
+
 public class TorneoFaseDTO : DTO
 {
     [Required, MaxLength(50)]
@@ -19,4 +25,5 @@ public class TorneoFaseDTO : DTO
     public bool EsVisibleEnApp { get; set; }
     public bool EsExcluyente { get; set; }
     public bool SePuedeEditar { get; set; }
+    public List<ZonaDeFaseDTO> Zonas { get; set; } = [];
 }

@@ -24,7 +24,7 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.TorneoAgrupadorNombre, opt => opt.MapFrom(src => src.TorneoAgrupador != null ? src.TorneoAgrupador.Nombre : string.Empty))
             .ForMember(dest => dest.SePuedeEditar, opt => opt.MapFrom(src =>
                 src.Fases == null || !src.Fases.Any() || src.Fases.All(f =>
-                    f.Zonas == null || !f.Zonas.Any() || f.Zonas.All(z => z.Fechas == null || !z.Fechas.Any()))))
+                    f.Zonas == null || !f.Zonas.Any())))
             .ForMember(dest => dest.Fases, opt => opt.MapFrom(src => src.Fases != null ? src.Fases : new List<TorneoFase>()))
             .ForMember(dest => dest.Categorias, opt => opt.MapFrom(src => src.Categorias != null ? src.Categorias : new List<TorneoCategoria>()))
             .PreserveReferences()
@@ -38,22 +38,29 @@ public class MapperConfig : Profile
             .PreserveReferences()
             .ReverseMap()
             .ForMember(dest => dest.Torneo, opt => opt.Ignore());
+        CreateMap<TorneoZona, ZonaDeFaseDTO>()
+            .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombre))
+            .ForMember(dest => dest.CantidadDeEquipos, opt => opt.MapFrom(src => src.Equipos != null ? src.Equipos.Count : 0));
+
         CreateMap<TorneoFase, TorneoFaseDTO>()
             .ForMember(dest => dest.FaseFormatoNombre, opt => opt.MapFrom(src => src.FaseFormato != null ? src.FaseFormato.Nombre : string.Empty))
             .ForMember(dest => dest.InstanciaEliminacionDirectaNombre, opt => opt.MapFrom(src => src.InstanciaEliminacionDirecta != null ? src.InstanciaEliminacionDirecta.Nombre : null))
             .ForMember(dest => dest.EstadoFaseNombre, opt => opt.MapFrom(src => src.EstadoFase != null ? src.EstadoFase.Estado : string.Empty))
             .ForMember(dest => dest.SePuedeEditar, opt => opt.MapFrom(src =>
                 src.Zonas == null || !src.Zonas.Any()))
+            .ForMember(dest => dest.Zonas, opt => opt.MapFrom(src => src.Zonas != null ? src.Zonas : new List<TorneoZona>()))
             .PreserveReferences()
             .ReverseMap()
             .ForMember(dest => dest.Torneo, opt => opt.Ignore())
             .ForMember(dest => dest.FaseFormato, opt => opt.Ignore())
             .ForMember(dest => dest.InstanciaEliminacionDirecta, opt => opt.Ignore())
             .ForMember(dest => dest.EstadoFase, opt => opt.Ignore())
+            .ForMember(dest => dest.Zonas, opt => opt.Ignore())
             .ForSourceMember(src => src.FaseFormatoNombre, opt => opt.DoNotValidate())
             .ForSourceMember(src => src.InstanciaEliminacionDirectaNombre, opt => opt.DoNotValidate())
             .ForSourceMember(src => src.EstadoFaseNombre, opt => opt.DoNotValidate())
-            .ForSourceMember(src => src.SePuedeEditar, opt => opt.DoNotValidate());
+            .ForSourceMember(src => src.SePuedeEditar, opt => opt.DoNotValidate())
+            .ForSourceMember(src => src.Zonas, opt => opt.DoNotValidate());
         CreateMap<Equipo, EquipoDeLaZonaDTO>()
             .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombre))
             .ForMember(dest => dest.Club, opt => opt.MapFrom(src => src.Club != null ? src.Club.Nombre : string.Empty))
