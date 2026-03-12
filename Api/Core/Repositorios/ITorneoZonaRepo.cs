@@ -4,4 +4,5 @@ namespace Api.Core.Repositorios;
 
 public interface ITorneoZonaRepo : IRepositorioABMAnidado<TorneoZona, int>
 {
+    Task<IEnumerable<int>> ListarIdsPorPadre(int padreId);
 }

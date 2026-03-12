@@ -25,4 +25,12 @@ public class TorneoZonaRepo : RepositorioABMAnidado<TorneoZona, int>, ITorneoZon
     {
         return x => x.TorneoFaseId == padreId;
     }
+
+    public async Task<IEnumerable<int>> ListarIdsPorPadre(int padreId)
+    {
+        return await Context.Set<TorneoZona>()
+            .Where(x => x.TorneoFaseId == padreId)
+            .Select(x => x.Id)
+            .ToListAsync();
+    }
 }

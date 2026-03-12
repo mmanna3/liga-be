@@ -85,7 +85,20 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
 
     public async Task ModificarMasivamente(int padreId, IEnumerable<TorneoZonaDTO> dtos)
     {
-        foreach (var dto in dtos)
+        var list = dtos?.ToList() ?? [];
+        var idsEnRequest = list.Where(d => d.Id > 0).Select(d => d.Id).ToHashSet();
+
+        var idsExistentes = (await Repo.ListarIdsPorPadre(padreId)).ToList();
+        var idsAEliminar = list.Count == 0
+            ? idsExistentes
+            : idsExistentes.Where(id => !idsEnRequest.Contains(id)).ToList();
+
+        foreach (var id in idsAEliminar)
+        {
+            await Eliminar(padreId, id);
+        }
+
+        foreach (var dto in list)
         {
             if (dto.Id <= 0)
                 continue;

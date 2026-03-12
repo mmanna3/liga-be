@@ -727,4 +727,62 @@ public class TorneoZonaIT : TestBase
         Assert.Equal(clubNombre, zona2.Equipos[0].Club);
         Assert.NotEmpty(zona2.Equipos[0].Codigo);
     }
+
+    [Fact]
+    public async Task ModificarZonasMasivamente_ArrayVacio_EliminaTodasLasZonas()
+    {
+        var faseId = await CrearTorneoFaseDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        await client.PostAsJsonAsync($"/api/TorneoFase/{faseId}/zonas/crear-zonas-masivamente",
+            new List<TorneoZonaDTO>
+            {
+                new() { Nombre = "Zona A" },
+                new() { Nombre = "Zona B" }
+            });
+
+        var putResponse = await client.PutAsJsonAsync($"/api/TorneoFase/{faseId}/zonas/modificar-zonas-masivamente", new List<TorneoZonaDTO>());
+        Assert.Equal(System.Net.HttpStatusCode.NoContent, putResponse.StatusCode);
+
+        var listResponse = await client.GetAsync($"/api/TorneoFase/{faseId}/zonas");
+        listResponse.EnsureSuccessStatusCode();
+        var zonas = JsonConvert.DeserializeObject<List<TorneoZonaDTO>>(await listResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(zonas);
+        Assert.Empty(zonas);
+    }
+
+    [Fact]
+    public async Task ModificarZonasMasivamente_ZonasNoIncluidasEnArray_SeEliminan()
+    {
+        var faseId = await CrearTorneoFaseDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var postResponse = await client.PostAsJsonAsync($"/api/TorneoFase/{faseId}/zonas/crear-zonas-masivamente",
+            new List<TorneoZonaDTO>
+            {
+                new() { Nombre = "Zona A" },
+                new() { Nombre = "Zona B" },
+                new() { Nombre = "Zona C" }
+            });
+        postResponse.EnsureSuccessStatusCode();
+        var creados = JsonConvert.DeserializeObject<List<TorneoZonaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
+
+        var dtosModificar = new List<TorneoZonaDTO>
+        {
+            new() { Id = creados[0].Id, Nombre = "Zona A Modificada", TorneoFaseId = faseId },
+            new() { Id = creados[2].Id, Nombre = "Zona C Modificada", TorneoFaseId = faseId }
+        };
+
+        var putResponse = await client.PutAsJsonAsync($"/api/TorneoFase/{faseId}/zonas/modificar-zonas-masivamente", dtosModificar);
+        Assert.Equal(System.Net.HttpStatusCode.NoContent, putResponse.StatusCode);
+
+        var listResponse = await client.GetAsync($"/api/TorneoFase/{faseId}/zonas");
+        listResponse.EnsureSuccessStatusCode();
+        var zonas = JsonConvert.DeserializeObject<List<TorneoZonaDTO>>(await listResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(zonas);
+        Assert.Equal(2, zonas.Count);
+        Assert.Contains(zonas, z => z.Nombre == "Zona A Modificada");
+        Assert.Contains(zonas, z => z.Nombre == "Zona C Modificada");
+        Assert.DoesNotContain(zonas, z => z.Nombre == "Zona B");
+    }
 }
