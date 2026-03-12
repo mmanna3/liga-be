@@ -16,6 +16,7 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
+        builder.HasDefaultSchema("dbo");
         base.OnModelCreating(builder);
 
         builder.Entity<EstadoDelegado>().ToTable("_EstadoDelegado");
