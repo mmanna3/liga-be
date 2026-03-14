@@ -129,6 +129,15 @@ public class AppDbContext : DbContext
             .HasForeignKey(f => f.FixtureAlgoritmoId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<FixtureAlgoritmo>().HasData(
+            new FixtureAlgoritmo { Id = 1, CantidadDeEquipos = 4 },
+            new FixtureAlgoritmo { Id = 2, CantidadDeEquipos = 8 },
+            new FixtureAlgoritmo { Id = 3, CantidadDeEquipos = 10 },
+            new FixtureAlgoritmo { Id = 4, CantidadDeEquipos = 12 },
+            new FixtureAlgoritmo { Id = 5, CantidadDeEquipos = 14 },
+            new FixtureAlgoritmo { Id = 6, CantidadDeEquipos = 16 }
+        );
+
         builder.Entity<Delegado>()
             .HasIndex(d => d.DNI)
             .IsUnique();
