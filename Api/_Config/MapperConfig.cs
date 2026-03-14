@@ -217,10 +217,16 @@ public class EquiposDeZonaResolver : IValueResolver<TorneoZona, TorneoZonaDTO, L
         List<Equipo> equipos;
         if (source.TorneoFase != null && source.TorneoFase.EsExcluyente)
             equipos = source.Equipos != null ? source.Equipos.ToList() : new List<Equipo>();
-        else if (source.EquiposZonaNoExcluyente != null)
-            equipos = source.EquiposZonaNoExcluyente.Select(e => e.Equipo).Where(e => e != null).ToList()!;
+        else if (source.TorneoFase != null && !source.TorneoFase.EsExcluyente)
+            equipos = source.EquiposZonaNoExcluyente != null ? source.EquiposZonaNoExcluyente.Select(e => e.Equipo).Where(e => e != null).ToList()! : new List<Equipo>();
         else
-            equipos = new List<Equipo>();
+        {
+            // TorneoFase puede ser null si la zona se cargó sin Include (ej. desde TorneoFase.Zonas).
+            // Una zona solo tiene equipos en una u otra colección, nunca en ambas.
+            var fromExcluyente = source.Equipos != null ? source.Equipos.ToList() : new List<Equipo>();
+            var fromNoExcluyente = source.EquiposZonaNoExcluyente != null ? source.EquiposZonaNoExcluyente.Select(e => e.Equipo).Where(e => e != null).ToList()! : new List<Equipo>();
+            equipos = fromExcluyente.Count > 0 ? fromExcluyente : fromNoExcluyente;
+        }
         return context.Mapper.Map<List<EquipoDeLaZonaDTO>>(equipos);
     }
 }
