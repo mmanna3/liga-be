@@ -12,6 +12,7 @@ public class ABMControllers : TestBase
     [InlineData("delegado")]
     [InlineData("equipo")]
     [InlineData("club")]
+    [InlineData("FixtureAlgoritmo")]
     public async Task Get_en_ABMEndpoints_Devuelve_Success(string endpoint)
     {
         var client = await GetAuthenticatedClient();

@@ -163,6 +163,13 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => src.Zonas != null && src.Zonas.Any() ? src.Zonas.First().Zona.TorneoFase != null && src.Zonas.First().Zona.TorneoFase.Torneo != null ? src.Zonas.First().Zona.TorneoFase.Torneo.Nombre : "" : ""))
             .ForMember(dest => dest.CodigoAlfanumerico, opt => opt.MapFrom(src => GeneradorDeHash.GenerarAlfanumerico7Digitos(src.Id)));
 
+        CreateMap<FixtureAlgoritmo, FixtureAlgoritmoDTO>()
+            .ForMember(d => d.FixtureAlgoritmoId, opt => opt.MapFrom(s => s.Id))
+            .ForMember(d => d.Fechas, opt => opt.MapFrom(s => s.Fechas ?? new List<FixtureAlgoritmoFecha>()));
+        CreateMap<FixtureAlgoritmoDTO, FixtureAlgoritmo>()
+            .ForMember(d => d.Fechas, opt => opt.Ignore());
+        CreateMap<FixtureAlgoritmoFecha, FixtureAlgoritmoFechaDTO>();
+
         CreateMap<Delegado, CarnetDigitalDTO>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.DNI, opt => opt.MapFrom(src => src.DNI))

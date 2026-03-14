@@ -122,10 +122,10 @@ public class AppDbContext : DbContext
             .HasForeignKey(ez => ez.ZonaId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Entity<FixtureAlgoritmoPartido>()
-            .ToTable("FixtureAlgoritmoPartido")
+        builder.Entity<FixtureAlgoritmoFecha>()
+            .ToTable("FixtureAlgoritmoFecha")
             .HasOne(f => f.FixtureAlgoritmo)
-            .WithMany()
+            .WithMany(fa => fa.Fechas)
             .HasForeignKey(f => f.FixtureAlgoritmoId)
             .OnDelete(DeleteBehavior.Cascade);
 
@@ -209,6 +209,6 @@ public class AppDbContext : DbContext
     public DbSet<TorneoFecha> TorneoFechas { get; set; } = null!;
     public DbSet<EquipoZona> EquipoZona { get; set; } = null!;
     public DbSet<FixtureAlgoritmo> FixtureAlgoritmos { get; set; } = null!;
-    public DbSet<FixtureAlgoritmoPartido> FixtureAlgoritmoPartido { get; set; } = null!;
+    public DbSet<FixtureAlgoritmoFecha> FixtureAlgoritmoFecha { get; set; } = null!;
     public DbSet<HistorialDePagos> HistorialDePagos { get; set; } = null!;
 }

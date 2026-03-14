@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Api.Core.Entidades;
 
 [Index(nameof(FixtureAlgoritmoId), nameof(Fecha), nameof(EquipoLocal), nameof(EquipoVisitante), IsUnique = true)]
-public class FixtureAlgoritmoPartido : Entidad
+public class FixtureAlgoritmoFecha : Entidad
 {
     [ForeignKey("FixtureAlgoritmo")]
     public required int FixtureAlgoritmoId { get; set; }

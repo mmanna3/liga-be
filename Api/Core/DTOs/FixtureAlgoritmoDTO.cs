@@ -3,11 +3,11 @@ namespace Api.Core.DTOs;
 public class FixtureAlgoritmoDTO : DTO
 {
     public required int FixtureAlgoritmoId { get; set; }
-    public required int CantidadDeFechas { get; set; }
-    public List<FixtureAlgoritmoPartidoDTO> Partidos { get; set; } = [];
+    public required int CantidadDeEquipos { get; set; }
+    public List<FixtureAlgoritmoFechaDTO> Fechas { get; set; } = [];
 }
 
-public class FixtureAlgoritmoPartidoDTO : DTO
+public class FixtureAlgoritmoFechaDTO : DTO
 {
     public required int Fecha { get; set; }
     public required int EquipoLocal { get; set; }
