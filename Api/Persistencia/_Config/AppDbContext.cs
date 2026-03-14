@@ -122,6 +122,13 @@ public class AppDbContext : DbContext
             .HasForeignKey(ez => ez.ZonaId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<FixtureAlgoritmoPartido>()
+            .ToTable("FixtureAlgoritmoPartido")
+            .HasOne(f => f.FixtureAlgoritmo)
+            .WithMany()
+            .HasForeignKey(f => f.FixtureAlgoritmoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Entity<Delegado>()
             .HasIndex(d => d.DNI)
             .IsUnique();
@@ -201,5 +208,7 @@ public class AppDbContext : DbContext
     public DbSet<TorneoZona> TorneoZonas { get; set; } = null!;
     public DbSet<TorneoFecha> TorneoFechas { get; set; } = null!;
     public DbSet<EquipoZona> EquipoZona { get; set; } = null!;
+    public DbSet<FixtureAlgoritmo> FixtureAlgoritmos { get; set; } = null!;
+    public DbSet<FixtureAlgoritmoPartido> FixtureAlgoritmoPartido { get; set; } = null!;
     public DbSet<HistorialDePagos> HistorialDePagos { get; set; } = null!;
 }

@@ -4,6 +4,7 @@ using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260314160640_IndiceUnicoFixtureAlgoritmoPartidos")]
+    partial class IndiceUnicoFixtureAlgoritmoPartidos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -399,50 +402,6 @@ namespace Api.Migrations
                     b.ToTable("EquipoZona", "dbo");
                 });
 
-            modelBuilder.Entity("Api.Core.Entidades.FixtureAlgoritmo", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CantidadDeFechas")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("FixtureAlgoritmos", "dbo");
-                });
-
-            modelBuilder.Entity("Api.Core.Entidades.FixtureAlgoritmoPartido", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("EquipoLocal")
-                        .HasColumnType("int");
-
-                    b.Property<int>("EquipoVisitante")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Fecha")
-                        .HasColumnType("int");
-
-                    b.Property<int>("FixtureAlgoritmoId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FixtureAlgoritmoId", "Fecha", "EquipoLocal", "EquipoVisitante")
-                        .IsUnique();
-
-                    b.ToTable("FixtureAlgoritmoPartido", "dbo");
-                });
-
             modelBuilder.Entity("Api.Core.Entidades.HistorialDePagos", b =>
                 {
                     b.Property<int>("Id")
@@ -762,21 +721,21 @@ namespace Api.Migrations
                         {
                             Id = 1,
                             NombreUsuario = "mati",
-                            Password = "$2a$12$WY0LE5yf8vM8fmCiWiBJuO4s8DHDAykq2PSf3kscCeNc83qkF7bQG",
+                            Password = "$2a$12$3wTFUPnoEV8pqXaAx2.7seadx2qrdq1lQniyLltI2SeFfhAJwvwbG",
                             RolId = 1
                         },
                         new
                         {
                             Id = 2,
                             NombreUsuario = "pipa",
-                            Password = "$2a$12$FlQmVHPcwcS25DK8rHpLDOFzV7HdVjllCHN4AZRyAzQkqXCDPaV4O",
+                            Password = "$2a$12$2HYmjpbUceChv1L9H2maX.EO0UMVGvlQBowbN1l1ePno9HsOFEuAe",
                             RolId = 1
                         },
                         new
                         {
                             Id = 101,
                             NombreUsuario = "consulta",
-                            Password = "$2a$12$7oO5xAV3amXSwobdEYX7vuHhZAQjDuB6Y0JmzaZIQHA8WI3dGWZ2q",
+                            Password = "$2a$12$fHiOiz/bQ3B9XNJ/AGrCMuvhgqmpvwyhwXfpRXuQWDwJtM0wc.oey",
                             RolId = 3
                         });
                 });
@@ -836,17 +795,6 @@ namespace Api.Migrations
                     b.Navigation("Equipo");
 
                     b.Navigation("Zona");
-                });
-
-            modelBuilder.Entity("Api.Core.Entidades.FixtureAlgoritmoPartido", b =>
-                {
-                    b.HasOne("Api.Core.Entidades.FixtureAlgoritmo", "FixtureAlgoritmo")
-                        .WithMany()
-                        .HasForeignKey("FixtureAlgoritmoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FixtureAlgoritmo");
                 });
 
             modelBuilder.Entity("Api.Core.Entidades.HistorialDePagos", b =>
