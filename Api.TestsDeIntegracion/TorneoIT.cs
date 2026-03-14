@@ -41,8 +41,7 @@ public class TorneoIT : TestBase
                 FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
                 InstanciaEliminacionDirectaId = null,
                 EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
-                EsVisibleEnApp = true,
-                EsExcluyente = false
+                EsVisibleEnApp = true
             },
             Categorias =
             [
@@ -367,8 +366,7 @@ public class TorneoIT : TestBase
                 Numero = 1,
                 FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
                 EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
-                EsVisibleEnApp = true,
-                EsExcluyente = false
+                EsVisibleEnApp = true
             }
         };
         await client.PostAsJsonAsync("/api/torneo", dto);
@@ -387,7 +385,6 @@ public class TorneoIT : TestBase
         Assert.Equal("Fase grupos", fase.Nombre);
         Assert.Equal(1, fase.Numero);
         Assert.Equal("Todos contra todos", fase.FaseFormatoNombre);
-        Assert.False(fase.EsExcluyente);
         Assert.True(fase.EsVisibleEnApp);
     }
 
@@ -407,8 +404,7 @@ public class TorneoIT : TestBase
                 Numero = 1,
                 FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
                 EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
-                EsVisibleEnApp = true,
-                EsExcluyente = false
+                EsVisibleEnApp = true
             },
             Categorias =
             [
@@ -447,8 +443,7 @@ public class TorneoIT : TestBase
                 Numero = 1,
                 FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
                 EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
-                EsVisibleEnApp = true,
-                EsExcluyente = false
+                EsVisibleEnApp = true
             },
             Categorias = [new TorneoCategoriaDTO { Nombre = "Cat", AnioDesde = 2010, AnioHasta = 2015 }]
         };
@@ -494,8 +489,7 @@ public class TorneoIT : TestBase
                 Numero = 1,
                 FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
                 EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
-                EsVisibleEnApp = true,
-                EsExcluyente = false
+                EsVisibleEnApp = true
             },
             Categorias = [new TorneoCategoriaDTO { Nombre = "Cat vieja", AnioDesde = 2010, AnioHasta = 2015 }]
         };
@@ -519,7 +513,6 @@ public class TorneoIT : TestBase
                     FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
                     EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
                     EsVisibleEnApp = false,
-                    EsExcluyente = true
                 }
             ],
             Categorias =
@@ -538,7 +531,6 @@ public class TorneoIT : TestBase
         Assert.Single(torneo.Fases!);
         Assert.Equal("Fase nueva", torneo.Fases[0].Nombre);
         Assert.False(torneo.Fases[0].EsVisibleEnApp);
-        Assert.True(torneo.Fases[0].EsExcluyente);
         Assert.Single(torneo.Categorias!);
         Assert.Equal("Sub-18", torneo.Categorias[0].Nombre);
     }
@@ -559,8 +551,7 @@ public class TorneoIT : TestBase
                 Numero = 1,
                 FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
                 EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
-                EsVisibleEnApp = true,
-                EsExcluyente = false
+                EsVisibleEnApp = true
             },
             Categorias = [new TorneoCategoriaDTO { Nombre = "Cat original", AnioDesde = 2010, AnioHasta = 2015 }]
         };

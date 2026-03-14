@@ -77,8 +77,7 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
                 FaseFormatoId = dto.FaseFormatoId,
                 InstanciaEliminacionDirectaId = dto.InstanciaEliminacionDirectaId,
                 EstadoFaseId = dto.EstadoFaseId,
-                EsVisibleEnApp = dto.EsVisibleEnApp,
-                EsExcluyente = dto.EsExcluyente
+                EsVisibleEnApp = dto.EsVisibleEnApp
             };
             _torneoFaseRepo.Crear(fase);
             await BDVirtual.GuardarCambios();
@@ -171,8 +170,7 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
             FaseFormatoId = dto.FaseFormatoId,
             InstanciaEliminacionDirectaId = dto.InstanciaEliminacionDirectaId,
             EstadoFaseId = dto.EstadoFaseId,
-            EsVisibleEnApp = dto.EsVisibleEnApp,
-            EsExcluyente = dto.EsExcluyente
+            EsVisibleEnApp = dto.EsVisibleEnApp
         };
         _torneoFaseRepo.Crear(fase);
         await BDVirtual.GuardarCambios();

@@ -15,12 +15,8 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
     {
         return Context.Set<Equipo>()
             .Include(x => x.Club)
-            .Include(x => x.ZonaExcluyente)
-                .ThenInclude(z => z!.TorneoFase)
-                    .ThenInclude(f => f.Torneo)
-                        .ThenInclude(t => t!.TorneoAgrupador)
-            .Include(x => x.ZonasNoExcluyentes)
-                .ThenInclude(ez => ez.ZonaNoExcluyente)
+            .Include(x => x.Zonas)
+                .ThenInclude(ez => ez.Zona)
                     .ThenInclude(z => z.TorneoFase)
                         .ThenInclude(f => f.Torneo)
                             .ThenInclude(t => t!.TorneoAgrupador)
@@ -31,17 +27,26 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
             .AsQueryable();
     }
 
-    public async Task<bool> ExisteEquipoConMismoNombreEnZona(string nombre, int? zonaActualId, int? equipoIdExcluir = null)
+    public async Task<bool> ExisteEquipoConMismoNombreEnZona(string nombre, IEnumerable<int> zonaIds, int? equipoIdExcluir = null)
     {
-        var query = Context.Set<Equipo>()
-            .Where(e => e.Nombre.ToLower() == nombre.ToLower() && e.ZonaExcluyenteId == zonaActualId);
-            
-        if (equipoIdExcluir.HasValue)
+        var ids = zonaIds?.ToList() ?? [];
+        var nombreLower = nombre.ToLower();
+
+        if (ids.Count == 0)
         {
-            query = query.Where(e => e.Id != equipoIdExcluir.Value);
+            var query = Context.Set<Equipo>()
+                .Where(e => e.Nombre.ToLower() == nombreLower && !e.Zonas.Any());
+            if (equipoIdExcluir.HasValue)
+                query = query.Where(e => e.Id != equipoIdExcluir.Value);
+            return await query.AnyAsync();
         }
-        
-        return await query.AnyAsync();
+
+        var query2 = Context.Set<EquipoZona>()
+            .Where(ez => ids.Contains(ez.ZonaId))
+            .Where(ez => ez.Equipo.Nombre.ToLower() == nombreLower);
+        if (equipoIdExcluir.HasValue)
+            query2 = query2.Where(ez => ez.EquipoId != equipoIdExcluir.Value);
+        return await query2.AnyAsync();
     }
 
     public async Task<int> ContarEquiposDelJugador(int jugadorId)
@@ -51,13 +56,10 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
 
     public async Task QuitarEquiposDeZona(int zonaId)
     {
-        var equipos = await Context.Set<Equipo>()
-            .Where(e => e.ZonaExcluyenteId == zonaId)
+        var registros = await Context.Set<EquipoZona>()
+            .Where(e => e.ZonaId == zonaId)
             .ToListAsync();
-        foreach (var equipo in equipos)
-        {
-            equipo.ZonaExcluyenteId = null;
-        }
+        Context.Set<EquipoZona>().RemoveRange(registros);
     }
 
     public async Task AsignarEquiposAZona(int zonaId, IEnumerable<int> equipoIds)
@@ -66,42 +68,38 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
         if (ids.Count == 0)
             return;
 
-        var equipos = await Context.Set<Equipo>()
-            .Where(e => ids.Contains(e.Id))
-            .ToListAsync();
-        foreach (var equipo in equipos)
-        {
-            equipo.ZonaExcluyenteId = zonaId;
-        }
-    }
-
-    public async Task QuitarEquiposDeZonaNoExcluyente(int zonaId)
-    {
-        var registros = await Context.Set<EquipoZonaNoExcluyente>()
-            .Where(e => e.ZonaNoExcluyenteId == zonaId)
-            .ToListAsync();
-        Context.Set<EquipoZonaNoExcluyente>().RemoveRange(registros);
-    }
-
-    public async Task AsignarEquiposAZonaNoExcluyente(int zonaId, IEnumerable<int> equipoIds)
-    {
-        var ids = equipoIds.Distinct().ToList();
-        if (ids.Count == 0)
-            return;
-
         foreach (var equipoId in ids)
         {
-            var existe = await Context.Set<EquipoZonaNoExcluyente>()
-                .AnyAsync(e => e.EquipoId == equipoId && e.ZonaNoExcluyenteId == zonaId);
+            var existe = await Context.Set<EquipoZona>()
+                .AnyAsync(e => e.EquipoId == equipoId && e.ZonaId == zonaId);
             if (!existe)
             {
-                Context.Set<EquipoZonaNoExcluyente>().Add(new EquipoZonaNoExcluyente
+                Context.Set<EquipoZona>().Add(new EquipoZona
                 {
                     Id = 0,
                     EquipoId = equipoId,
-                    ZonaNoExcluyenteId = zonaId
+                    ZonaId = zonaId
                 });
             }
+        }
+    }
+
+    public async Task SincronizarZonasDelEquipo(int equipoId, IEnumerable<int> zonaIds)
+    {
+        var registrosActuales = await Context.Set<EquipoZona>()
+            .Where(ez => ez.EquipoId == equipoId)
+            .ToListAsync();
+        Context.Set<EquipoZona>().RemoveRange(registrosActuales);
+
+        var ids = zonaIds.Distinct().ToList();
+        foreach (var zonaId in ids)
+        {
+            Context.Set<EquipoZona>().Add(new EquipoZona
+            {
+                Id = 0,
+                EquipoId = equipoId,
+                ZonaId = zonaId
+            });
         }
     }
 
@@ -109,12 +107,8 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
     {
         return await Context.Set<Equipo>()
             .Include(e => e.Club)
-            .Include(e => e.ZonaExcluyente)
-                .ThenInclude(z => z!.TorneoFase)
-                    .ThenInclude(f => f.Torneo)
-                        .ThenInclude(t => t!.TorneoAgrupador)
-            .Include(e => e.ZonasNoExcluyentes)
-                .ThenInclude(ez => ez.ZonaNoExcluyente)
+            .Include(e => e.Zonas)
+                .ThenInclude(ez => ez.Zona)
                     .ThenInclude(z => z.TorneoFase)
                         .ThenInclude(f => f.Torneo)
                             .ThenInclude(t => t!.TorneoAgrupador)

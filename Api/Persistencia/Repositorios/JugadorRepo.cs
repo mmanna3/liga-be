@@ -20,9 +20,10 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
                     .ThenInclude(x => x.Club)
             .Include(x => x.JugadorEquipos)
                 .ThenInclude(x => x.Equipo)
-                    .ThenInclude(x => x.ZonaExcluyente)
-                        .ThenInclude(z => z!.TorneoFase)
-                            .ThenInclude(f => f.Torneo)
+                    .ThenInclude(x => x.Zonas)
+                        .ThenInclude(ez => ez.Zona)
+                            .ThenInclude(z => z.TorneoFase)
+                                .ThenInclude(f => f.Torneo)
             .Include(x => x.JugadorEquipos)
                 .ThenInclude(x => x.EstadoJugador)
             .Include(x => x.JugadorEquipos)
@@ -120,16 +121,23 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
 
     public async Task<bool> JugadorYaJuegaEnTorneoDelEquipoDestino(int jugadorId, int equipoOrigenId, int equipoDestinoId)
     {
-        var torneoDestinoId = await Context.Equipos
-            .Where(e => e.Id == equipoDestinoId && e.ZonaExcluyente != null)
-            .Select(e => e.ZonaExcluyente!.TorneoFase!.TorneoId)
-            .FirstOrDefaultAsync();
+        var torneoDestinoIds = await Context.Set<EquipoZona>()
+            .Where(ez => ez.EquipoId == equipoDestinoId)
+            .Select(ez => ez.Zona.TorneoFase!.TorneoId)
+            .Distinct()
+            .ToListAsync();
 
-        if (torneoDestinoId == 0)
+        if (torneoDestinoIds.Count == 0)
             return false;
+
+        var equipoIdsEnTorneo = await Context.Set<EquipoZona>()
+            .Where(ez => torneoDestinoIds.Contains(ez.Zona.TorneoFase!.TorneoId))
+            .Select(ez => ez.EquipoId)
+            .Distinct()
+            .ToListAsync();
 
         return await Context.JugadorEquipo
             .Where(je => je.JugadorId == jugadorId && je.EquipoId != equipoOrigenId)
-            .AnyAsync(je => je.Equipo.ZonaExcluyente != null && je.Equipo.ZonaExcluyente.TorneoFase!.TorneoId == torneoDestinoId);
+            .AnyAsync(je => equipoIdsEnTorneo.Contains(je.EquipoId));
     }
 }

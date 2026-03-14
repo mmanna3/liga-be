@@ -19,9 +19,10 @@ public class ClubRepo : RepositorioABM<Club>, IClubRepo
             .Include(x => x.DelegadoClubs)
                 .ThenInclude(dc => dc.EstadoDelegado)
             .Include(x => x.Equipos)
-                .ThenInclude(e => e.ZonaExcluyente)
-                    .ThenInclude(z => z!.TorneoFase)
-                        .ThenInclude(f => f.Torneo)
+                .ThenInclude(e => e.Zonas)
+                    .ThenInclude(ez => ez.Zona)
+                        .ThenInclude(z => z.TorneoFase)
+                            .ThenInclude(f => f.Torneo)
             .AsQueryable();
     }
 

@@ -22,5 +22,4 @@ public class TorneoFase : Entidad
     public virtual ICollection<TorneoZona> Zonas { get; set; } = null!;
 
     public bool EsVisibleEnApp { get; set; }
-    public bool EsExcluyente { get; set; }
 }

@@ -21,7 +21,8 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
 
     protected override async Task<Equipo> AntesDeCrear(EquipoDTO dto, Equipo entidad)
     {
-        if (await Repo.ExisteEquipoConMismoNombreEnZona(entidad.Nombre, entidad.ZonaExcluyenteId))
+        var zonaIds = dto.Zonas?.Where(z => z.Id.HasValue).Select(z => z.Id!.Value).ToList() ?? [];
+        if (await Repo.ExisteEquipoConMismoNombreEnZona(entidad.Nombre, zonaIds))
         {
             throw new ExcepcionControlada("Ya existe un equipo con el mismo nombre en este torneo.");
         }
@@ -29,15 +30,42 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
         return await base.AntesDeCrear(dto, entidad);
     }
 
+    public override async Task<int> Crear(EquipoDTO dto)
+    {
+        var id = await base.Crear(dto);
+        await SincronizarZonas(id, dto.Zonas);
+        await BDVirtual.GuardarCambios();
+        return id;
+    }
+
     protected override async Task<Equipo> AntesDeModificar(int id, EquipoDTO dto, Equipo entidadAnterior, Equipo entidadNueva)
     {
-        if ((entidadAnterior.Nombre != entidadNueva.Nombre || entidadAnterior.ZonaExcluyenteId != entidadNueva.ZonaExcluyenteId) &&
-            await Repo.ExisteEquipoConMismoNombreEnZona(entidadNueva.Nombre, entidadNueva.ZonaExcluyenteId, id))
+        var zonaIds = dto.Zonas?.Where(z => z.Id.HasValue).Select(z => z.Id!.Value).ToList() ?? [];
+        var zonasAnteriores = entidadAnterior.Zonas?.Select(ez => ez.ZonaId).ToList() ?? [];
+        var nombreCambio = entidadAnterior.Nombre != entidadNueva.Nombre;
+        var zonasCambio = !zonaIds.SequenceEqual(zonasAnteriores);
+
+        if ((nombreCambio || zonasCambio) && await Repo.ExisteEquipoConMismoNombreEnZona(entidadNueva.Nombre, zonaIds, id))
         {
             throw new ExcepcionControlada("Ya existe un equipo con el mismo nombre en este torneo.");
         }
 
         return await base.AntesDeModificar(id, dto, entidadAnterior, entidadNueva);
+    }
+
+    public override async Task<int> Modificar(int id, EquipoDTO dto)
+    {
+        var result = await base.Modificar(id, dto);
+        await SincronizarZonas(id, dto.Zonas);
+        await BDVirtual.GuardarCambios();
+        return result;
+    }
+
+    private async Task SincronizarZonas(int equipoId, List<ZonaDTO>? zonasDto)
+    {
+        var zonaIds = zonasDto?.Where(z => z.Id.HasValue).Select(z => z.Id!.Value).ToList() ?? [];
+        await Repo.SincronizarZonasDelEquipo(equipoId, zonaIds);
+        await Task.CompletedTask;
     }
 
     public async Task<ObtenerNombreEquipoDTO> ObtenerNombrePorCodigoAlfanumerico(string codigoAlfanumerico)
@@ -90,14 +118,10 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
         foreach (var equipo in equipos)
         {
             var zonas = new List<ZonaDTO>();
-
-            if (equipo.ZonaExcluyente != null)
-                zonas.Add(ZonaDesdeTorneoZona(equipo.ZonaExcluyente));
-
-            if (equipo.ZonasNoExcluyentes != null)
+            if (equipo.Zonas != null)
             {
-                foreach (var ez in equipo.ZonasNoExcluyentes)
-                    zonas.Add(ZonaDesdeTorneoZona(ez.ZonaNoExcluyente));
+                foreach (var ez in equipo.Zonas)
+                    zonas.Add(ZonaDesdeTorneoZona(ez.Zona));
             }
 
             var codigoAlfanumerico = equipo.Id > 0 && equipo.Id < 10000
@@ -130,8 +154,7 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
             Agrupador = torneo?.TorneoAgrupador?.Nombre ?? string.Empty,
             AgrupadorId = torneo?.TorneoAgrupadorId,
             Fase = fase?.Nombre,
-            FaseId = fase?.Id,
-            EsExcluyente = fase?.EsExcluyente ?? false
+            FaseId = fase?.Id
         };
     }
 

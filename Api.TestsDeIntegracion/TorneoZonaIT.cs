@@ -47,8 +47,7 @@ public class TorneoZonaIT : TestBase
             TorneoId = torneo.Id,
             FaseFormatoId = 1,
             EstadoFaseId = 100,
-            EsVisibleEnApp = true,
-            EsExcluyente = true
+            EsVisibleEnApp = true
         };
         context.TorneoFases.Add(fase);
         await context.SaveChangesAsync();
@@ -346,9 +345,9 @@ public class TorneoZonaIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var equipo = context.Equipos.Find(equipoId);
+            var equipo = context.Equipos.Include(e => e.Zonas).FirstOrDefault(e => e.Id == equipoId);
             Assert.NotNull(equipo);
-            Assert.Equal(creado.Id, equipo.ZonaExcluyenteId);
+            Assert.True(equipo.Zonas.Any(ez => ez.ZonaId == creado.Id));
         }
     }
 
@@ -395,7 +394,7 @@ public class TorneoZonaIT : TestBase
     }
 
     [Fact]
-    public async Task ObtenerZona_EquipoDeLaZonaTieneTorneoZonaYZonaExcluyenteId()
+    public async Task ObtenerZona_EquipoDeLaZonaTieneTorneoZonaYEquipoZona()
     {
         Assert.NotNull(_club);
         var faseId = await CrearTorneoFaseDePrueba(Factory);
@@ -498,9 +497,9 @@ public class TorneoZonaIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var equipo = context.Equipos.Find(equipoId);
+            var equipo = context.Equipos.Include(e => e.Zonas).FirstOrDefault(e => e.Id == equipoId);
             Assert.NotNull(equipo);
-            Assert.Equal(creado.Id, equipo.ZonaExcluyenteId);
+            Assert.True(equipo.Zonas.Any(ez => ez.ZonaId == creado.Id));
         }
     }
 
@@ -540,9 +539,9 @@ public class TorneoZonaIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var equipo = context.Equipos.Find(equipoId);
+            var equipo = context.Equipos.Include(e => e.Zonas).FirstOrDefault(e => e.Id == equipoId);
             Assert.NotNull(equipo);
-            Assert.Null(equipo.ZonaExcluyenteId);
+            Assert.False(equipo.Zonas.Any(ez => ez.ZonaId == creado.Id));
         }
     }
 
@@ -561,7 +560,7 @@ public class TorneoZonaIT : TestBase
             equipo1Id = equipos[0].Id;
             if (equipos.Count < 2)
             {
-                var eq2 = new Equipo { Id = 0, Nombre = "Equipo 2", ClubId = _club.Id, Jugadores = [] };
+                var eq2 = new Equipo { Id = 0, Nombre = "Equipo 2", ClubId = _club.Id, Jugadores = [], Zonas = new List<EquipoZona>() };
                 context.Equipos.Add(eq2);
                 context.SaveChanges();
                 equipo2Id = eq2.Id;
@@ -595,12 +594,12 @@ public class TorneoZonaIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var eq1 = context.Equipos.Find(equipo1Id);
-            var eq2 = context.Equipos.Find(equipo2Id);
+            var eq1 = context.Equipos.Include(e => e.Zonas).FirstOrDefault(e => e.Id == equipo1Id);
+            var eq2 = context.Equipos.Include(e => e.Zonas).FirstOrDefault(e => e.Id == equipo2Id);
             Assert.NotNull(eq1);
             Assert.NotNull(eq2);
-            Assert.Null(eq1.ZonaExcluyenteId);
-            Assert.Equal(creado.Id, eq2.ZonaExcluyenteId);
+            Assert.False(eq1.Zonas.Any(ez => ez.ZonaId == creado.Id));
+            Assert.True(eq2.Zonas.Any(ez => ez.ZonaId == creado.Id));
         }
     }
 

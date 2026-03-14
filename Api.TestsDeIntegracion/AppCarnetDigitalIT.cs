@@ -57,10 +57,12 @@ public class AppCarnetDigitalIT : TestBase
             Id = 1,
             Nombre = "Equipo de Prueba",
             ClubId = 1,
-            ZonaExcluyenteId = zona.Id,
-            Jugadores = new List<JugadorEquipo>()
+            Jugadores = new List<JugadorEquipo>(),
+            Zonas = new List<EquipoZona>()
         };
         context.Equipos.Add(equipo);
+        context.SaveChanges();
+        context.EquipoZona.Add(new EquipoZona { Id = 0, EquipoId = equipo.Id, ZonaId = zona.Id });
 
         // Crear jugadores
         var jugador1 = new Jugador

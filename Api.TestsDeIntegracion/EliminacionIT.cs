@@ -1,6 +1,7 @@
 using Api.Core.Entidades;
 using Api.Core.Enums;
 using Api.Persistencia._Config;
+using Microsoft.EntityFrameworkCore;
 using Api.TestsDeIntegracion._Config;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -47,8 +48,10 @@ public class EliminacionIT : TestBase
             context.TorneoZonas.Add(zona);
             context.SaveChanges();
 
-            var equipo = new Equipo { Id = 0, Nombre = "Equipo en Torneo", ClubId = _club!.Id, ZonaExcluyenteId = zona.Id, Jugadores = [] };
+            var equipo = new Equipo { Id = 0, Nombre = "Equipo en Torneo", ClubId = _club!.Id, Jugadores = [], Zonas = new List<EquipoZona>() };
             context.Equipos.Add(equipo);
+            context.SaveChanges();
+            context.EquipoZona.Add(new EquipoZona { Id = 0, EquipoId = equipo.Id, ZonaId = zona.Id });
             context.SaveChanges();
             equipoId = equipo.Id;
         }
@@ -60,9 +63,9 @@ public class EliminacionIT : TestBase
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             Assert.Null(context.Torneos.Find(torneoId));
-            var equipoRestante = context.Equipos.Find(equipoId);
+            var equipoRestante = context.Equipos.Include(e => e.Zonas).FirstOrDefault(e => e.Id == equipoId);
             Assert.NotNull(equipoRestante);
-            Assert.Null(equipoRestante.ZonaExcluyenteId);
+            Assert.Empty(equipoRestante.Zonas);
         }
     }
 }

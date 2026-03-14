@@ -23,7 +23,6 @@ public class TorneoFaseDTO : DTO
     public int EstadoFaseId { get; set; }
     public string EstadoFaseNombre { get; set; } = string.Empty;
     public bool EsVisibleEnApp { get; set; }
-    public bool EsExcluyente { get; set; }
     public bool SePuedeEditar { get; set; }
     public List<ZonaDeFaseDTO> Zonas { get; set; } = [];
 }

@@ -10,5 +10,4 @@ public class ZonaDTO
     public int? AgrupadorId { get; set; }
     public string? Fase { get; set; }
     public int? FaseId { get; set; }
-    public bool EsExcluyente { get; set; }
 }

@@ -111,25 +111,15 @@ public class AppDbContext : DbContext
             .HasIndex(tf => new { tf.ZonaId, tf.Numero })
             .IsUnique();
 
-        builder.Entity<Equipo>()
-            .HasOne(e => e.ZonaExcluyente)
-            .WithMany(z => z.Equipos)
-            .HasForeignKey(e => e.ZonaExcluyenteId)
-            .OnDelete(DeleteBehavior.SetNull);
-        builder.Entity<Equipo>()
-            .HasIndex(e => new { e.Nombre, e.ZonaExcluyenteId })
-            .IsUnique()
-            .HasFilter("[ZonaExcluyenteId] IS NOT NULL");
-
-        builder.Entity<EquipoZonaNoExcluyente>()
+        builder.Entity<EquipoZona>()
             .HasOne(ez => ez.Equipo)
-            .WithMany(e => e.ZonasNoExcluyentes)
+            .WithMany(e => e.Zonas)
             .HasForeignKey(ez => ez.EquipoId)
             .OnDelete(DeleteBehavior.Cascade);
-        builder.Entity<EquipoZonaNoExcluyente>()
-            .HasOne(ez => ez.ZonaNoExcluyente)
-            .WithMany(z => z.EquiposZonaNoExcluyente)
-            .HasForeignKey(ez => ez.ZonaNoExcluyenteId)
+        builder.Entity<EquipoZona>()
+            .HasOne(ez => ez.Zona)
+            .WithMany(z => z.EquiposZona)
+            .HasForeignKey(ez => ez.ZonaId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<Delegado>()
@@ -210,6 +200,6 @@ public class AppDbContext : DbContext
     public DbSet<TorneoFase> TorneoFases { get; set; } = null!;
     public DbSet<TorneoZona> TorneoZonas { get; set; } = null!;
     public DbSet<TorneoFecha> TorneoFechas { get; set; } = null!;
-    public DbSet<EquipoZonaNoExcluyente> EquipoZonaNoExcluyente { get; set; } = null!;
+    public DbSet<EquipoZona> EquipoZona { get; set; } = null!;
     public DbSet<HistorialDePagos> HistorialDePagos { get; set; } = null!;
 }

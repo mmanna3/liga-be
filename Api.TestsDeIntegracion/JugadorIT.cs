@@ -229,10 +229,16 @@ public class JugadorIT : TestBase
         context.TorneoZonas.AddRange(zonaOro, zonaPlata);
         context.SaveChanges();
 
-        var equipoAzul = new Equipo { Id = 0, Nombre = $"Azul {baseId}", ClubId = 1, ZonaExcluyenteId = zonaOro.Id, Jugadores = new List<JugadorEquipo>() };
-        var equipoRojo = new Equipo { Id = 0, Nombre = $"Rojo {baseId}", ClubId = 1, ZonaExcluyenteId = zonaOro.Id, Jugadores = new List<JugadorEquipo>() };
-        var equipoVerde = new Equipo { Id = 0, Nombre = $"Verde {baseId}", ClubId = 1, ZonaExcluyenteId = zonaPlata.Id, Jugadores = new List<JugadorEquipo>() };
+        var equipoAzul = new Equipo { Id = 0, Nombre = $"Azul {baseId}", ClubId = 1, Jugadores = new List<JugadorEquipo>(), Zonas = new List<EquipoZona>() };
+        var equipoRojo = new Equipo { Id = 0, Nombre = $"Rojo {baseId}", ClubId = 1, Jugadores = new List<JugadorEquipo>(), Zonas = new List<EquipoZona>() };
+        var equipoVerde = new Equipo { Id = 0, Nombre = $"Verde {baseId}", ClubId = 1, Jugadores = new List<JugadorEquipo>(), Zonas = new List<EquipoZona>() };
         context.Equipos.AddRange(equipoAzul, equipoRojo, equipoVerde);
+        context.SaveChanges();
+        context.EquipoZona.AddRange(
+            new EquipoZona { Id = 0, EquipoId = equipoAzul.Id, ZonaId = zonaOro.Id },
+            new EquipoZona { Id = 0, EquipoId = equipoRojo.Id, ZonaId = zonaOro.Id },
+            new EquipoZona { Id = 0, EquipoId = equipoVerde.Id, ZonaId = zonaPlata.Id }
+        );
         context.SaveChanges();
         azulId = equipoAzul.Id;
         rojoId = equipoRojo.Id;

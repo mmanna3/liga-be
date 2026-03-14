@@ -114,29 +114,11 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
         }
     }
 
-    /// <summary>
-    /// Quita o asigna equipos en una zona según su fase sea excluyente o no.
-    /// Fase excluyente: actualiza Equipo.ZonaExcluyenteId.
-    /// Fase no excluyente: crea/elimina registros en EquipoZonaNoExcluyente.
-    /// </summary>
     private async Task AplicarEquiposEnZona(int zonaId, int faseId, IReadOnlyList<int> equipoIds)
     {
-        var fase = await _torneoFaseRepo.ObtenerPorId(faseId);
-        if (fase == null)
-            return;
-
-        if (fase.EsExcluyente)
-        {
-            await _equipoRepo.QuitarEquiposDeZona(zonaId);
-            if (equipoIds.Count > 0)
-                await _equipoRepo.AsignarEquiposAZona(zonaId, equipoIds);
-        }
-        else
-        {
-            await _equipoRepo.QuitarEquiposDeZonaNoExcluyente(zonaId);
-            if (equipoIds.Count > 0)
-                await _equipoRepo.AsignarEquiposAZonaNoExcluyente(zonaId, equipoIds);
-        }
+        await _equipoRepo.QuitarEquiposDeZona(zonaId);
+        if (equipoIds.Count > 0)
+            await _equipoRepo.AsignarEquiposAZona(zonaId, equipoIds);
     }
 
     private static List<int> ParsearEquipoIds(List<EquipoDeLaZonaDTO> equipos)
