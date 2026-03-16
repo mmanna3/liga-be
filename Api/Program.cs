@@ -42,12 +42,18 @@ try
         app.UseSwagger();
         app.UseSwaggerUI();
         app.UseDeveloperExceptionPage();
-        app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
         var localIp = LocalIpAddress();
         app.Urls.Add($"http://0.0.0.0:5072");
         app.Urls.Add($"http://{localIp}:5072");
         // app.Urls.Add("https://" + localIp + ":7072");
+    }
+
+    // CORS habilitado en desarrollo y en cualquier entorno E2E (tests de frontend
+    // necesitan hacer requests cross-origin desde localhost:5173 al backend).
+    if (app.Environment.IsDevelopment() || Environment.GetEnvironmentVariable("E2E_SEED_ENABLED") == "true")
+    {
+        app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
     }
 
     app.UseOpenApi();
