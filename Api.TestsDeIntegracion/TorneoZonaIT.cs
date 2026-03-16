@@ -1026,4 +1026,54 @@ public class TorneoZonaIT : TestBase
         Assert.Single(zonaNueva.Equipos);
         Assert.Equal(equipo2Id.ToString(), zonaNueva.Equipos[0].Id);
     }
+
+    [Fact]
+    public async Task ModificarMasivamente_ZonasSinEquipos_SeGuardanCorrectamente()
+    {
+        var faseId = await CrearTorneoFaseDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var postResponse = await client.PostAsJsonAsync($"/api/TorneoFase/{faseId}/zonas/crear-zonas-masivamente",
+            new List<TorneoZonaDTO>
+            {
+                new() { Nombre = "Zona A" }
+            });
+        postResponse.EnsureSuccessStatusCode();
+        var creados = JsonConvert.DeserializeObject<List<TorneoZonaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
+
+        var dtosModificar = new List<TorneoZonaDTO>
+        {
+            new()
+            {
+                Id = creados[0].Id,
+                Nombre = "Zona A Modificada",
+                TorneoFaseId = faseId
+            },
+            new()
+            {
+                Nombre = "Zona B Nueva",
+                TorneoFaseId = faseId
+            }
+        };
+
+        var putResponse = await client.PutAsJsonAsync($"/api/TorneoFase/{faseId}/zonas/modificar-zonas-masivamente", dtosModificar);
+        Assert.Equal(System.Net.HttpStatusCode.NoContent, putResponse.StatusCode);
+
+        var listResponse = await client.GetAsync($"/api/TorneoFase/{faseId}/zonas");
+        listResponse.EnsureSuccessStatusCode();
+        var zonas = JsonConvert.DeserializeObject<List<TorneoZonaDTO>>(await listResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(zonas);
+        Assert.Equal(2, zonas.Count);
+
+        var zonaA = zonas.FirstOrDefault(z => z.Nombre == "Zona A Modificada");
+        Assert.NotNull(zonaA);
+        Assert.NotNull(zonaA.Equipos);
+        Assert.Empty(zonaA.Equipos);
+
+        var zonaB = zonas.FirstOrDefault(z => z.Nombre == "Zona B Nueva");
+        Assert.NotNull(zonaB);
+        Assert.True(zonaB.Id > 0);
+        Assert.NotNull(zonaB.Equipos);
+        Assert.Empty(zonaB.Equipos);
+    }
 }
