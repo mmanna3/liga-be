@@ -117,6 +117,7 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
     private async Task AplicarEquiposEnZona(int zonaId, int faseId, IReadOnlyList<int> equipoIds)
     {
         await _equipoRepo.QuitarEquiposDeZona(zonaId);
+        await BDVirtual.GuardarCambios();
         if (equipoIds.Count > 0)
             await _equipoRepo.AsignarEquiposAZona(zonaId, equipoIds);
     }

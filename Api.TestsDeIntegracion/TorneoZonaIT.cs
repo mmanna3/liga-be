@@ -673,6 +673,67 @@ public class TorneoZonaIT : TestBase
     }
 
     [Fact]
+    public async Task ModificarZona_ConEquipoExistente_AgregaOtroEquipo_ConservaAmbos()
+    {
+        Assert.NotNull(_club);
+        var faseId = await CrearTorneoFaseDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        int equipo1Id;
+        int equipo2Id;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var equipos = context.Equipos.Where(e => e.ClubId == _club.Id).ToList();
+            equipo1Id = equipos[0].Id;
+            if (equipos.Count < 2)
+            {
+                var eq2 = new Equipo { Id = 0, Nombre = "Equipo 2", ClubId = _club.Id, Jugadores = [] };
+                context.Equipos.Add(eq2);
+                context.SaveChanges();
+                equipo2Id = eq2.Id;
+            }
+            else
+            {
+                equipo2Id = equipos[1].Id;
+            }
+        }
+
+        var dtoCrear = new TorneoZonaDTO
+        {
+            Nombre = "Zona Con Un Equipo",
+            Equipos = [new EquipoDeLaZonaDTO { Id = equipo1Id.ToString() }]
+        };
+        var postResponse = await client.PostAsJsonAsync($"/api/TorneoFase/{faseId}/zonas", dtoCrear);
+        postResponse.EnsureSuccessStatusCode();
+        var creado = JsonConvert.DeserializeObject<TorneoZonaDTO>(await postResponse.Content.ReadAsStringAsync())!;
+
+        var dtoModificar = new TorneoZonaDTO
+        {
+            Id = creado.Id,
+            Nombre = creado.Nombre,
+            TorneoFaseId = faseId,
+            Equipos =
+            [
+                new EquipoDeLaZonaDTO { Id = equipo1Id.ToString() },
+                new EquipoDeLaZonaDTO { Id = equipo2Id.ToString() }
+            ]
+        };
+
+        var putResponse = await client.PutAsJsonAsync($"/api/TorneoFase/{faseId}/zonas/{creado.Id}", dtoModificar);
+        putResponse.EnsureSuccessStatusCode();
+
+        var getResponse = await client.GetAsync($"/api/TorneoFase/{faseId}/zonas/{creado.Id}");
+        getResponse.EnsureSuccessStatusCode();
+        var zona = JsonConvert.DeserializeObject<TorneoZonaDTO>(await getResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(zona);
+        Assert.NotNull(zona.Equipos);
+        Assert.Equal(2, zona.Equipos.Count);
+        Assert.Contains(zona.Equipos, e => e.Id == equipo1Id.ToString());
+        Assert.Contains(zona.Equipos, e => e.Id == equipo2Id.ToString());
+    }
+
+    [Fact]
     public async Task ModificarZonasMasivamente_DatosCorrectos_204()
     {
         Assert.NotNull(_club);
@@ -782,6 +843,76 @@ public class TorneoZonaIT : TestBase
         var zonas = JsonConvert.DeserializeObject<List<TorneoZonaDTO>>(await listResponse.Content.ReadAsStringAsync());
         Assert.NotNull(zonas);
         Assert.Empty(zonas);
+    }
+
+    [Fact]
+    public async Task ModificarMasivamente_ZonaConUnEquipo_EnviaDosEquipos_GuardaAmbos()
+    {
+        Assert.NotNull(_club);
+        var faseId = await CrearTorneoFaseDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        int equipo1Id;
+        int equipo2Id;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var equipos = context.Equipos.Where(e => e.ClubId == _club.Id).ToList();
+            equipo1Id = equipos[0].Id;
+            if (equipos.Count < 2)
+            {
+                var eq2 = new Equipo { Id = 0, Nombre = "Equipo 2", ClubId = _club.Id, Jugadores = [] };
+                context.Equipos.Add(eq2);
+                context.SaveChanges();
+                equipo2Id = eq2.Id;
+            }
+            else
+            {
+                equipo2Id = equipos[1].Id;
+            }
+        }
+
+        var postResponse = await client.PostAsJsonAsync($"/api/TorneoFase/{faseId}/zonas/crear-zonas-masivamente",
+            new List<TorneoZonaDTO>
+            {
+                new() { Nombre = "Zona única", Equipos = [new EquipoDeLaZonaDTO { Id = equipo1Id.ToString() }] }
+            });
+        postResponse.EnsureSuccessStatusCode();
+        var creados = JsonConvert.DeserializeObject<List<TorneoZonaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
+        var zonaId = creados[0].Id;
+
+        var getAntes = await client.GetAsync($"/api/TorneoFase/{faseId}/zonas/{zonaId}");
+        var zonaAntes = JsonConvert.DeserializeObject<TorneoZonaDTO>(await getAntes.Content.ReadAsStringAsync());
+        Assert.NotNull(zonaAntes?.Equipos);
+        Assert.Single(zonaAntes.Equipos);
+
+        var dtosModificar = new List<TorneoZonaDTO>
+        {
+            new()
+            {
+                Id = zonaId,
+                Nombre = "Zona única",
+                TorneoFaseId = faseId,
+                Equipos =
+                [
+                    new EquipoDeLaZonaDTO { Id = equipo2Id.ToString(), Nombre = "River", Club = "River Plate", Codigo = "X" },
+                    new EquipoDeLaZonaDTO { Id = equipo1Id.ToString(), Nombre = "Boquita", Club = "Boca Jrs", Codigo = "X" }
+                ]
+            }
+        };
+
+        var putResponse = await client.PutAsJsonAsync($"/api/TorneoFase/{faseId}/zonas/modificar-zonas-masivamente", dtosModificar);
+        Assert.Equal(System.Net.HttpStatusCode.NoContent, putResponse.StatusCode);
+
+        var getResponse = await client.GetAsync($"/api/TorneoFase/{faseId}/zonas");
+        getResponse.EnsureSuccessStatusCode();
+        var zonas = JsonConvert.DeserializeObject<List<TorneoZonaDTO>>(await getResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(zonas);
+        var zona = zonas.First(z => z.Id == zonaId);
+        Assert.NotNull(zona.Equipos);
+        Assert.Equal(2, zona.Equipos.Count);
+        Assert.Contains(zona.Equipos, e => e.Id == equipo1Id.ToString());
+        Assert.Contains(zona.Equipos, e => e.Id == equipo2Id.ToString());
     }
 
     [Fact]
