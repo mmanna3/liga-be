@@ -109,8 +109,9 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
         foreach (var dto in list)
         {
             if (dto.Id <= 0)
-                continue;
-            await Modificar(padreId, dto.Id, dto);
+                await Crear(padreId, dto);
+            else
+                await Modificar(padreId, dto.Id, dto);
         }
     }
 
