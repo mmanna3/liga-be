@@ -3,6 +3,8 @@ using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
+using Api.TestsUtilidades;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 // ReSharper disable InconsistentNaming
@@ -11,6 +13,9 @@ namespace Api.TestsDeIntegracion;
 
 public class TorneoFechasIT : TestBase
 {
+    private Utilidades? _utilidades;
+    private Club? _club;
+
     public TorneoFechasIT(CustomWebApplicationFactory<Program> factory) : base(factory)
     {
         using var scope = Factory.Services.CreateScope();
@@ -18,8 +23,12 @@ public class TorneoFechasIT : TestBase
         SeedData(context);
     }
 
-    private static void SeedData(AppDbContext context)
+    private void SeedData(AppDbContext context)
     {
+        _utilidades = new Utilidades(context);
+        _club = _utilidades.DadoQueExisteElClub();
+        _utilidades.DadoQueExisteElEquipo(_club);
+        context.SaveChanges();
     }
 
     private static async Task<int> CrearTorneoZonaDePrueba(CustomWebApplicationFactory<Program> factory)
@@ -349,5 +358,272 @@ public class TorneoFechasIT : TestBase
         Assert.Equal(2, content.Count);
         Assert.Contains(content, f => f.Numero == 1 && f.Dia == new DateOnly(2026, 3, 1));
         Assert.Contains(content, f => f.Numero == 2 && f.Dia == new DateOnly(2026, 3, 8));
+    }
+
+    [Fact]
+    public async Task CrearFechasMasivamente_DatosCorrectos_200()
+    {
+        var zonaId = await CrearTorneoZonaDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var dtos = new List<TorneoFechaDTO>
+        {
+            new() { Dia = new DateOnly(2026, 3, 1), Numero = 1, EsVisibleEnApp = true },
+            new() { Dia = new DateOnly(2026, 3, 8), Numero = 2, EsVisibleEnApp = true },
+            new() { Dia = new DateOnly(2026, 3, 15), Numero = 3, EsVisibleEnApp = false }
+        };
+
+        var response = await client.PostAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/crear-fechas-masivamente", dtos);
+        response.EnsureSuccessStatusCode();
+
+        var creados = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(creados);
+        Assert.Equal(3, creados.Count);
+        Assert.All(creados, f => Assert.True(f.Id > 0));
+        Assert.Contains(creados, f => f.Numero == 1 && f.Dia == new DateOnly(2026, 3, 1));
+        Assert.Contains(creados, f => f.Numero == 2 && f.Dia == new DateOnly(2026, 3, 8));
+        Assert.Contains(creados, f => f.Numero == 3 && f.Dia == new DateOnly(2026, 3, 15));
+
+        var listResponse = await client.GetAsync($"/api/TorneoZona/{zonaId}/fechas");
+        listResponse.EnsureSuccessStatusCode();
+        var list = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await listResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(list);
+        Assert.Equal(3, list.Count);
+    }
+
+    [Fact]
+    public async Task ModificarFechasMasivamente_FechasNoIncluidasEnArray_SeEliminan()
+    {
+        var zonaId = await CrearTorneoZonaDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var postResponse = await client.PostAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/crear-fechas-masivamente",
+            new List<TorneoFechaDTO>
+            {
+                new() { Dia = new DateOnly(2026, 3, 1), Numero = 1, EsVisibleEnApp = true },
+                new() { Dia = new DateOnly(2026, 3, 8), Numero = 2, EsVisibleEnApp = true },
+                new() { Dia = new DateOnly(2026, 3, 15), Numero = 3, EsVisibleEnApp = true }
+            });
+        postResponse.EnsureSuccessStatusCode();
+        var creados = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
+
+        var dtosModificar = new List<TorneoFechaDTO>
+        {
+            new() { Id = creados[0].Id, Dia = new DateOnly(2026, 3, 5), Numero = 1, ZonaId = zonaId, EsVisibleEnApp = true },
+            new() { Id = creados[2].Id, Dia = new DateOnly(2026, 3, 20), Numero = 3, ZonaId = zonaId, EsVisibleEnApp = true }
+        };
+
+        var putResponse = await client.PutAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/modificar-fechas-masivamente", dtosModificar);
+        Assert.Equal(System.Net.HttpStatusCode.NoContent, putResponse.StatusCode);
+
+        var listResponse = await client.GetAsync($"/api/TorneoZona/{zonaId}/fechas");
+        listResponse.EnsureSuccessStatusCode();
+        var fechas = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await listResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(fechas);
+        Assert.Equal(2, fechas.Count);
+        Assert.Contains(fechas, f => f.Dia == new DateOnly(2026, 3, 5));
+        Assert.Contains(fechas, f => f.Dia == new DateOnly(2026, 3, 20));
+        Assert.DoesNotContain(fechas, f => f.Numero == 2);
+    }
+
+    [Fact]
+    public async Task ModificarFechasMasivamente_ConFechaNuevaSinId_CreaLaFechaNueva()
+    {
+        var zonaId = await CrearTorneoZonaDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var postResponse = await client.PostAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/crear-fechas-masivamente",
+            new List<TorneoFechaDTO>
+            {
+                new() { Dia = new DateOnly(2026, 3, 1), Numero = 1, EsVisibleEnApp = true }
+            });
+        postResponse.EnsureSuccessStatusCode();
+        var creados = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
+        var fechaExistenteId = creados[0].Id;
+
+        var dtosModificar = new List<TorneoFechaDTO>
+        {
+            new() { Id = fechaExistenteId, Dia = new DateOnly(2026, 3, 10), Numero = 1, ZonaId = zonaId, EsVisibleEnApp = false },
+            new() { Dia = new DateOnly(2026, 3, 17), Numero = 2, EsVisibleEnApp = true }
+        };
+
+        var putResponse = await client.PutAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/modificar-fechas-masivamente", dtosModificar);
+        Assert.Equal(System.Net.HttpStatusCode.NoContent, putResponse.StatusCode);
+
+        var listResponse = await client.GetAsync($"/api/TorneoZona/{zonaId}/fechas");
+        listResponse.EnsureSuccessStatusCode();
+        var fechas = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await listResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(fechas);
+        Assert.Equal(2, fechas.Count);
+
+        var fechaModificada = fechas.FirstOrDefault(f => f.Id == fechaExistenteId);
+        Assert.NotNull(fechaModificada);
+        Assert.Equal(new DateOnly(2026, 3, 10), fechaModificada.Dia);
+        Assert.False(fechaModificada.EsVisibleEnApp);
+
+        var fechaNueva = fechas.FirstOrDefault(f => f.Dia == new DateOnly(2026, 3, 17));
+        Assert.NotNull(fechaNueva);
+        Assert.True(fechaNueva.Id > 0);
+        Assert.Equal(2, fechaNueva.Numero);
+    }
+
+    [Fact]
+    public async Task CrearFechasMasivamente_ConJornadas_CreaFechasConJornadas()
+    {
+        Assert.NotNull(_club);
+        var zonaId = await CrearTorneoZonaDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        int equipo1Id;
+        int equipo2Id;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var equipos = context.Equipos.Where(e => e.ClubId == _club.Id).ToList();
+            equipo1Id = equipos[0].Id;
+            if (equipos.Count < 2)
+            {
+                var eq2 = new Equipo { Id = 0, Nombre = "Equipo 2 Fechas", ClubId = _club.Id, Jugadores = [] };
+                context.Equipos.Add(eq2);
+                context.SaveChanges();
+                equipo2Id = eq2.Id;
+            }
+            else
+            {
+                equipo2Id = equipos[1].Id;
+            }
+        }
+
+        var dtos = new List<TorneoFechaDTO>
+        {
+            new()
+            {
+                Dia = new DateOnly(2026, 3, 1),
+                Numero = 1,
+                EsVisibleEnApp = true,
+                Jornadas =
+                [
+                    new JornadaDTO
+                    {
+                        Tipo = "Normal",
+                        ResultadosVerificados = false,
+                        LocalEquipoId = equipo1Id,
+                        VisitanteEquipoId = equipo2Id
+                    },
+                    new JornadaDTO
+                    {
+                        Tipo = "Libre",
+                        ResultadosVerificados = false,
+                        EquipoId = equipo1Id
+                    }
+                ]
+            }
+        };
+
+        var response = await client.PostAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/crear-fechas-masivamente", dtos);
+        response.EnsureSuccessStatusCode();
+
+        var creados = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(creados);
+        Assert.Single(creados);
+        Assert.NotNull(creados[0].Jornadas);
+        Assert.Equal(2, creados[0].Jornadas.Count);
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var fecha = context.TorneoFechas.Include(f => f.Jornadas).First(f => f.Id == creados[0].Id);
+            Assert.Equal(2, fecha.Jornadas.Count);
+        }
+    }
+
+    [Fact]
+    public async Task ModificarFechasMasivamente_ConJornadas_EliminaCreaModificaJornadas()
+    {
+        Assert.NotNull(_club);
+        var zonaId = await CrearTorneoZonaDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        int equipo1Id;
+        int equipo2Id;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var equipos = context.Equipos.Where(e => e.ClubId == _club.Id).ToList();
+            equipo1Id = equipos[0].Id;
+            if (equipos.Count < 2)
+            {
+                var eq2 = new Equipo { Id = 0, Nombre = "Equipo 2 Jornadas", ClubId = _club.Id, Jugadores = [] };
+                context.Equipos.Add(eq2);
+                context.SaveChanges();
+                equipo2Id = eq2.Id;
+            }
+            else
+            {
+                equipo2Id = equipos[1].Id;
+            }
+        }
+
+        var postResponse = await client.PostAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/crear-fechas-masivamente",
+            new List<TorneoFechaDTO>
+            {
+                new()
+                {
+                    Dia = new DateOnly(2026, 3, 1),
+                    Numero = 1,
+                    EsVisibleEnApp = true,
+                    Jornadas =
+                    [
+                        new JornadaDTO { Tipo = "Normal", ResultadosVerificados = false, LocalEquipoId = equipo1Id, VisitanteEquipoId = equipo2Id },
+                        new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoId = equipo1Id }
+                    ]
+                }
+            });
+        postResponse.EnsureSuccessStatusCode();
+        var creados = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
+        var fechaId = creados[0].Id;
+        var jornadaNormalId = creados[0].Jornadas!.First(j => j.Tipo == "Normal").Id;
+
+        var dtosModificar = new List<TorneoFechaDTO>
+        {
+            new()
+            {
+                Id = fechaId,
+                Dia = new DateOnly(2026, 3, 1),
+                Numero = 1,
+                ZonaId = zonaId,
+                EsVisibleEnApp = true,
+                Jornadas =
+                [
+                    new JornadaDTO { Id = jornadaNormalId, Tipo = "Normal", ResultadosVerificados = true, LocalEquipoId = equipo1Id, VisitanteEquipoId = equipo2Id },
+                    new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoId = equipo2Id }
+                ]
+            }
+        };
+
+        var putResponse = await client.PutAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/modificar-fechas-masivamente", dtosModificar);
+        Assert.Equal(System.Net.HttpStatusCode.NoContent, putResponse.StatusCode);
+
+        var getResponse = await client.GetAsync($"/api/TorneoZona/{zonaId}/fechas/{fechaId}");
+        getResponse.EnsureSuccessStatusCode();
+        var fecha = JsonConvert.DeserializeObject<TorneoFechaDTO>(await getResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(fecha);
+        Assert.NotNull(fecha.Jornadas);
+        Assert.Equal(2, fecha.Jornadas.Count);
+
+        var jornadaModificada = fecha.Jornadas.FirstOrDefault(j => j.Id == jornadaNormalId);
+        Assert.NotNull(jornadaModificada);
+        Assert.True(jornadaModificada.ResultadosVerificados);
+
+        var jornadaLibre = fecha.Jornadas.FirstOrDefault(j => j.Tipo == "Libre");
+        Assert.NotNull(jornadaLibre);
+        Assert.Equal(equipo2Id, jornadaLibre.EquipoId);
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var jornadas = context.Jornadas.Where(j => j.FechaId == fechaId).ToList();
+            Assert.Equal(2, jornadas.Count);
+        }
     }
 }

@@ -15,4 +15,9 @@ public class TorneoFechaDTO : DTO
     public string? InstanciaEliminacionDirectaNombre { get; set; }
 
     public required bool EsVisibleEnApp { get; set; }
+
+    /// <summary>
+    /// Null = no modificar. Lista vacía = borrar todas. Con items = crear/modificar/eliminar según ids.
+    /// </summary>
+    public List<JornadaDTO>? Jornadas { get; set; }
 }

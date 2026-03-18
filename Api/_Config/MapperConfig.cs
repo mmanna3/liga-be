@@ -82,11 +82,21 @@ public class MapperConfig : Profile
             .ForSourceMember(src => src.Equipos, opt => opt.DoNotValidate());
         CreateMap<TorneoFecha, TorneoFechaDTO>()
             .ForMember(dest => dest.InstanciaEliminacionDirectaNombre, opt => opt.MapFrom(src => src.InstanciaEliminacionDirecta != null ? src.InstanciaEliminacionDirecta.Nombre : null))
+            .ForMember(dest => dest.Jornadas, opt => opt.MapFrom(src => src.Jornadas != null ? src.Jornadas : new List<Jornada>()))
             .PreserveReferences()
             .ReverseMap()
             .ForMember(dest => dest.Zona, opt => opt.Ignore())
             .ForMember(dest => dest.InstanciaEliminacionDirecta, opt => opt.Ignore())
-            .ForSourceMember(src => src.InstanciaEliminacionDirectaNombre, opt => opt.DoNotValidate());
+            .ForMember(dest => dest.Jornadas, opt => opt.Ignore())
+            .ForSourceMember(src => src.InstanciaEliminacionDirectaNombre, opt => opt.DoNotValidate())
+            .ForSourceMember(src => src.Jornadas, opt => opt.DoNotValidate());
+
+        CreateMap<Jornada, JornadaDTO>()
+            .ForMember(dest => dest.Tipo, opt => opt.MapFrom<JornadaTipoResolver>())
+            .ForMember(dest => dest.LocalEquipoId, opt => opt.MapFrom<JornadaLocalEquipoResolver>())
+            .ForMember(dest => dest.VisitanteEquipoId, opt => opt.MapFrom<JornadaVisitanteEquipoResolver>())
+            .ForMember(dest => dest.EquipoId, opt => opt.MapFrom<JornadaEquipoResolver>())
+            .ForMember(dest => dest.LocalOVisitanteId, opt => opt.MapFrom<JornadaLocalOVisitanteResolver>());
         CreateMap<TorneoAgrupador, TorneoAgrupadorDTO>()
             .ForMember(dest => dest.CantidadDeTorneos, opt => opt.MapFrom(src => src.Torneos != null ? src.Torneos.Count : 0))
             .ForMember(dest => dest.Torneos, opt => opt.MapFrom(src => src.Torneos))
@@ -228,4 +238,42 @@ public class CantidadEquiposDeZonaResolver : IValueResolver<TorneoZona, ZonaDeFa
     {
         return source.EquiposZona != null ? source.EquiposZona.Count : 0;
     }
+}
+
+public class JornadaTipoResolver : IValueResolver<Jornada, JornadaDTO, string>
+{
+    public string Resolve(Jornada source, JornadaDTO destination, string destMember, ResolutionContext context)
+    {
+        return source switch
+        {
+            JornadaNormal => "Normal",
+            JornadaLibre => "Libre",
+            JornadaInterzonal => "Interzonal",
+            _ => "Normal"
+        };
+    }
+}
+
+public class JornadaLocalEquipoResolver : IValueResolver<Jornada, JornadaDTO, int?>
+{
+    public int? Resolve(Jornada source, JornadaDTO destination, int? destMember, ResolutionContext context)
+        => source is JornadaNormal n ? n.LocalEquipoId : null;
+}
+
+public class JornadaVisitanteEquipoResolver : IValueResolver<Jornada, JornadaDTO, int?>
+{
+    public int? Resolve(Jornada source, JornadaDTO destination, int? destMember, ResolutionContext context)
+        => source is JornadaNormal n ? n.VisitanteEquipoId : null;
+}
+
+public class JornadaEquipoResolver : IValueResolver<Jornada, JornadaDTO, int?>
+{
+    public int? Resolve(Jornada source, JornadaDTO destination, int? destMember, ResolutionContext context)
+        => source is JornadaLibre l ? l.EquipoId : source is JornadaInterzonal i ? i.EquipoId : null;
+}
+
+public class JornadaLocalOVisitanteResolver : IValueResolver<Jornada, JornadaDTO, int?>
+{
+    public int? Resolve(Jornada source, JornadaDTO destination, int? destMember, ResolutionContext context)
+        => source is JornadaInterzonal i ? i.LocalOVisitanteId : null;
 }

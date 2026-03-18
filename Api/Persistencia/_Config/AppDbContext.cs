@@ -118,13 +118,19 @@ public class AppDbContext : DbContext
             .IsUnique();
 
         builder.Entity<Jornada>()
-            .ToTable("Jornadas", t => t.HasCheckConstraint(
-                "CK_Jornada_Tipo_Valido",
-                @"([Tipo] = N'Normal' AND [LocalEquipoId] IS NOT NULL AND [VisitanteEquipoId] IS NOT NULL AND [LocalEquipoId] <> [VisitanteEquipoId] AND [EquipoId] IS NULL AND [JornadaLibre_EquipoId] IS NULL AND [LocalOVisitanteId] IS NULL)
+            .ToTable("Jornadas", t =>
+            {
+                if (!Database.IsSqlite())
+                {
+                    t.HasCheckConstraint(
+                        "CK_Jornada_Tipo_Valido",
+                        @"([Tipo] = N'Normal' AND [LocalEquipoId] IS NOT NULL AND [VisitanteEquipoId] IS NOT NULL AND [LocalEquipoId] <> [VisitanteEquipoId] AND [EquipoId] IS NULL AND [JornadaLibre_EquipoId] IS NULL AND [LocalOVisitanteId] IS NULL)
     OR
     ([Tipo] = N'Libre' AND [JornadaLibre_EquipoId] IS NOT NULL AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL AND [EquipoId] IS NULL AND [LocalOVisitanteId] IS NULL)
     OR
-    ([Tipo] = N'Interzonal' AND [EquipoId] IS NOT NULL AND [LocalOVisitanteId] IS NOT NULL AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL AND [JornadaLibre_EquipoId] IS NULL)"));
+    ([Tipo] = N'Interzonal' AND [EquipoId] IS NOT NULL AND [LocalOVisitanteId] IS NOT NULL AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL AND [JornadaLibre_EquipoId] IS NULL)");
+                }
+            });
         builder.Entity<Jornada>()
             .HasDiscriminator<string>("Tipo")
             .HasValue<JornadaNormal>("Normal")

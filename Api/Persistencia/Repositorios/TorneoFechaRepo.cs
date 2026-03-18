@@ -19,8 +19,24 @@ public class TorneoFechaRepo : RepositorioABMAnidado<TorneoFecha, int>, ITorneoF
 
     protected override IQueryable<TorneoFecha> Set()
     {
-        return base.Set()
+        return Context.Set<TorneoFecha>()
             .Include(x => x.InstanciaEliminacionDirecta)
+            .Include(x => x.Jornadas)
             .AsQueryable();
+    }
+
+    public async Task<IEnumerable<int>> ListarIdsPorPadre(int padreId)
+    {
+        return await Context.Set<TorneoFecha>()
+            .Where(x => x.ZonaId == padreId)
+            .Select(x => x.Id)
+            .ToListAsync();
+    }
+
+    public async Task<TorneoFecha?> ObtenerPorIdYPadreParaEliminar(int padreId, int id)
+    {
+        return await Context.Set<TorneoFecha>()
+            .Where(x => x.ZonaId == padreId && x.Id == id)
+            .FirstOrDefaultAsync();
     }
 }
