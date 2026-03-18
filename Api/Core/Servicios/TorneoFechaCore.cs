@@ -84,10 +84,48 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
         if (entidad == null)
             return -1;
 
+        var numeroEliminado = entidad.Numero;
         await AntesDeEliminar(padreId, id, entidad);
         Repo.Eliminar(entidad);
         await BDVirtual.GuardarCambios();
+
+        await RenumerarFechasConsecutivas(padreId, numeroEliminado);
+
         return id;
+    }
+
+    private async Task RenumerarFechasConsecutivas(int zonaId, int numeroEliminado)
+    {
+        var fechasARenumerar = await _context.TorneoFechas
+            .Where(f => f.ZonaId == zonaId && f.Numero > numeroEliminado)
+            .OrderBy(f => f.Numero)
+            .ToListAsync();
+
+        foreach (var fecha in fechasARenumerar)
+        {
+            fecha.Numero--;
+        }
+
+        await BDVirtual.GuardarCambios();
+
+        foreach (var fecha in fechasARenumerar)
+        {
+            _context.Entry(fecha).State = EntityState.Detached;
+        }
+    }
+
+    private async Task RenumerarTodasLasFechasConsecutivas(int zonaId)
+    {
+        var fechas = await _context.TorneoFechas
+            .Where(f => f.ZonaId == zonaId)
+            .OrderBy(f => f.Numero)
+            .ThenBy(f => f.Id)
+            .ToListAsync();
+
+        for (var i = 0; i < fechas.Count; i++)
+        {
+            fechas[i].Numero = i + 1;
+        }
     }
 
     public async Task ModificarMasivamente(int padreId, IEnumerable<TorneoFechaDTO> dtos)
@@ -112,6 +150,9 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
             else
                 await Modificar(padreId, dto.Id, dto);
         }
+
+        await RenumerarTodasLasFechasConsecutivas(padreId);
+        await BDVirtual.GuardarCambios();
     }
 
     private async Task AplicarJornadasEnFecha(int fechaId, List<JornadaDTO> jornadasDtos)

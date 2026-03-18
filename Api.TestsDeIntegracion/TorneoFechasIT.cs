@@ -423,7 +423,40 @@ public class TorneoFechasIT : TestBase
         Assert.Equal(2, fechas.Count);
         Assert.Contains(fechas, f => f.Dia == new DateOnly(2026, 3, 5));
         Assert.Contains(fechas, f => f.Dia == new DateOnly(2026, 3, 20));
-        Assert.DoesNotContain(fechas, f => f.Numero == 2);
+        Assert.Contains(fechas, f => f.Numero == 1);
+        Assert.Contains(fechas, f => f.Numero == 2);
+    }
+
+    [Fact]
+    public async Task EliminarFecha_RenumeraLasSiguientesConsecutivamente()
+    {
+        var zonaId = await CrearTorneoZonaDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var postResponse = await client.PostAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/crear-fechas-masivamente",
+            new List<TorneoFechaDTO>
+            {
+                new() { Dia = new DateOnly(2026, 3, 1), Numero = 1, EsVisibleEnApp = true },
+                new() { Dia = new DateOnly(2026, 3, 8), Numero = 2, EsVisibleEnApp = true },
+                new() { Dia = new DateOnly(2026, 3, 15), Numero = 3, EsVisibleEnApp = true },
+                new() { Dia = new DateOnly(2026, 3, 22), Numero = 4, EsVisibleEnApp = true }
+            });
+        postResponse.EnsureSuccessStatusCode();
+        var creados = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
+        var fechaAEliminarId = creados[1].Id;
+
+        var deleteResponse = await client.DeleteAsync($"/api/TorneoZona/{zonaId}/fechas/{fechaAEliminarId}");
+        deleteResponse.EnsureSuccessStatusCode();
+
+        var listResponse = await client.GetAsync($"/api/TorneoZona/{zonaId}/fechas");
+        listResponse.EnsureSuccessStatusCode();
+        var fechas = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await listResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(fechas);
+        Assert.Equal(3, fechas.Count);
+        Assert.Contains(fechas, f => f.Numero == 1);
+        Assert.Contains(fechas, f => f.Numero == 2);
+        Assert.Contains(fechas, f => f.Numero == 3);
+        Assert.DoesNotContain(fechas, f => f.Numero == 4);
     }
 
     [Fact]
