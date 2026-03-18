@@ -14,4 +14,5 @@ public class TorneoFecha : Entidad
     public int? InstanciaEliminacionDirectaId { get; set; }
     public virtual InstanciaEliminacionDirecta? InstanciaEliminacionDirecta { get; set; }
     public required bool EsVisibleEnApp { get; set; }
+    public virtual ICollection<Jornada> Jornadas { get; set; } = [];
 }

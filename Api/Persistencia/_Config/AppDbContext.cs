@@ -117,6 +117,52 @@ public class AppDbContext : DbContext
             .HasIndex(tf => new { tf.ZonaId, tf.Numero })
             .IsUnique();
 
+        builder.Entity<Jornada>()
+            .ToTable("Jornadas", t => t.HasCheckConstraint(
+                "CK_Jornada_Tipo_Valido",
+                @"([Tipo] = N'Normal' AND [LocalEquipoId] IS NOT NULL AND [VisitanteEquipoId] IS NOT NULL AND [LocalEquipoId] <> [VisitanteEquipoId] AND [EquipoId] IS NULL AND [JornadaLibre_EquipoId] IS NULL AND [LocalOVisitanteId] IS NULL)
+    OR
+    ([Tipo] = N'Libre' AND [JornadaLibre_EquipoId] IS NOT NULL AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL AND [EquipoId] IS NULL AND [LocalOVisitanteId] IS NULL)
+    OR
+    ([Tipo] = N'Interzonal' AND [EquipoId] IS NOT NULL AND [LocalOVisitanteId] IS NOT NULL AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL AND [JornadaLibre_EquipoId] IS NULL)"));
+        builder.Entity<Jornada>()
+            .HasDiscriminator<string>("Tipo")
+            .HasValue<JornadaNormal>("Normal")
+            .HasValue<JornadaLibre>("Libre")
+            .HasValue<JornadaInterzonal>("Interzonal");
+        builder.Entity<Jornada>()
+            .HasOne(j => j.Fecha)
+            .WithMany(f => f.Jornadas)
+            .HasForeignKey(j => j.FechaId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<Jornada>()
+            .HasIndex(j => j.FechaId);
+        builder.Entity<JornadaNormal>()
+            .HasOne(j => j.LocalEquipo)
+            .WithMany()
+            .HasForeignKey(j => j.LocalEquipoId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<JornadaNormal>()
+            .HasOne(j => j.VisitanteEquipo)
+            .WithMany()
+            .HasForeignKey(j => j.VisitanteEquipoId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<JornadaLibre>()
+            .HasOne(j => j.Equipo)
+            .WithMany()
+            .HasForeignKey(j => j.EquipoId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<JornadaInterzonal>()
+            .HasOne(j => j.Equipo)
+            .WithMany()
+            .HasForeignKey(j => j.EquipoId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<JornadaInterzonal>()
+            .HasOne(j => j.LocalVisitante)
+            .WithMany()
+            .HasForeignKey(j => j.LocalOVisitanteId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Entity<EquipoZona>()
             .HasOne(ez => ez.Equipo)
             .WithMany(e => e.Zonas)
@@ -227,4 +273,5 @@ public class AppDbContext : DbContext
     public DbSet<FixtureAlgoritmo> FixtureAlgoritmos { get; set; } = null!;
     public DbSet<FixtureAlgoritmoFecha> FixtureAlgoritmoFecha { get; set; } = null!;
     public DbSet<HistorialDePagos> HistorialDePagos { get; set; } = null!;
+    public DbSet<Jornada> Jornadas { get; set; } = null!;
 }
