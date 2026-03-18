@@ -5,7 +5,7 @@ namespace Api.Core.Entidades;
 
 public class TorneoFecha : Entidad
 {
-    public required DateOnly Dia { get; set; }
+    public DateOnly? Dia { get; set; }
     public required int Numero { get; set; }
     public virtual TorneoZona Zona { get; set; } = null!;
 

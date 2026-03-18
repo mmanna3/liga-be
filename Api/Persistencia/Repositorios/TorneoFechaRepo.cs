@@ -22,6 +22,14 @@ public class TorneoFechaRepo : RepositorioABMAnidado<TorneoFecha, int>, ITorneoF
         return Context.Set<TorneoFecha>()
             .Include(x => x.InstanciaEliminacionDirecta)
             .Include(x => x.Jornadas)
+            .Include(x => x.Jornadas)
+                .ThenInclude(j => ((JornadaNormal)j).LocalEquipo)
+            .Include(x => x.Jornadas)
+                .ThenInclude(j => ((JornadaNormal)j).VisitanteEquipo)
+            .Include(x => x.Jornadas)
+                .ThenInclude(j => ((JornadaLibre)j).Equipo)
+            .Include(x => x.Jornadas)
+                .ThenInclude(j => ((JornadaInterzonal)j).Equipo)
             .AsQueryable();
     }
 

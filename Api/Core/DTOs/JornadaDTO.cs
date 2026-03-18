@@ -1,3 +1,5 @@
+using Api.Core.Enums;
+
 namespace Api.Core.DTOs;
 
 /// <summary>
@@ -12,12 +14,15 @@ public class JornadaDTO : DTO
     public int FechaId { get; set; }
 
     // JornadaNormal
-    public int? LocalEquipoId { get; set; }
-    public int? VisitanteEquipoId { get; set; }
+    public int? LocalId { get; set; }
+    public int? VisitanteId { get; set; }
+    public string? Local { get; set; }
+    public string? Visitante { get; set; }
 
     // JornadaLibre y JornadaInterzonal
     public int? EquipoId { get; set; }
+    public string? Equipo { get; set; }
 
     // JornadaInterzonal
-    public int? LocalOVisitanteId { get; set; }
+    public LocalVisitanteEnum? LocalOVisitante { get; set; }
 }

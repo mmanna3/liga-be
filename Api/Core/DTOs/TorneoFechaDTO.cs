@@ -1,11 +1,8 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Api.Core.DTOs;
 
 public class TorneoFechaDTO : DTO
 {
-    [Required]
-    public required DateOnly Dia { get; set; }
+    public DateOnly? Dia { get; set; }
 
     public required int Numero { get; set; }
 

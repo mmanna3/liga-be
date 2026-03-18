@@ -507,8 +507,8 @@ public class TorneoFechasIT : TestBase
                     {
                         Tipo = "Normal",
                         ResultadosVerificados = false,
-                        LocalEquipoId = equipo1Id,
-                        VisitanteEquipoId = equipo2Id
+                        LocalId = equipo1Id,
+                        VisitanteId = equipo2Id
                     },
                     new JornadaDTO
                     {
@@ -574,7 +574,7 @@ public class TorneoFechasIT : TestBase
                     EsVisibleEnApp = true,
                     Jornadas =
                     [
-                        new JornadaDTO { Tipo = "Normal", ResultadosVerificados = false, LocalEquipoId = equipo1Id, VisitanteEquipoId = equipo2Id },
+                        new JornadaDTO { Tipo = "Normal", ResultadosVerificados = false, LocalId = equipo1Id, VisitanteId = equipo2Id },
                         new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoId = equipo1Id }
                     ]
                 }
@@ -595,7 +595,7 @@ public class TorneoFechasIT : TestBase
                 EsVisibleEnApp = true,
                 Jornadas =
                 [
-                    new JornadaDTO { Id = jornadaNormalId, Tipo = "Normal", ResultadosVerificados = true, LocalEquipoId = equipo1Id, VisitanteEquipoId = equipo2Id },
+                    new JornadaDTO { Id = jornadaNormalId, Tipo = "Normal", ResultadosVerificados = true, LocalId = equipo1Id, VisitanteId = equipo2Id },
                     new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoId = equipo2Id }
                 ]
             }

@@ -1,5 +1,6 @@
 using Api.Core.DTOs;
 using Api.Core.Entidades;
+using Api.Core.Enums;
 using Api.Core.Otros;
 using Api.Core.Repositorios;
 using Api.Core.Servicios.Interfaces;
@@ -157,8 +158,8 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
                 Id = 0,
                 FechaId = fechaId,
                 ResultadosVerificados = dto.ResultadosVerificados,
-                LocalEquipoId = dto.LocalEquipoId ?? 0,
-                VisitanteEquipoId = dto.VisitanteEquipoId ?? 0
+                LocalEquipoId = dto.LocalId ?? 0,
+                VisitanteEquipoId = dto.VisitanteId ?? 0
             },
             "Libre" => new JornadaLibre
             {
@@ -173,7 +174,7 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
                 FechaId = fechaId,
                 ResultadosVerificados = dto.ResultadosVerificados,
                 EquipoId = dto.EquipoId ?? 0,
-                LocalOVisitanteId = dto.LocalOVisitanteId ?? 0
+                LocalOVisitanteId = (int)(dto.LocalOVisitante ?? LocalVisitanteEnum.Local)
             },
             _ => throw new ExcepcionControlada($"Tipo de jornada no válido: '{dto.Tipo}'. Debe ser Normal, Libre o Interzonal.")
         };
@@ -186,15 +187,15 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
         switch (existente)
         {
             case JornadaNormal normal:
-                if (dto.LocalEquipoId.HasValue) normal.LocalEquipoId = dto.LocalEquipoId.Value;
-                if (dto.VisitanteEquipoId.HasValue) normal.VisitanteEquipoId = dto.VisitanteEquipoId.Value;
+                if (dto.LocalId.HasValue) normal.LocalEquipoId = dto.LocalId.Value;
+                if (dto.VisitanteId.HasValue) normal.VisitanteEquipoId = dto.VisitanteId.Value;
                 break;
             case JornadaLibre libre:
                 if (dto.EquipoId.HasValue) libre.EquipoId = dto.EquipoId.Value;
                 break;
             case JornadaInterzonal interzonal:
                 if (dto.EquipoId.HasValue) interzonal.EquipoId = dto.EquipoId.Value;
-                if (dto.LocalOVisitanteId.HasValue) interzonal.LocalOVisitanteId = dto.LocalOVisitanteId.Value;
+                if (dto.LocalOVisitante.HasValue) interzonal.LocalOVisitanteId = (int)dto.LocalOVisitante.Value;
                 break;
         }
     }
