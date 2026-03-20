@@ -40,6 +40,7 @@ public class MapperConfig : Profile
             .ReverseMap()
             .ForMember(dest => dest.Torneo, opt => opt.Ignore());
         CreateMap<TorneoZona, ZonaDeFaseDTO>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombre))
             .ForMember(dest => dest.CantidadDeEquipos, opt => opt.MapFrom<CantidadEquiposDeZonaResolver>());
 
