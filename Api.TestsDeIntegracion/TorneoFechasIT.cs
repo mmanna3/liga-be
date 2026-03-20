@@ -659,4 +659,62 @@ public class TorneoFechasIT : TestBase
             Assert.Equal(2, jornadas.Count);
         }
     }
+
+    [Fact]
+    public async Task CrearFechasMasivamente_FechaEnFormatoISO8601ConHora_DeserializaCorrectamente()
+    {
+        Assert.NotNull(_club);
+        var zonaId = await CrearTorneoZonaDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        int equipo1Id, equipo2Id, equipo3Id;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var equipos = context.Equipos.Where(e => e.ClubId == _club.Id).ToList();
+            equipo1Id = equipos[0].Id;
+
+            var eq2 = new Equipo { Id = 0, Nombre = "Equipo ISO 2", ClubId = _club.Id, Jugadores = [] };
+            var eq3 = new Equipo { Id = 0, Nombre = "Equipo ISO 3", ClubId = _club.Id, Jugadores = [] };
+            context.Equipos.AddRange(eq2, eq3);
+            context.SaveChanges();
+            equipo2Id = eq2.Id;
+            equipo3Id = eq3.Id;
+        }
+
+        // Simula el payload que envía el frontend: fechas en formato ISO 8601 con hora y zona horaria
+        var json = $$"""
+            [
+                {
+                    "numero": 1,
+                    "dia": "2026-03-21T03:00:00.000Z",
+                    "esVisibleEnApp": false,
+                    "jornadas": [
+                        { "tipo": "Normal", "resultadosVerificados": false, "localId": "{{equipo1Id}}", "visitanteId": "{{equipo2Id}}" },
+                        { "tipo": "Libre", "resultadosVerificados": false, "equipoId": "{{equipo3Id}}" }
+                    ]
+                },
+                {
+                    "numero": 2,
+                    "dia": "2026-03-28T03:00:00.000Z",
+                    "esVisibleEnApp": false,
+                    "jornadas": [
+                        { "tipo": "Normal", "resultadosVerificados": false, "localId": "{{equipo1Id}}", "visitanteId": "{{equipo3Id}}" },
+                        { "tipo": "Libre", "resultadosVerificados": false, "equipoId": "{{equipo2Id}}" }
+                    ]
+                }
+            ]
+            """;
+
+        var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+        var response = await client.PostAsync($"/api/TorneoZona/{zonaId}/fechas/crear-fechas-masivamente", content);
+        response.EnsureSuccessStatusCode();
+
+        var creados = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(creados);
+        Assert.Equal(2, creados.Count);
+        Assert.Contains(creados, f => f.Numero == 1 && f.Dia == new DateOnly(2026, 3, 21));
+        Assert.Contains(creados, f => f.Numero == 2 && f.Dia == new DateOnly(2026, 3, 28));
+        Assert.All(creados, f => Assert.Equal(2, f.Jornadas!.Count));
+    }
 }

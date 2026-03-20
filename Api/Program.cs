@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Text.Json.Serialization;
 using Api._Config;
 using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,12 @@ try
 
     builder = InyeccionDeDependenciasConfig.Configurar(builder);
 
-    builder.Services.AddControllers();
+    builder.Services.AddControllers()
+    .AddJsonOptions(o =>
+    {
+        o.JsonSerializerOptions.Converters.Add(new Api._Config.DateOnlyJsonConverter());
+        o.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowReadingFromString;
+    });
 
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
