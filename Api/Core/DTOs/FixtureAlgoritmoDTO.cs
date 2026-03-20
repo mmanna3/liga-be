@@ -4,6 +4,7 @@ public class FixtureAlgoritmoDTO : DTO
 {
     public required int FixtureAlgoritmoId { get; set; }
     public required int CantidadDeEquipos { get; set; }
+    public required string Nombre { get; set; }
     public List<FixtureAlgoritmoFechaDTO> Fechas { get; set; } = [];
 }
 

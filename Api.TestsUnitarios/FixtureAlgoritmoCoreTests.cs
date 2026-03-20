@@ -21,6 +21,7 @@ public class FixtureAlgoritmoCoreTests
         {
             FixtureAlgoritmoId = 0,
             CantidadDeEquipos = 4,
+            Nombre = "Test",
             Fechas =
             [
                 new FixtureAlgoritmoFechaDTO { Fecha = 1, EquipoLocal = 1, EquipoVisitante = 2 },
@@ -48,6 +49,7 @@ public class FixtureAlgoritmoCoreTests
         {
             FixtureAlgoritmoId = 0,
             CantidadDeEquipos = 4,
+            Nombre = "Test",
             Fechas =
             [
                 new FixtureAlgoritmoFechaDTO { Fecha = 1, EquipoLocal = 1, EquipoVisitante = 2 },
@@ -73,6 +75,7 @@ public class FixtureAlgoritmoCoreTests
     {
         FixtureAlgoritmoId = 0,
         CantidadDeEquipos = 4,
+        Nombre = "Test",
         Fechas =
         [
             new FixtureAlgoritmoFechaDTO { Fecha = 1, EquipoLocal = 1, EquipoVisitante = 2 },
@@ -102,6 +105,7 @@ public class FixtureAlgoritmoCoreTests
         {
             FixtureAlgoritmoId = 0,
             CantidadDeEquipos = 4,
+            Nombre = "Test",
             Fechas =
             [
                 new FixtureAlgoritmoFechaDTO { Fecha = 1, EquipoLocal = 1, EquipoVisitante = 2 },
@@ -130,6 +134,7 @@ public class FixtureAlgoritmoCoreTests
         {
             FixtureAlgoritmoId = 0,
             CantidadDeEquipos = 4,
+            Nombre = "Test",
             Fechas =
             [
                 new FixtureAlgoritmoFechaDTO { Fecha = 1, EquipoLocal = 1, EquipoVisitante = 2 },
@@ -157,6 +162,7 @@ public class FixtureAlgoritmoCoreTests
         {
             FixtureAlgoritmoId = 0,
             CantidadDeEquipos = 4,
+            Nombre = "Test",
             Fechas =
             [
                 new FixtureAlgoritmoFechaDTO { Fecha = 1, EquipoLocal = 1, EquipoVisitante = 2 },
@@ -186,6 +192,7 @@ public class FixtureAlgoritmoCoreTests
         {
             FixtureAlgoritmoId = 0,
             CantidadDeEquipos = 4,
+            Nombre = "Test",
             Fechas =
             [
                 new FixtureAlgoritmoFechaDTO { Fecha = 1, EquipoLocal = 1, EquipoVisitante = 2 },

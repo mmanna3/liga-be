@@ -19,7 +19,7 @@ public class FixtureAlgoritmoCore : ABMCore<IFixtureAlgoritmoRepo, FixtureAlgori
         ValidarCantidadDeFechas(dto);
         ValidarEquiposUnaSolaVezPorFecha(dto);
         ValidarEncuentrosNoRepetidos(dto);
-        var fixture = new FixtureAlgoritmo { Id = 0, CantidadDeEquipos = dto.CantidadDeEquipos };
+        var fixture = new FixtureAlgoritmo { Id = 0, CantidadDeEquipos = dto.CantidadDeEquipos, Nombre = dto.Nombre };
         var fechas = (dto.Fechas ?? []).Select(p => new FixtureAlgoritmoFecha
         {
             Id = 0,

@@ -11,6 +11,7 @@ public class FixtureAlgoritmoIT : TestBase
     {
         FixtureAlgoritmoId = 0,
         CantidadDeEquipos = 4,
+        Nombre = "Test",
         Fechas =
         [
             new FixtureAlgoritmoFechaDTO { Fecha = 1, EquipoLocal = 1, EquipoVisitante = 2 },
@@ -68,6 +69,7 @@ public class FixtureAlgoritmoIT : TestBase
             Id = creado.Id,
             FixtureAlgoritmoId = creado.Id,
             CantidadDeEquipos = 4,
+            Nombre = creado.Nombre,
             Fechas =
             [
                 new FixtureAlgoritmoFechaDTO { Fecha = 1, EquipoLocal = 1, EquipoVisitante = 3 },
@@ -117,6 +119,7 @@ public class FixtureAlgoritmoIT : TestBase
         {
             FixtureAlgoritmoId = 0,
             CantidadDeEquipos = 4,
+            Nombre = "Test",
             Fechas =
             [
                 new FixtureAlgoritmoFechaDTO { Fecha = 1, EquipoLocal = 1, EquipoVisitante = 2 },

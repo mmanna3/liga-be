@@ -188,12 +188,18 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<FixtureAlgoritmo>().HasData(
-            new FixtureAlgoritmo { Id = 1, CantidadDeEquipos = 4 },
-            new FixtureAlgoritmo { Id = 2, CantidadDeEquipos = 8 },
-            new FixtureAlgoritmo { Id = 3, CantidadDeEquipos = 10 },
-            new FixtureAlgoritmo { Id = 4, CantidadDeEquipos = 12 },
-            new FixtureAlgoritmo { Id = 5, CantidadDeEquipos = 14 },
-            new FixtureAlgoritmo { Id = 6, CantidadDeEquipos = 16 }
+            new FixtureAlgoritmo { Id = 1, CantidadDeEquipos = 4, Nombre = "Clásico" },
+            new FixtureAlgoritmo { Id = 2, CantidadDeEquipos = 8, Nombre = "Apertura" },
+            new FixtureAlgoritmo { Id = 3, CantidadDeEquipos = 10, Nombre = "Apertura" },
+            new FixtureAlgoritmo { Id = 4, CantidadDeEquipos = 12, Nombre = "Apertura" },
+            new FixtureAlgoritmo { Id = 5, CantidadDeEquipos = 14, Nombre = "Apertura" },
+            new FixtureAlgoritmo { Id = 6, CantidadDeEquipos = 16, Nombre = "Apertura" },
+            new FixtureAlgoritmo { Id = 7, CantidadDeEquipos = 4, Nombre = "Champions" },
+            new FixtureAlgoritmo { Id = 8, CantidadDeEquipos = 8, Nombre = "Clausura" },
+            new FixtureAlgoritmo { Id = 9, CantidadDeEquipos = 10, Nombre = "Clausura" },
+            new FixtureAlgoritmo { Id = 10, CantidadDeEquipos = 12, Nombre = "Clausura" },
+            new FixtureAlgoritmo { Id = 11, CantidadDeEquipos = 14, Nombre = "Clausura" },
+            new FixtureAlgoritmo { Id = 12, CantidadDeEquipos = 16, Nombre = "Clausura" }
         );
 
         builder.Entity<Delegado>()
