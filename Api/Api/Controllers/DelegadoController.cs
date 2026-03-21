@@ -1,3 +1,4 @@
+using Api.Api.Authorization;
 using Api.Core.DTOs;
 using Api.Core.DTOs.CambiosDeEstadoDelegado;
 using Api.Core.Enums;
@@ -14,7 +15,6 @@ namespace Api.Api.Controllers
         }
 
         [HttpGet("por-ids", Name = "delegadosPorIds")]
-        [Authorize(Roles = "Administrador,Consulta")]
         public async Task<ActionResult<IEnumerable<DelegadoDTO>>> ObtenerPorIds([FromQuery] IEnumerable<int> ids) =>
             await ObtenerPorIdsCore(ids);
 

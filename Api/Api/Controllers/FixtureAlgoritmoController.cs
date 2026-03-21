@@ -1,6 +1,6 @@
+using Api.Api.Authorization;
 using Api.Core.DTOs;
 using Api.Core.Servicios.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers;
@@ -20,7 +20,6 @@ public class FixtureAlgoritmoController : ABMController<FixtureAlgoritmoDTO, IFi
     }
 
     [HttpGet("por-ids", Name = "fixtureAlgoritmosPorIds")]
-    [Authorize(Roles = "Administrador,Consulta")]
     public async Task<ActionResult<IEnumerable<FixtureAlgoritmoDTO>>> ObtenerPorIds([FromQuery] IEnumerable<int> ids) =>
         await ObtenerPorIdsCore(ids);
 }

@@ -242,7 +242,7 @@ public class AppDbContext : DbContext
                 Id = 1, 
                 NombreUsuario = "mati", 
                 Password = AuthCore.HashPassword("mandarina1"),
-                RolId = 1
+                RolId = 0
             },
             new Usuario 
             { 
@@ -257,6 +257,27 @@ public class AppDbContext : DbContext
                 NombreUsuario = "consulta", 
                 Password = AuthCore.HashPassword("consulta"),
                 RolId = 3
+            },
+            new Usuario 
+            { 
+                Id = 1000, 
+                NombreUsuario = "eze", 
+                Password = AuthCore.HashPassword("edefiliga"),
+                RolId = 1
+            },
+            new Usuario 
+            { 
+                Id = 1001, 
+                NombreUsuario = "lucas", 
+                Password = AuthCore.HashPassword("edefiliga"),
+                RolId = 1
+            },
+            new Usuario 
+            { 
+                Id = 1002, 
+                NombreUsuario = "elias", 
+                Password = AuthCore.HashPassword("edefiliga"),
+                RolId = 1
             }
         );
     }

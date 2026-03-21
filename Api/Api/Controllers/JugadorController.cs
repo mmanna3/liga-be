@@ -1,3 +1,4 @@
+using Api.Api.Authorization;
 using Api.Core.DTOs;
 using Api.Core.DTOs.CambiosDeEstadoJugador;
 using Api.Core.Enums;
@@ -14,7 +15,6 @@ namespace Api.Api.Controllers
         }
 
         [HttpGet("por-ids", Name = "jugadoresPorIds")]
-        [Authorize(Roles = "Administrador,Consulta")]
         public async Task<ActionResult<IEnumerable<JugadorDTO>>> ObtenerPorIds([FromQuery] IEnumerable<int> ids) =>
             await ObtenerPorIdsCore(ids);
 

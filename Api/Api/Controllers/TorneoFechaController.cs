@@ -1,6 +1,6 @@
+using Api.Api.Authorization;
 using Api.Core.DTOs;
 using Api.Core.Servicios.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers;
@@ -18,7 +18,6 @@ public class TorneoFechaController : ABMControllerAnidado<TorneoFechaDTO, ITorne
     }
 
     [HttpPost("crear-fechas-masivamente")]
-    [Authorize(Roles = "Administrador")]
     public async Task<ActionResult<IEnumerable<TorneoFechaDTO>>> CrearMasivamente(int padreId, [FromBody] List<TorneoFechaDTO> dtos)
     {
         var creados = await Core.CrearMasivamente(padreId, dtos);
@@ -26,7 +25,6 @@ public class TorneoFechaController : ABMControllerAnidado<TorneoFechaDTO, ITorne
     }
 
     [HttpPut("modificar-fechas-masivamente")]
-    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> ModificarMasivamente(int padreId, [FromBody] List<TorneoFechaDTO> dtos)
     {
         await Core.ModificarMasivamente(padreId, dtos);

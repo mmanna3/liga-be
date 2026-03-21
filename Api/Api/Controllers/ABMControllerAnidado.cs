@@ -1,3 +1,4 @@
+using Api.Api.Authorization;
 using Api.Core.DTOs;
 using Api.Core.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -11,7 +12,7 @@ namespace Api.Api.Controllers;
 /// La ruta debe incluir el segmento del padre, ej: [Route("api/Torneo/{padreId}/categorias")].
 /// </summary>
 [ApiController]
-[Authorize]
+[AutorizarCualquierUsuarioAdministrativo]
 public abstract class ABMControllerAnidado<TDTO, TCore> : ControllerBase
     where TDTO : DTO
     where TCore : ICoreABMAnidado<int, TDTO>
@@ -28,7 +29,6 @@ public abstract class ABMControllerAnidado<TDTO, TCore> : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "Administrador,Consulta")]
     public async Task<ActionResult<IEnumerable<TDTO>>> Get(int padreId)
     {
         var dtos = await Core.ListarPorPadre(padreId);
@@ -36,7 +36,6 @@ public abstract class ABMControllerAnidado<TDTO, TCore> : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [Authorize(Roles = "Administrador,Consulta")]
     public async Task<ActionResult<TDTO>> Get(int padreId, int id)
     {
         var dto = await Core.ObtenerPorId(padreId, id);
@@ -46,7 +45,6 @@ public abstract class ABMControllerAnidado<TDTO, TCore> : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Administrador")]
     public virtual async Task<ActionResult<TDTO>> Crear(int padreId, TDTO dto)
     {
         var id = await Core.Crear(padreId, dto);
@@ -63,7 +61,6 @@ public abstract class ABMControllerAnidado<TDTO, TCore> : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Put(int padreId, int id, TDTO dto)
     {
         if (id != dto.Id)
@@ -84,7 +81,7 @@ public abstract class ABMControllerAnidado<TDTO, TCore> : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Administrador")]
+    [AutorizarSoloAdmin]
     public async Task<ActionResult<int>> Eliminar(int padreId, int id)
     {
         var resultado = await Core.Eliminar(padreId, id);

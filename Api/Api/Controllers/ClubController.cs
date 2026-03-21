@@ -1,7 +1,7 @@
+using Api.Api.Authorization;
 using Api.Core.DTOs;
 using Api.Core.Otros;
 using Api.Core.Servicios.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers
@@ -13,12 +13,10 @@ namespace Api.Api.Controllers
         }
 
         [HttpGet("por-ids", Name = "clubsPorIds")]
-        [Authorize(Roles = "Administrador,Consulta")]
         public async Task<ActionResult<IEnumerable<ClubDTO>>> ObtenerPorIds([FromQuery] IEnumerable<int> ids) =>
             await ObtenerPorIdsCore(ids);
 
         [HttpPost("{id}/cambiar-escudo")]
-        [Authorize(Roles = "Administrador")]
         public async Task<ActionResult<int>> CambiarEscudo(int id, [FromBody] CambiarEscudoDTO dto)
         {
             try

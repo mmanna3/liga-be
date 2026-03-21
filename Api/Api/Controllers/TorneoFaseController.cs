@@ -1,6 +1,6 @@
+using Api.Api.Authorization;
 using Api.Core.DTOs;
 using Api.Core.Servicios.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers;
@@ -13,7 +13,6 @@ public class TorneoFaseController : ABMControllerAnidado<TorneoFaseDTO, ITorneoF
     }
 
     [HttpPost]
-    [Authorize(Roles = "Administrador")]
     public override async Task<ActionResult<TorneoFaseDTO>> Crear(int padreId, TorneoFaseDTO dto)
     {
         var id = await Core.Crear(padreId, dto);

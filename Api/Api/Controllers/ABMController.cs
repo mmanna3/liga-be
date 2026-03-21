@@ -1,3 +1,4 @@
+using Api.Api.Authorization;
 using Api.Core.DTOs;
 using Api.Core.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +9,7 @@ namespace Api.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
+[AutorizarCualquierUsuarioAdministrativo]
 public abstract class ABMController<TDTO, TCore, TCrearDTO> : ControllerBase
     where TDTO : DTO
     where TCrearDTO : TDTO
@@ -36,7 +37,6 @@ public abstract class ABMController<TDTO, TCore, TCrearDTO> : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "Administrador,Consulta")]
     public async Task<ActionResult<IEnumerable<TDTO>>> Get()
     {
         var dto = await Core.Listar();
@@ -44,7 +44,6 @@ public abstract class ABMController<TDTO, TCore, TCrearDTO> : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [Authorize(Roles = "Administrador,Consulta")]
     public async Task<ActionResult<TDTO>> Get(int id)
     {
         var dto = await Core.ObtenerPorId(id);
@@ -54,7 +53,6 @@ public abstract class ABMController<TDTO, TCore, TCrearDTO> : ControllerBase
 
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPost]
-    [Authorize(Roles = "Administrador")]
     public virtual async Task<ActionResult<TDTO>> Crear(TCrearDTO dto)
     {
         var id = await Core.Crear(dto);
@@ -66,7 +64,6 @@ public abstract class ABMController<TDTO, TCore, TCrearDTO> : ControllerBase
     // PUT: api/Servicio/5
     // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
     [HttpPut("{id}")]
-    [Authorize(Roles = "Administrador")]
     public async Task<IActionResult> Put(int id, TDTO dto)
     {
         if (id != dto.Id)
@@ -87,7 +84,7 @@ public abstract class ABMController<TDTO, TCore, TCrearDTO> : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Administrador")]
+    [AutorizarSoloAdmin]
     public async Task<ActionResult<int>> Eliminar(int id)
     {
         var resultado = await Core.Eliminar(id);
