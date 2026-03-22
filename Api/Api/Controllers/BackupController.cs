@@ -10,10 +10,12 @@ namespace Api.Api.Controllers;
 public class BackupController : ControllerBase
 {
     private readonly IBackupCore _backupCore;
+    private readonly IGoogleDriveCore _googleDriveCore;
 
-    public BackupController(IBackupCore backupCore)
+    public BackupController(IBackupCore backupCore, IGoogleDriveCore googleDriveCore)
     {
         _backupCore = backupCore;
+        _googleDriveCore = googleDriveCore;
     }
 
     [HttpGet("generar-backup-base-de-datos")]
@@ -45,4 +47,25 @@ public class BackupController : ControllerBase
         var ruta = await _backupCore.GuardarBackupImagenesEnDisco();
         return Ok(new { ruta });
     }
+
+    [HttpGet("subir-backup-bd-a-google-drive")]
+    [AllowAnonymous]
+    public async Task<IActionResult> SubirBackupBdAGoogleDrive()
+    {
+        var rutaArchivo = await _backupCore.GuardarBackupBaseDeDatosEnDisco();
+        var nombreArchivo = Path.GetFileName(rutaArchivo);
+        var idArchivoEnDrive = await _googleDriveCore.SubirArchivo(rutaArchivo, nombreArchivo);
+        return Ok(new { idArchivoEnDrive });
+    }
+
+    [HttpGet("subir-backup-imagenes-a-google-drive")]
+    [AllowAnonymous]
+    public async Task<IActionResult> SubirBackupImagenesAGoogleDrive()
+    {
+        var rutaArchivo = await _backupCore.GuardarBackupImagenesEnDisco();
+        var nombreArchivo = Path.GetFileName(rutaArchivo);
+        var idArchivoEnDrive = await _googleDriveCore.SubirArchivo(rutaArchivo, nombreArchivo);
+        return Ok(new { idArchivoEnDrive });
+    }
+
 }

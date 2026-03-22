@@ -30,6 +30,8 @@ namespace Api.Persistencia.Repositorios
 
 		public void FicharPersonaTemporal(string dni)
 		{
+			if (!Directory.Exists(Paths.ImagenesTemporalesCarnetAbsolute))
+				return;
 			var archivosTemporales = Directory.GetFiles(Paths.ImagenesTemporalesCarnetAbsolute, $"{dni}.*");
 			if (archivosTemporales.Length == 0)
 				return; // Ya estaba fichado en otro club/equipo, las fotos están en definitivas
