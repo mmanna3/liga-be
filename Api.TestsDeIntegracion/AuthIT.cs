@@ -165,9 +165,9 @@ public class AuthIT : TestBase
         client.DefaultRequestHeaders.Authorization = 
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", loginContent.Token);
         
-        // Act
-        var response = await client.GetAsync("/api/club");
-        
+        // Act — DELETE usa [AutorizarSoloAdmin], que excluye el rol "Usuario"
+        var response = await client.DeleteAsync("/api/club/999");
+
         // Assert
         Assert.Equal(System.Net.HttpStatusCode.Forbidden, response.StatusCode);
     }
