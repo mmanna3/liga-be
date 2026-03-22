@@ -63,4 +63,58 @@ public class BackupCore : IBackupCore
         var stream = new FileStream(zipPath, FileMode.Open, FileAccess.Read, FileShare.None, 4096, FileOptions.DeleteOnClose);
         return (stream, zipFileName);
     }
+
+    public async Task<string> GuardarBackupBaseDeDatosEnDisco()
+    {
+        var backupDir = Path.Combine(_appPaths.BackupAbsolute(), "backup");
+        Directory.CreateDirectory(backupDir);
+
+        var zipFileName = $"backup-bd-{FechaUtils.AhoraEnArgentinaFormatoBackupDisco}.zip";
+        var zipPath = Path.Combine(backupDir, zipFileName);
+
+        var connectionString = _configuration.GetConnectionString("Default")!;
+        var connBuilder = new SqlConnectionStringBuilder(connectionString);
+        var dbName = connBuilder.InitialCatalog;
+
+        var tempDir = _appPaths.CarpetaTemporalBackupBaseDeDatosAbsolute;
+        Directory.CreateDirectory(tempDir);
+        var bacpacFileName = $"BaseDeDatos-{FechaUtils.AhoraEnArgentinaFormatoBackup}.bacpac";
+        var bacpacPath = Path.Combine(tempDir, bacpacFileName);
+
+        try
+        {
+            await Task.Run(() =>
+            {
+                var dacServices = new DacServices(connectionString);
+                dacServices.ExportBacpac(bacpacPath, dbName);
+            });
+
+            await Task.Run(() =>
+            {
+                using (var zip = ZipFile.Open(zipPath, ZipArchiveMode.Create))
+                {
+                    zip.CreateEntryFromFile(bacpacPath, bacpacFileName);
+                }
+            });
+        }
+        finally
+        {
+            if (File.Exists(bacpacPath)) File.Delete(bacpacPath);
+        }
+
+        return zipPath;
+    }
+
+    public async Task<string> GuardarBackupImagenesEnDisco()
+    {
+        var backupDir = Path.Combine(_appPaths.BackupAbsolute(), "backup");
+        Directory.CreateDirectory(backupDir);
+
+        var zipFileName = $"backup-imagenes-{FechaUtils.AhoraEnArgentinaFormatoBackupDisco}.zip";
+        var zipPath = Path.Combine(backupDir, zipFileName);
+
+        await Task.Run(() => ZipFile.CreateFromDirectory(_appPaths.ImagenesAbsolute, zipPath));
+
+        return zipPath;
+    }
 }

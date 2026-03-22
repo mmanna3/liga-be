@@ -29,4 +29,20 @@ public class BackupController : ControllerBase
         var (stream, fileName) = await _backupCore.GenerarBackupImagenes();
         return File(stream, "application/zip", fileName);
     }
+
+    [HttpGet("guardar-backup-bd-en-disco")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GuardarBackupBdEnDisco()
+    {
+        var ruta = await _backupCore.GuardarBackupBaseDeDatosEnDisco();
+        return Ok(new { ruta });
+    }
+
+    [HttpGet("guardar-backup-imagenes-en-disco")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GuardarBackupImagenesEnDisco()
+    {
+        var ruta = await _backupCore.GuardarBackupImagenesEnDisco();
+        return Ok(new { ruta });
+    }
 }

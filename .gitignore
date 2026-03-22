@@ -45,3 +45,5 @@ msbuild.wrn
 wwwroot
 
 Api/Imagenes/
+
+Api/App_Data/backup/

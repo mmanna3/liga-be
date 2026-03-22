@@ -88,6 +88,22 @@ public static class InyeccionDeDependenciasConfig
                     ValidateIssuer = false,
                     ValidateAudience = false
                 };
+
+                // Si la autenticación falla (token inválido/vencido) pero el endpoint tiene [AllowAnonymous],
+                // permitir continuar como anónimo en lugar de devolver 401
+                options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+                {
+                    OnAuthenticationFailed = context =>
+                    {
+                        var endpoint = context.HttpContext.GetEndpoint();
+                        if (endpoint?.Metadata.GetMetadata<Microsoft.AspNetCore.Authorization.IAllowAnonymous>() != null)
+                        {
+                            context.NoResult();
+                            return Task.CompletedTask;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
             });
         
         return builder;
