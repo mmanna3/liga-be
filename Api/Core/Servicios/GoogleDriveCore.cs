@@ -1,10 +1,13 @@
 using Api.Core.Logica;
 using Api.Core.Servicios.Interfaces;
 using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Encodings.Web;
 
 namespace Api.Core.Servicios;
 
@@ -32,7 +35,6 @@ public class GoogleDriveCore : IGoogleDriveCore
 
         var solicitud = servicio.Files.Create(metadatos, stream, "application/zip");
         solicitud.Fields = "id";
-        solicitud.SupportsAllDrives = true;
 
         var resultado = await solicitud.UploadAsync();
 
@@ -53,36 +55,70 @@ public class GoogleDriveCore : IGoogleDriveCore
         var credenciales = JsonSerializer.Deserialize<CredencialesGoogleDrive>(contenido)
             ?? throw new Exception("El archivo de credenciales de Google Drive tiene un formato inválido.");
 
-        if (string.IsNullOrWhiteSpace(credenciales.EmailCuentaServicio))
-            throw new Exception("El campo 'email_cuenta_servicio' está vacío en las credenciales de Google Drive.");
-        if (string.IsNullOrWhiteSpace(credenciales.ClavePrivada))
-            throw new Exception("El campo 'clave_privada' está vacío en las credenciales de Google Drive.");
+        if (string.IsNullOrWhiteSpace(credenciales.ClientId))
+            throw new Exception("El campo 'client_id' está vacío en las credenciales de Google Drive.");
+        if (string.IsNullOrWhiteSpace(credenciales.ClientSecret))
+            throw new Exception("El campo 'client_secret' está vacío en las credenciales de Google Drive.");
+        if (string.IsNullOrWhiteSpace(credenciales.RefreshToken))
+            throw new Exception("El campo 'refresh_token' está vacío en las credenciales de Google Drive.");
+
         return credenciales;
     }
 
+    public string ObtenerUrlDeAutorizacion(string redirectUri)
+    {
+        var credenciales = LeerCredenciales();
+        var flow = CrearFlow(credenciales);
+        return flow.CreateAuthorizationCodeRequest(redirectUri).Build().ToString();
+    }
+
+    public async Task GuardarRefreshToken(string code, string redirectUri)
+    {
+        var credenciales = LeerCredenciales();
+        var flow = CrearFlow(credenciales);
+        var token = await flow.ExchangeCodeForTokenAsync("user", code, redirectUri, CancellationToken.None);
+
+        credenciales.RefreshToken = token.RefreshToken;
+
+        var ruta = Path.Combine(_appPaths.BackupAbsolute(), "google-drive-credenciales.dat");
+        var opciones = new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+        await File.WriteAllTextAsync(ruta, JsonSerializer.Serialize(credenciales, opciones));
+    }
+
+    private static GoogleAuthorizationCodeFlow CrearFlow(CredencialesGoogleDrive credenciales) =>
+        new(new GoogleAuthorizationCodeFlow.Initializer
+        {
+            ClientSecrets = new ClientSecrets
+            {
+                ClientId = credenciales.ClientId,
+                ClientSecret = credenciales.ClientSecret
+            },
+            Scopes = [DriveService.Scope.Drive]
+        });
+
     private static DriveService CrearServicio(CredencialesGoogleDrive credenciales)
     {
-        var credencialCuenta = new ServiceAccountCredential(
-            new ServiceAccountCredential.Initializer(credenciales.EmailCuentaServicio)
-            {
-                Scopes = [DriveService.Scope.Drive]
-            }.FromPrivateKey(credenciales.ClavePrivada)
-        );
+        var flow = CrearFlow(credenciales);
+        var tokenResponse = new TokenResponse { RefreshToken = credenciales.RefreshToken };
+        var userCredential = new UserCredential(flow, "user", tokenResponse);
 
         return new DriveService(new BaseClientService.Initializer
         {
-            HttpClientInitializer = credencialCuenta,
+            HttpClientInitializer = userCredential,
             ApplicationName = "LigaBackup"
         });
     }
 
     private class CredencialesGoogleDrive
     {
-        [JsonPropertyName("email_cuenta_servicio")]
-        public string EmailCuentaServicio { get; set; } = "";
+        [JsonPropertyName("client_id")]
+        public string ClientId { get; set; } = "";
 
-        [JsonPropertyName("clave_privada")]
-        public string ClavePrivada { get; set; } = "";
+        [JsonPropertyName("client_secret")]
+        public string ClientSecret { get; set; } = "";
+
+        [JsonPropertyName("refresh_token")]
+        public string RefreshToken { get; set; } = "";
 
         [JsonPropertyName("id_carpeta_destino")]
         public string IdCarpetaDestino { get; set; } = "";

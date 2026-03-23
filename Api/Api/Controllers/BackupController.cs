@@ -69,6 +69,26 @@ public class BackupController : ControllerBase
         return Ok(new { idArchivoEnDrive });
     }
 
+    // Comentado porque SOLO FUE NECESARIO UNA SOLA VEZ.
+    // 
+    // [HttpGet("google-drive-autorizar")]
+    // [AllowAnonymous]
+    // public IActionResult GoogleDriveAutorizar()
+    // {
+    //     var redirectUri = $"{Request.Scheme}://{Request.Host}/api/backup/google-drive-callback";
+    //     var url = _googleDriveCore.ObtenerUrlDeAutorizacion(redirectUri);
+    //     return Redirect(url);
+    // }
+
+    // [HttpGet("google-drive-callback")]
+    // [AllowAnonymous]
+    // public async Task<IActionResult> GoogleDriveCallback([FromQuery] string code)
+    // {
+    //     var redirectUri = $"{Request.Scheme}://{Request.Host}/api/backup/google-drive-callback";
+    //     await _googleDriveCore.GuardarRefreshToken(code, redirectUri);
+    //     return Ok("Refresh token guardado correctamente. Ya podés usar el backup.");
+    // }
+
     [HttpPost("restaurar-bd-desde-backup")]
     [AutorizarSoloSuperAdmin]
     public async Task<IActionResult> RestaurarBdDesdeBackup()
