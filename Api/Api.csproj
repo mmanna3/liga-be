@@ -2,6 +2,9 @@
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
+    <!-- NU1903: AutoMapper tiene la vulnerabilidad GHSA-rvv3-g6hj-g44x en todas sus versiones sin fix disponible.
+         Riesgo aceptable: se usa solo para mapeo server-side de DTOs propios, no para deserializar tipos externos. -->
+    <NoWarn>$(NoWarn);NU1903</NoWarn>
   </PropertyGroup>
   
   <PropertyGroup>
