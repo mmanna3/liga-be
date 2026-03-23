@@ -34,7 +34,7 @@ public class BackupController : ControllerBase
     }
 
     [HttpGet("guardar-backup-bd-en-disco")]
-    [AllowAnonymous]
+    [AutorizarConApiKey]
     public async Task<IActionResult> GuardarBackupBdEnDisco()
     {
         var ruta = await _backupCore.GuardarBackupBaseDeDatosEnDisco();
@@ -42,7 +42,7 @@ public class BackupController : ControllerBase
     }
 
     [HttpGet("guardar-backup-imagenes-en-disco")]
-    [AllowAnonymous]
+    [AutorizarConApiKey]
     public async Task<IActionResult> GuardarBackupImagenesEnDisco()
     {
         var ruta = await _backupCore.GuardarBackupImagenesEnDisco();
@@ -52,7 +52,7 @@ public class BackupController : ControllerBase
     // --- Endpoints para GitHub Actions (ejecutar en orden) ---
 
     [HttpGet("validar-archivos-locales")]
-    [AllowAnonymous]
+    [AutorizarConApiKey]
     public IActionResult ValidarArchivosLocales()
     {
         _backupCore.ValidarCantidadArchivosEnCarpetaBackup();
@@ -60,7 +60,7 @@ public class BackupController : ControllerBase
     }
 
     [HttpGet("rotar-backups-en-drive")]
-    [AllowAnonymous]
+    [AutorizarConApiKey]
     public async Task<IActionResult> RotarBackupsEnDrive()
     {
         await _googleDriveCore.RotarBackupsEnDrive();
@@ -68,7 +68,7 @@ public class BackupController : ControllerBase
     }
 
     [HttpGet("subir-backup-bd-a-drive")]
-    [AllowAnonymous]
+    [AutorizarConApiKey]
     public async Task<IActionResult> SubirBackupBdADrive()
     {
         var ruta = _backupCore.ObtenerRutaBackupBdEnDisco();
@@ -77,7 +77,7 @@ public class BackupController : ControllerBase
     }
 
     [HttpGet("subir-backup-imagenes-a-drive")]
-    [AllowAnonymous]
+    [AutorizarConApiKey]
     public async Task<IActionResult> SubirBackupImagenesADrive()
     {
         var ruta = _backupCore.ObtenerRutaBackupImagenesEnDisco();
@@ -86,7 +86,7 @@ public class BackupController : ControllerBase
     }
 
     [HttpDelete("limpiar-backups-locales")]
-    [AllowAnonymous]
+    [AutorizarConApiKey]
     public IActionResult LimpiarBackupsLocales()
     {
         _backupCore.LimpiarBackupsLocales();

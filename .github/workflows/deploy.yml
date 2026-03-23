@@ -31,7 +31,7 @@ jobs:
         run: |
           $file = "Api/appsettings.Production.json"
           $content = Get-Content $file -Raw
-          $content = $content.Replace("{db_server}", "$env:DB_SERVER").Replace("{db_name}", "$env:DB_NAME").Replace("{db_username}", "$env:DB_USERNAME").Replace("{db_password}", "$env:DB_PASSWORD").Replace("{clave_secreta_jwt}", "$env:CLAVE_SECRETA_JWT")
+          $content = $content.Replace("{db_server}", "$env:DB_SERVER").Replace("{db_name}", "$env:DB_NAME").Replace("{db_username}", "$env:DB_USERNAME").Replace("{db_password}", "$env:DB_PASSWORD").Replace("{clave_secreta_jwt}", "$env:CLAVE_SECRETA_JWT").Replace("{api_key_backup}", "$env:BACKUP_API_KEY")
           Set-Content -Path $file -Value $content
         env:
           DB_SERVER: ${{ secrets.DB_SERVER }}
@@ -39,6 +39,7 @@ jobs:
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           CLAVE_SECRETA_JWT: ${{ secrets.CLAVE_SECRETA_JWT }}
+          BACKUP_API_KEY: ${{ secrets.BACKUP_API_KEY }}
 
       - name: Restore
         run: dotnet restore
