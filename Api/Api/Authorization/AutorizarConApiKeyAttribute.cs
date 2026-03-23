@@ -3,11 +3,11 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Api.Api.Authorization;
 
-public class AutorizarConApiKeyAttribute : Attribute, IAuthorizationFilter
+public class AutorizarConApiKeyAttribute : Attribute, IActionFilter
 {
     private const string Header = "X-Api-Key";
 
-    public void OnAuthorization(AuthorizationFilterContext context)
+    public void OnActionExecuting(ActionExecutingContext context)
     {
         var config = context.HttpContext.RequestServices.GetRequiredService<IConfiguration>();
         var apiKey = config["AppSettings:ApiKey"];
@@ -21,4 +21,6 @@ public class AutorizarConApiKeyAttribute : Attribute, IAuthorizationFilter
         if (!context.HttpContext.Request.Headers.TryGetValue(Header, out var valorRecibido) || valorRecibido != apiKey)
             context.Result = new UnauthorizedResult();
     }
+
+    public void OnActionExecuted(ActionExecutedContext context) { }
 }

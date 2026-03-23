@@ -34,6 +34,7 @@ public class BackupController : ControllerBase
     }
 
     [HttpGet("guardar-backup-bd-en-disco")]
+    [AllowAnonymous]
     [AutorizarConApiKey]
     public async Task<IActionResult> GuardarBackupBdEnDisco()
     {
@@ -42,6 +43,7 @@ public class BackupController : ControllerBase
     }
 
     [HttpGet("guardar-backup-imagenes-en-disco")]
+    [AllowAnonymous]
     [AutorizarConApiKey]
     public async Task<IActionResult> GuardarBackupImagenesEnDisco()
     {
@@ -52,6 +54,7 @@ public class BackupController : ControllerBase
     // --- Endpoints para GitHub Actions (ejecutar en orden) ---
 
     [HttpGet("validar-archivos-locales")]
+    [AllowAnonymous]
     [AutorizarConApiKey]
     public IActionResult ValidarArchivosLocales()
     {
@@ -60,6 +63,7 @@ public class BackupController : ControllerBase
     }
 
     [HttpGet("rotar-backups-en-drive")]
+    [AllowAnonymous]
     [AutorizarConApiKey]
     public async Task<IActionResult> RotarBackupsEnDrive()
     {
@@ -68,6 +72,7 @@ public class BackupController : ControllerBase
     }
 
     [HttpGet("subir-backup-bd-a-drive")]
+    [AllowAnonymous]
     [AutorizarConApiKey]
     public async Task<IActionResult> SubirBackupBdADrive()
     {
@@ -77,6 +82,7 @@ public class BackupController : ControllerBase
     }
 
     [HttpGet("subir-backup-imagenes-a-drive")]
+    [AllowAnonymous]
     [AutorizarConApiKey]
     public async Task<IActionResult> SubirBackupImagenesADrive()
     {
@@ -86,6 +92,7 @@ public class BackupController : ControllerBase
     }
 
     [HttpDelete("limpiar-backups-locales")]
+    [AllowAnonymous]
     [AutorizarConApiKey]
     public IActionResult LimpiarBackupsLocales()
     {
