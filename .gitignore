@@ -46,5 +46,5 @@ wwwroot
 
 Api/Imagenes/
 
-Api/App_Data/backup/
+Api/App_Data/
 Api/App_Data/google-drive-credenciales.dat

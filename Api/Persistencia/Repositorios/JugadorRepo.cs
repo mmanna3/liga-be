@@ -28,6 +28,7 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
                 .ThenInclude(x => x.EstadoJugador)
             .Include(x => x.JugadorEquipos)
                 .ThenInclude(x => x.HistorialDePagos)
+            .AsSplitQuery()
             .AsQueryable();
     }
 

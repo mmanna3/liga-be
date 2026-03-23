@@ -43,6 +43,9 @@ try
 
     var app = builder.Build();
 
+    Console.WriteLine($"Entorno: {app.Environment.EnvironmentName}");
+    Console.WriteLine($"Base de datos: {connectionString}");
+
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();

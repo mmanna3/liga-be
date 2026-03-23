@@ -1,3 +1,4 @@
+using Api.Api.Authorization;
 using Api.Core.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -68,4 +69,19 @@ public class BackupController : ControllerBase
         return Ok(new { idArchivoEnDrive });
     }
 
+    [HttpPost("restaurar-bd-desde-backup")]
+    [AutorizarSoloSuperAdmin]
+    public async Task<IActionResult> RestaurarBdDesdeBackup()
+    {
+        await _backupCore.RestaurarDesdeBackup();
+        return Ok();
+    }
+
+    [HttpPost("restaurar-imagenes-desde-backup")]
+    [AutorizarSoloSuperAdmin]
+    public async Task<IActionResult> RestaurarImagenesDesdeBackup()
+    {
+        await _backupCore.RestaurarImagenesDesdeBackup();
+        return Ok();
+    }
 }
