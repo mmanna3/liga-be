@@ -380,8 +380,8 @@ public class TorneoIT : TestBase
         var torneo = torneos.First(t => t.Nombre == "Torneo Filtrado");
         Assert.Equal(2025, torneo.Anio);
         Assert.Equal(1, torneo.TorneoAgrupadorId);
-        Assert.NotEmpty(torneo.Fases);
-        var fase = torneo.Fases[0];
+        Assert.NotEmpty(torneo.Fases!);
+        var fase = torneo.Fases![0];
         Assert.Equal("Fase grupos", fase.Nombre);
         Assert.Equal(1, fase.Numero);
         Assert.Equal("Todos contra todos", fase.FaseFormatoNombre);
@@ -421,10 +421,10 @@ public class TorneoIT : TestBase
 
         var torneo = JsonConvert.DeserializeObject<TorneoDTO>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(torneo);
-        Assert.NotEmpty(torneo.Fases);
-        Assert.Equal("Fase inicial", torneo.Fases[0].Nombre);
-        Assert.NotEmpty(torneo.Categorias);
-        Assert.Equal("Sub-15", torneo.Categorias[0].Nombre);
+        Assert.NotEmpty(torneo.Fases!);
+        Assert.Equal("Fase inicial", torneo.Fases![0].Nombre);
+        Assert.NotEmpty(torneo.Categorias!);
+        Assert.Equal("Sub-15", torneo.Categorias![0].Nombre);
     }
 
     [Fact]
@@ -529,10 +529,10 @@ public class TorneoIT : TestBase
         var torneo = JsonConvert.DeserializeObject<TorneoDTO>(await getResponse.Content.ReadAsStringAsync());
         Assert.NotNull(torneo);
         Assert.Single(torneo.Fases!);
-        Assert.Equal("Fase nueva", torneo.Fases[0].Nombre);
+        Assert.Equal("Fase nueva", torneo.Fases![0].Nombre);
         Assert.False(torneo.Fases[0].EsVisibleEnApp);
         Assert.Single(torneo.Categorias!);
-        Assert.Equal("Sub-18", torneo.Categorias[0].Nombre);
+        Assert.Equal("Sub-18", torneo.Categorias![0].Nombre);
     }
 
     [Fact]
@@ -577,8 +577,8 @@ public class TorneoIT : TestBase
         Assert.NotNull(torneo);
         Assert.Equal("Torneo Sin Tocar Modificado", torneo.Nombre);
         Assert.Single(torneo.Fases!);
-        Assert.Equal("Fase original", torneo.Fases[0].Nombre);
+        Assert.Equal("Fase original", torneo.Fases![0].Nombre);
         Assert.Single(torneo.Categorias!);
-        Assert.Equal("Cat original", torneo.Categorias[0].Nombre);
+        Assert.Equal("Cat original", torneo.Categorias![0].Nombre);
     }
 }

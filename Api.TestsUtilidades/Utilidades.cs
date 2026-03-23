@@ -32,7 +32,7 @@ public class Utilidades
         {
             Nombre = "un equipo",
             Id = 0,
-            Club = club,
+            Club = club!,
             ClubId = club?.Id ?? 0,
             Jugadores = new List<JugadorEquipo>()
         };

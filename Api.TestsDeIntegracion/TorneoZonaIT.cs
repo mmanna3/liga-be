@@ -560,7 +560,7 @@ public class TorneoZonaIT : TestBase
             equipo1Id = equipos[0].Id;
             if (equipos.Count < 2)
             {
-                var eq2 = new Equipo { Id = 0, Nombre = "Equipo 2", ClubId = _club.Id, Jugadores = [], Zonas = new List<EquipoZona>() };
+                var eq2 = new Equipo { Id = 0, Nombre = "Equipo 2", ClubId = _club!.Id, Jugadores = [], Zonas = new List<EquipoZona>() };
                 context.Equipos.Add(eq2);
                 context.SaveChanges();
                 equipo2Id = eq2.Id;

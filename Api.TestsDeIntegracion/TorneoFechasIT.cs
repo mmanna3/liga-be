@@ -560,7 +560,7 @@ public class TorneoFechasIT : TestBase
         Assert.NotNull(creados);
         Assert.Single(creados);
         Assert.NotNull(creados[0].Jornadas);
-        Assert.Equal(2, creados[0].Jornadas.Count);
+        Assert.Equal(2, creados[0].Jornadas!.Count);
 
         using (var scope = Factory.Services.CreateScope())
         {

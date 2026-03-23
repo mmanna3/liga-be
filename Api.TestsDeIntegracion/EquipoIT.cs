@@ -96,7 +96,7 @@ public class EquipoIT : TestBase
 
             var equipoOtro = context.Equipos.First(e => e.ClubId == _club!.Id);
 
-            var equipoParaEliminar = new Equipo { Id = 0, Nombre = "Equipo a Eliminar", ClubId = _club.Id, Jugadores = [], Zonas = new List<EquipoZona>() };
+            var equipoParaEliminar = new Equipo { Id = 0, Nombre = "Equipo a Eliminar", ClubId = _club!.Id, Jugadores = [], Zonas = new List<EquipoZona>() };
             context.Equipos.Add(equipoParaEliminar);
             context.SaveChanges();
             context.EquipoZona.Add(new EquipoZona { Id = 0, EquipoId = equipoParaEliminar.Id, ZonaId = zona.Id });
