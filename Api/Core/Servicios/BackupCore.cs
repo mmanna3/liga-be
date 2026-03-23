@@ -178,6 +178,18 @@ public class BackupCore : IBackupCore
             File.Delete(rutaJson);
     }
 
+    public void ValidarCantidadArchivosEnCarpetaBackup()
+    {
+        var carpetaBackup = Path.Combine(_appPaths.BackupAbsolute(), "backup");
+        if (!Directory.Exists(carpetaBackup))
+            return;
+
+        var cantidadArchivos = Directory.GetFiles(carpetaBackup).Length;
+        if (cantidadArchivos > 4)
+            throw new ExcepcionControlada(
+                $"La carpeta App_Data/backup tiene {cantidadArchivos} archivos. No puede haber más de 4. Por favor, eliminá los backups antiguos antes de generar uno nuevo.");
+    }
+
     public async Task RestaurarImagenesDesdeBackup()
     {
         var rutaZip = Path.Combine(_appPaths.BackupAbsolute(), "backup-imagenes.zip");

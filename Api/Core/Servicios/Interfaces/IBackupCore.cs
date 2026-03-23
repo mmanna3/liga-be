@@ -8,4 +8,5 @@ public interface IBackupCore
     Task<string> GuardarBackupImagenesEnDisco();
     Task RestaurarDesdeBackup();
     Task RestaurarImagenesDesdeBackup();
+    void ValidarCantidadArchivosEnCarpetaBackup();
 }

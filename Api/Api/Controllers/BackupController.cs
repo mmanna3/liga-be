@@ -49,24 +49,24 @@ public class BackupController : ControllerBase
         return Ok(new { ruta });
     }
 
-    [HttpGet("subir-backup-bd-a-google-drive")]
+    [HttpGet("generar-backup-y-subirlo-a-drive")]
     [AllowAnonymous]
-    public async Task<IActionResult> SubirBackupBdAGoogleDrive()
+    public async Task<IActionResult> GenerarBackupYSubirloADrive()
     {
-        var rutaArchivo = await _backupCore.GuardarBackupBaseDeDatosEnDisco();
-        var nombreArchivo = Path.GetFileName(rutaArchivo);
-        var idArchivoEnDrive = await _googleDriveCore.SubirArchivo(rutaArchivo, nombreArchivo);
-        return Ok(new { idArchivoEnDrive });
-    }
+        _backupCore.ValidarCantidadArchivosEnCarpetaBackup();
 
-    [HttpGet("subir-backup-imagenes-a-google-drive")]
-    [AllowAnonymous]
-    public async Task<IActionResult> SubirBackupImagenesAGoogleDrive()
-    {
-        var rutaArchivo = await _backupCore.GuardarBackupImagenesEnDisco();
-        var nombreArchivo = Path.GetFileName(rutaArchivo);
-        var idArchivoEnDrive = await _googleDriveCore.SubirArchivo(rutaArchivo, nombreArchivo);
-        return Ok(new { idArchivoEnDrive });
+        var rutaBd = await _backupCore.GuardarBackupBaseDeDatosEnDisco();
+        var rutaImagenes = await _backupCore.GuardarBackupImagenesEnDisco();
+
+        var idBdEnDrive = await _googleDriveCore.SubirArchivo(rutaBd, Path.GetFileName(rutaBd));
+        var idImagenesEnDrive = await _googleDriveCore.SubirArchivo(rutaImagenes, Path.GetFileName(rutaImagenes));
+
+        if (System.IO.File.Exists(rutaBd))
+            System.IO.File.Delete(rutaBd);
+        if (System.IO.File.Exists(rutaImagenes))
+            System.IO.File.Delete(rutaImagenes);
+
+        return Ok(new { idBdEnDrive = idBdEnDrive, idImagenesEnDrive = idImagenesEnDrive });
     }
 
     // Comentado porque SOLO FUE NECESARIO UNA SOLA VEZ.
