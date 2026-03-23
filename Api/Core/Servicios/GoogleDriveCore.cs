@@ -32,6 +32,7 @@ public class GoogleDriveCore : IGoogleDriveCore
 
         var solicitud = servicio.Files.Create(metadatos, stream, "application/zip");
         solicitud.Fields = "id";
+        solicitud.SupportsAllDrives = true;
 
         var resultado = await solicitud.UploadAsync();
 
@@ -64,7 +65,7 @@ public class GoogleDriveCore : IGoogleDriveCore
         var credencialCuenta = new ServiceAccountCredential(
             new ServiceAccountCredential.Initializer(credenciales.EmailCuentaServicio)
             {
-                Scopes = [DriveService.Scope.DriveFile]
+                Scopes = [DriveService.Scope.Drive]
             }.FromPrivateKey(credenciales.ClavePrivada)
         );
 
