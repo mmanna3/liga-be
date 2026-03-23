@@ -83,7 +83,7 @@ namespace Api.Core.Logica
             int nuevaAltura = (int)(image.Height * ratio);
 
             // Redimensionar la imagen
-            return image.Resize(new SKImageInfo(anchoFijo, nuevaAltura), SKFilterQuality.Medium);
+            return image.Resize(new SKImageInfo(anchoFijo, nuevaAltura), new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.None));
         }
 
         public static string StreamToBase64(Stream stream)

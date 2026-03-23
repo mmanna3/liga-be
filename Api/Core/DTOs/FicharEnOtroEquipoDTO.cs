@@ -8,5 +8,5 @@ public class FicharEnOtroEquipoDTO : DTO
     public string DNI { get; set; } = string.Empty;
     
     [Required]
-    public string CodigoAlfanumerico { get; set; }
+    public string CodigoAlfanumerico { get; set; } = string.Empty;
 }

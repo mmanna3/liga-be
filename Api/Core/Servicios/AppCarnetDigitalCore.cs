@@ -52,7 +52,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         };
     }
 
-    public async Task<ICollection<CarnetDigitalDTO>> Carnets(int equipoId)
+    public async Task<ICollection<CarnetDigitalDTO>?> Carnets(int equipoId)
     {
         var equipo = await _equipoRepo.ObtenerPorId(equipoId);
         if (equipo == null)
@@ -87,7 +87,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         return lista;
     }
 
-    public async Task<ICollection<CarnetDigitalPendienteDTO>> JugadoresPendientes(int equipoId)
+    public async Task<ICollection<CarnetDigitalPendienteDTO>?> JugadoresPendientes(int equipoId)
     {
         var equipo = await _equipoRepo.ObtenerPorId(equipoId);
         if (equipo == null)
@@ -105,7 +105,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         return lista;
     }
 
-    public Task<ICollection<CarnetDigitalDTO>> CarnetsPorCodigoAlfanumerico(string codigoAlfanumerico)
+    public Task<ICollection<CarnetDigitalDTO>?> CarnetsPorCodigoAlfanumerico(string codigoAlfanumerico)
     {
         var id = GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos(codigoAlfanumerico);
         return Carnets(id);

@@ -228,9 +228,9 @@ public class FechaPagoResolver : IValueResolver<JugadorEquipo, EquipoDelJugadorD
     }
 }
 
-public class EquiposDeZonaResolver : IValueResolver<TorneoZona, TorneoZonaDTO, List<EquipoDeLaZonaDTO>>
+public class EquiposDeZonaResolver : IValueResolver<TorneoZona, TorneoZonaDTO, List<EquipoDeLaZonaDTO>?>
 {
-    public List<EquipoDeLaZonaDTO> Resolve(TorneoZona source, TorneoZonaDTO destination, List<EquipoDeLaZonaDTO> destMember, ResolutionContext context)
+    public List<EquipoDeLaZonaDTO>? Resolve(TorneoZona source, TorneoZonaDTO destination, List<EquipoDeLaZonaDTO>? destMember, ResolutionContext context)
     {
         var equipos = source.EquiposZona != null ? source.EquiposZona.Select(e => e.Equipo).Where(e => e != null).ToList()! : new List<Equipo>();
         return context.Mapper.Map<List<EquipoDeLaZonaDTO>>(equipos);

@@ -28,5 +28,27 @@ namespace Api.TestsUnitarios
 			Assert.True(image.Width > image.Height);
 		}
 
+		[Fact]
+		public void Comprimir_DevuelveBitmapConAncho500()
+		{
+			var resultado = ImagenUtility.Comprimir(PuntoRojoBase64ConUriDataJpg);
+
+			Assert.Equal(500, resultado.Width);
+			Assert.True(resultado.Height > 0);
+		}
+
+		[Fact]
+		public void Comprimir_PreservaAspectRatio()
+		{
+			var bytes = Convert.FromBase64String(RectanguloVerticalBase64);
+			var original = SkiaSharp.SKBitmap.Decode(bytes);
+			var ratioOriginal = (float)original.Height / original.Width;
+
+			var resultado = ImagenUtility.Comprimir(RectanguloVerticalBase64);
+
+			var ratioResultado = (float)resultado.Height / resultado.Width;
+			Assert.Equal(ratioOriginal, ratioResultado, precision: 1);
+		}
+
 	}
 }
