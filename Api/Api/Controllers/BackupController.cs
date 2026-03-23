@@ -49,28 +49,52 @@ public class BackupController : ControllerBase
         return Ok(new { ruta });
     }
 
-    [HttpGet("generar-backup-y-subirlo-a-drive")]
+    // --- Endpoints para GitHub Actions (ejecutar en orden) ---
+
+    [HttpGet("validar-archivos-locales")]
     [AllowAnonymous]
-    public async Task<IActionResult> GenerarBackupYSubirloADrive()
+    public IActionResult ValidarArchivosLocales()
     {
         _backupCore.ValidarCantidadArchivosEnCarpetaBackup();
+        return Ok();
+    }
 
-        var rutaBd = await _backupCore.GuardarBackupBaseDeDatosEnDisco();
-        var rutaImagenes = await _backupCore.GuardarBackupImagenesEnDisco();
+    [HttpGet("rotar-backups-en-drive")]
+    [AllowAnonymous]
+    public async Task<IActionResult> RotarBackupsEnDrive()
+    {
+        await _googleDriveCore.RotarBackupsEnDrive();
+        return Ok();
+    }
 
-        var idBdEnDrive = await _googleDriveCore.SubirArchivo(rutaBd, Path.GetFileName(rutaBd));
-        var idImagenesEnDrive = await _googleDriveCore.SubirArchivo(rutaImagenes, Path.GetFileName(rutaImagenes));
+    [HttpGet("subir-backup-bd-a-drive")]
+    [AllowAnonymous]
+    public async Task<IActionResult> SubirBackupBdADrive()
+    {
+        var ruta = _backupCore.ObtenerRutaBackupBdEnDisco();
+        var id = await _googleDriveCore.SubirArchivo(ruta, Path.GetFileName(ruta));
+        return Ok(new { id });
+    }
 
-        if (System.IO.File.Exists(rutaBd))
-            System.IO.File.Delete(rutaBd);
-        if (System.IO.File.Exists(rutaImagenes))
-            System.IO.File.Delete(rutaImagenes);
+    [HttpGet("subir-backup-imagenes-a-drive")]
+    [AllowAnonymous]
+    public async Task<IActionResult> SubirBackupImagenesADrive()
+    {
+        var ruta = _backupCore.ObtenerRutaBackupImagenesEnDisco();
+        var id = await _googleDriveCore.SubirArchivo(ruta, Path.GetFileName(ruta));
+        return Ok(new { id });
+    }
 
-        return Ok(new { idBdEnDrive = idBdEnDrive, idImagenesEnDrive = idImagenesEnDrive });
+    [HttpDelete("limpiar-backups-locales")]
+    [AllowAnonymous]
+    public IActionResult LimpiarBackupsLocales()
+    {
+        _backupCore.LimpiarBackupsLocales();
+        return Ok();
     }
 
     // Comentado porque SOLO FUE NECESARIO UNA SOLA VEZ.
-    // 
+    //
     // [HttpGet("google-drive-autorizar")]
     // [AllowAnonymous]
     // public IActionResult GoogleDriveAutorizar()
@@ -79,7 +103,7 @@ public class BackupController : ControllerBase
     //     var url = _googleDriveCore.ObtenerUrlDeAutorizacion(redirectUri);
     //     return Redirect(url);
     // }
-
+    //
     // [HttpGet("google-drive-callback")]
     // [AllowAnonymous]
     // public async Task<IActionResult> GoogleDriveCallback([FromQuery] string code)

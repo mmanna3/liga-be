@@ -9,4 +9,7 @@ public interface IBackupCore
     Task RestaurarDesdeBackup();
     Task RestaurarImagenesDesdeBackup();
     void ValidarCantidadArchivosEnCarpetaBackup();
+    string ObtenerRutaBackupBdEnDisco();
+    string ObtenerRutaBackupImagenesEnDisco();
+    void LimpiarBackupsLocales();
 }

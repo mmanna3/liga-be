@@ -65,6 +65,44 @@ public class GoogleDriveCore : IGoogleDriveCore
         return credenciales;
     }
 
+    public async Task RotarBackupsEnDrive()
+    {
+        var credenciales = LeerCredenciales();
+        if (string.IsNullOrWhiteSpace(credenciales.IdCarpetaDestino))
+            throw new Exception("'id_carpeta_destino' está vacío en las credenciales de Google Drive.");
+
+        var servicio = CrearServicio(credenciales);
+
+        var listRequest = servicio.Files.List();
+        listRequest.Q = $"'{credenciales.IdCarpetaDestino}' in parents and trashed = false";
+        listRequest.Fields = "files(id, name)";
+        var resultado = await listRequest.ExecuteAsync();
+
+        var pares = resultado.Files
+            .Select(f => new { f.Id, Timestamp = ExtraerTimestamp(f.Name) })
+            .Where(f => f.Timestamp != null)
+            .GroupBy(f => f.Timestamp)
+            .OrderBy(g => g.Key)
+            .ToList();
+
+        if (pares.Count == 3)
+        {
+            foreach (var archivo in pares.First())
+                await servicio.Files.Delete(archivo.Id).ExecuteAsync();
+        }
+    }
+
+    private static string? ExtraerTimestamp(string nombre)
+    {
+        // backup-bd-yyyy-MM-dd-HH-mm.zip  →  yyyy-MM-dd-HH-mm
+        // backup-imagenes-yyyy-MM-dd-HH-mm.zip  →  yyyy-MM-dd-HH-mm
+        string[] prefijos = ["backup-bd-", "backup-imagenes-"];
+        foreach (var prefijo in prefijos)
+            if (nombre.StartsWith(prefijo) && nombre.EndsWith(".zip"))
+                return nombre[prefijo.Length..^4];
+        return null;
+    }
+
     public string ObtenerUrlDeAutorizacion(string redirectUri)
     {
         var credenciales = LeerCredenciales();

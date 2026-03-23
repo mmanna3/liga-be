@@ -190,6 +190,34 @@ public class BackupCore : IBackupCore
                 $"La carpeta App_Data/backup tiene {cantidadArchivos} archivos. No puede haber más de 4. Por favor, eliminá los backups antiguos antes de generar uno nuevo.");
     }
 
+    public string ObtenerRutaBackupBdEnDisco()
+    {
+        var carpetaBackup = Path.Combine(_appPaths.BackupAbsolute(), "backup");
+        var archivo = Directory.GetFiles(carpetaBackup, "backup-bd-*.zip")
+            .OrderByDescending(f => f)
+            .FirstOrDefault()
+            ?? throw new ExcepcionControlada("No se encontró ningún backup de BD en App_Data/backup.");
+        return archivo;
+    }
+
+    public string ObtenerRutaBackupImagenesEnDisco()
+    {
+        var carpetaBackup = Path.Combine(_appPaths.BackupAbsolute(), "backup");
+        var archivo = Directory.GetFiles(carpetaBackup, "backup-imagenes-*.zip")
+            .OrderByDescending(f => f)
+            .FirstOrDefault()
+            ?? throw new ExcepcionControlada("No se encontró ningún backup de imágenes en App_Data/backup.");
+        return archivo;
+    }
+
+    public void LimpiarBackupsLocales()
+    {
+        var carpetaBackup = Path.Combine(_appPaths.BackupAbsolute(), "backup");
+        if (!Directory.Exists(carpetaBackup)) return;
+        foreach (var archivo in Directory.GetFiles(carpetaBackup, "*.zip"))
+            File.Delete(archivo);
+    }
+
     public async Task RestaurarImagenesDesdeBackup()
     {
         var rutaZip = Path.Combine(_appPaths.BackupAbsolute(), "backup-imagenes.zip");
