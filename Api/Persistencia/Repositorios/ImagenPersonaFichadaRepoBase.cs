@@ -46,12 +46,12 @@ namespace Api.Persistencia.Repositorios
 
 			try
 			{
+				// Si quedó un .jpg definitivo huérfano (p. ej. jugador borrado sin borrar disco),
+				// al aprobar un fichaje nuevo la temporal debe prevalecer: reemplazar, no descartar la temporal.
 				if (File.Exists(pathDestino))
-				{
-					// Las fotos ya están en definitivas (ej. mismo DNI fichado en otro club/delegado)
-					File.Delete(pathTemporal);
-				}
-				else if (extensionTemporal is ".jpg" or ".jpeg")
+					File.Delete(pathDestino);
+
+				if (extensionTemporal is ".jpg" or ".jpeg")
 					File.Move(pathTemporal, pathDestino);
 				else
 				{

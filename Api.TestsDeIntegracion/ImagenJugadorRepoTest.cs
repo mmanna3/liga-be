@@ -63,6 +63,33 @@ public class ImagenJugadorRepoTest : ImagenPersonaFichadaBaseTest
     }
 
     [Fact]
+    public void FicharJugadorTemporal_ConDefinitivaHuerfana_ReemplazaConFotoTemporal()
+    {
+        // Carnet distinto al PuntoRojoBase64 por defecto (otro PNG 1×1)
+        const string fotoNueva =
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+
+        LimpiarCarpetasDeFotos();
+        Repo.GuardarFotosTemporalesDePersonaFichada(DNI, CrearFotosDto(DNI, fotoNueva));
+        _imagenJugadorRepo.FicharJugadorTemporal(DNI);
+        var esperado = Repo.GetFotoCarnetEnBase64(DNI);
+
+        LimpiarCarpetasDeFotos();
+        Repo.GuardarFotosTemporalesDePersonaFichada(DNI, CrearFotosDto(DNI, PuntoRojoBase64));
+        _imagenJugadorRepo.FicharJugadorTemporal(DNI);
+        Assert.NotEqual(esperado, Repo.GetFotoCarnetEnBase64(DNI));
+
+        EliminarTodosLosArchivosEnLaCarpeta(Paths.ImagenesTemporalesCarnetAbsolute);
+        EliminarTodosLosArchivosEnLaCarpeta(Paths.ImagenesTemporalesDNIFrenteAbsolute);
+        EliminarTodosLosArchivosEnLaCarpeta(Paths.ImagenesTemporalesDNIDorsoAbsolute);
+        Repo.GuardarFotosTemporalesDePersonaFichada(DNI, CrearFotosDto(DNI, fotoNueva));
+
+        _imagenJugadorRepo.FicharJugadorTemporal(DNI);
+
+        Assert.Equal(esperado, Repo.GetFotoCarnetEnBase64(DNI));
+    }
+
+    [Fact]
     public void FicharJugadorTemporal_MueveFotoDeTemporalADefinitiva()
     {
         Directory.CreateDirectory(Paths.ImagenesTemporalesCarnetAbsolute);
