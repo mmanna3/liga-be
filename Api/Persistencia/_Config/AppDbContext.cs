@@ -33,11 +33,11 @@ public class AppDbContext : DbContext
             new Rol { Id = 3, Nombre = "Consulta" },
             new Rol { Id = 4, Nombre = "Delegado" }
         );
-        
+
         builder.Entity<Usuario>()
             .Property(u => u.RolId)
             .HasDefaultValue(1);
-            
+
         builder.Entity<EstadoJugador>().HasData(
             new EstadoJugador { Id = 1, Estado = "Fichaje pendiente de aprobación" },
             new EstadoJugador { Id = 2, Estado = "Fichaje rechazado" },
@@ -199,7 +199,9 @@ public class AppDbContext : DbContext
             new FixtureAlgoritmo { Id = 9, CantidadDeEquipos = 10, Nombre = "Clausura" },
             new FixtureAlgoritmo { Id = 10, CantidadDeEquipos = 12, Nombre = "Clausura" },
             new FixtureAlgoritmo { Id = 11, CantidadDeEquipos = 14, Nombre = "Clausura" },
-            new FixtureAlgoritmo { Id = 12, CantidadDeEquipos = 16, Nombre = "Clausura" }
+            new FixtureAlgoritmo { Id = 12, CantidadDeEquipos = 16, Nombre = "Clausura" },
+            new FixtureAlgoritmo { Id = 13, CantidadDeEquipos = 6, Nombre = "Apertura" },
+            new FixtureAlgoritmo { Id = 14, CantidadDeEquipos = 6, Nombre = "Clausura" }
         );
 
         builder.Entity<Delegado>()
@@ -211,15 +213,15 @@ public class AppDbContext : DbContext
             .WithOne(d => d.Usuario)
             .HasForeignKey<Usuario>(u => u.DelegadoId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
         builder.Entity<Jugador>()
             .HasIndex(u => u.DNI)
             .IsUnique();
-        
+
         builder.Entity<Usuario>()
             .HasIndex(u => u.NombreUsuario)
             .IsUnique();
-        
+
         builder.Entity<JugadorEquipo>()
             .HasOne(je => je.HistorialDePagos)
             .WithOne(hp => hp.JugadorEquipo)
@@ -235,53 +237,53 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(dc => dc.EstadoDelegadoId)
             .OnDelete(DeleteBehavior.Restrict);
-        
+
         builder.Entity<Usuario>().HasData(
-            new Usuario 
-            { 
-                Id = 1, 
-                NombreUsuario = "mati", 
+            new Usuario
+            {
+                Id = 1,
+                NombreUsuario = "mati",
                 Password = AuthCore.HashPassword("mandarina1"),
                 RolId = 0
             },
-            new Usuario 
-            { 
-                Id = 2, 
-                NombreUsuario = "pipa", 
+            new Usuario
+            {
+                Id = 2,
+                NombreUsuario = "pipa",
                 Password = AuthCore.HashPassword("edefiliga"),
                 RolId = 1
             },
-            new Usuario 
-            { 
-                Id = 101, 
-                NombreUsuario = "consulta", 
+            new Usuario
+            {
+                Id = 101,
+                NombreUsuario = "consulta",
                 Password = AuthCore.HashPassword("consulta"),
                 RolId = 3
             },
-            new Usuario 
-            { 
-                Id = 1000, 
-                NombreUsuario = "eze", 
+            new Usuario
+            {
+                Id = 1000,
+                NombreUsuario = "eze",
                 Password = AuthCore.HashPassword("edefiliga"),
                 RolId = 1
             },
-            new Usuario 
-            { 
-                Id = 1001, 
-                NombreUsuario = "lucas", 
+            new Usuario
+            {
+                Id = 1001,
+                NombreUsuario = "lucas",
                 Password = AuthCore.HashPassword("edefiliga"),
                 RolId = 1
             },
-            new Usuario 
-            { 
-                Id = 1002, 
-                NombreUsuario = "elias", 
+            new Usuario
+            {
+                Id = 1002,
+                NombreUsuario = "elias",
                 Password = AuthCore.HashPassword("edefiliga"),
                 RolId = 1
             }
         );
     }
-    
+
     public DbSet<Club> Clubs { get; set; } = null!;
     public DbSet<Equipo> Equipos { get; set; } = null!;
     public DbSet<Delegado> Delegados { get; set; } = null!;
