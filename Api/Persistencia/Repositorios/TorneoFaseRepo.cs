@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Api.Core.Entidades;
+using Api.Core.Enums;
 using Api.Core.Repositorios;
 using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
@@ -40,5 +41,15 @@ public class TorneoFaseRepo : RepositorioABMAnidado<TorneoFase, int>, ITorneoFas
             .Include("Zonas.EquiposZona")
             .Where(FiltroPorPadre(padreId))
             .SingleOrDefaultAsync(x => x.Id == id);
+    }
+
+    public async Task CambiarTipo(int padreId, int id, TipoDeFaseEnum nuevoTipo)
+    {
+        var discriminador = nuevoTipo == TipoDeFaseEnum.TodosContraTodos
+            ? "TodosContraTodos"
+            : "EliminacionDirecta";
+        await Context.Database.ExecuteSqlRawAsync(
+            "UPDATE [TorneoFases] SET [TipoFase] = {0} WHERE [Id] = {1} AND [TorneoId] = {2}",
+            discriminador, id, padreId);
     }
 }

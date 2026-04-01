@@ -33,7 +33,28 @@ public class TorneoFaseCore : ABMCoreAnidado<ITorneoFaseRepo, TorneoFase, Torneo
         if (entidadAnterior == null)
             throw new ExcepcionControlada("No existe la entidad a modificar o no pertenece al recurso padre indicado.");
 
-        ValidarMismoTipoDeFase(entidadAnterior, nuevo.TipoDeFase);
+        var tipoActual = entidadAnterior switch
+        {
+            FaseTodosContraTodos => TipoDeFaseEnum.TodosContraTodos,
+            FaseEliminacionDirecta => TipoDeFaseEnum.EliminacionDirecta,
+            _ => throw new ExcepcionControlada("Tipo de fase no reconocido.")
+        };
+
+        if (tipoActual != nuevo.TipoDeFase)
+        {
+            var tieneZonas = entidadAnterior switch
+            {
+                FaseTodosContraTodos f => f.Zonas?.Any() == true,
+                FaseEliminacionDirecta f => f.Zonas?.Any() == true,
+                _ => false
+            };
+            if (tieneZonas)
+                throw new ExcepcionControlada("No se puede cambiar el tipo de una fase que ya tiene zonas asignadas.");
+
+            await Repo.CambiarTipo(padreId, id, nuevo.TipoDeFase);
+            entidadAnterior = await Repo.ObtenerPorIdYPadre(padreId, id)
+                ?? throw new ExcepcionControlada("No existe la entidad a modificar o no pertenece al recurso padre indicado.");
+        }
 
         var entidadNueva = CrearEntidadDesdeDto(nuevo, id);
         await AntesDeModificar(padreId, id, nuevo, entidadAnterior, entidadNueva);
@@ -41,18 +62,6 @@ public class TorneoFaseCore : ABMCoreAnidado<ITorneoFaseRepo, TorneoFase, Torneo
         Repo.Modificar(entidadAnterior, entidadNueva);
         await BDVirtual.GuardarCambios();
         return id;
-    }
-
-    private static void ValidarMismoTipoDeFase(TorneoFase entidadAnterior, TipoDeFaseEnum tipoDto)
-    {
-        var tipoActual = entidadAnterior switch
-        {
-            FaseTodosContraTodos => TipoDeFaseEnum.TodosContraTodos,
-            FaseEliminacionDirecta => TipoDeFaseEnum.EliminacionDirecta,
-            _ => throw new ExcepcionControlada("Tipo de fase no reconocido.")
-        };
-        if (tipoActual != tipoDto)
-            throw new ExcepcionControlada("No se puede cambiar el tipo de una fase.");
     }
 
     private static TorneoFase CrearEntidadDesdeDto(TorneoFaseDTO dto, int id = 0)
