@@ -20,13 +20,11 @@ public class TorneoFaseRepo : RepositorioABMAnidado<TorneoFase, int>, ITorneoFas
     public override async Task<IEnumerable<TorneoFase>> ListarPorPadre(int padreId)
     {
         return await Set()
-            .Include(x => x.FaseFormato)
-            .Include(x => x.InstanciaEliminacionDirecta)
+            .Include("InstanciaEliminacionDirecta")
             .Include(x => x.EstadoFase)
-            .Include(x => x.Zonas)
-                .ThenInclude(z => z.Fechas)
-            .Include(x => x.Zonas)
-                .ThenInclude(z => z.EquiposZona)
+            .Include("Zonas")
+            .Include("Zonas.Fechas")
+            .Include("Zonas.EquiposZona")
             .Where(FiltroPorPadre(padreId))
             .ToListAsync();
     }
@@ -35,13 +33,11 @@ public class TorneoFaseRepo : RepositorioABMAnidado<TorneoFase, int>, ITorneoFas
     {
         return await Set()
             .AsNoTracking()
-            .Include(x => x.FaseFormato)
-            .Include(x => x.InstanciaEliminacionDirecta)
+            .Include("InstanciaEliminacionDirecta")
             .Include(x => x.EstadoFase)
-            .Include(x => x.Zonas)
-                .ThenInclude(z => z.Fechas)
-            .Include(x => x.Zonas)
-                .ThenInclude(z => z.EquiposZona)
+            .Include("Zonas")
+            .Include("Zonas.Fechas")
+            .Include("Zonas.EquiposZona")
             .Where(FiltroPorPadre(padreId))
             .SingleOrDefaultAsync(x => x.Id == id);
     }

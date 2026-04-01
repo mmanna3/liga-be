@@ -25,6 +25,8 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
         var fase = await _torneoFaseRepo.ObtenerPorId(padreId);
         if (fase == null)
             throw new ExcepcionControlada("La fase indicada no existe.");
+        if (fase is not FaseTodosContraTodos)
+            throw new ExcepcionControlada("Solo las fases todos contra todos admiten zonas.");
 
         entidad.TorneoFaseId = padreId;
         return entidad;

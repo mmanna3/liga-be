@@ -18,6 +18,70 @@ public class TorneoFaseCore : ABMCoreAnidado<ITorneoFaseRepo, TorneoFase, Torneo
         _torneoRepo = torneoRepo;
     }
 
+    public override async Task<int> Crear(int padreId, TorneoFaseDTO dto)
+    {
+        var entidad = CrearEntidadDesdeDto(dto);
+        entidad = await AntesDeCrear(padreId, dto, entidad);
+        Repo.Crear(entidad);
+        await BDVirtual.GuardarCambios();
+        return entidad.Id;
+    }
+
+    public override async Task<int> Modificar(int padreId, int id, TorneoFaseDTO nuevo)
+    {
+        var entidadAnterior = await Repo.ObtenerPorIdYPadre(padreId, id);
+        if (entidadAnterior == null)
+            throw new ExcepcionControlada("No existe la entidad a modificar o no pertenece al recurso padre indicado.");
+
+        ValidarMismoTipoDeFase(entidadAnterior, nuevo.TipoDeFase);
+
+        var entidadNueva = CrearEntidadDesdeDto(nuevo, id);
+        await AntesDeModificar(padreId, id, nuevo, entidadAnterior, entidadNueva);
+
+        Repo.Modificar(entidadAnterior, entidadNueva);
+        await BDVirtual.GuardarCambios();
+        return id;
+    }
+
+    private static void ValidarMismoTipoDeFase(TorneoFase entidadAnterior, TipoDeFaseEnum tipoDto)
+    {
+        var tipoActual = entidadAnterior switch
+        {
+            FaseTodosContraTodos => TipoDeFaseEnum.TodosContraTodos,
+            FaseEliminacionDirecta => TipoDeFaseEnum.EliminacionDirecta,
+            _ => throw new ExcepcionControlada("Tipo de fase no reconocido.")
+        };
+        if (tipoActual != tipoDto)
+            throw new ExcepcionControlada("No se puede cambiar el tipo de una fase.");
+    }
+
+    private static TorneoFase CrearEntidadDesdeDto(TorneoFaseDTO dto, int id = 0)
+    {
+        return dto.TipoDeFase switch
+        {
+            TipoDeFaseEnum.TodosContraTodos => new FaseTodosContraTodos
+            {
+                Id = id,
+                Nombre = dto.Nombre,
+                Numero = dto.Numero,
+                TorneoId = dto.TorneoId,
+                EstadoFaseId = dto.EstadoFaseId,
+                EsVisibleEnApp = dto.EsVisibleEnApp
+            },
+            TipoDeFaseEnum.EliminacionDirecta => new FaseEliminacionDirecta
+            {
+                Id = id,
+                Nombre = dto.Nombre,
+                Numero = dto.Numero,
+                TorneoId = dto.TorneoId,
+                EstadoFaseId = dto.EstadoFaseId,
+                EsVisibleEnApp = dto.EsVisibleEnApp,
+                InstanciaEliminacionDirectaId = dto.InstanciaEliminacionDirectaId
+            },
+            _ => throw new ExcepcionControlada("Tipo de fase no válido.")
+        };
+    }
+
     protected override async Task<TorneoFase> AntesDeCrear(int padreId, TorneoFaseDTO dto, TorneoFase entidad)
     {
         var torneo = await _torneoRepo.ObtenerPorId(padreId);
@@ -40,7 +104,7 @@ public class TorneoFaseCore : ABMCoreAnidado<ITorneoFaseRepo, TorneoFase, Torneo
 
     private static void ValidarInstanciaEliminacionDirecta(TorneoFaseDTO dto)
     {
-        if (dto.FaseFormatoId == (int)FormatoDeLaFaseEnum.TodosContraTodos && dto.InstanciaEliminacionDirectaId.HasValue)
-            throw new ExcepcionControlada("La instancia de eliminación directa solo aplica cuando el formato es eliminación directa.");
+        if (dto.TipoDeFase == TipoDeFaseEnum.TodosContraTodos && dto.InstanciaEliminacionDirectaId.HasValue)
+            throw new ExcepcionControlada("La instancia de eliminación directa solo aplica cuando el tipo de fase es eliminación directa.");
     }
 }

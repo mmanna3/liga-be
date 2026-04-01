@@ -220,8 +220,8 @@ public class JugadorIT : TestBase
         torneoOro = context.Torneos.First(t => t.Nombre == $"Oro {baseId}");
         torneoPlata = context.Torneos.First(t => t.Nombre == $"Plata {baseId}");
 
-        var faseOro = new TorneoFase { Id = 0, TorneoId = torneoOro.Id, Numero = 1, FaseFormatoId = 1, EstadoFaseId = 100, EsVisibleEnApp = true };
-        var fasePlata = new TorneoFase { Id = 0, TorneoId = torneoPlata.Id, Numero = 1, FaseFormatoId = 1, EstadoFaseId = 100, EsVisibleEnApp = true };
+        var faseOro = new FaseTodosContraTodos { Id = 0, Nombre = "", TorneoId = torneoOro.Id, Numero = 1, EstadoFaseId = 100, EsVisibleEnApp = true };
+        var fasePlata = new FaseTodosContraTodos { Id = 0, Nombre = "", TorneoId = torneoPlata.Id, Numero = 1, EstadoFaseId = 100, EsVisibleEnApp = true };
         context.TorneoFases.AddRange(faseOro, fasePlata);
         context.SaveChanges();
         var zonaOro = new TorneoZona { Id = 0, TorneoFaseId = faseOro.Id, Nombre = "Zona única" };

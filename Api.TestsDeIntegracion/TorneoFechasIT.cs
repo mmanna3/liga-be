@@ -39,12 +39,12 @@ public class TorneoFechasIT : TestBase
         context.Torneos.Add(torneo);
         await context.SaveChangesAsync();
 
-        var fase = new TorneoFase
+        var fase = new FaseTodosContraTodos
         {
             Id = 0,
+            Nombre = "",
             Numero = 1,
             TorneoId = torneo.Id,
-            FaseFormatoId = 1,
             EstadoFaseId = 100,
             EsVisibleEnApp = true
         };
@@ -163,12 +163,12 @@ public class TorneoFechasIT : TestBase
             context.Torneos.Add(torneo2);
             await context.SaveChangesAsync();
 
-            var fase2 = new TorneoFase
+            var fase2 = new FaseTodosContraTodos
             {
                 Id = 0,
+                Nombre = "",
                 Numero = 1,
                 TorneoId = torneo2.Id,
-                FaseFormatoId = 1,
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
@@ -289,12 +289,12 @@ public class TorneoFechasIT : TestBase
             context.Torneos.Add(torneo2);
             await context.SaveChangesAsync();
 
-            var fase2 = new TorneoFase
+            var fase2 = new FaseTodosContraTodos
             {
                 Id = 0,
+                Nombre = "",
                 Numero = 1,
                 TorneoId = torneo2.Id,
-                FaseFormatoId = 1,
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };

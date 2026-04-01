@@ -23,9 +23,7 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.DelegadoClubs, opt => opt.Ignore());
         CreateMap<Torneo, TorneoDTO>()
             .ForMember(dest => dest.TorneoAgrupadorNombre, opt => opt.MapFrom(src => src.TorneoAgrupador != null ? src.TorneoAgrupador.Nombre : string.Empty))
-            .ForMember(dest => dest.SePuedeEditar, opt => opt.MapFrom(src =>
-                src.Fases == null || !src.Fases.Any() || src.Fases.All(f =>
-                    f.Zonas == null || !f.Zonas.Any())))
+            .ForMember(dest => dest.SePuedeEditar, opt => opt.MapFrom<TorneoSePuedeEditarResolver>())
             .ForMember(dest => dest.Fases, opt => opt.MapFrom(src => src.Fases != null ? src.Fases : new List<TorneoFase>()))
             .ForMember(dest => dest.Categorias, opt => opt.MapFrom(src => src.Categorias != null ? src.Categorias : new List<TorneoCategoria>()))
             .PreserveReferences()
@@ -50,24 +48,25 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.AgrupadorId, opt => opt.MapFrom(src => src.TorneoFase != null && src.TorneoFase.Torneo != null ? (int?)src.TorneoFase.Torneo.TorneoAgrupadorId : null));
 
         CreateMap<TorneoFase, TorneoFaseDTO>()
-            .ForMember(dest => dest.FaseFormatoNombre, opt => opt.MapFrom(src => src.FaseFormato != null ? src.FaseFormato.Nombre : string.Empty))
-            .ForMember(dest => dest.InstanciaEliminacionDirectaNombre, opt => opt.MapFrom(src => src.InstanciaEliminacionDirecta != null ? src.InstanciaEliminacionDirecta.Nombre : null))
+            .Include<FaseTodosContraTodos, TorneoFaseDTO>()
+            .Include<FaseEliminacionDirecta, TorneoFaseDTO>();
+        CreateMap<FaseTodosContraTodos, TorneoFaseDTO>()
+            .ForMember(dest => dest.TipoDeFase, opt => opt.MapFrom(_ => TipoDeFaseEnum.TodosContraTodos))
+            .ForMember(dest => dest.TipoDeFaseNombre, opt => opt.MapFrom(_ => "Todos contra todos"))
+            .ForMember(dest => dest.InstanciaEliminacionDirectaNombre, opt => opt.MapFrom(_ => (string?)null))
             .ForMember(dest => dest.EstadoFaseNombre, opt => opt.MapFrom(src => src.EstadoFase != null ? src.EstadoFase.Estado : string.Empty))
             .ForMember(dest => dest.SePuedeEditar, opt => opt.MapFrom(src =>
                 src.Zonas == null || !src.Zonas.Any()))
             .ForMember(dest => dest.Zonas, opt => opt.MapFrom(src => src.Zonas != null ? src.Zonas : new List<TorneoZona>()))
-            .PreserveReferences()
-            .ReverseMap()
-            .ForMember(dest => dest.Torneo, opt => opt.Ignore())
-            .ForMember(dest => dest.FaseFormato, opt => opt.Ignore())
-            .ForMember(dest => dest.InstanciaEliminacionDirecta, opt => opt.Ignore())
-            .ForMember(dest => dest.EstadoFase, opt => opt.Ignore())
-            .ForMember(dest => dest.Zonas, opt => opt.Ignore())
-            .ForSourceMember(src => src.FaseFormatoNombre, opt => opt.DoNotValidate())
-            .ForSourceMember(src => src.InstanciaEliminacionDirectaNombre, opt => opt.DoNotValidate())
-            .ForSourceMember(src => src.EstadoFaseNombre, opt => opt.DoNotValidate())
-            .ForSourceMember(src => src.SePuedeEditar, opt => opt.DoNotValidate())
-            .ForSourceMember(src => src.Zonas, opt => opt.DoNotValidate());
+            .PreserveReferences();
+        CreateMap<FaseEliminacionDirecta, TorneoFaseDTO>()
+            .ForMember(dest => dest.TipoDeFase, opt => opt.MapFrom(_ => TipoDeFaseEnum.EliminacionDirecta))
+            .ForMember(dest => dest.TipoDeFaseNombre, opt => opt.MapFrom(_ => "Eliminación directa"))
+            .ForMember(dest => dest.InstanciaEliminacionDirectaNombre, opt => opt.MapFrom(src => src.InstanciaEliminacionDirecta != null ? src.InstanciaEliminacionDirecta.Nombre : null))
+            .ForMember(dest => dest.EstadoFaseNombre, opt => opt.MapFrom(src => src.EstadoFase != null ? src.EstadoFase.Estado : string.Empty))
+            .ForMember(dest => dest.SePuedeEditar, opt => opt.MapFrom(_ => true))
+            .ForMember(dest => dest.Zonas, opt => opt.MapFrom(_ => new List<TorneoZona>()))
+            .PreserveReferences();
         CreateMap<Equipo, EquipoDeLaZonaDTO>()
             .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombre))
             .ForMember(dest => dest.Club, opt => opt.MapFrom(src => src.Club != null ? src.Club.Nombre : string.Empty))
@@ -281,6 +280,17 @@ public class JornadaVisitanteNombreResolver : IValueResolver<Jornada, JornadaDTO
 {
     public string? Resolve(Jornada source, JornadaDTO destination, string? destMember, ResolutionContext context)
         => source is JornadaNormal n ? n.VisitanteEquipo?.Nombre : null;
+}
+
+public class TorneoSePuedeEditarResolver : IValueResolver<Torneo, TorneoDTO, bool>
+{
+    public bool Resolve(Torneo source, TorneoDTO destination, bool destMember, ResolutionContext context)
+    {
+        if (source.Fases == null || !source.Fases.Any())
+            return true;
+        return source.Fases.All(f =>
+            f is not FaseTodosContraTodos t || t.Zonas == null || !t.Zonas.Any());
+    }
 }
 
 public class JornadaEquipoResolver : IValueResolver<Jornada, JornadaDTO, int?>

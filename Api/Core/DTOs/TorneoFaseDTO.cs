@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Api.Core.Enums;
 
 namespace Api.Core.DTOs;
 
@@ -17,8 +18,9 @@ public class TorneoFaseDTO : DTO
     public required int Numero { get; set; }
 
     public int TorneoId { get; set; }
-    public int FaseFormatoId { get; set; }
-    public string FaseFormatoNombre { get; set; } = string.Empty;
+    [Required]
+    public TipoDeFaseEnum TipoDeFase { get; set; }
+    public string TipoDeFaseNombre { get; set; } = string.Empty;
     public int? InstanciaEliminacionDirectaId { get; set; }
     public string? InstanciaEliminacionDirectaNombre { get; set; }
     public int EstadoFaseId { get; set; }

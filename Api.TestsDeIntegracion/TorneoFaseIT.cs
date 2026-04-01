@@ -40,7 +40,7 @@ public class TorneoFaseIT : TestBase
         {
             Nombre = $"Fase {numero}",
             Numero = numero,
-            FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
+            TipoDeFase = TipoDeFaseEnum.TodosContraTodos,
             InstanciaEliminacionDirectaId = null,
             EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
             EsVisibleEnApp = true
@@ -53,7 +53,7 @@ public class TorneoFaseIT : TestBase
         {
             Nombre = $"Fase {numero}",
             Numero = numero,
-            FaseFormatoId = (int)FormatoDeLaFaseEnum.EliminacionDirecta,
+            TipoDeFase = TipoDeFaseEnum.EliminacionDirecta,
             InstanciaEliminacionDirectaId = instanciaId,
             EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
             EsVisibleEnApp = false
@@ -91,8 +91,8 @@ public class TorneoFaseIT : TestBase
         Assert.NotNull(content);
         Assert.True(content.Id > 0);
         Assert.Equal(1, content.Numero);
-        Assert.Equal((int)FormatoDeLaFaseEnum.TodosContraTodos, content.FaseFormatoId);
-        Assert.Equal("Todos contra todos", content.FaseFormatoNombre);
+        Assert.Equal(TipoDeFaseEnum.TodosContraTodos, content.TipoDeFase);
+        Assert.Equal("Todos contra todos", content.TipoDeFaseNombre);
         Assert.Null(content.InstanciaEliminacionDirectaId);
         Assert.Null(content.InstanciaEliminacionDirectaNombre);
         Assert.Equal("Inicio pendiente", content.EstadoFaseNombre);
@@ -116,7 +116,7 @@ public class TorneoFaseIT : TestBase
         Assert.True(content.Id > 0);
         Assert.Equal(8, content.InstanciaEliminacionDirectaId);
         Assert.Equal("Cuartos de final", content.InstanciaEliminacionDirectaNombre);
-        Assert.Equal("Eliminación directa", content.FaseFormatoNombre);
+        Assert.Equal("Eliminación directa", content.TipoDeFaseNombre);
     }
 
     [Fact]
@@ -159,12 +159,12 @@ public class TorneoFaseIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            fase = new TorneoFase
+            fase = new FaseTodosContraTodos
             {
                 Id = 0,
+                Nombre = "",
                 Numero = 1,
                 TorneoId = torneoId,
-                FaseFormatoId = 1,
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
@@ -181,7 +181,7 @@ public class TorneoFaseIT : TestBase
         Assert.NotNull(content);
         Assert.Equal(fase.Id, content.Id);
         Assert.Equal(1, content.Numero);
-        Assert.Equal("Todos contra todos", content.FaseFormatoNombre);
+        Assert.Equal("Todos contra todos", content.TipoDeFaseNombre);
         Assert.Equal("Inicio pendiente", content.EstadoFaseNombre);
     }
 
@@ -199,12 +199,12 @@ public class TorneoFaseIT : TestBase
             await context.SaveChangesAsync();
             torneo2Id = torneo2.Id;
 
-            var fase = new TorneoFase
+            var fase = new FaseTodosContraTodos
             {
                 Id = 0,
+                Nombre = "",
                 Numero = 1,
                 TorneoId = torneo2Id,
-                FaseFormatoId = 1,
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
@@ -227,12 +227,12 @@ public class TorneoFaseIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            fase = new TorneoFase
+            fase = new FaseTodosContraTodos
             {
                 Id = 0,
+                Nombre = "",
                 Numero = 1,
                 TorneoId = torneoId,
-                FaseFormatoId = 1,
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
@@ -268,12 +268,12 @@ public class TorneoFaseIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            fase = new TorneoFase
+            fase = new FaseTodosContraTodos
             {
                 Id = 0,
+                Nombre = "",
                 Numero = 1,
                 TorneoId = torneoId,
-                FaseFormatoId = 1,
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
@@ -307,12 +307,12 @@ public class TorneoFaseIT : TestBase
             await context.SaveChangesAsync();
             torneo2Id = torneo2.Id;
 
-            var fase = new TorneoFase
+            var fase = new FaseTodosContraTodos
             {
                 Id = 0,
+                Nombre = "",
                 Numero = 1,
                 TorneoId = torneo2Id,
-                FaseFormatoId = 1,
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
@@ -352,11 +352,11 @@ public class TorneoFaseIT : TestBase
         Assert.Contains(content, f => f.Numero == 2);
 
         var faseGrupos = content.Single(f => f.Numero == 1);
-        Assert.Equal("Todos contra todos", faseGrupos.FaseFormatoNombre);
+        Assert.Equal("Todos contra todos", faseGrupos.TipoDeFaseNombre);
         Assert.Null(faseGrupos.InstanciaEliminacionDirectaNombre);
 
         var faseEliminacion = content.Single(f => f.Numero == 2);
-        Assert.Equal("Eliminación directa", faseEliminacion.FaseFormatoNombre);
+        Assert.Equal("Eliminación directa", faseEliminacion.TipoDeFaseNombre);
         Assert.Equal("Cuartos de final", faseEliminacion.InstanciaEliminacionDirectaNombre);
     }
 
@@ -368,12 +368,12 @@ public class TorneoFaseIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            fase = new TorneoFase
+            fase = new FaseTodosContraTodos
             {
                 Id = 0,
+                Nombre = "",
                 Numero = 1,
                 TorneoId = torneoId,
-                FaseFormatoId = 1,
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
@@ -398,12 +398,12 @@ public class TorneoFaseIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            fase = new TorneoFase
+            fase = new FaseTodosContraTodos
             {
                 Id = 0,
+                Nombre = "",
                 Numero = 1,
                 TorneoId = torneoId,
-                FaseFormatoId = 1,
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
@@ -431,12 +431,12 @@ public class TorneoFaseIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            fase = new TorneoFase
+            fase = new FaseTodosContraTodos
             {
                 Id = 0,
+                Nombre = "",
                 Numero = 1,
                 TorneoId = torneoId,
-                FaseFormatoId = 1,
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
@@ -475,12 +475,12 @@ public class TorneoFaseIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            fase = new TorneoFase
+            fase = new FaseEliminacionDirecta
             {
                 Id = 0,
+                Nombre = "",
                 Numero = 1,
                 TorneoId = torneoId,
-                FaseFormatoId = 2,
                 InstanciaEliminacionDirectaId = 4,
                 EstadoFaseId = 200,
                 EsVisibleEnApp = true
@@ -495,7 +495,7 @@ public class TorneoFaseIT : TestBase
 
         var content = JsonConvert.DeserializeObject<TorneoFaseDTO>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
-        Assert.Equal("Eliminación directa", content.FaseFormatoNombre);
+        Assert.Equal("Eliminación directa", content.TipoDeFaseNombre);
         Assert.Equal("Semifinal", content.InstanciaEliminacionDirectaNombre);
         Assert.Equal("En curso", content.EstadoFaseNombre);
     }

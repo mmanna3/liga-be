@@ -38,7 +38,7 @@ public class TorneoIT : TestBase
             {
                 Nombre = "Fase de grupos",
                 Numero = 1,
-                FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
+                TipoDeFase = TipoDeFaseEnum.TodosContraTodos,
                 InstanciaEliminacionDirectaId = null,
                 EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
                 EsVisibleEnApp = true
@@ -69,7 +69,7 @@ public class TorneoIT : TestBase
         Assert.Single(fases);
         Assert.Equal("Fase de grupos", fases[0].Nombre);
         Assert.Equal(1, fases[0].Numero);
-        Assert.Equal("Todos contra todos", fases[0].FaseFormatoNombre);
+        Assert.Equal("Todos contra todos", fases[0].TipoDeFaseNombre);
 
         var categoriasResponse = await client.GetAsync($"/api/Torneo/{torneoId}/categorias");
         categoriasResponse.EnsureSuccessStatusCode();
@@ -108,7 +108,7 @@ public class TorneoIT : TestBase
         Assert.NotNull(fases);
         Assert.Single(fases);
         Assert.Equal(1, fases[0].Numero);
-        Assert.Equal("Todos contra todos", fases[0].FaseFormatoNombre);
+        Assert.Equal("Todos contra todos", fases[0].TipoDeFaseNombre);
 
         var categoriasResponse = await client.GetAsync($"/api/Torneo/{torneoId}/categorias");
         categoriasResponse.EnsureSuccessStatusCode();
@@ -252,10 +252,10 @@ public class TorneoIT : TestBase
             await context.SaveChangesAsync();
             torneoId = torneo.Id;
 
-            var fase = new TorneoFase
+            var fase = new FaseTodosContraTodos
             {
-                Id = 0, Numero = 1, TorneoId = torneoId,
-                FaseFormatoId = 1, EstadoFaseId = 100, EsVisibleEnApp = true
+                Id = 0, Nombre = "", Numero = 1, TorneoId = torneoId,
+                EstadoFaseId = 100, EsVisibleEnApp = true
             };
             context.TorneoFases.Add(fase);
             await context.SaveChangesAsync();
@@ -285,10 +285,10 @@ public class TorneoIT : TestBase
             await context.SaveChangesAsync();
             torneoId = torneo.Id;
 
-            var fase = new TorneoFase
+            var fase = new FaseTodosContraTodos
             {
-                Id = 0, Numero = 1, TorneoId = torneoId,
-                FaseFormatoId = 1, EstadoFaseId = 100, EsVisibleEnApp = true
+                Id = 0, Nombre = "", Numero = 1, TorneoId = torneoId,
+                EstadoFaseId = 100, EsVisibleEnApp = true
             };
             context.TorneoFases.Add(fase);
             await context.SaveChangesAsync();
@@ -364,7 +364,7 @@ public class TorneoIT : TestBase
             {
                 Nombre = "Fase grupos",
                 Numero = 1,
-                FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
+                TipoDeFase = TipoDeFaseEnum.TodosContraTodos,
                 EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
                 EsVisibleEnApp = true
             }
@@ -384,7 +384,7 @@ public class TorneoIT : TestBase
         var fase = torneo.Fases![0];
         Assert.Equal("Fase grupos", fase.Nombre);
         Assert.Equal(1, fase.Numero);
-        Assert.Equal("Todos contra todos", fase.FaseFormatoNombre);
+        Assert.Equal("Todos contra todos", fase.TipoDeFaseNombre);
         Assert.True(fase.EsVisibleEnApp);
     }
 
@@ -402,7 +402,7 @@ public class TorneoIT : TestBase
             {
                 Nombre = "Fase inicial",
                 Numero = 1,
-                FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
+                TipoDeFase = TipoDeFaseEnum.TodosContraTodos,
                 EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
                 EsVisibleEnApp = true
             },
@@ -441,7 +441,7 @@ public class TorneoIT : TestBase
             {
                 Nombre = "Fase",
                 Numero = 1,
-                FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
+                TipoDeFase = TipoDeFaseEnum.TodosContraTodos,
                 EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
                 EsVisibleEnApp = true
             },
@@ -487,7 +487,7 @@ public class TorneoIT : TestBase
             {
                 Nombre = "Fase vieja",
                 Numero = 1,
-                FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
+                TipoDeFase = TipoDeFaseEnum.TodosContraTodos,
                 EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
                 EsVisibleEnApp = true
             },
@@ -510,7 +510,7 @@ public class TorneoIT : TestBase
                 {
                     Nombre = "Fase nueva",
                     Numero = 1,
-                    FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
+                    TipoDeFase = TipoDeFaseEnum.TodosContraTodos,
                     EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
                     EsVisibleEnApp = false,
                 }
@@ -549,7 +549,7 @@ public class TorneoIT : TestBase
             {
                 Nombre = "Fase original",
                 Numero = 1,
-                FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
+                TipoDeFase = TipoDeFaseEnum.TodosContraTodos,
                 EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
                 EsVisibleEnApp = true
             },

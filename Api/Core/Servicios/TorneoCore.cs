@@ -65,24 +65,36 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
 
         foreach (var dto in fasesDto)
         {
-            if (dto.FaseFormatoId == (int)FormatoDeLaFaseEnum.TodosContraTodos && dto.InstanciaEliminacionDirectaId.HasValue)
-                throw new ExcepcionControlada("La instancia de eliminación directa solo aplica cuando el formato es eliminación directa.");
+            if (dto.TipoDeFase == TipoDeFaseEnum.TodosContraTodos && dto.InstanciaEliminacionDirectaId.HasValue)
+                throw new ExcepcionControlada("La instancia de eliminación directa solo aplica cuando el tipo de fase es eliminación directa.");
 
-            var fase = new TorneoFase
+            TorneoFase fase = dto.TipoDeFase switch
             {
-                Id = 0,
-                TorneoId = torneoId,
-                Nombre = dto.Nombre ?? string.Empty,
-                Numero = dto.Numero,
-                FaseFormatoId = dto.FaseFormatoId,
-                InstanciaEliminacionDirectaId = dto.InstanciaEliminacionDirectaId,
-                EstadoFaseId = dto.EstadoFaseId,
-                EsVisibleEnApp = dto.EsVisibleEnApp
+                TipoDeFaseEnum.TodosContraTodos => new FaseTodosContraTodos
+                {
+                    Id = 0,
+                    TorneoId = torneoId,
+                    Nombre = dto.Nombre ?? string.Empty,
+                    Numero = dto.Numero,
+                    EstadoFaseId = dto.EstadoFaseId,
+                    EsVisibleEnApp = dto.EsVisibleEnApp
+                },
+                TipoDeFaseEnum.EliminacionDirecta => new FaseEliminacionDirecta
+                {
+                    Id = 0,
+                    TorneoId = torneoId,
+                    Nombre = dto.Nombre ?? string.Empty,
+                    Numero = dto.Numero,
+                    EstadoFaseId = dto.EstadoFaseId,
+                    EsVisibleEnApp = dto.EsVisibleEnApp,
+                    InstanciaEliminacionDirectaId = dto.InstanciaEliminacionDirectaId
+                },
+                _ => throw new ExcepcionControlada("Tipo de fase no válido.")
             };
             _torneoFaseRepo.Crear(fase);
             await BDVirtual.GuardarCambios();
 
-            if (dto.FaseFormatoId == (int)FormatoDeLaFaseEnum.TodosContraTodos)
+            if (dto.TipoDeFase == TipoDeFaseEnum.TodosContraTodos)
             {
                 var zona = new TorneoZona
                 {
@@ -158,24 +170,36 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
 
     private async Task CrearFaseConDatos(int torneoId, TorneoFaseDTO dto)
     {
-        if (dto.FaseFormatoId == (int)FormatoDeLaFaseEnum.TodosContraTodos && dto.InstanciaEliminacionDirectaId.HasValue)
-            throw new ExcepcionControlada("La instancia de eliminación directa solo aplica cuando el formato es eliminación directa.");
+        if (dto.TipoDeFase == TipoDeFaseEnum.TodosContraTodos && dto.InstanciaEliminacionDirectaId.HasValue)
+            throw new ExcepcionControlada("La instancia de eliminación directa solo aplica cuando el tipo de fase es eliminación directa.");
 
-        var fase = new TorneoFase
+        TorneoFase fase = dto.TipoDeFase switch
         {
-            Id = 0,
-            TorneoId = torneoId,
-            Nombre = dto.Nombre ?? string.Empty,
-            Numero = dto.Numero,
-            FaseFormatoId = dto.FaseFormatoId,
-            InstanciaEliminacionDirectaId = dto.InstanciaEliminacionDirectaId,
-            EstadoFaseId = dto.EstadoFaseId,
-            EsVisibleEnApp = dto.EsVisibleEnApp
+            TipoDeFaseEnum.TodosContraTodos => new FaseTodosContraTodos
+            {
+                Id = 0,
+                TorneoId = torneoId,
+                Nombre = dto.Nombre ?? string.Empty,
+                Numero = dto.Numero,
+                EstadoFaseId = dto.EstadoFaseId,
+                EsVisibleEnApp = dto.EsVisibleEnApp
+            },
+            TipoDeFaseEnum.EliminacionDirecta => new FaseEliminacionDirecta
+            {
+                Id = 0,
+                TorneoId = torneoId,
+                Nombre = dto.Nombre ?? string.Empty,
+                Numero = dto.Numero,
+                EstadoFaseId = dto.EstadoFaseId,
+                EsVisibleEnApp = dto.EsVisibleEnApp,
+                InstanciaEliminacionDirectaId = dto.InstanciaEliminacionDirectaId
+            },
+            _ => throw new ExcepcionControlada("Tipo de fase no válido.")
         };
         _torneoFaseRepo.Crear(fase);
         await BDVirtual.GuardarCambios();
 
-        if (dto.FaseFormatoId == (int)FormatoDeLaFaseEnum.TodosContraTodos)
+        if (dto.TipoDeFase == TipoDeFaseEnum.TodosContraTodos)
         {
             var zona = new TorneoZona
             {

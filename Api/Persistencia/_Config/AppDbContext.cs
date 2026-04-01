@@ -94,6 +94,12 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<TorneoFase>()
+            .ToTable("TorneoFases")
+            .HasDiscriminator<string>("TipoFase")
+            .HasValue<FaseTodosContraTodos>("TodosContraTodos")
+            .HasValue<FaseEliminacionDirecta>("EliminacionDirecta");
+
+        builder.Entity<TorneoFase>()
             .HasOne(tf => tf.Torneo)
             .WithMany(t => t.Fases)
             .HasForeignKey(tf => tf.TorneoId)
@@ -102,11 +108,16 @@ public class AppDbContext : DbContext
             .HasIndex(tf => new { tf.TorneoId, tf.Numero })
             .IsUnique();
 
-        builder.Entity<TorneoZona>()
-            .HasOne(tz => tz.TorneoFase)
-            .WithMany(tf => tf.Zonas)
-            .HasForeignKey(tz => tz.TorneoFaseId)
+        builder.Entity<FaseTodosContraTodos>()
+            .HasMany(f => f.Zonas)
+            .WithOne(z => z.TorneoFase)
+            .HasForeignKey(z => z.TorneoFaseId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<FaseEliminacionDirecta>()
+            .HasOne(f => f.InstanciaEliminacionDirecta)
+            .WithMany()
+            .HasForeignKey(f => f.InstanciaEliminacionDirectaId);
 
         builder.Entity<TorneoFecha>()
             .HasOne(tf => tf.Zona)

@@ -1,6 +1,6 @@
 namespace Api.Core.Enums;
 
-public enum FormatoDeLaFaseEnum
+public enum TipoDeFaseEnum
 {
     TodosContraTodos = 1,
     EliminacionDirecta = 2,

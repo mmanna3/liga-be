@@ -17,16 +17,10 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
         return Context.Set<Torneo>()
             .Include(x => x.TorneoAgrupador)
             .Include(x => x.Categorias)
-            .Include(x => x.Fases)
-                .ThenInclude(f => f.Zonas)
-                    .ThenInclude(z => z.Fechas)
-            .Include(x => x.Fases)
-                .ThenInclude(f => f.Zonas)
-                    .ThenInclude(z => z.EquiposZona)
-            .Include(x => x.Fases)
-                .ThenInclude(f => f.FaseFormato)
-            .Include(x => x.Fases)
-                .ThenInclude(f => f.InstanciaEliminacionDirecta)
+            .Include("Fases.Zonas")
+            .Include("Fases.Zonas.Fechas")
+            .Include("Fases.Zonas.EquiposZona")
+            .Include("Fases.InstanciaEliminacionDirecta")
             .Include(x => x.Fases)
                 .ThenInclude(f => f.EstadoFase)
             .AsQueryable();
@@ -42,12 +36,12 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
 
     public async Task CrearFaseUnicaYZonaUnica(int torneoId)
     {
-        var fase = new TorneoFase
+        var fase = new FaseTodosContraTodos
         {
             Id = 0,
             TorneoId = torneoId,
+            Nombre = string.Empty,
             Numero = 1,
-            FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
             EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
             EsVisibleEnApp = true
         };

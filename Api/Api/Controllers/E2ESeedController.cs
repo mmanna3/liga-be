@@ -82,12 +82,12 @@ public class E2ESeedController : ControllerBase
         _context.Torneos.Add(torneo);
         _context.SaveChanges();
 
-        var fase = new TorneoFase
+        var fase = new FaseTodosContraTodos
         {
             Id = 0,
             TorneoId = torneo.Id,
+            Nombre = string.Empty,
             Numero = 1,
-            FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
             EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
             EsVisibleEnApp = true
         };

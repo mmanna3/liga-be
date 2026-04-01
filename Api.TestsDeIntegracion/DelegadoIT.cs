@@ -177,12 +177,12 @@ public class DelegadoIT : TestBase
         context.Torneos.Add(torneo);
         await context.SaveChangesAsync();
 
-        var fase = new TorneoFase
+        var fase = new FaseTodosContraTodos
         {
             Id = 0,
+            Nombre = "",
             TorneoId = torneo.Id,
             Numero = 1,
-            FaseFormatoId = (int)FormatoDeLaFaseEnum.TodosContraTodos,
             EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
             EsVisibleEnApp = true
         };
