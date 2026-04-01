@@ -44,7 +44,7 @@ public class EliminacionIT : TestBase
             var fase = new FaseTodosContraTodos { Id = 0, Nombre = "", TorneoId = torneoId, Numero = 1, EstadoFaseId = 100, EsVisibleEnApp = true };
             context.TorneoFases.Add(fase);
             context.SaveChanges();
-            var zona = new TorneoZona { Id = 0, TorneoFaseId = fase.Id, Nombre = "Zona única" };
+            var zona = new ZonaTodosContraTodos { Id = 0, TorneoFaseId = fase.Id, Nombre = "Zona única" };
             context.TorneoZonas.Add(zona);
             context.SaveChanges();
 

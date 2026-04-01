@@ -96,7 +96,7 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
 
             if (dto.TipoDeFase == TipoDeFaseEnum.TodosContraTodos)
             {
-                var zona = new TorneoZona
+                var zona = new ZonaTodosContraTodos
                 {
                     Id = 0,
                     TorneoFaseId = fase.Id,
@@ -201,7 +201,7 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
 
         if (dto.TipoDeFase == TipoDeFaseEnum.TodosContraTodos)
         {
-            var zona = new TorneoZona
+            var zona = new ZonaTodosContraTodos
             {
                 Id = 0,
                 TorneoFaseId = fase.Id,

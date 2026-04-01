@@ -108,9 +108,21 @@ public class AppDbContext : DbContext
             .HasIndex(tf => new { tf.TorneoId, tf.Numero })
             .IsUnique();
 
-        builder.Entity<FaseTodosContraTodos>()
-            .HasMany(f => f.Zonas)
-            .WithOne(z => z.TorneoFase)
+        builder.Entity<TorneoZona>()
+            .ToTable("TorneoZonas")
+            .HasDiscriminator<string>("TipoZona")
+            .HasValue<ZonaTodosContraTodos>("TodosContraTodos")
+            .HasValue<ZonaEliminacionDirecta>("EliminacionDirecta");
+
+        builder.Entity<ZonaTodosContraTodos>()
+            .HasOne(z => z.Fase)
+            .WithMany(f => f.Zonas)
+            .HasForeignKey(z => z.TorneoFaseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ZonaEliminacionDirecta>()
+            .HasOne(z => z.Fase)
+            .WithMany(f => f.Zonas)
             .HasForeignKey(z => z.TorneoFaseId)
             .OnDelete(DeleteBehavior.Cascade);
 

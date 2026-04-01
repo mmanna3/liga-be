@@ -15,11 +15,7 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
     {
         return Context.Set<Equipo>()
             .Include(x => x.Club)
-            .Include(x => x.Zonas)
-                .ThenInclude(ez => ez.Zona)
-                    .ThenInclude(z => z.TorneoFase)
-                        .ThenInclude(f => f.Torneo)
-                            .ThenInclude(t => t!.TorneoAgrupador)
+            .Include("Zonas.Zona.Fase.Torneo.TorneoAgrupador")
             .Include(x => x.Jugadores)
                 .ThenInclude(x => x.Jugador)
             .Include(x => x.Jugadores)
@@ -107,11 +103,7 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
     {
         return await Context.Set<Equipo>()
             .Include(e => e.Club)
-            .Include(e => e.Zonas)
-                .ThenInclude(ez => ez.Zona)
-                    .ThenInclude(z => z.TorneoFase)
-                        .ThenInclude(f => f.Torneo)
-                            .ThenInclude(t => t!.TorneoAgrupador)
+            .Include("Zonas.Zona.Fase.Torneo.TorneoAgrupador")
             .ToListAsync();
     }
 }

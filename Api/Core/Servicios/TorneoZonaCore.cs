@@ -34,7 +34,16 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
 
     public override async Task<int> Crear(int padreId, TorneoZonaDTO dto)
     {
-        var id = await base.Crear(padreId, dto);
+        var entidad = new ZonaTodosContraTodos
+        {
+            Id = 0,
+            Nombre = dto.Nombre ?? string.Empty,
+            TorneoFaseId = padreId
+        };
+        entidad = (ZonaTodosContraTodos)await AntesDeCrear(padreId, dto, entidad);
+        Repo.Crear(entidad);
+        await BDVirtual.GuardarCambios();
+        var id = entidad.Id;
 
         if (dto.Equipos != null)
         {
@@ -54,7 +63,21 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
 
     public override async Task<int> Modificar(int padreId, int id, TorneoZonaDTO dto)
     {
-        await base.Modificar(padreId, id, dto);
+        var entidadAnterior = await Repo.ObtenerPorIdYPadre(padreId, id);
+        if (entidadAnterior == null)
+            throw new ExcepcionControlada("No existe la entidad a modificar o no pertenece al recurso padre indicado.");
+        if (entidadAnterior is not ZonaTodosContraTodos)
+            throw new ExcepcionControlada("Solo se pueden modificar zonas todos contra todos.");
+
+        var entidadNueva = new ZonaTodosContraTodos
+        {
+            Id = id,
+            Nombre = dto.Nombre ?? string.Empty,
+            TorneoFaseId = padreId
+        };
+        await AntesDeModificar(padreId, id, dto, entidadAnterior, entidadNueva);
+        Repo.Modificar(entidadAnterior, entidadNueva);
+        await BDVirtual.GuardarCambios();
 
         if (dto.Equipos != null)
         {

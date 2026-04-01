@@ -410,7 +410,7 @@ public class TorneoFaseIT : TestBase
             context.TorneoFases.Add(fase);
             await context.SaveChangesAsync();
 
-            context.TorneoZonas.Add(new TorneoZona { Id = 0, Nombre = "Zona A", TorneoFaseId = fase.Id });
+            context.TorneoZonas.Add(new ZonaTodosContraTodos { Id = 0, Nombre = "Zona A", TorneoFaseId = fase.Id });
             await context.SaveChangesAsync();
         }
 
@@ -443,7 +443,7 @@ public class TorneoFaseIT : TestBase
             context.TorneoFases.Add(fase);
             await context.SaveChangesAsync();
 
-            var zona = new TorneoZona { Id = 0, Nombre = "Zona A", TorneoFaseId = fase.Id };
+            var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona A", TorneoFaseId = fase.Id };
             context.TorneoZonas.Add(zona);
             await context.SaveChangesAsync();
 

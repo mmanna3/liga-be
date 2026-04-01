@@ -29,8 +29,9 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
     public async Task<TorneoZona?> ObtenerZonaUnicaDeTorneo(int torneoId)
     {
         return await Context.TorneoZonas
-            .Include(tz => tz.TorneoFase)
-            .Where(tz => tz.TorneoFase!.TorneoId == torneoId && tz.TorneoFase.Numero == 1 && tz.Nombre == "Zona única")
+            .OfType<ZonaTodosContraTodos>()
+            .Include(tz => tz.Fase)
+            .Where(tz => tz.Fase.TorneoId == torneoId && tz.Fase.Numero == 1 && tz.Nombre == "Zona única")
             .FirstOrDefaultAsync();
     }
 
@@ -48,7 +49,7 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
         Context.TorneoFases.Add(fase);
         await Context.SaveChangesAsync();
 
-        var zona = new TorneoZona
+        var zona = new ZonaTodosContraTodos
         {
             Id = 0,
             TorneoFaseId = fase.Id,

@@ -15,12 +15,11 @@ public class TorneoZonaRepo : RepositorioABMAnidado<TorneoZona, int>, ITorneoZon
     protected override IQueryable<TorneoZona> Set()
     {
         return Context.Set<TorneoZona>()
-            .Include(x => x.TorneoFase)
-                .ThenInclude(f => f.Torneo)
+            .Include("Fase.Torneo.TorneoAgrupador")
             .Include(x => x.EquiposZona)
                 .ThenInclude(e => e.Equipo)
                     .ThenInclude(e => e.Club)
-            .Include(x => x.Fechas)
+            .Include("Fechas")
             .AsQueryable();
     }
 

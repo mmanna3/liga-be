@@ -18,12 +18,7 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
             .Include(x => x.JugadorEquipos)
                 .ThenInclude(x => x.Equipo)
                     .ThenInclude(x => x.Club)
-            .Include(x => x.JugadorEquipos)
-                .ThenInclude(x => x.Equipo)
-                    .ThenInclude(x => x.Zonas)
-                        .ThenInclude(ez => ez.Zona)
-                            .ThenInclude(z => z.TorneoFase)
-                                .ThenInclude(f => f.Torneo)
+            .Include("JugadorEquipos.Equipo.Zonas.Zona.Fase.Torneo")
             .Include(x => x.JugadorEquipos)
                 .ThenInclude(x => x.EstadoJugador)
             .Include(x => x.JugadorEquipos)
@@ -122,20 +117,24 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
 
     public async Task<bool> JugadorYaJuegaEnTorneoDelEquipoDestino(int jugadorId, int equipoOrigenId, int equipoDestinoId)
     {
-        var torneoDestinoIds = await Context.Set<EquipoZona>()
-            .Where(ez => ez.EquipoId == equipoDestinoId)
-            .Select(ez => ez.Zona.TorneoFase!.TorneoId)
-            .Distinct()
-            .ToListAsync();
+        var torneoDestinoIds = await (
+            from ez in Context.Set<EquipoZona>()
+            join z in Context.TorneoZonas on ez.ZonaId equals z.Id
+            join f in Context.TorneoFases on z.TorneoFaseId equals f.Id
+            where ez.EquipoId == equipoDestinoId
+            select f.TorneoId
+        ).Distinct().ToListAsync();
 
         if (torneoDestinoIds.Count == 0)
             return false;
 
-        var equipoIdsEnTorneo = await Context.Set<EquipoZona>()
-            .Where(ez => torneoDestinoIds.Contains(ez.Zona.TorneoFase!.TorneoId))
-            .Select(ez => ez.EquipoId)
-            .Distinct()
-            .ToListAsync();
+        var equipoIdsEnTorneo = await (
+            from ez in Context.Set<EquipoZona>()
+            join z in Context.TorneoZonas on ez.ZonaId equals z.Id
+            join f in Context.TorneoFases on z.TorneoFaseId equals f.Id
+            where torneoDestinoIds.Contains(f.TorneoId)
+            select ez.EquipoId
+        ).Distinct().ToListAsync();
 
         return await Context.JugadorEquipo
             .Where(je => je.JugadorId == jugadorId && je.EquipoId != equipoOrigenId)

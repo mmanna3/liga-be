@@ -51,7 +51,7 @@ public class TorneoFechasIT : TestBase
         context.TorneoFases.Add(fase);
         await context.SaveChangesAsync();
 
-        var zona = new TorneoZona { Id = 0, Nombre = "Zona única", TorneoFaseId = fase.Id };
+        var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona única", TorneoFaseId = fase.Id };
         context.TorneoZonas.Add(zona);
         await context.SaveChangesAsync();
         return zona.Id;
@@ -175,7 +175,7 @@ public class TorneoFechasIT : TestBase
             context.TorneoFases.Add(fase2);
             await context.SaveChangesAsync();
 
-            var zona2 = new TorneoZona { Id = 0, Nombre = "Zona B", TorneoFaseId = fase2.Id };
+            var zona2 = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona B", TorneoFaseId = fase2.Id };
             context.TorneoZonas.Add(zona2);
             await context.SaveChangesAsync();
             zona2Id = zona2.Id;
@@ -301,7 +301,7 @@ public class TorneoFechasIT : TestBase
             context.TorneoFases.Add(fase2);
             await context.SaveChangesAsync();
 
-            var zona2 = new TorneoZona { Id = 0, Nombre = "Zona B", TorneoFaseId = fase2.Id };
+            var zona2 = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona B", TorneoFaseId = fase2.Id };
             context.TorneoZonas.Add(zona2);
             await context.SaveChangesAsync();
             zona2Id = zona2.Id;

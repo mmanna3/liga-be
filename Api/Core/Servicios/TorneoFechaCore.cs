@@ -28,6 +28,8 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
         var zona = await _torneoZonaRepo.ObtenerPorId(padreId);
         if (zona == null)
             throw new ExcepcionControlada("La zona indicada no existe.");
+        if (zona is not ZonaTodosContraTodos)
+            throw new ExcepcionControlada("Solo las zonas todos contra todos admiten fechas.");
 
         entidad.ZonaId = padreId;
         return entidad;

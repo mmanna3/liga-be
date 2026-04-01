@@ -189,7 +189,7 @@ public class DelegadoIT : TestBase
         context.TorneoFases.Add(fase);
         await context.SaveChangesAsync();
 
-        var zona = new TorneoZona { Id = 0, TorneoFaseId = fase.Id, Nombre = "Zona única" };
+        var zona = new ZonaTodosContraTodos { Id = 0, TorneoFaseId = fase.Id, Nombre = "Zona única" };
         context.TorneoZonas.Add(zona);
         await context.SaveChangesAsync();
 

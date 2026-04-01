@@ -111,7 +111,7 @@ public class TorneoZonaIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            zona = new TorneoZona
+            zona = new ZonaTodosContraTodos
             {
                 Id = 0,
                 Nombre = "Zona B",
@@ -158,7 +158,7 @@ public class TorneoZonaIT : TestBase
             await context.SaveChangesAsync();
             fase2Id = fase2.Id;
 
-            var zona = new TorneoZona
+            var zona = new ZonaTodosContraTodos
             {
                 Id = 0,
                 Nombre = "Zona B",
@@ -183,7 +183,7 @@ public class TorneoZonaIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            zona = new TorneoZona
+            zona = new ZonaTodosContraTodos
             {
                 Id = 0,
                 Nombre = "Para Modificar",
@@ -223,7 +223,7 @@ public class TorneoZonaIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            zona = new TorneoZona
+            zona = new ZonaTodosContraTodos
             {
                 Id = 0,
                 Nombre = "Para Eliminar",
@@ -271,7 +271,7 @@ public class TorneoZonaIT : TestBase
             await context.SaveChangesAsync();
             fase2Id = fase2.Id;
 
-            var zona = new TorneoZona
+            var zona = new ZonaTodosContraTodos
             {
                 Id = 0,
                 Nombre = "Zona B",

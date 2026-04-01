@@ -7,7 +7,7 @@ public class TorneoFecha : Entidad
 {
     public DateOnly? Dia { get; set; }
     public required int Numero { get; set; }
-    public virtual TorneoZona Zona { get; set; } = null!;
+    public virtual ZonaTodosContraTodos Zona { get; set; } = null!;
 
     [ForeignKey("Zona")]
     public required int ZonaId { get; set; }

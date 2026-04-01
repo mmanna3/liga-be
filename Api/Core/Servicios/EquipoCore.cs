@@ -143,7 +143,12 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
 
     private static ZonaDTO ZonaDesdeTorneoZona(TorneoZona zona)
     {
-        var fase = zona.TorneoFase;
+        TorneoFase? fase = zona switch
+        {
+            ZonaTodosContraTodos z => z.Fase,
+            ZonaEliminacionDirecta z => z.Fase,
+            _ => null
+        };
         var torneo = fase?.Torneo;
         return new ZonaDTO
         {
