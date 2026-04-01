@@ -43,6 +43,13 @@ public class TorneoFaseRepo : RepositorioABMAnidado<TorneoFase, int>, ITorneoFas
             .SingleOrDefaultAsync(x => x.Id == id);
     }
 
+    public async Task DecrementarNumeroDeFasesPosteriores(int torneoId, int numeroEliminado)
+    {
+        await Context.Database.ExecuteSqlRawAsync(
+            "UPDATE [TorneoFases] SET [Numero] = [Numero] - 1 WHERE [TorneoId] = {0} AND [Numero] > {1}",
+            torneoId, numeroEliminado);
+    }
+
     public async Task CambiarTipo(int padreId, int id, TipoDeFaseEnum nuevoTipo)
     {
         var discriminador = nuevoTipo == TipoDeFaseEnum.TodosContraTodos

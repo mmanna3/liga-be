@@ -64,6 +64,19 @@ public class TorneoFaseCore : ABMCoreAnidado<ITorneoFaseRepo, TorneoFase, Torneo
         return id;
     }
 
+    public override async Task<int> Eliminar(int padreId, int id)
+    {
+        var entidad = await Repo.ObtenerPorIdYPadre(padreId, id);
+        if (entidad == null)
+            return -1;
+
+        Repo.Eliminar(entidad);
+        await BDVirtual.GuardarCambios();
+
+        await Repo.DecrementarNumeroDeFasesPosteriores(padreId, entidad.Numero);
+        return id;
+    }
+
     private static TorneoFase CrearEntidadDesdeDto(TorneoFaseDTO dto, int id = 0)
     {
         return dto.TipoDeFase switch
