@@ -132,12 +132,35 @@ public class AppDbContext : DbContext
             .HasForeignKey(f => f.InstanciaEliminacionDirectaId);
 
         builder.Entity<TorneoFecha>()
-            .HasOne(tf => tf.Zona)
-            .WithMany(z => z.Fechas)
-            .HasForeignKey(tf => tf.ZonaId)
+            .ToTable("TorneoFechas")
+            .HasDiscriminator<string>("TipoFecha")
+            .HasValue<FechaTodosContraTodos>("TodosContraTodos")
+            .HasValue<FechaEliminacionDirecta>("EliminacionDirecta");
+
+        builder.Entity<ZonaTodosContraTodos>()
+            .HasMany(z => z.Fechas)
+            .WithOne(f => f.Zona)
+            .HasForeignKey(f => f.ZonaId)
             .OnDelete(DeleteBehavior.Cascade);
-        builder.Entity<TorneoFecha>()
-            .HasIndex(tf => new { tf.ZonaId, tf.Numero })
+
+        builder.Entity<ZonaEliminacionDirecta>()
+            .HasMany(z => z.Fechas)
+            .WithOne(f => f.Zona)
+            .HasForeignKey(f => f.ZonaId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<FechaEliminacionDirecta>()
+            .HasOne(f => f.InstanciaEliminacionDirecta)
+            .WithMany()
+            .HasForeignKey(f => f.InstanciaEliminacionDirectaId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<FechaTodosContraTodos>()
+            .HasIndex(f => new { f.ZonaId, f.Numero })
+            .IsUnique();
+
+        builder.Entity<FechaEliminacionDirecta>()
+            .HasIndex(f => new { f.ZonaId, f.InstanciaEliminacionDirectaId })
             .IsUnique();
 
         builder.Entity<Jornada>()

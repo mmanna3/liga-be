@@ -447,7 +447,7 @@ public class TorneoFaseIT : TestBase
             context.TorneoZonas.Add(zona);
             await context.SaveChangesAsync();
 
-            context.TorneoFechas.Add(new TorneoFecha
+            context.TorneoFechas.Add(new FechaTodosContraTodos
             {
                 Id = 0,
                 Dia = new DateOnly(2026, 5, 10),

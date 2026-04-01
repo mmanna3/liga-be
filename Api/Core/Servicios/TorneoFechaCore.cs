@@ -28,8 +28,11 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
         var zona = await _torneoZonaRepo.ObtenerPorId(padreId);
         if (zona == null)
             throw new ExcepcionControlada("La zona indicada no existe.");
-        if (zona is not ZonaTodosContraTodos)
-            throw new ExcepcionControlada("Solo las zonas todos contra todos admiten fechas.");
+
+        if (entidad is FechaTodosContraTodos && zona is not ZonaTodosContraTodos)
+            throw new ExcepcionControlada("Solo las zonas todos contra todos admiten fechas con número.");
+        if (entidad is FechaEliminacionDirecta && zona is not ZonaEliminacionDirecta)
+            throw new ExcepcionControlada("Solo las zonas de eliminación directa admiten fechas con instancia.");
 
         entidad.ZonaId = padreId;
         return entidad;
@@ -37,7 +40,36 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
 
     public override async Task<int> Crear(int padreId, TorneoFechaDTO dto)
     {
-        var id = await base.Crear(padreId, dto);
+        var zona = await _torneoZonaRepo.ObtenerPorId(padreId);
+        if (zona == null)
+            throw new ExcepcionControlada("La zona indicada no existe.");
+
+        TorneoFecha entidad = zona switch
+        {
+            ZonaTodosContraTodos => new FechaTodosContraTodos
+            {
+                Id = 0,
+                Dia = dto.Dia,
+                Numero = dto.Numero,
+                EsVisibleEnApp = dto.EsVisibleEnApp,
+                ZonaId = padreId
+            },
+            ZonaEliminacionDirecta => new FechaEliminacionDirecta
+            {
+                Id = 0,
+                Dia = dto.Dia,
+                EsVisibleEnApp = dto.EsVisibleEnApp,
+                ZonaId = padreId,
+                InstanciaEliminacionDirectaId = dto.InstanciaEliminacionDirectaId
+                    ?? throw new ExcepcionControlada("La instancia de eliminación directa es obligatoria.")
+            },
+            _ => throw new ExcepcionControlada("Tipo de zona no soportado para fechas.")
+        };
+
+        entidad = await AntesDeCrear(padreId, dto, entidad);
+        Repo.Crear(entidad);
+        await BDVirtual.GuardarCambios();
+        var id = entidad.Id;
 
         if (dto.Jornadas != null)
         {
@@ -56,7 +88,35 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
 
     public override async Task<int> Modificar(int padreId, int id, TorneoFechaDTO dto)
     {
-        await base.Modificar(padreId, id, dto);
+        var entidadAnterior = await Repo.ObtenerPorIdYPadre(padreId, id);
+        if (entidadAnterior == null)
+            throw new ExcepcionControlada("No existe la entidad a modificar o no pertenece al recurso padre indicado.");
+
+        TorneoFecha entidadNueva = entidadAnterior switch
+        {
+            FechaTodosContraTodos => new FechaTodosContraTodos
+            {
+                Id = id,
+                Dia = dto.Dia,
+                Numero = dto.Numero,
+                EsVisibleEnApp = dto.EsVisibleEnApp,
+                ZonaId = padreId
+            },
+            FechaEliminacionDirecta => new FechaEliminacionDirecta
+            {
+                Id = id,
+                Dia = dto.Dia,
+                EsVisibleEnApp = dto.EsVisibleEnApp,
+                ZonaId = padreId,
+                InstanciaEliminacionDirectaId = dto.InstanciaEliminacionDirectaId
+                    ?? throw new ExcepcionControlada("La instancia de eliminación directa es obligatoria.")
+            },
+            _ => throw new ExcepcionControlada("Tipo de fecha no soportado.")
+        };
+
+        await AntesDeModificar(padreId, id, dto, entidadAnterior, entidadNueva);
+        Repo.Modificar(entidadAnterior, entidadNueva);
+        await BDVirtual.GuardarCambios();
 
         if (dto.Jornadas != null)
         {
@@ -86,12 +146,14 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
         if (entidad == null)
             return -1;
 
-        var numeroEliminado = entidad.Numero;
+        int? numeroEliminado = entidad is FechaTodosContraTodos fct ? fct.Numero : null;
+
         await AntesDeEliminar(padreId, id, entidad);
         Repo.Eliminar(entidad);
         await BDVirtual.GuardarCambios();
 
-        await RenumerarFechasConsecutivas(padreId, numeroEliminado);
+        if (numeroEliminado.HasValue)
+            await RenumerarFechasConsecutivas(padreId, numeroEliminado.Value);
 
         return id;
     }
@@ -99,6 +161,7 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
     private async Task RenumerarFechasConsecutivas(int zonaId, int numeroEliminado)
     {
         var fechasARenumerar = await _context.TorneoFechas
+            .OfType<FechaTodosContraTodos>()
             .Where(f => f.ZonaId == zonaId && f.Numero > numeroEliminado)
             .OrderBy(f => f.Numero)
             .ToListAsync();
@@ -119,6 +182,7 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
     private async Task RenumerarTodasLasFechasConsecutivas(int zonaId)
     {
         var fechas = await _context.TorneoFechas
+            .OfType<FechaTodosContraTodos>()
             .Where(f => f.ZonaId == zonaId)
             .OrderBy(f => f.Numero)
             .ThenBy(f => f.Id)
@@ -153,8 +217,12 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
                 await Modificar(padreId, dto.Id, dto);
         }
 
-        await RenumerarTodasLasFechasConsecutivas(padreId);
-        await BDVirtual.GuardarCambios();
+        var zona = await _torneoZonaRepo.ObtenerPorId(padreId);
+        if (zona is ZonaTodosContraTodos)
+        {
+            await RenumerarTodasLasFechasConsecutivas(padreId);
+            await BDVirtual.GuardarCambios();
+        }
     }
 
     private async Task AplicarJornadasEnFecha(int fechaId, List<JornadaDTO> jornadasDtos)

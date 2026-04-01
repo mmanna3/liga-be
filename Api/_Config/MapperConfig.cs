@@ -95,15 +95,22 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Equipos, opt => opt.MapFrom<EquiposDeZonaResolver>())
             .PreserveReferences();
         CreateMap<TorneoFecha, TorneoFechaDTO>()
-            .ForMember(dest => dest.InstanciaEliminacionDirectaNombre, opt => opt.MapFrom(src => src.InstanciaEliminacionDirecta != null ? src.InstanciaEliminacionDirecta.Nombre : null))
+            .Include<FechaTodosContraTodos, TorneoFechaDTO>()
+            .Include<FechaEliminacionDirecta, TorneoFechaDTO>();
+        CreateMap<FechaTodosContraTodos, TorneoFechaDTO>()
+            .ForMember(dest => dest.InstanciaEliminacionDirectaNombre, opt => opt.MapFrom(_ => (string?)null))
             .ForMember(dest => dest.Jornadas, opt => opt.MapFrom(src => src.Jornadas != null ? src.Jornadas : new List<Jornada>()))
             .PreserveReferences()
             .ReverseMap()
             .ForMember(dest => dest.Zona, opt => opt.Ignore())
-            .ForMember(dest => dest.InstanciaEliminacionDirecta, opt => opt.Ignore())
             .ForMember(dest => dest.Jornadas, opt => opt.Ignore())
             .ForSourceMember(src => src.InstanciaEliminacionDirectaNombre, opt => opt.DoNotValidate())
             .ForSourceMember(src => src.Jornadas, opt => opt.DoNotValidate());
+        CreateMap<FechaEliminacionDirecta, TorneoFechaDTO>()
+            .ForMember(dest => dest.Numero, opt => opt.MapFrom(_ => 0))
+            .ForMember(dest => dest.InstanciaEliminacionDirectaNombre, opt => opt.MapFrom(src => src.InstanciaEliminacionDirecta != null ? src.InstanciaEliminacionDirecta.Nombre : null))
+            .ForMember(dest => dest.Jornadas, opt => opt.MapFrom(src => src.Jornadas != null ? src.Jornadas : new List<Jornada>()))
+            .PreserveReferences();
 
         CreateMap<Jornada, JornadaDTO>()
             .ForMember(dest => dest.Tipo, opt => opt.MapFrom<JornadaTipoResolver>())

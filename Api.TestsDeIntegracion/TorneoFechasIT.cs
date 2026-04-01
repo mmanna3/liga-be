@@ -126,7 +126,7 @@ public class TorneoFechasIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            fecha = new TorneoFecha
+            fecha = new FechaTodosContraTodos
             {
                 Id = 0,
                 Dia = new DateOnly(2026, 4, 20),
@@ -180,7 +180,7 @@ public class TorneoFechasIT : TestBase
             await context.SaveChangesAsync();
             zona2Id = zona2.Id;
 
-            var fecha = new TorneoFecha
+            var fecha = new FechaTodosContraTodos
             {
                 Id = 0,
                 Dia = new DateOnly(2026, 5, 1),
@@ -207,7 +207,7 @@ public class TorneoFechasIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            fecha = new TorneoFecha
+            fecha = new FechaTodosContraTodos
             {
                 Id = 0,
                 Dia = new DateOnly(2026, 3, 1),
@@ -252,7 +252,7 @@ public class TorneoFechasIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            fecha = new TorneoFecha
+            fecha = new FechaTodosContraTodos
             {
                 Id = 0,
                 Dia = new DateOnly(2026, 3, 1),
@@ -306,7 +306,7 @@ public class TorneoFechasIT : TestBase
             await context.SaveChangesAsync();
             zona2Id = zona2.Id;
 
-            var fecha = new TorneoFecha
+            var fecha = new FechaTodosContraTodos
             {
                 Id = 0,
                 Dia = new DateOnly(2026, 5, 1),
