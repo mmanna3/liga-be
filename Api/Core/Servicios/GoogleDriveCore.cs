@@ -65,7 +65,7 @@ public class GoogleDriveCore : IGoogleDriveCore
         return credenciales;
     }
 
-    public async Task RotarBackupsEnDrive()
+    public async Task<RotacionBackupsDriveResult> RotarBackupsEnDrive()
     {
         var credenciales = LeerCredenciales();
         if (string.IsNullOrWhiteSpace(credenciales.IdCarpetaDestino))
@@ -78,29 +78,17 @@ public class GoogleDriveCore : IGoogleDriveCore
         listRequest.Fields = "files(id, name)";
         var resultado = await listRequest.ExecuteAsync();
 
-        var pares = resultado.Files
-            .Select(f => new { f.Id, Timestamp = ExtraerTimestamp(f.Name) })
-            .Where(f => f.Timestamp != null)
-            .GroupBy(f => f.Timestamp)
-            .OrderBy(g => g.Key)
+        var archivos = resultado.Files
+            .Where(f => f.Id != null && f.Name != null)
+            .Select(f => (f.Id!, f.Name!))
             .ToList();
 
-        if (pares.Count == 3)
-        {
-            foreach (var archivo in pares.First())
-                await servicio.Files.Delete(archivo.Id).ExecuteAsync();
-        }
-    }
+        var plan = GoogleDriveBackupRotacion.Calcular(archivos);
 
-    private static string? ExtraerTimestamp(string nombre)
-    {
-        // backup-bd-yyyy-MM-dd-HH-mm.zip  →  yyyy-MM-dd-HH-mm
-        // backup-imagenes-yyyy-MM-dd-HH-mm.zip  →  yyyy-MM-dd-HH-mm
-        string[] prefijos = ["backup-bd-", "backup-imagenes-"];
-        foreach (var prefijo in prefijos)
-            if (nombre.StartsWith(prefijo) && nombre.EndsWith(".zip"))
-                return nombre[prefijo.Length..^4];
-        return null;
+        foreach (var id in plan.IdsABorrar)
+            await servicio.Files.Delete(id).ExecuteAsync();
+
+        return plan;
     }
 
     public string ObtenerUrlDeAutorizacion(string redirectUri)

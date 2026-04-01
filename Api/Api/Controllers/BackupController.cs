@@ -1,3 +1,4 @@
+using System.Text;
 using Api.Api.Authorization;
 using Api.Core.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -67,8 +68,28 @@ public class BackupController : ControllerBase
     [AutorizarConApiKey]
     public async Task<IActionResult> RotarBackupsEnDrive()
     {
-        await _googleDriveCore.RotarBackupsEnDrive();
-        return Ok();
+        var r = await _googleDriveCore.RotarBackupsEnDrive();
+
+        var texto = new StringBuilder();
+        texto.AppendLine("Backups que había en el Drive:");
+        foreach (var nombre in r.BackupsEnDrive)
+            texto.AppendLine(nombre);
+
+        if (r.ParesDetectados > 3 && r.ArchivosBorrados.Count > 0)
+        {
+            texto.AppendLine();
+            texto.AppendLine("Como son más de 3 pares, se borraron:");
+            foreach (var nombre in r.ArchivosBorrados)
+                texto.AppendLine(nombre);
+        }
+
+        return Ok(new
+        {
+            textoResumen = texto.ToString().TrimEnd(),
+            backupsQueHabiaEnElDrive = r.BackupsEnDrive,
+            paresDetectados = r.ParesDetectados,
+            archivosBorrados = r.ArchivosBorrados
+        });
     }
 
     [HttpGet("subir-backup-bd-a-drive")]
