@@ -163,12 +163,12 @@ public class DelegadoIT : TestBase
     }
 
     /// <summary>
-    /// Al eliminar un delegado cuyo club tiene varios equipos en la misma TorneoZona,
-    /// el Include profundo de DelegadoRepo carga la misma TorneoZona varias veces.
+    /// Al eliminar un delegado cuyo club tiene varios equipos en la misma Zona,
+    /// el Include profundo de DelegadoRepo carga la misma Zona varias veces.
     /// EF falla con: "another instance with the same key value for {'Id'} is already being tracked".
     /// </summary>
     [Fact]
-    public async Task EliminarDelegado_ClubConEquiposEnMismaZona_NoDebeFallarPorTorneoZonaDuplicado()
+    public async Task EliminarDelegado_ClubConEquiposEnMismaZona_NoDebeFallarPorZonaDuplicado()
     {
         using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -186,11 +186,11 @@ public class DelegadoIT : TestBase
             EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
             EsVisibleEnApp = true
         };
-        context.TorneoFases.Add(fase);
+        context.Fases.Add(fase);
         await context.SaveChangesAsync();
 
-        var zona = new ZonaTodosContraTodos { Id = 0, TorneoFaseId = fase.Id, Nombre = "Zona única" };
-        context.TorneoZonas.Add(zona);
+        var zona = new ZonaTodosContraTodos { Id = 0, FaseId = fase.Id, Nombre = "Zona única" };
+        context.Zonas.Add(zona);
         await context.SaveChangesAsync();
 
         var clubConZona = new Club { Id = 0, Nombre = "Club con equipos en zona" };

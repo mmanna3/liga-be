@@ -8,17 +8,17 @@ using AutoMapper;
 
 namespace Api.Core.Servicios;
 
-public class TorneoFaseCore : ABMCoreAnidado<ITorneoFaseRepo, TorneoFase, TorneoFaseDTO, int>, ITorneoFaseCore
+public class FaseCore : ABMCoreAnidado<IFaseRepo, Fase, FaseDTO, int>, IFaseCore
 {
     private readonly ITorneoRepo _torneoRepo;
 
-    public TorneoFaseCore(IBDVirtual bd, ITorneoFaseRepo repo, ITorneoRepo torneoRepo, IMapper mapper)
+    public FaseCore(IBDVirtual bd, IFaseRepo repo, ITorneoRepo torneoRepo, IMapper mapper)
         : base(bd, repo, mapper)
     {
         _torneoRepo = torneoRepo;
     }
 
-    public override async Task<int> Crear(int padreId, TorneoFaseDTO dto)
+    public override async Task<int> Crear(int padreId, FaseDTO dto)
     {
         var entidad = CrearEntidadDesdeDto(dto);
         entidad = await AntesDeCrear(padreId, dto, entidad);
@@ -27,7 +27,7 @@ public class TorneoFaseCore : ABMCoreAnidado<ITorneoFaseRepo, TorneoFase, Torneo
         return entidad.Id;
     }
 
-    public override async Task<int> Modificar(int padreId, int id, TorneoFaseDTO nuevo)
+    public override async Task<int> Modificar(int padreId, int id, FaseDTO nuevo)
     {
         var entidadAnterior = await Repo.ObtenerPorIdYPadre(padreId, id);
         if (entidadAnterior == null)
@@ -77,7 +77,7 @@ public class TorneoFaseCore : ABMCoreAnidado<ITorneoFaseRepo, TorneoFase, Torneo
         return id;
     }
 
-    private static TorneoFase CrearEntidadDesdeDto(TorneoFaseDTO dto, int id = 0)
+    private static Fase CrearEntidadDesdeDto(FaseDTO dto, int id = 0)
     {
         return dto.TipoDeFase switch
         {
@@ -104,7 +104,7 @@ public class TorneoFaseCore : ABMCoreAnidado<ITorneoFaseRepo, TorneoFase, Torneo
         };
     }
 
-    protected override async Task<TorneoFase> AntesDeCrear(int padreId, TorneoFaseDTO dto, TorneoFase entidad)
+    protected override async Task<Fase> AntesDeCrear(int padreId, FaseDTO dto, Fase entidad)
     {
         var torneo = await _torneoRepo.ObtenerPorId(padreId);
         if (torneo == null)
@@ -116,7 +116,7 @@ public class TorneoFaseCore : ABMCoreAnidado<ITorneoFaseRepo, TorneoFase, Torneo
         return entidad;
     }
 
-    protected override Task AntesDeModificar(int padreId, int id, TorneoFaseDTO dto, TorneoFase entidadAnterior, TorneoFase entidadNueva)
+    protected override Task AntesDeModificar(int padreId, int id, FaseDTO dto, Fase entidadAnterior, Fase entidadNueva)
     {
         ValidarInstanciaEliminacionDirecta(dto);
 
@@ -124,7 +124,7 @@ public class TorneoFaseCore : ABMCoreAnidado<ITorneoFaseRepo, TorneoFase, Torneo
         return Task.CompletedTask;
     }
 
-    private static void ValidarInstanciaEliminacionDirecta(TorneoFaseDTO dto)
+    private static void ValidarInstanciaEliminacionDirecta(FaseDTO dto)
     {
         if (dto.TipoDeFase == TipoDeFaseEnum.TodosContraTodos && dto.InstanciaEliminacionDirectaId.HasValue)
             throw new ExcepcionControlada("La instancia de eliminación directa solo aplica cuando el tipo de fase es eliminación directa.");

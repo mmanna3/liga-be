@@ -91,11 +91,11 @@ public class E2ESeedController : ControllerBase
             EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
             EsVisibleEnApp = true
         };
-        _context.TorneoFases.Add(fase);
+        _context.Fases.Add(fase);
         _context.SaveChanges();
 
-        var zona = new ZonaTodosContraTodos { Id = 0, TorneoFaseId = fase.Id, Nombre = "Zona única" };
-        _context.TorneoZonas.Add(zona);
+        var zona = new ZonaTodosContraTodos { Id = 0, FaseId = fase.Id, Nombre = "Zona única" };
+        _context.Zonas.Add(zona);
         _context.SaveChanges();
 
         // Equipo 1 → Id=1 → código MTD0001 (hardcodeado en los tests YAML)

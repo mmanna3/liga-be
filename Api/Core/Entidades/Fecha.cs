@@ -1,6 +1,6 @@
 namespace Api.Core.Entidades;
 
-public abstract class TorneoFecha : Entidad
+public abstract class Fecha : Entidad
 {
     public DateOnly? Dia { get; set; }
     public required int ZonaId { get; set; }

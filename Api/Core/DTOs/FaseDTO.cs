@@ -10,7 +10,7 @@ public class ZonaDeFaseDTO
     public int CantidadDeEquipos { get; set; }
 }
 
-public class TorneoFaseDTO : DTO
+public class FaseDTO : DTO
 {
     [Required, MaxLength(50)]
     public string Nombre { get; set; } = string.Empty;

@@ -6,14 +6,14 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Api.Controllers;
 
 [Route("api/Torneo/{padreId}/fases")]
-public class TorneoFaseController : ABMControllerAnidado<TorneoFaseDTO, ITorneoFaseCore>
+public class FaseController : ABMControllerAnidado<FaseDTO, IFaseCore>
 {
-    public TorneoFaseController(ITorneoFaseCore core) : base(core)
+    public FaseController(IFaseCore core) : base(core)
     {
     }
 
     [HttpPost]
-    public override async Task<ActionResult<TorneoFaseDTO>> Crear(int padreId, TorneoFaseDTO dto)
+    public override async Task<ActionResult<FaseDTO>> Crear(int padreId, FaseDTO dto)
     {
         var id = await Core.Crear(padreId, dto);
         var creado = await Core.ObtenerPorId(padreId, id);
@@ -22,7 +22,7 @@ public class TorneoFaseController : ABMControllerAnidado<TorneoFaseDTO, ITorneoF
         return Ok(creado);
     }
 
-    protected override void DespuesDeCrear(int padreId, TorneoFaseDTO dto)
+    protected override void DespuesDeCrear(int padreId, FaseDTO dto)
     {
         dto.TorneoId = padreId;
     }

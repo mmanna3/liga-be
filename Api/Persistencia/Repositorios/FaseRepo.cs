@@ -7,18 +7,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Persistencia.Repositorios;
 
-public class TorneoFaseRepo : RepositorioABMAnidado<TorneoFase, int>, ITorneoFaseRepo
+public class FaseRepo : RepositorioABMAnidado<Fase, int>, IFaseRepo
 {
-    public TorneoFaseRepo(AppDbContext context) : base(context)
+    public FaseRepo(AppDbContext context) : base(context)
     {
     }
 
-    protected override Expression<Func<TorneoFase, bool>> FiltroPorPadre(int padreId)
+    protected override Expression<Func<Fase, bool>> FiltroPorPadre(int padreId)
     {
         return x => x.TorneoId == padreId;
     }
 
-    public override async Task<IEnumerable<TorneoFase>> ListarPorPadre(int padreId)
+    public override async Task<IEnumerable<Fase>> ListarPorPadre(int padreId)
     {
         return await Set()
             .Include("InstanciaEliminacionDirecta")
@@ -30,7 +30,7 @@ public class TorneoFaseRepo : RepositorioABMAnidado<TorneoFase, int>, ITorneoFas
             .ToListAsync();
     }
 
-    public override async Task<TorneoFase?> ObtenerPorIdYPadre(int padreId, int id)
+    public override async Task<Fase?> ObtenerPorIdYPadre(int padreId, int id)
     {
         return await Set()
             .AsNoTracking()
@@ -46,7 +46,7 @@ public class TorneoFaseRepo : RepositorioABMAnidado<TorneoFase, int>, ITorneoFas
     public async Task DecrementarNumeroDeFasesPosteriores(int torneoId, int numeroEliminado)
     {
         await Context.Database.ExecuteSqlRawAsync(
-            "UPDATE [TorneoFases] SET [Numero] = [Numero] - 1 WHERE [TorneoId] = {0} AND [Numero] > {1}",
+            "UPDATE [Fases] SET [Numero] = [Numero] - 1 WHERE [TorneoId] = {0} AND [Numero] > {1}",
             torneoId, numeroEliminado);
     }
 
@@ -56,7 +56,7 @@ public class TorneoFaseRepo : RepositorioABMAnidado<TorneoFase, int>, ITorneoFas
             ? "TodosContraTodos"
             : "EliminacionDirecta";
         await Context.Database.ExecuteSqlRawAsync(
-            "UPDATE [TorneoFases] SET [TipoFase] = {0} WHERE [Id] = {1} AND [TorneoId] = {2}",
+            "UPDATE [Fases] SET [TipoFase] = {0} WHERE [Id] = {1} AND [TorneoId] = {2}",
             discriminador, id, padreId);
     }
 }

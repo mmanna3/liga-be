@@ -93,23 +93,23 @@ public class AppDbContext : DbContext
             .HasForeignKey(tc => tc.TorneoId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Entity<TorneoFase>()
-            .ToTable("TorneoFases")
+        builder.Entity<Fase>()
+            .ToTable("Fases")
             .HasDiscriminator<string>("TipoFase")
             .HasValue<FaseTodosContraTodos>("TodosContraTodos")
             .HasValue<FaseEliminacionDirecta>("EliminacionDirecta");
 
-        builder.Entity<TorneoFase>()
+        builder.Entity<Fase>()
             .HasOne(tf => tf.Torneo)
             .WithMany(t => t.Fases)
             .HasForeignKey(tf => tf.TorneoId)
             .OnDelete(DeleteBehavior.Cascade);
-        builder.Entity<TorneoFase>()
+        builder.Entity<Fase>()
             .HasIndex(tf => new { tf.TorneoId, tf.Numero })
             .IsUnique();
 
-        builder.Entity<TorneoZona>()
-            .ToTable("TorneoZonas")
+        builder.Entity<Zona>()
+            .ToTable("Zonas")
             .HasDiscriminator<string>("TipoZona")
             .HasValue<ZonaTodosContraTodos>("TodosContraTodos")
             .HasValue<ZonaEliminacionDirecta>("EliminacionDirecta");
@@ -117,13 +117,13 @@ public class AppDbContext : DbContext
         builder.Entity<ZonaTodosContraTodos>()
             .HasOne(z => z.Fase)
             .WithMany(f => f.Zonas)
-            .HasForeignKey(z => z.TorneoFaseId)
+            .HasForeignKey(z => z.FaseId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<ZonaEliminacionDirecta>()
             .HasOne(z => z.Fase)
             .WithMany(f => f.Zonas)
-            .HasForeignKey(z => z.TorneoFaseId)
+            .HasForeignKey(z => z.FaseId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<FaseEliminacionDirecta>()
@@ -131,8 +131,8 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(f => f.InstanciaEliminacionDirectaId);
 
-        builder.Entity<TorneoFecha>()
-            .ToTable("TorneoFechas")
+        builder.Entity<Fecha>()
+            .ToTable("Fechas")
             .HasDiscriminator<string>("TipoFecha")
             .HasValue<FechaTodosContraTodos>("TodosContraTodos")
             .HasValue<FechaEliminacionDirecta>("EliminacionDirecta");
@@ -347,9 +347,9 @@ public class AppDbContext : DbContext
     public DbSet<Torneo> Torneos { get; set; } = null!;
     public DbSet<TorneoAgrupador> TorneoAgrupadores { get; set; } = null!;
     public DbSet<TorneoCategoria> TorneoCategorias { get; set; } = null!;
-    public DbSet<TorneoFase> TorneoFases { get; set; } = null!;
-    public DbSet<TorneoZona> TorneoZonas { get; set; } = null!;
-    public DbSet<TorneoFecha> TorneoFechas { get; set; } = null!;
+    public DbSet<Fase> Fases { get; set; } = null!;
+    public DbSet<Zona> Zonas { get; set; } = null!;
+    public DbSet<Fecha> Fechas { get; set; } = null!;
     public DbSet<EquipoZona> EquipoZona { get; set; } = null!;
     public DbSet<FixtureAlgoritmo> FixtureAlgoritmos { get; set; } = null!;
     public DbSet<FixtureAlgoritmoFecha> FixtureAlgoritmoFecha { get; set; } = null!;

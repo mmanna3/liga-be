@@ -1,6 +1,6 @@
 namespace Api.Core.Entidades;
 
-public class FechaTodosContraTodos : TorneoFecha
+public class FechaTodosContraTodos : Fecha
 {
     public required int Numero { get; set; }
 

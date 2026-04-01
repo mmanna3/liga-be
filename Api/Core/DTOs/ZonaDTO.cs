@@ -1,13 +1,24 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Api.Core.DTOs;
 
-public class ZonaDTO
+public class EquipoDeLaZonaDTO
 {
-    public int? Id { get; set; }
-    public string? Nombre { get; set; }
-    public int? TorneoId { get; set; }
-    public string Torneo { get; set; } = string.Empty;
-    public string Agrupador { get; set; } = string.Empty;
-    public int? AgrupadorId { get; set; }
-    public string? Fase { get; set; }
-    public int? FaseId { get; set; }
+    public string Nombre { get; set; } = string.Empty;
+    public string Club { get; set; } = string.Empty;
+    public string Id { get; set; } = string.Empty;
+    public string Codigo { get; set; } = string.Empty;
+}
+
+public class ZonaDTO : DTO
+{
+    [Required]
+    public required string Nombre { get; set; }
+
+    public int FaseId { get; set; }
+
+    /// <summary>
+    /// Null = no modificar. Lista vacía = borrar todas. Con items = reemplazar.
+    /// </summary>
+    public List<EquipoDeLaZonaDTO>? Equipos { get; set; }
 }

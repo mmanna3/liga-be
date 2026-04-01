@@ -30,9 +30,9 @@ public class ABMCoreObtenerPorIdsTests
         mapperMock.Setup(m => m.Map<TorneoDTO>(torneos[0])).Returns(dto1);
         mapperMock.Setup(m => m.Map<TorneoDTO>(torneos[1])).Returns(dto2);
 
-        var torneoFaseRepoMock = new Mock<ITorneoFaseRepo>();
+        var torneoFaseRepoMock = new Mock<IFaseRepo>();
         var torneoCategoriaRepoMock = new Mock<ITorneoCategoriaRepo>();
-        var torneoZonaRepoMock = new Mock<ITorneoZonaRepo>();
+        var torneoZonaRepoMock = new Mock<IZonaRepo>();
         var core = new TorneoCore(bdMock.Object, repoMock.Object, torneoFaseRepoMock.Object,
             torneoCategoriaRepoMock.Object, torneoZonaRepoMock.Object, mapperMock.Object);
 
@@ -55,9 +55,9 @@ public class ABMCoreObtenerPorIdsTests
         repoMock.Setup(r => r.ObtenerPorIds(It.IsAny<IEnumerable<int>>()))
             .ReturnsAsync(Array.Empty<Torneo>());
 
-        var torneoFaseRepoMock = new Mock<ITorneoFaseRepo>();
+        var torneoFaseRepoMock = new Mock<IFaseRepo>();
         var torneoCategoriaRepoMock = new Mock<ITorneoCategoriaRepo>();
-        var torneoZonaRepoMock = new Mock<ITorneoZonaRepo>();
+        var torneoZonaRepoMock = new Mock<IZonaRepo>();
         var core = new TorneoCore(bdMock.Object, repoMock.Object, torneoFaseRepoMock.Object,
             torneoCategoriaRepoMock.Object, torneoZonaRepoMock.Object, mapperMock.Object);
 

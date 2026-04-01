@@ -6,5 +6,5 @@ public class EquipoParaZonasDTO
     public string Nombre { get; set; } = string.Empty;
     public string Club { get; set; } = string.Empty;
     public string CodigoAlfanumerico { get; set; } = string.Empty;
-    public List<ZonaDTO> Zonas { get; set; } = [];
+    public List<ZonaResumenDTO> Zonas { get; set; } = [];
 }

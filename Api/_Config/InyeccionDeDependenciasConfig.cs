@@ -36,14 +36,14 @@ public static class InyeccionDeDependenciasConfig
         builder.Services.AddScoped<ITorneoCategoriaRepo, TorneoCategoriaRepo>();
         builder.Services.AddScoped<ITorneoCategoriaCore, TorneoCategoriaCore>();
 
-        builder.Services.AddScoped<ITorneoFaseRepo, TorneoFaseRepo>();
-        builder.Services.AddScoped<ITorneoFaseCore, TorneoFaseCore>();
+        builder.Services.AddScoped<IFaseRepo, FaseRepo>();
+        builder.Services.AddScoped<IFaseCore, FaseCore>();
 
-        builder.Services.AddScoped<ITorneoZonaRepo, TorneoZonaRepo>();
-        builder.Services.AddScoped<ITorneoZonaCore, TorneoZonaCore>();
+        builder.Services.AddScoped<IZonaRepo, ZonaRepo>();
+        builder.Services.AddScoped<IZonaCore, ZonaCore>();
 
-        builder.Services.AddScoped<ITorneoFechaRepo, TorneoFechaRepo>();
-        builder.Services.AddScoped<ITorneoFechaCore, TorneoFechaCore>();
+        builder.Services.AddScoped<IFechaRepo, FechaRepo>();
+        builder.Services.AddScoped<IFechaCore, FechaCore>();
 
         builder.Services.AddScoped<IFixtureAlgoritmoRepo, FixtureAlgoritmoRepo>();
         builder.Services.AddScoped<IFixtureAlgoritmoCore, FixtureAlgoritmoCore>();

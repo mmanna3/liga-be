@@ -10,12 +10,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Core.Servicios;
 
-public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, TorneoFechaDTO, int>, ITorneoFechaCore
+public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFechaCore
 {
-    private readonly ITorneoZonaRepo _torneoZonaRepo;
+    private readonly IZonaRepo _torneoZonaRepo;
     private readonly AppDbContext _context;
 
-    public TorneoFechaCore(IBDVirtual bd, ITorneoFechaRepo repo, ITorneoZonaRepo torneoZonaRepo,
+    public FechaCore(IBDVirtual bd, IFechaRepo repo, IZonaRepo torneoZonaRepo,
         AppDbContext context, IMapper mapper)
         : base(bd, repo, mapper)
     {
@@ -23,7 +23,7 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
         _context = context;
     }
 
-    protected override async Task<TorneoFecha> AntesDeCrear(int padreId, TorneoFechaDTO dto, TorneoFecha entidad)
+    protected override async Task<Fecha> AntesDeCrear(int padreId, FechaDTO dto, Fecha entidad)
     {
         var zona = await _torneoZonaRepo.ObtenerPorId(padreId);
         if (zona == null)
@@ -38,13 +38,13 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
         return entidad;
     }
 
-    public override async Task<int> Crear(int padreId, TorneoFechaDTO dto)
+    public override async Task<int> Crear(int padreId, FechaDTO dto)
     {
         var zona = await _torneoZonaRepo.ObtenerPorId(padreId);
         if (zona == null)
             throw new ExcepcionControlada("La zona indicada no existe.");
 
-        TorneoFecha entidad = zona switch
+        Fecha entidad = zona switch
         {
             ZonaTodosContraTodos => new FechaTodosContraTodos
             {
@@ -80,19 +80,19 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
         return id;
     }
 
-    protected override Task AntesDeModificar(int padreId, int id, TorneoFechaDTO dto, TorneoFecha entidadAnterior, TorneoFecha entidadNueva)
+    protected override Task AntesDeModificar(int padreId, int id, FechaDTO dto, Fecha entidadAnterior, Fecha entidadNueva)
     {
         entidadNueva.ZonaId = padreId;
         return Task.CompletedTask;
     }
 
-    public override async Task<int> Modificar(int padreId, int id, TorneoFechaDTO dto)
+    public override async Task<int> Modificar(int padreId, int id, FechaDTO dto)
     {
         var entidadAnterior = await Repo.ObtenerPorIdYPadre(padreId, id);
         if (entidadAnterior == null)
             throw new ExcepcionControlada("No existe la entidad a modificar o no pertenece al recurso padre indicado.");
 
-        TorneoFecha entidadNueva = entidadAnterior switch
+        Fecha entidadNueva = entidadAnterior switch
         {
             FechaTodosContraTodos => new FechaTodosContraTodos
             {
@@ -127,9 +127,9 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
         return id;
     }
 
-    public async Task<IEnumerable<TorneoFechaDTO>> CrearMasivamente(int padreId, IEnumerable<TorneoFechaDTO> dtos)
+    public async Task<IEnumerable<FechaDTO>> CrearMasivamente(int padreId, IEnumerable<FechaDTO> dtos)
     {
-        var creados = new List<TorneoFechaDTO>();
+        var creados = new List<FechaDTO>();
         foreach (var dto in dtos)
         {
             var id = await Crear(padreId, dto);
@@ -160,7 +160,7 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
 
     private async Task RenumerarFechasConsecutivas(int zonaId, int numeroEliminado)
     {
-        var fechasARenumerar = await _context.TorneoFechas
+        var fechasARenumerar = await _context.Fechas
             .OfType<FechaTodosContraTodos>()
             .Where(f => f.ZonaId == zonaId && f.Numero > numeroEliminado)
             .OrderBy(f => f.Numero)
@@ -181,7 +181,7 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
 
     private async Task RenumerarTodasLasFechasConsecutivas(int zonaId)
     {
-        var fechas = await _context.TorneoFechas
+        var fechas = await _context.Fechas
             .OfType<FechaTodosContraTodos>()
             .Where(f => f.ZonaId == zonaId)
             .OrderBy(f => f.Numero)
@@ -194,7 +194,7 @@ public class TorneoFechaCore : ABMCoreAnidado<ITorneoFechaRepo, TorneoFecha, Tor
         }
     }
 
-    public async Task ModificarMasivamente(int padreId, IEnumerable<TorneoFechaDTO> dtos)
+    public async Task ModificarMasivamente(int padreId, IEnumerable<FechaDTO> dtos)
     {
         var list = dtos?.ToList() ?? [];
         var idsEnRequest = list.Where(d => d.Id > 0).Select(d => d.Id).ToHashSet();

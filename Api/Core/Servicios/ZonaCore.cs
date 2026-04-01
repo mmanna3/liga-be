@@ -7,12 +7,12 @@ using AutoMapper;
 
 namespace Api.Core.Servicios;
 
-public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, TorneoZonaDTO, int>, ITorneoZonaCore
+public class ZonaCore : ABMCoreAnidado<IZonaRepo, Zona, ZonaDTO, int>, IZonaCore
 {
-    private readonly ITorneoFaseRepo _torneoFaseRepo;
+    private readonly IFaseRepo _torneoFaseRepo;
     private readonly IEquipoRepo _equipoRepo;
 
-    public TorneoZonaCore(IBDVirtual bd, ITorneoZonaRepo repo, ITorneoFaseRepo torneoFaseRepo,
+    public ZonaCore(IBDVirtual bd, IZonaRepo repo, IFaseRepo torneoFaseRepo,
         IEquipoRepo equipoRepo, IMapper mapper)
         : base(bd, repo, mapper)
     {
@@ -20,7 +20,7 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
         _equipoRepo = equipoRepo;
     }
 
-    protected override async Task<TorneoZona> AntesDeCrear(int padreId, TorneoZonaDTO dto, TorneoZona entidad)
+    protected override async Task<Zona> AntesDeCrear(int padreId, ZonaDTO dto, Zona entidad)
     {
         var fase = await _torneoFaseRepo.ObtenerPorId(padreId);
         if (fase == null)
@@ -28,17 +28,17 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
         if (fase is not FaseTodosContraTodos)
             throw new ExcepcionControlada("Solo las fases todos contra todos admiten zonas.");
 
-        entidad.TorneoFaseId = padreId;
+        entidad.FaseId = padreId;
         return entidad;
     }
 
-    public override async Task<int> Crear(int padreId, TorneoZonaDTO dto)
+    public override async Task<int> Crear(int padreId, ZonaDTO dto)
     {
         var entidad = new ZonaTodosContraTodos
         {
             Id = 0,
             Nombre = dto.Nombre ?? string.Empty,
-            TorneoFaseId = padreId
+            FaseId = padreId
         };
         entidad = (ZonaTodosContraTodos)await AntesDeCrear(padreId, dto, entidad);
         Repo.Crear(entidad);
@@ -55,13 +55,13 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
         return id;
     }
 
-    protected override Task AntesDeModificar(int padreId, int id, TorneoZonaDTO dto, TorneoZona entidadAnterior, TorneoZona entidadNueva)
+    protected override Task AntesDeModificar(int padreId, int id, ZonaDTO dto, Zona entidadAnterior, Zona entidadNueva)
     {
-        entidadNueva.TorneoFaseId = padreId;
+        entidadNueva.FaseId = padreId;
         return Task.CompletedTask;
     }
 
-    public override async Task<int> Modificar(int padreId, int id, TorneoZonaDTO dto)
+    public override async Task<int> Modificar(int padreId, int id, ZonaDTO dto)
     {
         var entidadAnterior = await Repo.ObtenerPorIdYPadre(padreId, id);
         if (entidadAnterior == null)
@@ -73,7 +73,7 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
         {
             Id = id,
             Nombre = dto.Nombre ?? string.Empty,
-            TorneoFaseId = padreId
+            FaseId = padreId
         };
         await AntesDeModificar(padreId, id, dto, entidadAnterior, entidadNueva);
         Repo.Modificar(entidadAnterior, entidadNueva);
@@ -89,9 +89,9 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
         return id;
     }
 
-    public async Task<IEnumerable<TorneoZonaDTO>> CrearMasivamente(int padreId, IEnumerable<TorneoZonaDTO> dtos)
+    public async Task<IEnumerable<ZonaDTO>> CrearMasivamente(int padreId, IEnumerable<ZonaDTO> dtos)
     {
-        var creados = new List<TorneoZonaDTO>();
+        var creados = new List<ZonaDTO>();
         foreach (var dto in dtos)
         {
             var id = await Crear(padreId, dto);
@@ -116,7 +116,7 @@ public class TorneoZonaCore : ABMCoreAnidado<ITorneoZonaRepo, TorneoZona, Torneo
         return id;
     }
 
-    public async Task ModificarMasivamente(int padreId, IEnumerable<TorneoZonaDTO> dtos)
+    public async Task ModificarMasivamente(int padreId, IEnumerable<ZonaDTO> dtos)
     {
         var list = dtos?.ToList() ?? [];
         var idsEnRequest = list.Where(d => d.Id > 0).Select(d => d.Id).ToHashSet();

@@ -1,0 +1,33 @@
+using Api.Api.Authorization;
+using Api.Core.DTOs;
+using Api.Core.Servicios.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Api.Api.Controllers;
+
+[Route("api/Zona/{padreId}/fechas")]
+public class FechaController : ABMControllerAnidado<FechaDTO, IFechaCore>
+{
+    public FechaController(IFechaCore core) : base(core)
+    {
+    }
+
+    protected override void DespuesDeCrear(int padreId, FechaDTO dto)
+    {
+        dto.ZonaId = padreId;
+    }
+
+    [HttpPost("crear-fechas-masivamente")]
+    public async Task<ActionResult<IEnumerable<FechaDTO>>> CrearMasivamente(int padreId, [FromBody] List<FechaDTO> dtos)
+    {
+        var creados = await Core.CrearMasivamente(padreId, dtos);
+        return Ok(creados);
+    }
+
+    [HttpPut("modificar-fechas-masivamente")]
+    public async Task<IActionResult> ModificarMasivamente(int padreId, [FromBody] List<FechaDTO> dtos)
+    {
+        await Core.ModificarMasivamente(padreId, dtos);
+        return NoContent();
+    }
+}

@@ -6,22 +6,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Persistencia.Repositorios;
 
-public class TorneoFechaRepo : RepositorioABMAnidado<TorneoFecha, int>, ITorneoFechaRepo
+public class FechaRepo : RepositorioABMAnidado<Fecha, int>, IFechaRepo
 {
-    public TorneoFechaRepo(AppDbContext context) : base(context)
+    public FechaRepo(AppDbContext context) : base(context)
     {
     }
 
-    protected override Expression<Func<TorneoFecha, bool>> FiltroPorPadre(int padreId)
+    protected override Expression<Func<Fecha, bool>> FiltroPorPadre(int padreId)
     {
         return x => x.ZonaId == padreId;
     }
 
-    protected override IQueryable<TorneoFecha> Set()
+    protected override IQueryable<Fecha> Set()
     {
-        return Context.Set<TorneoFecha>()
+        return Context.Set<Fecha>()
             .Include("InstanciaEliminacionDirecta")
-            .Include(x => x.Jornadas)
             .Include(x => x.Jornadas)
                 .ThenInclude(j => ((JornadaNormal)j).LocalEquipo)
             .Include(x => x.Jornadas)
@@ -35,15 +34,15 @@ public class TorneoFechaRepo : RepositorioABMAnidado<TorneoFecha, int>, ITorneoF
 
     public async Task<IEnumerable<int>> ListarIdsPorPadre(int padreId)
     {
-        return await Context.Set<TorneoFecha>()
+        return await Context.Set<Fecha>()
             .Where(x => x.ZonaId == padreId)
             .Select(x => x.Id)
             .ToListAsync();
     }
 
-    public async Task<TorneoFecha?> ObtenerPorIdYPadreParaEliminar(int padreId, int id)
+    public async Task<Fecha?> ObtenerPorIdYPadreParaEliminar(int padreId, int id)
     {
-        return await Context.Set<TorneoFecha>()
+        return await Context.Set<Fecha>()
             .Where(x => x.ZonaId == padreId && x.Id == id)
             .FirstOrDefaultAsync();
     }

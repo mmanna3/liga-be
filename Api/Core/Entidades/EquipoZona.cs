@@ -9,5 +9,5 @@ public class EquipoZona : Entidad
     public int EquipoId { get; set; }
     public virtual Equipo Equipo { get; set; } = null!;
     public int ZonaId { get; set; }
-    public virtual TorneoZona Zona { get; set; } = null!;
+    public virtual Zona Zona { get; set; } = null!;
 }

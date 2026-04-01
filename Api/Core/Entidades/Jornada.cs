@@ -5,7 +5,7 @@ namespace Api.Core.Entidades;
 
 public class Jornada : Entidad
 {
-    public virtual TorneoFecha Fecha { get; set; } = null!;
+    public virtual Fecha Fecha { get; set; } = null!;
 
     [ForeignKey("Fecha")]
     public required int FechaId { get; set; }

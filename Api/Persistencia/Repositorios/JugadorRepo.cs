@@ -119,8 +119,8 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
     {
         var torneoDestinoIds = await (
             from ez in Context.Set<EquipoZona>()
-            join z in Context.TorneoZonas on ez.ZonaId equals z.Id
-            join f in Context.TorneoFases on z.TorneoFaseId equals f.Id
+            join z in Context.Zonas on ez.ZonaId equals z.Id
+            join f in Context.Fases on z.FaseId equals f.Id
             where ez.EquipoId == equipoDestinoId
             select f.TorneoId
         ).Distinct().ToListAsync();
@@ -130,8 +130,8 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
 
         var equipoIdsEnTorneo = await (
             from ez in Context.Set<EquipoZona>()
-            join z in Context.TorneoZonas on ez.ZonaId equals z.Id
-            join f in Context.TorneoFases on z.TorneoFaseId equals f.Id
+            join z in Context.Zonas on ez.ZonaId equals z.Id
+            join f in Context.Fases on z.FaseId equals f.Id
             where torneoDestinoIds.Contains(f.TorneoId)
             select ez.EquipoId
         ).Distinct().ToListAsync();

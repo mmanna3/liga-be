@@ -45,10 +45,10 @@ public class AppCarnetDigitalIT : TestBase
         torneo = context.Torneos.First(t => t.Nombre == "Torneo 2024");
 
         var fase = new FaseTodosContraTodos { Id = 0, Nombre = "", TorneoId = torneo.Id, Numero = 1, EstadoFaseId = 100, EsVisibleEnApp = true };
-        context.TorneoFases.Add(fase);
+        context.Fases.Add(fase);
         context.SaveChanges();
-        var zona = new ZonaTodosContraTodos { Id = 0, TorneoFaseId = fase.Id, Nombre = "Zona única" };
-        context.TorneoZonas.Add(zona);
+        var zona = new ZonaTodosContraTodos { Id = 0, FaseId = fase.Id, Nombre = "Zona única" };
+        context.Zonas.Add(zona);
         context.SaveChanges();
 
         // Crear un equipo

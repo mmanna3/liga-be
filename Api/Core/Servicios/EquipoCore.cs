@@ -61,7 +61,7 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
         return result;
     }
 
-    private async Task SincronizarZonas(int equipoId, List<ZonaDTO>? zonasDto)
+    private async Task SincronizarZonas(int equipoId, List<ZonaResumenDTO>? zonasDto)
     {
         var zonaIds = zonasDto?.Where(z => z.Id.HasValue).Select(z => z.Id!.Value).ToList() ?? [];
         await Repo.SincronizarZonasDelEquipo(equipoId, zonaIds);
@@ -117,11 +117,11 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
 
         foreach (var equipo in equipos)
         {
-            var zonas = new List<ZonaDTO>();
+            var zonas = new List<ZonaResumenDTO>();
             if (equipo.Zonas != null)
             {
                 foreach (var ez in equipo.Zonas)
-                    zonas.Add(ZonaDesdeTorneoZona(ez.Zona));
+                    zonas.Add(ZonaDesdeZona(ez.Zona));
             }
 
             var codigoAlfanumerico = equipo.Id > 0 && equipo.Id < 10000
@@ -141,16 +141,16 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
         return resultado;
     }
 
-    private static ZonaDTO ZonaDesdeTorneoZona(TorneoZona zona)
+    private static ZonaResumenDTO ZonaDesdeZona(Zona zona)
     {
-        TorneoFase? fase = zona switch
+        Fase? fase = zona switch
         {
             ZonaTodosContraTodos z => z.Fase,
             ZonaEliminacionDirecta z => z.Fase,
             _ => null
         };
         var torneo = fase?.Torneo;
-        return new ZonaDTO
+        return new ZonaResumenDTO
         {
             Id = zona.Id,
             Nombre = zona.Nombre,

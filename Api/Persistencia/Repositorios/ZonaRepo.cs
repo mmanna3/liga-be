@@ -6,15 +6,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Persistencia.Repositorios;
 
-public class TorneoZonaRepo : RepositorioABMAnidado<TorneoZona, int>, ITorneoZonaRepo
+public class ZonaRepo : RepositorioABMAnidado<Zona, int>, IZonaRepo
 {
-    public TorneoZonaRepo(AppDbContext context) : base(context)
+    public ZonaRepo(AppDbContext context) : base(context)
     {
     }
 
-    protected override IQueryable<TorneoZona> Set()
+    protected override IQueryable<Zona> Set()
     {
-        return Context.Set<TorneoZona>()
+        return Context.Set<Zona>()
             .Include("Fase.Torneo.TorneoAgrupador")
             .Include(x => x.EquiposZona)
                 .ThenInclude(e => e.Equipo)
@@ -23,23 +23,23 @@ public class TorneoZonaRepo : RepositorioABMAnidado<TorneoZona, int>, ITorneoZon
             .AsQueryable();
     }
 
-    protected override Expression<Func<TorneoZona, bool>> FiltroPorPadre(int padreId)
+    protected override Expression<Func<Zona, bool>> FiltroPorPadre(int padreId)
     {
-        return x => x.TorneoFaseId == padreId;
+        return x => x.FaseId == padreId;
     }
 
     public async Task<IEnumerable<int>> ListarIdsPorPadre(int padreId)
     {
-        return await Context.Set<TorneoZona>()
-            .Where(x => x.TorneoFaseId == padreId)
+        return await Context.Set<Zona>()
+            .Where(x => x.FaseId == padreId)
             .Select(x => x.Id)
             .ToListAsync();
     }
 
-    public async Task<TorneoZona?> ObtenerPorIdYPadreParaEliminar(int padreId, int id)
+    public async Task<Zona?> ObtenerPorIdYPadreParaEliminar(int padreId, int id)
     {
-        return await Context.Set<TorneoZona>()
-            .Where(x => x.TorneoFaseId == padreId && x.Id == id)
+        return await Context.Set<Zona>()
+            .Where(x => x.FaseId == padreId && x.Id == id)
             .FirstOrDefaultAsync();
     }
 }

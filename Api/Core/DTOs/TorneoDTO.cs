@@ -14,7 +14,7 @@ public class TorneoDTO : DTO
     /// <summary>
     /// Null = no modificar. Lista vacía = borrar todas. Con items = reemplazar.
     /// </summary>
-    public List<TorneoFaseDTO>? Fases { get; set; }
+    public List<FaseDTO>? Fases { get; set; }
     /// <summary>
     /// Null = no modificar. Lista vacía = borrar todas. Con items = reemplazar.
     /// </summary>

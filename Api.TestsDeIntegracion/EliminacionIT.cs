@@ -42,10 +42,10 @@ public class EliminacionIT : TestBase
             torneoId = context.Torneos.First(t => t.Nombre == "Torneo a Eliminar").Id;
 
             var fase = new FaseTodosContraTodos { Id = 0, Nombre = "", TorneoId = torneoId, Numero = 1, EstadoFaseId = 100, EsVisibleEnApp = true };
-            context.TorneoFases.Add(fase);
+            context.Fases.Add(fase);
             context.SaveChanges();
-            var zona = new ZonaTodosContraTodos { Id = 0, TorneoFaseId = fase.Id, Nombre = "Zona única" };
-            context.TorneoZonas.Add(zona);
+            var zona = new ZonaTodosContraTodos { Id = 0, FaseId = fase.Id, Nombre = "Zona única" };
+            context.Zonas.Add(zona);
             context.SaveChanges();
 
             var equipo = new Equipo { Id = 0, Nombre = "Equipo en Torneo", ClubId = _club!.Id, Jugadores = [], Zonas = new List<EquipoZona>() };

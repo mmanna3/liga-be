@@ -1,8 +1,8 @@
 namespace Api.Core.Entidades;
 
-public abstract class TorneoZona : Entidad
+public abstract class Zona : Entidad
 {
     public required string Nombre { get; set; }
-    public required int TorneoFaseId { get; set; }
+    public required int FaseId { get; set; }
     public virtual ICollection<EquipoZona> EquiposZona { get; set; } = null!;
 }

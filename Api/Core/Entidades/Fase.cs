@@ -3,7 +3,7 @@ using Api.Core.Entidades.EntidadesConValoresPredefinidos;
 
 namespace Api.Core.Entidades;
 
-public abstract class TorneoFase : Entidad
+public abstract class Fase : Entidad
 {
     [Required, MaxLength(50)]
     public string Nombre { get; set; } = string.Empty;

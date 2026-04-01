@@ -174,10 +174,10 @@ public class ClubIT : TestBase
             torneo = context.Torneos.First();
 
             var fase = new FaseTodosContraTodos { Id = 0, Nombre = "", TorneoId = torneo.Id, Numero = 1, EstadoFaseId = 100, EsVisibleEnApp = true };
-            context.TorneoFases.Add(fase);
+            context.Fases.Add(fase);
             context.SaveChanges();
-            var zona = new ZonaTodosContraTodos { Id = 0, TorneoFaseId = fase.Id, Nombre = "Zona única" };
-            context.TorneoZonas.Add(zona);
+            var zona = new ZonaTodosContraTodos { Id = 0, FaseId = fase.Id, Nombre = "Zona única" };
+            context.Zonas.Add(zona);
             context.SaveChanges();
 
             equipo1.ClubId = clubParaEliminar.Id;

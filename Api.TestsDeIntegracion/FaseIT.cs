@@ -10,9 +10,9 @@ using Newtonsoft.Json;
 
 namespace Api.TestsDeIntegracion;
 
-public class TorneoFaseIT : TestBase
+public class FaseIT : TestBase
 {
-    public TorneoFaseIT(CustomWebApplicationFactory<Program> factory) : base(factory)
+    public FaseIT(CustomWebApplicationFactory<Program> factory) : base(factory)
     {
         using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -34,9 +34,9 @@ public class TorneoFaseIT : TestBase
         return torneo.Id;
     }
 
-    private static TorneoFaseDTO CrearDtoFaseGrupos(int numero = 1)
+    private static FaseDTO CrearDtoFaseGrupos(int numero = 1)
     {
-        return new TorneoFaseDTO
+        return new FaseDTO
         {
             Nombre = $"Fase {numero}",
             Numero = numero,
@@ -47,9 +47,9 @@ public class TorneoFaseIT : TestBase
         };
     }
 
-    private static TorneoFaseDTO CrearDtoFaseEliminacionDirecta(int numero = 2, int instanciaId = 8)
+    private static FaseDTO CrearDtoFaseEliminacionDirecta(int numero = 2, int instanciaId = 8)
     {
-        return new TorneoFaseDTO
+        return new FaseDTO
         {
             Nombre = $"Fase {numero}",
             Numero = numero,
@@ -70,7 +70,7 @@ public class TorneoFaseIT : TestBase
 
         response.EnsureSuccessStatusCode();
 
-        var content = JsonConvert.DeserializeObject<List<TorneoFaseDTO>>(await response.Content.ReadAsStringAsync());
+        var content = JsonConvert.DeserializeObject<List<FaseDTO>>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.Empty(content);
     }
@@ -87,7 +87,7 @@ public class TorneoFaseIT : TestBase
 
         response.EnsureSuccessStatusCode();
 
-        var content = JsonConvert.DeserializeObject<TorneoFaseDTO>(await response.Content.ReadAsStringAsync());
+        var content = JsonConvert.DeserializeObject<FaseDTO>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.True(content.Id > 0);
         Assert.Equal(1, content.Numero);
@@ -111,7 +111,7 @@ public class TorneoFaseIT : TestBase
 
         response.EnsureSuccessStatusCode();
 
-        var content = JsonConvert.DeserializeObject<TorneoFaseDTO>(await response.Content.ReadAsStringAsync());
+        var content = JsonConvert.DeserializeObject<FaseDTO>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.True(content.Id > 0);
         Assert.Equal(8, content.InstanciaEliminacionDirectaId);
@@ -155,7 +155,7 @@ public class TorneoFaseIT : TestBase
     public async Task ObtenerFase_PorId_DevuelveCorrecto()
     {
         var torneoId = await CrearTorneoDePrueba(Factory);
-        TorneoFase fase;
+        Fase fase;
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -168,7 +168,7 @@ public class TorneoFaseIT : TestBase
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
-            context.TorneoFases.Add(fase);
+            context.Fases.Add(fase);
             await context.SaveChangesAsync();
         }
 
@@ -177,7 +177,7 @@ public class TorneoFaseIT : TestBase
 
         response.EnsureSuccessStatusCode();
 
-        var content = JsonConvert.DeserializeObject<TorneoFaseDTO>(await response.Content.ReadAsStringAsync());
+        var content = JsonConvert.DeserializeObject<FaseDTO>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.Equal(fase.Id, content.Id);
         Assert.Equal(1, content.Numero);
@@ -208,7 +208,7 @@ public class TorneoFaseIT : TestBase
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
-            context.TorneoFases.Add(fase);
+            context.Fases.Add(fase);
             await context.SaveChangesAsync();
             faseId = fase.Id;
         }
@@ -223,7 +223,7 @@ public class TorneoFaseIT : TestBase
     public async Task ModificarFase_DatosCorrectos_204()
     {
         var torneoId = await CrearTorneoDePrueba(Factory);
-        TorneoFase fase;
+        Fase fase;
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -236,7 +236,7 @@ public class TorneoFaseIT : TestBase
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
-            context.TorneoFases.Add(fase);
+            context.Fases.Add(fase);
             await context.SaveChangesAsync();
         }
 
@@ -254,7 +254,7 @@ public class TorneoFaseIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var actualizado = context.TorneoFases.Find(fase.Id);
+            var actualizado = context.Fases.Find(fase.Id);
             Assert.NotNull(actualizado);
             Assert.False(actualizado.EsVisibleEnApp);
         }
@@ -264,7 +264,7 @@ public class TorneoFaseIT : TestBase
     public async Task EliminarFase_Existente_200()
     {
         var torneoId = await CrearTorneoDePrueba(Factory);
-        TorneoFase fase;
+        Fase fase;
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -277,7 +277,7 @@ public class TorneoFaseIT : TestBase
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
-            context.TorneoFases.Add(fase);
+            context.Fases.Add(fase);
             await context.SaveChangesAsync();
         }
 
@@ -289,7 +289,7 @@ public class TorneoFaseIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            Assert.Null(context.TorneoFases.Find(fase.Id));
+            Assert.Null(context.Fases.Find(fase.Id));
         }
     }
 
@@ -316,7 +316,7 @@ public class TorneoFaseIT : TestBase
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
-            context.TorneoFases.Add(fase);
+            context.Fases.Add(fase);
             await context.SaveChangesAsync();
             faseId = fase.Id;
         }
@@ -329,7 +329,7 @@ public class TorneoFaseIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            Assert.NotNull(context.TorneoFases.Find(faseId));
+            Assert.NotNull(context.Fases.Find(faseId));
         }
     }
 
@@ -345,7 +345,7 @@ public class TorneoFaseIT : TestBase
         var response = await client.GetAsync($"/api/Torneo/{torneoId}/fases");
         response.EnsureSuccessStatusCode();
 
-        var content = JsonConvert.DeserializeObject<List<TorneoFaseDTO>>(await response.Content.ReadAsStringAsync());
+        var content = JsonConvert.DeserializeObject<List<FaseDTO>>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.Equal(2, content.Count);
         Assert.Contains(content, f => f.Numero == 1);
@@ -364,7 +364,7 @@ public class TorneoFaseIT : TestBase
     public async Task ObtenerFase_SinZonas_SePuedeEditarTrue()
     {
         var torneoId = await CrearTorneoDePrueba(Factory);
-        TorneoFase fase;
+        Fase fase;
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -377,7 +377,7 @@ public class TorneoFaseIT : TestBase
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
-            context.TorneoFases.Add(fase);
+            context.Fases.Add(fase);
             await context.SaveChangesAsync();
         }
 
@@ -385,7 +385,7 @@ public class TorneoFaseIT : TestBase
         var response = await client.GetAsync($"/api/Torneo/{torneoId}/fases/{fase.Id}");
         response.EnsureSuccessStatusCode();
 
-        var content = JsonConvert.DeserializeObject<TorneoFaseDTO>(await response.Content.ReadAsStringAsync());
+        var content = JsonConvert.DeserializeObject<FaseDTO>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.True(content.SePuedeEditar);
     }
@@ -394,7 +394,7 @@ public class TorneoFaseIT : TestBase
     public async Task ObtenerFase_ConZonasSinFechas_SePuedeEditarFalse()
     {
         var torneoId = await CrearTorneoDePrueba(Factory);
-        TorneoFase fase;
+        Fase fase;
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -407,10 +407,10 @@ public class TorneoFaseIT : TestBase
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
-            context.TorneoFases.Add(fase);
+            context.Fases.Add(fase);
             await context.SaveChangesAsync();
 
-            context.TorneoZonas.Add(new ZonaTodosContraTodos { Id = 0, Nombre = "Zona A", TorneoFaseId = fase.Id });
+            context.Zonas.Add(new ZonaTodosContraTodos { Id = 0, Nombre = "Zona A", FaseId = fase.Id });
             await context.SaveChangesAsync();
         }
 
@@ -418,7 +418,7 @@ public class TorneoFaseIT : TestBase
         var response = await client.GetAsync($"/api/Torneo/{torneoId}/fases/{fase.Id}");
         response.EnsureSuccessStatusCode();
 
-        var content = JsonConvert.DeserializeObject<TorneoFaseDTO>(await response.Content.ReadAsStringAsync());
+        var content = JsonConvert.DeserializeObject<FaseDTO>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.False(content.SePuedeEditar);
     }
@@ -427,7 +427,7 @@ public class TorneoFaseIT : TestBase
     public async Task ObtenerFase_ConZonasConFechas_SePuedeEditarFalse()
     {
         var torneoId = await CrearTorneoDePrueba(Factory);
-        TorneoFase fase;
+        Fase fase;
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -440,14 +440,14 @@ public class TorneoFaseIT : TestBase
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
-            context.TorneoFases.Add(fase);
+            context.Fases.Add(fase);
             await context.SaveChangesAsync();
 
-            var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona A", TorneoFaseId = fase.Id };
-            context.TorneoZonas.Add(zona);
+            var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona A", FaseId = fase.Id };
+            context.Zonas.Add(zona);
             await context.SaveChangesAsync();
 
-            context.TorneoFechas.Add(new FechaTodosContraTodos
+            context.Fechas.Add(new FechaTodosContraTodos
             {
                 Id = 0,
                 Dia = new DateOnly(2026, 5, 10),
@@ -462,7 +462,7 @@ public class TorneoFaseIT : TestBase
         var response = await client.GetAsync($"/api/Torneo/{torneoId}/fases/{fase.Id}");
         response.EnsureSuccessStatusCode();
 
-        var content = JsonConvert.DeserializeObject<TorneoFaseDTO>(await response.Content.ReadAsStringAsync());
+        var content = JsonConvert.DeserializeObject<FaseDTO>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.False(content.SePuedeEditar);
     }
@@ -471,7 +471,7 @@ public class TorneoFaseIT : TestBase
     public async Task ObtenerFase_DevuelveNombresMapeadosCorrectamente()
     {
         var torneoId = await CrearTorneoDePrueba(Factory);
-        TorneoFase fase;
+        Fase fase;
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -485,7 +485,7 @@ public class TorneoFaseIT : TestBase
                 EstadoFaseId = 200,
                 EsVisibleEnApp = true
             };
-            context.TorneoFases.Add(fase);
+            context.Fases.Add(fase);
             await context.SaveChangesAsync();
         }
 
@@ -493,7 +493,7 @@ public class TorneoFaseIT : TestBase
         var response = await client.GetAsync($"/api/Torneo/{torneoId}/fases/{fase.Id}");
         response.EnsureSuccessStatusCode();
 
-        var content = JsonConvert.DeserializeObject<TorneoFaseDTO>(await response.Content.ReadAsStringAsync());
+        var content = JsonConvert.DeserializeObject<FaseDTO>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.Equal("Eliminación directa", content.TipoDeFaseNombre);
         Assert.Equal("Semifinal", content.InstanciaEliminacionDirectaNombre);

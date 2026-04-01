@@ -10,7 +10,7 @@ public class CrearTorneoDTO : TorneoDTO
     /// <summary>
     /// Fase inicial del torneo. Si es null, se crea la fase por defecto (todos contra todos, zona única).
     /// </summary>
-    public TorneoFaseDTO? PrimeraFase { get; set; }
+    public FaseDTO? PrimeraFase { get; set; }
 
     /// <summary>
     /// Categorías a crear junto con el torneo. Puede ser null o vacío.

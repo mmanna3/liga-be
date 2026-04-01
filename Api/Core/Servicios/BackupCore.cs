@@ -23,8 +23,8 @@ public class BackupCore : IBackupCore
     [
         "Clubs", "Jugadores", "Delegados", "TorneoAgrupadores", "FixtureAlgoritmos",
         "Equipos", "DelegadoClub", "Torneos", "Usuarios", "JugadorEquipo",
-        "TorneoCategorias", "TorneoFases", "TorneoZonas", "HistorialDePagos",
-        "EquipoZona", "TorneoFechas", "FixtureAlgoritmoFecha", "Jornadas"
+        "TorneoCategorias", "Fases", "Zonas", "HistorialDePagos",
+        "EquipoZona", "Fechas", "FixtureAlgoritmoFecha", "Jornadas"
     ];
 
     // Tablas que ya tienen datos de seed tras una migración limpia:

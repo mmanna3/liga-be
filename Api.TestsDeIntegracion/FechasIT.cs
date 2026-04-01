@@ -11,12 +11,12 @@ using Newtonsoft.Json;
 
 namespace Api.TestsDeIntegracion;
 
-public class TorneoFechasIT : TestBase
+public class FechasIT : TestBase
 {
     private Utilidades? _utilidades;
     private Club? _club;
 
-    public TorneoFechasIT(CustomWebApplicationFactory<Program> factory) : base(factory)
+    public FechasIT(CustomWebApplicationFactory<Program> factory) : base(factory)
     {
         using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -31,7 +31,7 @@ public class TorneoFechasIT : TestBase
         context.SaveChanges();
     }
 
-    private static async Task<int> CrearTorneoZonaDePrueba(CustomWebApplicationFactory<Program> factory)
+    private static async Task<int> CrearZonaDePrueba(CustomWebApplicationFactory<Program> factory)
     {
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -48,11 +48,11 @@ public class TorneoFechasIT : TestBase
             EstadoFaseId = 100,
             EsVisibleEnApp = true
         };
-        context.TorneoFases.Add(fase);
+        context.Fases.Add(fase);
         await context.SaveChangesAsync();
 
-        var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona única", TorneoFaseId = fase.Id };
-        context.TorneoZonas.Add(zona);
+        var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona única", FaseId = fase.Id };
+        context.Zonas.Add(zona);
         await context.SaveChangesAsync();
         return zona.Id;
     }
@@ -60,14 +60,14 @@ public class TorneoFechasIT : TestBase
     [Fact]
     public async Task ListarFechas_ZonaExistente_DevuelveLista()
     {
-        var zonaId = await CrearTorneoZonaDePrueba(Factory);
+        var zonaId = await CrearZonaDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
-        var response = await client.GetAsync($"/api/TorneoZona/{zonaId}/fechas");
+        var response = await client.GetAsync($"/api/Zona/{zonaId}/fechas");
 
         response.EnsureSuccessStatusCode();
 
-        var content = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await response.Content.ReadAsStringAsync());
+        var content = JsonConvert.DeserializeObject<List<FechaDTO>>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.Empty(content);
     }
@@ -75,21 +75,21 @@ public class TorneoFechasIT : TestBase
     [Fact]
     public async Task CrearFecha_DatosCorrectos_200()
     {
-        var zonaId = await CrearTorneoZonaDePrueba(Factory);
+        var zonaId = await CrearZonaDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
-        var dto = new TorneoFechaDTO
+        var dto = new FechaDTO
         {
             Dia = new DateOnly(2026, 3, 15),
             Numero = 1,
             EsVisibleEnApp = true
         };
 
-        var response = await client.PostAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas", dto);
+        var response = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas", dto);
 
         response.EnsureSuccessStatusCode();
 
-        var content = JsonConvert.DeserializeObject<TorneoFechaDTO>(await response.Content.ReadAsStringAsync());
+        var content = JsonConvert.DeserializeObject<FechaDTO>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.True(content.Id > 0);
         Assert.Equal(new DateOnly(2026, 3, 15), content.Dia);
@@ -103,14 +103,14 @@ public class TorneoFechasIT : TestBase
     {
         var client = await GetAuthenticatedClient();
 
-        var dto = new TorneoFechaDTO
+        var dto = new FechaDTO
         {
             Dia = new DateOnly(2026, 3, 15),
             Numero = 1,
             EsVisibleEnApp = true
         };
 
-        var response = await client.PostAsJsonAsync("/api/TorneoZona/99999/fechas", dto);
+        var response = await client.PostAsJsonAsync("/api/Zona/99999/fechas", dto);
 
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
 
@@ -121,8 +121,8 @@ public class TorneoFechasIT : TestBase
     [Fact]
     public async Task ObtenerFecha_PorId_DevuelveCorrecto()
     {
-        var zonaId = await CrearTorneoZonaDePrueba(Factory);
-        TorneoFecha fecha;
+        var zonaId = await CrearZonaDePrueba(Factory);
+        Fecha fecha;
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -134,16 +134,16 @@ public class TorneoFechasIT : TestBase
                 ZonaId = zonaId,
                 EsVisibleEnApp = true
             };
-            context.TorneoFechas.Add(fecha);
+            context.Fechas.Add(fecha);
             await context.SaveChangesAsync();
         }
 
         var client = await GetAuthenticatedClient();
-        var response = await client.GetAsync($"/api/TorneoZona/{zonaId}/fechas/{fecha.Id}");
+        var response = await client.GetAsync($"/api/Zona/{zonaId}/fechas/{fecha.Id}");
 
         response.EnsureSuccessStatusCode();
 
-        var content = JsonConvert.DeserializeObject<TorneoFechaDTO>(await response.Content.ReadAsStringAsync());
+        var content = JsonConvert.DeserializeObject<FechaDTO>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.Equal(fecha.Id, content.Id);
         Assert.Equal(new DateOnly(2026, 4, 20), content.Dia);
@@ -153,7 +153,7 @@ public class TorneoFechasIT : TestBase
     [Fact]
     public async Task ObtenerFecha_FechaDeOtraZona_404()
     {
-        var zona1Id = await CrearTorneoZonaDePrueba(Factory);
+        var zona1Id = await CrearZonaDePrueba(Factory);
         int fechaId;
         int zona2Id;
         using (var scope = Factory.Services.CreateScope())
@@ -172,11 +172,11 @@ public class TorneoFechasIT : TestBase
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
-            context.TorneoFases.Add(fase2);
+            context.Fases.Add(fase2);
             await context.SaveChangesAsync();
 
-            var zona2 = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona B", TorneoFaseId = fase2.Id };
-            context.TorneoZonas.Add(zona2);
+            var zona2 = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona B", FaseId = fase2.Id };
+            context.Zonas.Add(zona2);
             await context.SaveChangesAsync();
             zona2Id = zona2.Id;
 
@@ -188,13 +188,13 @@ public class TorneoFechasIT : TestBase
                 ZonaId = zona2Id,
                 EsVisibleEnApp = true
             };
-            context.TorneoFechas.Add(fecha);
+            context.Fechas.Add(fecha);
             await context.SaveChangesAsync();
             fechaId = fecha.Id;
         }
 
         var client = await GetAuthenticatedClient();
-        var response = await client.GetAsync($"/api/TorneoZona/{zona1Id}/fechas/{fechaId}");
+        var response = await client.GetAsync($"/api/Zona/{zona1Id}/fechas/{fechaId}");
 
         Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
     }
@@ -202,8 +202,8 @@ public class TorneoFechasIT : TestBase
     [Fact]
     public async Task ModificarFecha_DatosCorrectos_204()
     {
-        var zonaId = await CrearTorneoZonaDePrueba(Factory);
-        TorneoFecha fecha;
+        var zonaId = await CrearZonaDePrueba(Factory);
+        Fecha fecha;
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -215,12 +215,12 @@ public class TorneoFechasIT : TestBase
                 ZonaId = zonaId,
                 EsVisibleEnApp = true
             };
-            context.TorneoFechas.Add(fecha);
+            context.Fechas.Add(fecha);
             await context.SaveChangesAsync();
         }
 
         var client = await GetAuthenticatedClient();
-        var dto = new TorneoFechaDTO
+        var dto = new FechaDTO
         {
             Id = fecha.Id,
             Dia = new DateOnly(2026, 3, 10),
@@ -229,7 +229,7 @@ public class TorneoFechasIT : TestBase
             EsVisibleEnApp = false
         };
 
-        var response = await client.PutAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/{fecha.Id}", dto);
+        var response = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/fechas/{fecha.Id}", dto);
 
         response.EnsureSuccessStatusCode();
         Assert.Equal(System.Net.HttpStatusCode.NoContent, response.StatusCode);
@@ -237,7 +237,7 @@ public class TorneoFechasIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var actualizado = context.TorneoFechas.Find(fecha.Id);
+            var actualizado = context.Fechas.Find(fecha.Id);
             Assert.NotNull(actualizado);
             Assert.Equal(new DateOnly(2026, 3, 10), actualizado.Dia);
             Assert.False(actualizado.EsVisibleEnApp);
@@ -247,8 +247,8 @@ public class TorneoFechasIT : TestBase
     [Fact]
     public async Task EliminarFecha_Existente_200()
     {
-        var zonaId = await CrearTorneoZonaDePrueba(Factory);
-        TorneoFecha fecha;
+        var zonaId = await CrearZonaDePrueba(Factory);
+        Fecha fecha;
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -260,26 +260,26 @@ public class TorneoFechasIT : TestBase
                 ZonaId = zonaId,
                 EsVisibleEnApp = true
             };
-            context.TorneoFechas.Add(fecha);
+            context.Fechas.Add(fecha);
             await context.SaveChangesAsync();
         }
 
         var client = await GetAuthenticatedClient();
-        var response = await client.DeleteAsync($"/api/TorneoZona/{zonaId}/fechas/{fecha.Id}");
+        var response = await client.DeleteAsync($"/api/Zona/{zonaId}/fechas/{fecha.Id}");
 
         response.EnsureSuccessStatusCode();
 
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            Assert.Null(context.TorneoFechas.Find(fecha.Id));
+            Assert.Null(context.Fechas.Find(fecha.Id));
         }
     }
 
     [Fact]
     public async Task EliminarFecha_FechaDeOtraZona_404()
     {
-        var zona1Id = await CrearTorneoZonaDePrueba(Factory);
+        var zona1Id = await CrearZonaDePrueba(Factory);
         int fechaId;
         int zona2Id;
         using (var scope = Factory.Services.CreateScope())
@@ -298,11 +298,11 @@ public class TorneoFechasIT : TestBase
                 EstadoFaseId = 100,
                 EsVisibleEnApp = true
             };
-            context.TorneoFases.Add(fase2);
+            context.Fases.Add(fase2);
             await context.SaveChangesAsync();
 
-            var zona2 = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona B", TorneoFaseId = fase2.Id };
-            context.TorneoZonas.Add(zona2);
+            var zona2 = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona B", FaseId = fase2.Id };
+            context.Zonas.Add(zona2);
             await context.SaveChangesAsync();
             zona2Id = zona2.Id;
 
@@ -314,46 +314,46 @@ public class TorneoFechasIT : TestBase
                 ZonaId = zona2Id,
                 EsVisibleEnApp = true
             };
-            context.TorneoFechas.Add(fecha);
+            context.Fechas.Add(fecha);
             await context.SaveChangesAsync();
             fechaId = fecha.Id;
         }
 
         var client = await GetAuthenticatedClient();
-        var response = await client.DeleteAsync($"/api/TorneoZona/{zona1Id}/fechas/{fechaId}");
+        var response = await client.DeleteAsync($"/api/Zona/{zona1Id}/fechas/{fechaId}");
 
         Assert.Equal(System.Net.HttpStatusCode.NotFound, response.StatusCode);
 
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            Assert.NotNull(context.TorneoFechas.Find(fechaId));
+            Assert.NotNull(context.Fechas.Find(fechaId));
         }
     }
 
     [Fact]
     public async Task ListarFechas_ConFechasCreadas_DevuelveTodasDeLaZona()
     {
-        var zonaId = await CrearTorneoZonaDePrueba(Factory);
+        var zonaId = await CrearZonaDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
-        await client.PostAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas", new TorneoFechaDTO
+        await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas", new FechaDTO
         {
             Dia = new DateOnly(2026, 3, 1),
             Numero = 1,
             EsVisibleEnApp = true
         });
-        await client.PostAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas", new TorneoFechaDTO
+        await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas", new FechaDTO
         {
             Dia = new DateOnly(2026, 3, 8),
             Numero = 2,
             EsVisibleEnApp = true
         });
 
-        var response = await client.GetAsync($"/api/TorneoZona/{zonaId}/fechas");
+        var response = await client.GetAsync($"/api/Zona/{zonaId}/fechas");
         response.EnsureSuccessStatusCode();
 
-        var content = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await response.Content.ReadAsStringAsync());
+        var content = JsonConvert.DeserializeObject<List<FechaDTO>>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.Equal(2, content.Count);
         Assert.Contains(content, f => f.Numero == 1 && f.Dia == new DateOnly(2026, 3, 1));
@@ -363,20 +363,20 @@ public class TorneoFechasIT : TestBase
     [Fact]
     public async Task CrearFechasMasivamente_DatosCorrectos_200()
     {
-        var zonaId = await CrearTorneoZonaDePrueba(Factory);
+        var zonaId = await CrearZonaDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
-        var dtos = new List<TorneoFechaDTO>
+        var dtos = new List<FechaDTO>
         {
             new() { Dia = new DateOnly(2026, 3, 1), Numero = 1, EsVisibleEnApp = true },
             new() { Dia = new DateOnly(2026, 3, 8), Numero = 2, EsVisibleEnApp = true },
             new() { Dia = new DateOnly(2026, 3, 15), Numero = 3, EsVisibleEnApp = false }
         };
 
-        var response = await client.PostAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/crear-fechas-masivamente", dtos);
+        var response = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-masivamente", dtos);
         response.EnsureSuccessStatusCode();
 
-        var creados = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await response.Content.ReadAsStringAsync());
+        var creados = JsonConvert.DeserializeObject<List<FechaDTO>>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(creados);
         Assert.Equal(3, creados.Count);
         Assert.All(creados, f => Assert.True(f.Id > 0));
@@ -384,9 +384,9 @@ public class TorneoFechasIT : TestBase
         Assert.Contains(creados, f => f.Numero == 2 && f.Dia == new DateOnly(2026, 3, 8));
         Assert.Contains(creados, f => f.Numero == 3 && f.Dia == new DateOnly(2026, 3, 15));
 
-        var listResponse = await client.GetAsync($"/api/TorneoZona/{zonaId}/fechas");
+        var listResponse = await client.GetAsync($"/api/Zona/{zonaId}/fechas");
         listResponse.EnsureSuccessStatusCode();
-        var list = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await listResponse.Content.ReadAsStringAsync());
+        var list = JsonConvert.DeserializeObject<List<FechaDTO>>(await listResponse.Content.ReadAsStringAsync());
         Assert.NotNull(list);
         Assert.Equal(3, list.Count);
     }
@@ -394,31 +394,31 @@ public class TorneoFechasIT : TestBase
     [Fact]
     public async Task ModificarFechasMasivamente_FechasNoIncluidasEnArray_SeEliminan()
     {
-        var zonaId = await CrearTorneoZonaDePrueba(Factory);
+        var zonaId = await CrearZonaDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
-        var postResponse = await client.PostAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/crear-fechas-masivamente",
-            new List<TorneoFechaDTO>
+        var postResponse = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-masivamente",
+            new List<FechaDTO>
             {
                 new() { Dia = new DateOnly(2026, 3, 1), Numero = 1, EsVisibleEnApp = true },
                 new() { Dia = new DateOnly(2026, 3, 8), Numero = 2, EsVisibleEnApp = true },
                 new() { Dia = new DateOnly(2026, 3, 15), Numero = 3, EsVisibleEnApp = true }
             });
         postResponse.EnsureSuccessStatusCode();
-        var creados = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
+        var creados = JsonConvert.DeserializeObject<List<FechaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
 
-        var dtosModificar = new List<TorneoFechaDTO>
+        var dtosModificar = new List<FechaDTO>
         {
             new() { Id = creados[0].Id, Dia = new DateOnly(2026, 3, 5), Numero = 1, ZonaId = zonaId, EsVisibleEnApp = true },
             new() { Id = creados[2].Id, Dia = new DateOnly(2026, 3, 20), Numero = 3, ZonaId = zonaId, EsVisibleEnApp = true }
         };
 
-        var putResponse = await client.PutAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/modificar-fechas-masivamente", dtosModificar);
+        var putResponse = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/fechas/modificar-fechas-masivamente", dtosModificar);
         Assert.Equal(System.Net.HttpStatusCode.NoContent, putResponse.StatusCode);
 
-        var listResponse = await client.GetAsync($"/api/TorneoZona/{zonaId}/fechas");
+        var listResponse = await client.GetAsync($"/api/Zona/{zonaId}/fechas");
         listResponse.EnsureSuccessStatusCode();
-        var fechas = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await listResponse.Content.ReadAsStringAsync());
+        var fechas = JsonConvert.DeserializeObject<List<FechaDTO>>(await listResponse.Content.ReadAsStringAsync());
         Assert.NotNull(fechas);
         Assert.Equal(2, fechas.Count);
         Assert.Contains(fechas, f => f.Dia == new DateOnly(2026, 3, 5));
@@ -430,11 +430,11 @@ public class TorneoFechasIT : TestBase
     [Fact]
     public async Task EliminarFecha_RenumeraLasSiguientesConsecutivamente()
     {
-        var zonaId = await CrearTorneoZonaDePrueba(Factory);
+        var zonaId = await CrearZonaDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
-        var postResponse = await client.PostAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/crear-fechas-masivamente",
-            new List<TorneoFechaDTO>
+        var postResponse = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-masivamente",
+            new List<FechaDTO>
             {
                 new() { Dia = new DateOnly(2026, 3, 1), Numero = 1, EsVisibleEnApp = true },
                 new() { Dia = new DateOnly(2026, 3, 8), Numero = 2, EsVisibleEnApp = true },
@@ -442,15 +442,15 @@ public class TorneoFechasIT : TestBase
                 new() { Dia = new DateOnly(2026, 3, 22), Numero = 4, EsVisibleEnApp = true }
             });
         postResponse.EnsureSuccessStatusCode();
-        var creados = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
+        var creados = JsonConvert.DeserializeObject<List<FechaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
         var fechaAEliminarId = creados[1].Id;
 
-        var deleteResponse = await client.DeleteAsync($"/api/TorneoZona/{zonaId}/fechas/{fechaAEliminarId}");
+        var deleteResponse = await client.DeleteAsync($"/api/Zona/{zonaId}/fechas/{fechaAEliminarId}");
         deleteResponse.EnsureSuccessStatusCode();
 
-        var listResponse = await client.GetAsync($"/api/TorneoZona/{zonaId}/fechas");
+        var listResponse = await client.GetAsync($"/api/Zona/{zonaId}/fechas");
         listResponse.EnsureSuccessStatusCode();
-        var fechas = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await listResponse.Content.ReadAsStringAsync());
+        var fechas = JsonConvert.DeserializeObject<List<FechaDTO>>(await listResponse.Content.ReadAsStringAsync());
         Assert.NotNull(fechas);
         Assert.Equal(3, fechas.Count);
         Assert.Contains(fechas, f => f.Numero == 1);
@@ -462,30 +462,30 @@ public class TorneoFechasIT : TestBase
     [Fact]
     public async Task ModificarFechasMasivamente_ConFechaNuevaSinId_CreaLaFechaNueva()
     {
-        var zonaId = await CrearTorneoZonaDePrueba(Factory);
+        var zonaId = await CrearZonaDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
-        var postResponse = await client.PostAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/crear-fechas-masivamente",
-            new List<TorneoFechaDTO>
+        var postResponse = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-masivamente",
+            new List<FechaDTO>
             {
                 new() { Dia = new DateOnly(2026, 3, 1), Numero = 1, EsVisibleEnApp = true }
             });
         postResponse.EnsureSuccessStatusCode();
-        var creados = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
+        var creados = JsonConvert.DeserializeObject<List<FechaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
         var fechaExistenteId = creados[0].Id;
 
-        var dtosModificar = new List<TorneoFechaDTO>
+        var dtosModificar = new List<FechaDTO>
         {
             new() { Id = fechaExistenteId, Dia = new DateOnly(2026, 3, 10), Numero = 1, ZonaId = zonaId, EsVisibleEnApp = false },
             new() { Dia = new DateOnly(2026, 3, 17), Numero = 2, EsVisibleEnApp = true }
         };
 
-        var putResponse = await client.PutAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/modificar-fechas-masivamente", dtosModificar);
+        var putResponse = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/fechas/modificar-fechas-masivamente", dtosModificar);
         Assert.Equal(System.Net.HttpStatusCode.NoContent, putResponse.StatusCode);
 
-        var listResponse = await client.GetAsync($"/api/TorneoZona/{zonaId}/fechas");
+        var listResponse = await client.GetAsync($"/api/Zona/{zonaId}/fechas");
         listResponse.EnsureSuccessStatusCode();
-        var fechas = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await listResponse.Content.ReadAsStringAsync());
+        var fechas = JsonConvert.DeserializeObject<List<FechaDTO>>(await listResponse.Content.ReadAsStringAsync());
         Assert.NotNull(fechas);
         Assert.Equal(2, fechas.Count);
 
@@ -504,7 +504,7 @@ public class TorneoFechasIT : TestBase
     public async Task CrearFechasMasivamente_ConJornadas_CreaFechasConJornadas()
     {
         Assert.NotNull(_club);
-        var zonaId = await CrearTorneoZonaDePrueba(Factory);
+        var zonaId = await CrearZonaDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
         int equipo1Id;
@@ -527,7 +527,7 @@ public class TorneoFechasIT : TestBase
             }
         }
 
-        var dtos = new List<TorneoFechaDTO>
+        var dtos = new List<FechaDTO>
         {
             new()
             {
@@ -553,10 +553,10 @@ public class TorneoFechasIT : TestBase
             }
         };
 
-        var response = await client.PostAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/crear-fechas-masivamente", dtos);
+        var response = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-masivamente", dtos);
         response.EnsureSuccessStatusCode();
 
-        var creados = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await response.Content.ReadAsStringAsync());
+        var creados = JsonConvert.DeserializeObject<List<FechaDTO>>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(creados);
         Assert.Single(creados);
         Assert.NotNull(creados[0].Jornadas);
@@ -565,7 +565,7 @@ public class TorneoFechasIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var fecha = context.TorneoFechas.Include(f => f.Jornadas).First(f => f.Id == creados[0].Id);
+            var fecha = context.Fechas.Include(f => f.Jornadas).First(f => f.Id == creados[0].Id);
             Assert.Equal(2, fecha.Jornadas.Count);
         }
     }
@@ -574,7 +574,7 @@ public class TorneoFechasIT : TestBase
     public async Task ModificarFechasMasivamente_ConJornadas_EliminaCreaModificaJornadas()
     {
         Assert.NotNull(_club);
-        var zonaId = await CrearTorneoZonaDePrueba(Factory);
+        var zonaId = await CrearZonaDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
         int equipo1Id;
@@ -597,8 +597,8 @@ public class TorneoFechasIT : TestBase
             }
         }
 
-        var postResponse = await client.PostAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/crear-fechas-masivamente",
-            new List<TorneoFechaDTO>
+        var postResponse = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-masivamente",
+            new List<FechaDTO>
             {
                 new()
                 {
@@ -613,11 +613,11 @@ public class TorneoFechasIT : TestBase
                 }
             });
         postResponse.EnsureSuccessStatusCode();
-        var creados = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
+        var creados = JsonConvert.DeserializeObject<List<FechaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
         var fechaId = creados[0].Id;
         var jornadaNormalId = creados[0].Jornadas!.First(j => j.Tipo == "Normal").Id;
 
-        var dtosModificar = new List<TorneoFechaDTO>
+        var dtosModificar = new List<FechaDTO>
         {
             new()
             {
@@ -634,12 +634,12 @@ public class TorneoFechasIT : TestBase
             }
         };
 
-        var putResponse = await client.PutAsJsonAsync($"/api/TorneoZona/{zonaId}/fechas/modificar-fechas-masivamente", dtosModificar);
+        var putResponse = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/fechas/modificar-fechas-masivamente", dtosModificar);
         Assert.Equal(System.Net.HttpStatusCode.NoContent, putResponse.StatusCode);
 
-        var getResponse = await client.GetAsync($"/api/TorneoZona/{zonaId}/fechas/{fechaId}");
+        var getResponse = await client.GetAsync($"/api/Zona/{zonaId}/fechas/{fechaId}");
         getResponse.EnsureSuccessStatusCode();
-        var fecha = JsonConvert.DeserializeObject<TorneoFechaDTO>(await getResponse.Content.ReadAsStringAsync());
+        var fecha = JsonConvert.DeserializeObject<FechaDTO>(await getResponse.Content.ReadAsStringAsync());
         Assert.NotNull(fecha);
         Assert.NotNull(fecha.Jornadas);
         Assert.Equal(2, fecha.Jornadas.Count);
@@ -664,7 +664,7 @@ public class TorneoFechasIT : TestBase
     public async Task CrearFechasMasivamente_FechaEnFormatoISO8601ConHora_DeserializaCorrectamente()
     {
         Assert.NotNull(_club);
-        var zonaId = await CrearTorneoZonaDePrueba(Factory);
+        var zonaId = await CrearZonaDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
         int equipo1Id, equipo2Id, equipo3Id;
@@ -707,10 +707,10 @@ public class TorneoFechasIT : TestBase
             """;
 
         var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-        var response = await client.PostAsync($"/api/TorneoZona/{zonaId}/fechas/crear-fechas-masivamente", content);
+        var response = await client.PostAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-masivamente", content);
         response.EnsureSuccessStatusCode();
 
-        var creados = JsonConvert.DeserializeObject<List<TorneoFechaDTO>>(await response.Content.ReadAsStringAsync());
+        var creados = JsonConvert.DeserializeObject<List<FechaDTO>>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(creados);
         Assert.Equal(2, creados.Count);
         Assert.Contains(creados, f => f.Numero == 1 && f.Dia == new DateOnly(2026, 3, 21));

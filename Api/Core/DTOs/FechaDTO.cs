@@ -1,6 +1,6 @@
 namespace Api.Core.DTOs;
 
-public class TorneoFechaDTO : DTO
+public class FechaDTO : DTO
 {
     public DateOnly? Dia { get; set; }
 

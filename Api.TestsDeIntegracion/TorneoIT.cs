@@ -34,7 +34,7 @@ public class TorneoIT : TestBase
             Nombre = "Torneo con Fase y Categorías",
             Anio = 2026,
             TorneoAgrupadorId = 1,
-            PrimeraFase = new TorneoFaseDTO
+            PrimeraFase = new FaseDTO
             {
                 Nombre = "Fase de grupos",
                 Numero = 1,
@@ -64,7 +64,7 @@ public class TorneoIT : TestBase
 
         var fasesResponse = await client.GetAsync($"/api/Torneo/{torneoId}/fases");
         fasesResponse.EnsureSuccessStatusCode();
-        var fases = JsonConvert.DeserializeObject<List<TorneoFaseDTO>>(await fasesResponse.Content.ReadAsStringAsync());
+        var fases = JsonConvert.DeserializeObject<List<FaseDTO>>(await fasesResponse.Content.ReadAsStringAsync());
         Assert.NotNull(fases);
         Assert.Single(fases);
         Assert.Equal("Fase de grupos", fases[0].Nombre);
@@ -104,7 +104,7 @@ public class TorneoIT : TestBase
 
         var fasesResponse = await client.GetAsync($"/api/Torneo/{torneoId}/fases");
         fasesResponse.EnsureSuccessStatusCode();
-        var fases = JsonConvert.DeserializeObject<List<TorneoFaseDTO>>(await fasesResponse.Content.ReadAsStringAsync());
+        var fases = JsonConvert.DeserializeObject<List<FaseDTO>>(await fasesResponse.Content.ReadAsStringAsync());
         Assert.NotNull(fases);
         Assert.Single(fases);
         Assert.Equal(1, fases[0].Numero);
@@ -143,7 +143,7 @@ public class TorneoIT : TestBase
 
         var fasesResponse = await client.GetAsync($"/api/Torneo/{torneoId}/fases");
         fasesResponse.EnsureSuccessStatusCode();
-        var fases = JsonConvert.DeserializeObject<List<TorneoFaseDTO>>(await fasesResponse.Content.ReadAsStringAsync());
+        var fases = JsonConvert.DeserializeObject<List<FaseDTO>>(await fasesResponse.Content.ReadAsStringAsync());
         Assert.NotNull(fases);
         Assert.Single(fases);
 
@@ -257,10 +257,10 @@ public class TorneoIT : TestBase
                 Id = 0, Nombre = "", Numero = 1, TorneoId = torneoId,
                 EstadoFaseId = 100, EsVisibleEnApp = true
             };
-            context.TorneoFases.Add(fase);
+            context.Fases.Add(fase);
             await context.SaveChangesAsync();
 
-            // context.TorneoZonas.Add(new ZonaTodosContraTodos { Id = 0, Nombre = "Zona A", TorneoFaseId = fase.Id });
+            // context.Zonas.Add(new ZonaTodosContraTodos { Id = 0, Nombre = "Zona A", FaseId = fase.Id });
             await context.SaveChangesAsync();
         }
 
@@ -290,14 +290,14 @@ public class TorneoIT : TestBase
                 Id = 0, Nombre = "", Numero = 1, TorneoId = torneoId,
                 EstadoFaseId = 100, EsVisibleEnApp = true
             };
-            context.TorneoFases.Add(fase);
+            context.Fases.Add(fase);
             await context.SaveChangesAsync();
 
-            var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona A", TorneoFaseId = fase.Id };
-            context.TorneoZonas.Add(zona);
+            var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona A", FaseId = fase.Id };
+            context.Zonas.Add(zona);
             await context.SaveChangesAsync();
 
-            context.TorneoFechas.Add(new FechaTodosContraTodos
+            context.Fechas.Add(new FechaTodosContraTodos
             {
                 Id = 0, Dia = new DateOnly(2026, 5, 10), Numero = 1,
                 ZonaId = zona.Id, EsVisibleEnApp = true
@@ -360,7 +360,7 @@ public class TorneoIT : TestBase
             Nombre = "Torneo Filtrado",
             Anio = 2025,
             TorneoAgrupadorId = 1,
-            PrimeraFase = new TorneoFaseDTO
+            PrimeraFase = new FaseDTO
             {
                 Nombre = "Fase grupos",
                 Numero = 1,
@@ -398,7 +398,7 @@ public class TorneoIT : TestBase
             Nombre = "Torneo Completo",
             Anio = 2024,
             TorneoAgrupadorId = 1,
-            PrimeraFase = new TorneoFaseDTO
+            PrimeraFase = new FaseDTO
             {
                 Nombre = "Fase inicial",
                 Numero = 1,
@@ -437,7 +437,7 @@ public class TorneoIT : TestBase
             Nombre = "Torneo a Vaciar",
             Anio = 2023,
             TorneoAgrupadorId = 1,
-            PrimeraFase = new TorneoFaseDTO
+            PrimeraFase = new FaseDTO
             {
                 Nombre = "Fase",
                 Numero = 1,
@@ -483,7 +483,7 @@ public class TorneoIT : TestBase
             Nombre = "Torneo a Reemplazar",
             Anio = 2022,
             TorneoAgrupadorId = 1,
-            PrimeraFase = new TorneoFaseDTO
+            PrimeraFase = new FaseDTO
             {
                 Nombre = "Fase vieja",
                 Numero = 1,
@@ -506,7 +506,7 @@ public class TorneoIT : TestBase
             TorneoAgrupadorId = 1,
             Fases =
             [
-                new TorneoFaseDTO
+                new FaseDTO
                 {
                     Nombre = "Fase nueva",
                     Numero = 1,
@@ -545,7 +545,7 @@ public class TorneoIT : TestBase
             Nombre = "Torneo Sin Tocar",
             Anio = 2021,
             TorneoAgrupadorId = 1,
-            PrimeraFase = new TorneoFaseDTO
+            PrimeraFase = new FaseDTO
             {
                 Nombre = "Fase original",
                 Numero = 1,

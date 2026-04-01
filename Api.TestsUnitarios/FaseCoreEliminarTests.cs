@@ -5,14 +5,14 @@ using Moq;
 
 namespace Api.TestsUnitarios;
 
-public class TorneoFaseCoreEliminarTests
+public class FaseCoreEliminarTests
 {
-    private static TorneoFaseCore CrearCore(Mock<ITorneoFaseRepo> repoMock)
+    private static FaseCore CrearCore(Mock<IFaseRepo> repoMock)
     {
         var bdMock = new Mock<IBDVirtual>();
         var torneoRepoMock = new Mock<ITorneoRepo>();
         var mapperMock = new Mock<AutoMapper.IMapper>();
-        return new TorneoFaseCore(bdMock.Object, repoMock.Object, torneoRepoMock.Object, mapperMock.Object);
+        return new FaseCore(bdMock.Object, repoMock.Object, torneoRepoMock.Object, mapperMock.Object);
     }
 
     private static FaseTodosContraTodos FaseConNumero(int id, int numero) =>
@@ -41,7 +41,7 @@ public class TorneoFaseCoreEliminarTests
         int faseId, int numeroEsperado)
     {
         const int torneoId = 1;
-        var repoMock = new Mock<ITorneoFaseRepo>();
+        var repoMock = new Mock<IFaseRepo>();
 
         repoMock
             .Setup(r => r.ObtenerPorIdYPadre(torneoId, faseId))
@@ -70,7 +70,7 @@ public class TorneoFaseCoreEliminarTests
         const int faseId = 20;
         const int numeroEliminado = 2;
 
-        var repoMock = new Mock<ITorneoFaseRepo>();
+        var repoMock = new Mock<IFaseRepo>();
         repoMock
             .Setup(r => r.ObtenerPorIdYPadre(torneoId, faseId))
             .ReturnsAsync(FaseConNumero(faseId, numeroEliminado));
@@ -88,10 +88,10 @@ public class TorneoFaseCoreEliminarTests
     public async Task Eliminar_FaseInexistente_NoLlamaDecrementar()
     {
         const int torneoId = 1;
-        var repoMock = new Mock<ITorneoFaseRepo>();
+        var repoMock = new Mock<IFaseRepo>();
         repoMock
             .Setup(r => r.ObtenerPorIdYPadre(torneoId, 999))
-            .ReturnsAsync((TorneoFase?)null);
+            .ReturnsAsync((Fase?)null);
 
         var core = CrearCore(repoMock);
 

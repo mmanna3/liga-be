@@ -10,12 +10,12 @@ namespace Api.Core.Servicios;
 
 public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
 {
-    private readonly ITorneoFaseRepo _torneoFaseRepo;
+    private readonly IFaseRepo _torneoFaseRepo;
     private readonly ITorneoCategoriaRepo _torneoCategoriaRepo;
-    private readonly ITorneoZonaRepo _torneoZonaRepo;
+    private readonly IZonaRepo _torneoZonaRepo;
 
-    public TorneoCore(IBDVirtual bd, ITorneoRepo repo, ITorneoFaseRepo torneoFaseRepo,
-        ITorneoCategoriaRepo torneoCategoriaRepo, ITorneoZonaRepo torneoZonaRepo, IMapper mapper)
+    public TorneoCore(IBDVirtual bd, ITorneoRepo repo, IFaseRepo torneoFaseRepo,
+        ITorneoCategoriaRepo torneoCategoriaRepo, IZonaRepo torneoZonaRepo, IMapper mapper)
         : base(bd, repo, mapper)
     {
         _torneoFaseRepo = torneoFaseRepo;
@@ -54,7 +54,7 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
         return id;
     }
 
-    private async Task ReemplazarFases(int torneoId, List<TorneoFaseDTO> fasesDto)
+    private async Task ReemplazarFases(int torneoId, List<FaseDTO> fasesDto)
     {
         var fasesExistentes = await _torneoFaseRepo.ListarPorPadre(torneoId);
         foreach (var fase in fasesExistentes)
@@ -68,7 +68,7 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
             if (dto.TipoDeFase == TipoDeFaseEnum.TodosContraTodos && dto.InstanciaEliminacionDirectaId.HasValue)
                 throw new ExcepcionControlada("La instancia de eliminación directa solo aplica cuando el tipo de fase es eliminación directa.");
 
-            TorneoFase fase = dto.TipoDeFase switch
+            Fase fase = dto.TipoDeFase switch
             {
                 TipoDeFaseEnum.TodosContraTodos => new FaseTodosContraTodos
                 {
@@ -99,7 +99,7 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
                 var zona = new ZonaTodosContraTodos
                 {
                     Id = 0,
-                    TorneoFaseId = fase.Id,
+                    FaseId = fase.Id,
                     Nombre = "Zona única"
                 };
                 _torneoZonaRepo.Crear(zona);
@@ -168,12 +168,12 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
         return id;
     }
 
-    private async Task CrearFaseConDatos(int torneoId, TorneoFaseDTO dto)
+    private async Task CrearFaseConDatos(int torneoId, FaseDTO dto)
     {
         if (dto.TipoDeFase == TipoDeFaseEnum.TodosContraTodos && dto.InstanciaEliminacionDirectaId.HasValue)
             throw new ExcepcionControlada("La instancia de eliminación directa solo aplica cuando el tipo de fase es eliminación directa.");
 
-        TorneoFase fase = dto.TipoDeFase switch
+        Fase fase = dto.TipoDeFase switch
         {
             TipoDeFaseEnum.TodosContraTodos => new FaseTodosContraTodos
             {
@@ -204,7 +204,7 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
             var zona = new ZonaTodosContraTodos
             {
                 Id = 0,
-                TorneoFaseId = fase.Id,
+                FaseId = fase.Id,
                 Nombre = "Zona única"
             };
             _torneoZonaRepo.Crear(zona);
