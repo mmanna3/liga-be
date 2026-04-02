@@ -277,8 +277,9 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
     }
 
     /// <summary>
-    /// Un partido por cada par (jornada, categoría del torneo), con resultados vacíos.
-    /// Idempotente: no duplica si ya existía el partido.
+    /// Zona todos contra todos: un partido por cada par (jornada, categoría del torneo).
+    /// Zona eliminación directa: un solo partido por jornada, con la categoría de la zona.
+    /// Resultados vacíos. Idempotente: no duplica si ya existía el partido.
     /// </summary>
     private async Task AsegurarPartidosPorCategoriaPorJornada(int fechaId, int zonaId)
     {
@@ -291,10 +292,19 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
         if (torneoId == 0)
             return;
 
-        var categoriaIds = await _context.TorneoCategorias
-            .Where(tc => tc.TorneoId == torneoId)
-            .Select(tc => tc.Id)
-            .ToListAsync();
+        var zonaEliminacionDirecta = await _context.Zonas
+            .OfType<ZonaEliminacionDirecta>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(z => z.Id == zonaId);
+
+        List<int> categoriaIds;
+        if (zonaEliminacionDirecta != null)
+            categoriaIds = [zonaEliminacionDirecta.CategoriaId];
+        else
+            categoriaIds = await _context.TorneoCategorias
+                .Where(tc => tc.TorneoId == torneoId)
+                .Select(tc => tc.Id)
+                .ToListAsync();
 
         if (categoriaIds.Count == 0)
             return;
@@ -306,6 +316,19 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
 
         if (jornadaIds.Count == 0)
             return;
+
+        if (zonaEliminacionDirecta != null)
+        {
+            var categoriaZona = zonaEliminacionDirecta.CategoriaId;
+            var partidosOtraCategoria = await _context.Partidos
+                .Where(p => jornadaIds.Contains(p.JornadaId) && p.CategoriaId != categoriaZona)
+                .ToListAsync();
+            if (partidosOtraCategoria.Count > 0)
+            {
+                _context.Partidos.RemoveRange(partidosOtraCategoria);
+                await BDVirtual.GuardarCambios();
+            }
+        }
 
         var existentes = await _context.Partidos
             .Where(p => jornadaIds.Contains(p.JornadaId))

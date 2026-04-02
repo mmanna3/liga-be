@@ -1007,4 +1007,68 @@ public class FechasIT : TestBase
         Assert.Equal(16, creados[0].InstanciaId);
         Assert.Equal(new DateOnly(2026, 6, 1), creados[0].Dia);
     }
+
+    [Fact]
+    public async Task CrearFechasEliminacionDirectaMasivamente_ConVariasCategoriasEnTorneo_UnSoloPartidoPorJornada()
+    {
+        Assert.NotNull(_club);
+        var zonaId = await CrearZonaEliminacionDirectaDePrueba(Factory);
+        var torneoId = await ObtenerTorneoIdDeZona(Factory, zonaId);
+        await SeedTorneoCategorias(Factory, torneoId, 2);
+
+        int categoriaZonaId;
+        int equipo1Id, equipo2Id;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            categoriaZonaId = await context.Zonas.OfType<ZonaEliminacionDirecta>()
+                .Where(z => z.Id == zonaId)
+                .Select(z => z.CategoriaId)
+                .FirstAsync();
+
+            var eq1 = new Equipo { Id = 0, Nombre = "ED Eq A", ClubId = _club.Id, Jugadores = [], Zonas = [] };
+            var eq2 = new Equipo { Id = 0, Nombre = "ED Eq B", ClubId = _club.Id, Jugadores = [], Zonas = [] };
+            context.Equipos.AddRange(eq1, eq2);
+            context.SaveChanges();
+            equipo1Id = eq1.Id;
+            equipo2Id = eq2.Id;
+            context.EquipoZona.AddRange(
+                new EquipoZona { Id = 0, EquipoId = equipo1Id, ZonaId = zonaId },
+                new EquipoZona { Id = 0, EquipoId = equipo2Id, ZonaId = zonaId });
+            context.SaveChanges();
+        }
+
+        var client = await GetAuthenticatedClient();
+        var dtos = new List<FechaEliminacionDirectaDTO>
+        {
+            new()
+            {
+                Dia = new DateOnly(2026, 6, 1),
+                EsVisibleEnApp = true,
+                InstanciaId = 16,
+                Jornadas =
+                [
+                    new JornadaDTO
+                        { Tipo = "Normal", ResultadosVerificados = false, LocalId = equipo1Id, VisitanteId = equipo2Id },
+                    new JornadaDTO
+                        { Tipo = "Normal", ResultadosVerificados = false, LocalId = equipo2Id, VisitanteId = equipo1Id }
+                ]
+            }
+        };
+
+        var response = await client.PostAsJsonAsync(
+            $"/api/Zona/{zonaId}/fechas/crear-fechas-eliminaciondirecta-masivamente", dtos, FechaJsonOptions);
+        response.EnsureSuccessStatusCode();
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var fechaIds = await context.Fechas.Where(f => f.ZonaId == zonaId).Select(f => f.Id).ToListAsync();
+            var jornadaIds = await context.Jornadas.Where(j => fechaIds.Contains(j.FechaId)).Select(j => j.Id).ToListAsync();
+            Assert.Equal(2, jornadaIds.Count);
+            var partidos = await context.Partidos.Where(p => jornadaIds.Contains(p.JornadaId)).ToListAsync();
+            Assert.Equal(2, partidos.Count);
+            Assert.All(partidos, p => Assert.Equal(categoriaZonaId, p.CategoriaId));
+        }
+    }
 }
