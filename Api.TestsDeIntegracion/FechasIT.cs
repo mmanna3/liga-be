@@ -1,4 +1,7 @@
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Api._Config;
 using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Persistencia._Config;
@@ -6,14 +9,33 @@ using Api.TestsDeIntegracion._Config;
 using Api.TestsUtilidades;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 // ReSharper disable InconsistentNaming
 
 namespace Api.TestsDeIntegracion;
 
 public class FechasIT : TestBase
 {
-    private Utilidades? _utilidades;
+    private static readonly JsonSerializerOptions FechaJsonOptions = CreateFechaJsonOptions();
+
+    private static JsonSerializerOptions CreateFechaJsonOptions()
+    {
+        var o = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        o.Converters.Add(new DateOnlyJsonConverter());
+        o.Converters.Add(new FechaJsonConverter());
+        o.NumberHandling = JsonNumberHandling.AllowReadingFromString;
+        return o;
+    }
+
+    private static FechaTodosContraTodosDTO DeserializeFechaTct(string json) =>
+        JsonSerializer.Deserialize<FechaTodosContraTodosDTO>(json, FechaJsonOptions)!;
+
+    private static List<FechaTodosContraTodosDTO> DeserializeFechaTctList(string json) =>
+        JsonSerializer.Deserialize<List<FechaTodosContraTodosDTO>>(json, FechaJsonOptions) ?? [];
+
+    private static List<FechaEliminacionDirectaDTO> DeserializeFechaEdList(string json) =>
+        JsonSerializer.Deserialize<List<FechaEliminacionDirectaDTO>>(json, FechaJsonOptions) ?? [];
+
+    private global::Api.TestsUtilidades.Utilidades? _utilidades;
     private Club? _club;
 
     public FechasIT(CustomWebApplicationFactory<Program> factory) : base(factory)
@@ -25,7 +47,7 @@ public class FechasIT : TestBase
 
     private void SeedData(AppDbContext context)
     {
-        _utilidades = new Utilidades(context);
+        _utilidades = new global::Api.TestsUtilidades.Utilidades(context);
         _club = _utilidades.DadoQueExisteElClub();
         _utilidades.DadoQueExisteElEquipo(_club);
         context.SaveChanges();
@@ -52,6 +74,49 @@ public class FechasIT : TestBase
         await context.SaveChangesAsync();
 
         var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona única", FaseId = fase.Id };
+        context.Zonas.Add(zona);
+        await context.SaveChangesAsync();
+        return zona.Id;
+    }
+
+    private static async Task<int> CrearZonaEliminacionDirectaDePrueba(CustomWebApplicationFactory<Program> factory)
+    {
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var torneo = new Torneo { Id = 0, Nombre = "Torneo Test ED Fechas", Anio = 2026, TorneoAgrupadorId = 1 };
+        context.Torneos.Add(torneo);
+        await context.SaveChangesAsync();
+
+        var fase = new FaseEliminacionDirecta
+        {
+            Id = 0,
+            Nombre = "Fase ED",
+            Numero = 1,
+            TorneoId = torneo.Id,
+            EstadoFaseId = 100,
+            EsVisibleEnApp = true
+        };
+        context.Fases.Add(fase);
+        await context.SaveChangesAsync();
+
+        var cat = new TorneoCategoria
+        {
+            Id = 0,
+            Nombre = "Cat ED",
+            AnioDesde = 2010,
+            AnioHasta = 2020,
+            TorneoId = torneo.Id
+        };
+        context.TorneoCategorias.Add(cat);
+        await context.SaveChangesAsync();
+
+        var zona = new ZonaEliminacionDirecta
+        {
+            Id = 0,
+            Nombre = "Zona ED",
+            FaseId = fase.Id,
+            CategoriaId = cat.Id
+        };
         context.Zonas.Add(zona);
         await context.SaveChangesAsync();
         return zona.Id;
@@ -95,7 +160,7 @@ public class FechasIT : TestBase
 
         response.EnsureSuccessStatusCode();
 
-        var content = JsonConvert.DeserializeObject<List<FechaDTO>>(await response.Content.ReadAsStringAsync());
+        var content = DeserializeFechaTctList(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.Empty(content);
     }
@@ -106,22 +171,22 @@ public class FechasIT : TestBase
         var zonaId = await CrearZonaDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
-        var dto = new FechaDTO
+        var dto = new FechaTodosContraTodosDTO
         {
             Dia = new DateOnly(2026, 3, 15),
             Numero = 1,
             EsVisibleEnApp = true
         };
 
-        var response = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas", dto);
+        var response = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas", dto, FechaJsonOptions);
 
         response.EnsureSuccessStatusCode();
 
-        var content = JsonConvert.DeserializeObject<FechaDTO>(await response.Content.ReadAsStringAsync());
+        var content = DeserializeFechaTct(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.True(content.Id > 0);
         Assert.Equal(new DateOnly(2026, 3, 15), content.Dia);
-        Assert.Equal(1, content.Numero);
+        Assert.Equal(1, Assert.IsType<FechaTodosContraTodosDTO>(content).Numero);
         Assert.Equal(zonaId, content.ZonaId);
         Assert.True(content.EsVisibleEnApp);
     }
@@ -131,14 +196,14 @@ public class FechasIT : TestBase
     {
         var client = await GetAuthenticatedClient();
 
-        var dto = new FechaDTO
+        var dto = new FechaTodosContraTodosDTO
         {
             Dia = new DateOnly(2026, 3, 15),
             Numero = 1,
             EsVisibleEnApp = true
         };
 
-        var response = await client.PostAsJsonAsync("/api/Zona/99999/fechas", dto);
+        var response = await client.PostAsJsonAsync("/api/Zona/99999/fechas", dto, FechaJsonOptions);
 
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
 
@@ -171,11 +236,11 @@ public class FechasIT : TestBase
 
         response.EnsureSuccessStatusCode();
 
-        var content = JsonConvert.DeserializeObject<FechaDTO>(await response.Content.ReadAsStringAsync());
+        var content = DeserializeFechaTct(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.Equal(fecha.Id, content.Id);
         Assert.Equal(new DateOnly(2026, 4, 20), content.Dia);
-        Assert.Equal(2, content.Numero);
+        Assert.Equal(2, Assert.IsType<FechaTodosContraTodosDTO>(content).Numero);
     }
 
     [Fact]
@@ -248,7 +313,7 @@ public class FechasIT : TestBase
         }
 
         var client = await GetAuthenticatedClient();
-        var dto = new FechaDTO
+        var dto = new FechaTodosContraTodosDTO
         {
             Id = fecha.Id,
             Dia = new DateOnly(2026, 3, 10),
@@ -257,7 +322,7 @@ public class FechasIT : TestBase
             EsVisibleEnApp = false
         };
 
-        var response = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/fechas/{fecha.Id}", dto);
+        var response = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/fechas/{fecha.Id}", dto, FechaJsonOptions);
 
         response.EnsureSuccessStatusCode();
         Assert.Equal(System.Net.HttpStatusCode.NoContent, response.StatusCode);
@@ -365,27 +430,27 @@ public class FechasIT : TestBase
         var zonaId = await CrearZonaDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
-        await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas", new FechaDTO
+        await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas", new FechaTodosContraTodosDTO
         {
             Dia = new DateOnly(2026, 3, 1),
             Numero = 1,
             EsVisibleEnApp = true
-        });
-        await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas", new FechaDTO
+        }, FechaJsonOptions);
+        await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas", new FechaTodosContraTodosDTO
         {
             Dia = new DateOnly(2026, 3, 8),
             Numero = 2,
             EsVisibleEnApp = true
-        });
+        }, FechaJsonOptions);
 
         var response = await client.GetAsync($"/api/Zona/{zonaId}/fechas");
         response.EnsureSuccessStatusCode();
 
-        var content = JsonConvert.DeserializeObject<List<FechaDTO>>(await response.Content.ReadAsStringAsync());
+        var content = DeserializeFechaTctList(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.Equal(2, content.Count);
-        Assert.Contains(content, f => f.Numero == 1 && f.Dia == new DateOnly(2026, 3, 1));
-        Assert.Contains(content, f => f.Numero == 2 && f.Dia == new DateOnly(2026, 3, 8));
+        Assert.Contains(content, f => f is FechaTodosContraTodosDTO t && t.Numero == 1 && f.Dia == new DateOnly(2026, 3, 1));
+        Assert.Contains(content, f => f is FechaTodosContraTodosDTO t && t.Numero == 2 && f.Dia == new DateOnly(2026, 3, 8));
     }
 
     [Fact]
@@ -394,17 +459,17 @@ public class FechasIT : TestBase
         var zonaId = await CrearZonaDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
-        var dtos = new List<FechaDTO>
+        var dtos = new List<FechaTodosContraTodosDTO>
         {
             new() { Dia = new DateOnly(2026, 3, 1), Numero = 1, EsVisibleEnApp = true },
             new() { Dia = new DateOnly(2026, 3, 8), Numero = 2, EsVisibleEnApp = true },
             new() { Dia = new DateOnly(2026, 3, 15), Numero = 3, EsVisibleEnApp = false }
         };
 
-        var response = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-masivamente", dtos);
+        var response = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-todoscontratodos-masivamente", dtos, FechaJsonOptions);
         response.EnsureSuccessStatusCode();
 
-        var creados = JsonConvert.DeserializeObject<List<FechaDTO>>(await response.Content.ReadAsStringAsync());
+        var creados = DeserializeFechaTctList(await response.Content.ReadAsStringAsync());
         Assert.NotNull(creados);
         Assert.Equal(3, creados.Count);
         Assert.All(creados, f => Assert.True(f.Id > 0));
@@ -414,7 +479,7 @@ public class FechasIT : TestBase
 
         var listResponse = await client.GetAsync($"/api/Zona/{zonaId}/fechas");
         listResponse.EnsureSuccessStatusCode();
-        var list = JsonConvert.DeserializeObject<List<FechaDTO>>(await listResponse.Content.ReadAsStringAsync());
+        var list = DeserializeFechaTctList(await listResponse.Content.ReadAsStringAsync());
         Assert.NotNull(list);
         Assert.Equal(3, list.Count);
     }
@@ -425,34 +490,34 @@ public class FechasIT : TestBase
         var zonaId = await CrearZonaDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
-        var postResponse = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-masivamente",
-            new List<FechaDTO>
+        var postResponse = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-todoscontratodos-masivamente",
+            new List<FechaTodosContraTodosDTO>
             {
                 new() { Dia = new DateOnly(2026, 3, 1), Numero = 1, EsVisibleEnApp = true },
                 new() { Dia = new DateOnly(2026, 3, 8), Numero = 2, EsVisibleEnApp = true },
                 new() { Dia = new DateOnly(2026, 3, 15), Numero = 3, EsVisibleEnApp = true }
-            });
+            }, FechaJsonOptions);
         postResponse.EnsureSuccessStatusCode();
-        var creados = JsonConvert.DeserializeObject<List<FechaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
+        var creados = DeserializeFechaTctList(await postResponse.Content.ReadAsStringAsync())!;
 
         var dtosModificar = new List<FechaDTO>
         {
-            new() { Id = creados[0].Id, Dia = new DateOnly(2026, 3, 5), Numero = 1, ZonaId = zonaId, EsVisibleEnApp = true },
-            new() { Id = creados[2].Id, Dia = new DateOnly(2026, 3, 20), Numero = 3, ZonaId = zonaId, EsVisibleEnApp = true }
+            new FechaTodosContraTodosDTO { Id = creados[0].Id, Dia = new DateOnly(2026, 3, 5), Numero = 1, ZonaId = zonaId, EsVisibleEnApp = true },
+            new FechaTodosContraTodosDTO { Id = creados[2].Id, Dia = new DateOnly(2026, 3, 20), Numero = 3, ZonaId = zonaId, EsVisibleEnApp = true }
         };
 
-        var putResponse = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/fechas/modificar-fechas-masivamente", dtosModificar);
+        var putResponse = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/fechas/modificar-fechas-masivamente", dtosModificar, FechaJsonOptions);
         Assert.Equal(System.Net.HttpStatusCode.NoContent, putResponse.StatusCode);
 
         var listResponse = await client.GetAsync($"/api/Zona/{zonaId}/fechas");
         listResponse.EnsureSuccessStatusCode();
-        var fechas = JsonConvert.DeserializeObject<List<FechaDTO>>(await listResponse.Content.ReadAsStringAsync());
+        var fechas = DeserializeFechaTctList(await listResponse.Content.ReadAsStringAsync());
         Assert.NotNull(fechas);
         Assert.Equal(2, fechas.Count);
         Assert.Contains(fechas, f => f.Dia == new DateOnly(2026, 3, 5));
         Assert.Contains(fechas, f => f.Dia == new DateOnly(2026, 3, 20));
-        Assert.Contains(fechas, f => f.Numero == 1);
-        Assert.Contains(fechas, f => f.Numero == 2);
+        Assert.Contains(fechas, f => f is FechaTodosContraTodosDTO t && t.Numero == 1);
+        Assert.Contains(fechas, f => f is FechaTodosContraTodosDTO t && t.Numero == 2);
     }
 
     [Fact]
@@ -461,16 +526,16 @@ public class FechasIT : TestBase
         var zonaId = await CrearZonaDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
-        var postResponse = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-masivamente",
-            new List<FechaDTO>
+        var postResponse = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-todoscontratodos-masivamente",
+            new List<FechaTodosContraTodosDTO>
             {
                 new() { Dia = new DateOnly(2026, 3, 1), Numero = 1, EsVisibleEnApp = true },
                 new() { Dia = new DateOnly(2026, 3, 8), Numero = 2, EsVisibleEnApp = true },
                 new() { Dia = new DateOnly(2026, 3, 15), Numero = 3, EsVisibleEnApp = true },
                 new() { Dia = new DateOnly(2026, 3, 22), Numero = 4, EsVisibleEnApp = true }
-            });
+            }, FechaJsonOptions);
         postResponse.EnsureSuccessStatusCode();
-        var creados = JsonConvert.DeserializeObject<List<FechaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
+        var creados = DeserializeFechaTctList(await postResponse.Content.ReadAsStringAsync())!;
         var fechaAEliminarId = creados[1].Id;
 
         var deleteResponse = await client.DeleteAsync($"/api/Zona/{zonaId}/fechas/{fechaAEliminarId}");
@@ -478,13 +543,13 @@ public class FechasIT : TestBase
 
         var listResponse = await client.GetAsync($"/api/Zona/{zonaId}/fechas");
         listResponse.EnsureSuccessStatusCode();
-        var fechas = JsonConvert.DeserializeObject<List<FechaDTO>>(await listResponse.Content.ReadAsStringAsync());
+        var fechas = DeserializeFechaTctList(await listResponse.Content.ReadAsStringAsync());
         Assert.NotNull(fechas);
         Assert.Equal(3, fechas.Count);
-        Assert.Contains(fechas, f => f.Numero == 1);
-        Assert.Contains(fechas, f => f.Numero == 2);
-        Assert.Contains(fechas, f => f.Numero == 3);
-        Assert.DoesNotContain(fechas, f => f.Numero == 4);
+        Assert.Contains(fechas, f => f is FechaTodosContraTodosDTO t && t.Numero == 1);
+        Assert.Contains(fechas, f => f is FechaTodosContraTodosDTO t && t.Numero == 2);
+        Assert.Contains(fechas, f => f is FechaTodosContraTodosDTO t && t.Numero == 3);
+        Assert.DoesNotContain(fechas, f => f is FechaTodosContraTodosDTO t && t.Numero == 4);
     }
 
     [Fact]
@@ -493,27 +558,27 @@ public class FechasIT : TestBase
         var zonaId = await CrearZonaDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
-        var postResponse = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-masivamente",
-            new List<FechaDTO>
+        var postResponse = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-todoscontratodos-masivamente",
+            new List<FechaTodosContraTodosDTO>
             {
                 new() { Dia = new DateOnly(2026, 3, 1), Numero = 1, EsVisibleEnApp = true }
-            });
+            }, FechaJsonOptions);
         postResponse.EnsureSuccessStatusCode();
-        var creados = JsonConvert.DeserializeObject<List<FechaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
+        var creados = DeserializeFechaTctList(await postResponse.Content.ReadAsStringAsync())!;
         var fechaExistenteId = creados[0].Id;
 
         var dtosModificar = new List<FechaDTO>
         {
-            new() { Id = fechaExistenteId, Dia = new DateOnly(2026, 3, 10), Numero = 1, ZonaId = zonaId, EsVisibleEnApp = false },
-            new() { Dia = new DateOnly(2026, 3, 17), Numero = 2, EsVisibleEnApp = true }
+            new FechaTodosContraTodosDTO { Id = fechaExistenteId, Dia = new DateOnly(2026, 3, 10), Numero = 1, ZonaId = zonaId, EsVisibleEnApp = false },
+            new FechaTodosContraTodosDTO { Dia = new DateOnly(2026, 3, 17), Numero = 2, EsVisibleEnApp = true }
         };
 
-        var putResponse = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/fechas/modificar-fechas-masivamente", dtosModificar);
+        var putResponse = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/fechas/modificar-fechas-masivamente", dtosModificar, FechaJsonOptions);
         Assert.Equal(System.Net.HttpStatusCode.NoContent, putResponse.StatusCode);
 
         var listResponse = await client.GetAsync($"/api/Zona/{zonaId}/fechas");
         listResponse.EnsureSuccessStatusCode();
-        var fechas = JsonConvert.DeserializeObject<List<FechaDTO>>(await listResponse.Content.ReadAsStringAsync());
+        var fechas = DeserializeFechaTctList(await listResponse.Content.ReadAsStringAsync());
         Assert.NotNull(fechas);
         Assert.Equal(2, fechas.Count);
 
@@ -525,7 +590,7 @@ public class FechasIT : TestBase
         var fechaNueva = fechas.FirstOrDefault(f => f.Dia == new DateOnly(2026, 3, 17));
         Assert.NotNull(fechaNueva);
         Assert.True(fechaNueva.Id > 0);
-        Assert.Equal(2, fechaNueva.Numero);
+        Assert.Equal(2, Assert.IsType<FechaTodosContraTodosDTO>(fechaNueva).Numero);
     }
 
     [Fact]
@@ -557,7 +622,7 @@ public class FechasIT : TestBase
             }
         }
 
-        var dtos = new List<FechaDTO>
+        var dtos = new List<FechaTodosContraTodosDTO>
         {
             new()
             {
@@ -583,10 +648,10 @@ public class FechasIT : TestBase
             }
         };
 
-        var response = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-masivamente", dtos);
+        var response = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-todoscontratodos-masivamente", dtos, FechaJsonOptions);
         response.EnsureSuccessStatusCode();
 
-        var creados = JsonConvert.DeserializeObject<List<FechaDTO>>(await response.Content.ReadAsStringAsync());
+        var creados = DeserializeFechaTctList(await response.Content.ReadAsStringAsync());
         Assert.NotNull(creados);
         Assert.Single(creados);
         Assert.NotNull(creados[0].Jornadas);
@@ -636,7 +701,7 @@ public class FechasIT : TestBase
             }
         }
 
-        var dtos = new List<FechaDTO>
+        var dtos = new List<FechaTodosContraTodosDTO>
         {
             new()
             {
@@ -652,9 +717,9 @@ public class FechasIT : TestBase
             }
         };
 
-        var response = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-masivamente", dtos);
+        var response = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-todoscontratodos-masivamente", dtos, FechaJsonOptions);
         response.EnsureSuccessStatusCode();
-        var creados = JsonConvert.DeserializeObject<List<FechaDTO>>(await response.Content.ReadAsStringAsync());
+        var creados = DeserializeFechaTctList(await response.Content.ReadAsStringAsync());
         Assert.NotNull(creados);
         Assert.Single(creados);
 
@@ -697,8 +762,8 @@ public class FechasIT : TestBase
             }
         }
 
-        var postResponse = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-masivamente",
-            new List<FechaDTO>
+        var postResponse = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-todoscontratodos-masivamente",
+            new List<FechaTodosContraTodosDTO>
             {
                 new()
                 {
@@ -711,15 +776,15 @@ public class FechasIT : TestBase
                         new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoLocalId = equipo1Id }
                     ]
                 }
-            });
+            }, FechaJsonOptions);
         postResponse.EnsureSuccessStatusCode();
-        var creados = JsonConvert.DeserializeObject<List<FechaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
+        var creados = DeserializeFechaTctList(await postResponse.Content.ReadAsStringAsync())!;
         var fechaId = creados[0].Id;
         var jornadaNormalId = creados[0].Jornadas!.First(j => j.Tipo == "Normal").Id;
 
         var dtosModificar = new List<FechaDTO>
         {
-            new()
+            new FechaTodosContraTodosDTO
             {
                 Id = fechaId,
                 Dia = new DateOnly(2026, 3, 1),
@@ -734,12 +799,12 @@ public class FechasIT : TestBase
             }
         };
 
-        var putResponse = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/fechas/modificar-fechas-masivamente", dtosModificar);
+        var putResponse = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/fechas/modificar-fechas-masivamente", dtosModificar, FechaJsonOptions);
         Assert.Equal(System.Net.HttpStatusCode.NoContent, putResponse.StatusCode);
 
         var getResponse = await client.GetAsync($"/api/Zona/{zonaId}/fechas/{fechaId}");
         getResponse.EnsureSuccessStatusCode();
-        var fecha = JsonConvert.DeserializeObject<FechaDTO>(await getResponse.Content.ReadAsStringAsync());
+        var fecha = DeserializeFechaTct(await getResponse.Content.ReadAsStringAsync());
         Assert.NotNull(fecha);
         Assert.NotNull(fecha.Jornadas);
         Assert.Equal(2, fecha.Jornadas.Count);
@@ -792,8 +857,8 @@ public class FechasIT : TestBase
             }
         }
 
-        var postResponse = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-masivamente",
-            new List<FechaDTO>
+        var postResponse = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-todoscontratodos-masivamente",
+            new List<FechaTodosContraTodosDTO>
             {
                 new()
                 {
@@ -806,9 +871,9 @@ public class FechasIT : TestBase
                         new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoLocalId = equipo1Id }
                     ]
                 }
-            });
+            }, FechaJsonOptions);
         postResponse.EnsureSuccessStatusCode();
-        var creados = JsonConvert.DeserializeObject<List<FechaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
+        var creados = DeserializeFechaTctList(await postResponse.Content.ReadAsStringAsync())!;
         var fechaId = creados[0].Id;
         var jornadaNormalId = creados[0].Jornadas!.First(j => j.Tipo == "Normal").Id;
         var jornadaLibreId = creados[0].Jornadas!.First(j => j.Tipo == "Libre").Id;
@@ -819,7 +884,7 @@ public class FechasIT : TestBase
             Assert.Equal(2, await context.Partidos.CountAsync(p => p.JornadaId == jornadaLibreId));
         }
 
-        var dtoModificar = new FechaDTO
+        var dtoModificar = new FechaTodosContraTodosDTO
         {
             Id = fechaId,
             Dia = new DateOnly(2026, 5, 1),
@@ -839,7 +904,7 @@ public class FechasIT : TestBase
             ]
         };
 
-        var putResponse = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/fechas/{fechaId}", dtoModificar);
+        var putResponse = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/fechas/{fechaId}", dtoModificar, FechaJsonOptions);
         Assert.Equal(System.Net.HttpStatusCode.NoContent, putResponse.StatusCode);
 
         using (var scope = Factory.Services.CreateScope())
@@ -902,10 +967,10 @@ public class FechasIT : TestBase
             """;
 
         var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-        var response = await client.PostAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-masivamente", content);
+        var response = await client.PostAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-todoscontratodos-masivamente", content);
         response.EnsureSuccessStatusCode();
 
-        var creados = JsonConvert.DeserializeObject<List<FechaDTO>>(await response.Content.ReadAsStringAsync());
+        var creados = DeserializeFechaTctList(await response.Content.ReadAsStringAsync());
         Assert.NotNull(creados);
         Assert.Equal(2, creados.Count);
         Assert.Contains(creados, f => f.Numero == 1 && f.Dia == new DateOnly(2026, 3, 21));
@@ -921,5 +986,25 @@ public class FechasIT : TestBase
             var totalPartidos = await context.Partidos.CountAsync(p => jornadaIds.Contains(p.JornadaId));
             Assert.Equal(8, totalPartidos); // 2 fechas × 2 jornadas × 2 categorías
         }
+    }
+
+    [Fact]
+    public async Task CrearFechasEliminacionDirectaMasivamente_SinNumero_200()
+    {
+        var zonaId = await CrearZonaEliminacionDirectaDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var dtos = new List<FechaEliminacionDirectaDTO>
+        {
+            new() { Dia = new DateOnly(2026, 6, 1), EsVisibleEnApp = true, InstanciaId = 16 }
+        };
+
+        var response = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-eliminaciondirecta-masivamente", dtos, FechaJsonOptions);
+        response.EnsureSuccessStatusCode();
+
+        var creados = DeserializeFechaEdList(await response.Content.ReadAsStringAsync());
+        Assert.Single(creados);
+        Assert.Equal(16, creados[0].InstanciaId);
+        Assert.Equal(new DateOnly(2026, 6, 1), creados[0].Dia);
     }
 }

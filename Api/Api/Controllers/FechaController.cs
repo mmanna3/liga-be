@@ -17,10 +17,19 @@ public class FechaController : ABMControllerAnidado<FechaDTO, IFechaCore>
         dto.ZonaId = padreId;
     }
 
-    [HttpPost("crear-fechas-masivamente")]
-    public async Task<ActionResult<IEnumerable<FechaDTO>>> CrearMasivamente(int padreId, [FromBody] List<FechaDTO> dtos)
+    [HttpPost("crear-fechas-todoscontratodos-masivamente")]
+    public async Task<ActionResult<IEnumerable<FechaTodosContraTodosDTO>>> CrearFechasTodosContraTodosMasivamente(
+        int padreId, [FromBody] List<FechaTodosContraTodosDTO> dtos)
     {
-        var creados = await Core.CrearMasivamente(padreId, dtos);
+        var creados = await Core.CrearFechasTodosContraTodosMasivamente(padreId, dtos);
+        return Ok(creados);
+    }
+
+    [HttpPost("crear-fechas-eliminaciondirecta-masivamente")]
+    public async Task<ActionResult<IEnumerable<FechaEliminacionDirectaDTO>>> CrearFechasEliminacionDirectaMasivamente(
+        int padreId, [FromBody] List<FechaEliminacionDirectaDTO> dtos)
+    {
+        var creados = await Core.CrearFechasEliminacionDirectaMasivamente(padreId, dtos);
         return Ok(creados);
     }
 

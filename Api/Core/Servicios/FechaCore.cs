@@ -40,30 +40,62 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
 
     public override async Task<int> Crear(int padreId, FechaDTO dto)
     {
+        return dto switch
+        {
+            FechaTodosContraTodosDTO t => await CrearFechaTodosContraTodos(padreId, t),
+            FechaEliminacionDirectaDTO e => await CrearFechaEliminacionDirecta(padreId, e),
+            _ => throw new ExcepcionControlada("Tipo de fecha no reconocido. Use todosContraTodos o eliminacionDirecta.")
+        };
+    }
+
+    public async Task<int> CrearFechaTodosContraTodos(int padreId, FechaTodosContraTodosDTO dto)
+    {
         var zona = await _torneoZonaRepo.ObtenerPorId(padreId);
         if (zona == null)
             throw new ExcepcionControlada("La zona indicada no existe.");
+        if (zona is not ZonaTodosContraTodos)
+            throw new ExcepcionControlada("Solo las zonas todos contra todos admiten fechas con número.");
 
-        Fecha entidad = zona switch
+        Fecha entidad = new FechaTodosContraTodos
         {
-            ZonaTodosContraTodos => new FechaTodosContraTodos
-            {
-                Id = 0,
-                Dia = dto.Dia,
-                Numero = dto.Numero,
-                EsVisibleEnApp = dto.EsVisibleEnApp,
-                ZonaId = padreId
-            },
-            ZonaEliminacionDirecta => new FechaEliminacionDirecta
-            {
-                Id = 0,
-                Dia = dto.Dia,
-                EsVisibleEnApp = dto.EsVisibleEnApp,
-                ZonaId = padreId,
-                InstanciaId = dto.InstanciaId
-                    ?? throw new ExcepcionControlada("La instancia de eliminación directa es obligatoria.")
-            },
-            _ => throw new ExcepcionControlada("Tipo de zona no soportado para fechas.")
+            Id = 0,
+            Dia = dto.Dia,
+            Numero = dto.Numero,
+            EsVisibleEnApp = dto.EsVisibleEnApp,
+            ZonaId = padreId
+        };
+
+        entidad = await AntesDeCrear(padreId, dto, entidad);
+        Repo.Crear(entidad);
+        await BDVirtual.GuardarCambios();
+        var id = entidad.Id;
+
+        if (dto.Jornadas != null)
+        {
+            await AplicarJornadasEnFecha(id, dto.Jornadas);
+            await BDVirtual.GuardarCambios();
+            await AsegurarPartidosPorCategoriaPorJornada(id, padreId);
+            await BDVirtual.GuardarCambios();
+        }
+
+        return id;
+    }
+
+    public async Task<int> CrearFechaEliminacionDirecta(int padreId, FechaEliminacionDirectaDTO dto)
+    {
+        var zona = await _torneoZonaRepo.ObtenerPorId(padreId);
+        if (zona == null)
+            throw new ExcepcionControlada("La zona indicada no existe.");
+        if (zona is not ZonaEliminacionDirecta)
+            throw new ExcepcionControlada("Solo las zonas de eliminación directa admiten fechas con instancia.");
+
+        Fecha entidad = new FechaEliminacionDirecta
+        {
+            Id = 0,
+            Dia = dto.Dia,
+            EsVisibleEnApp = dto.EsVisibleEnApp,
+            ZonaId = padreId,
+            InstanciaId = dto.InstanciaId
         };
 
         entidad = await AntesDeCrear(padreId, dto, entidad);
@@ -94,26 +126,26 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
         if (entidadAnterior == null)
             throw new ExcepcionControlada("No existe la entidad a modificar o no pertenece al recurso padre indicado.");
 
-        Fecha entidadNueva = entidadAnterior switch
+        Fecha entidadNueva = (entidadAnterior, dto) switch
         {
-            FechaTodosContraTodos => new FechaTodosContraTodos
+            (FechaTodosContraTodos, FechaTodosContraTodosDTO t) => new FechaTodosContraTodos
             {
                 Id = id,
                 Dia = dto.Dia,
-                Numero = dto.Numero,
+                Numero = t.Numero,
                 EsVisibleEnApp = dto.EsVisibleEnApp,
                 ZonaId = padreId
             },
-            FechaEliminacionDirecta => new FechaEliminacionDirecta
+            (FechaEliminacionDirecta, FechaEliminacionDirectaDTO e) => new FechaEliminacionDirecta
             {
                 Id = id,
                 Dia = dto.Dia,
                 EsVisibleEnApp = dto.EsVisibleEnApp,
                 ZonaId = padreId,
-                InstanciaId = dto.InstanciaId
-                    ?? throw new ExcepcionControlada("La instancia de eliminación directa es obligatoria.")
+                InstanciaId = e.InstanciaId
             },
-            _ => throw new ExcepcionControlada("Tipo de fecha no soportado.")
+            _ => throw new ExcepcionControlada(
+                "El tipo de fecha del cuerpo no coincide con el registro existente (todos contra todos vs eliminación directa).")
         };
 
         await AntesDeModificar(padreId, id, dto, entidadAnterior, entidadNueva);
@@ -131,15 +163,30 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
         return id;
     }
 
-    public async Task<IEnumerable<FechaDTO>> CrearMasivamente(int padreId, IEnumerable<FechaDTO> dtos)
+    public async Task<IEnumerable<FechaTodosContraTodosDTO>> CrearFechasTodosContraTodosMasivamente(
+        int padreId, IEnumerable<FechaTodosContraTodosDTO> dtos)
     {
-        var creados = new List<FechaDTO>();
+        var creados = new List<FechaTodosContraTodosDTO>();
         foreach (var dto in dtos)
         {
-            var id = await Crear(padreId, dto);
+            var id = await CrearFechaTodosContraTodos(padreId, dto);
             var creado = await ObtenerPorId(padreId, id);
-            if (creado != null)
-                creados.Add(creado);
+            if (creado is FechaTodosContraTodosDTO f)
+                creados.Add(f);
+        }
+        return creados;
+    }
+
+    public async Task<IEnumerable<FechaEliminacionDirectaDTO>> CrearFechasEliminacionDirectaMasivamente(
+        int padreId, IEnumerable<FechaEliminacionDirectaDTO> dtos)
+    {
+        var creados = new List<FechaEliminacionDirectaDTO>();
+        foreach (var dto in dtos)
+        {
+            var id = await CrearFechaEliminacionDirecta(padreId, dto);
+            var creado = await ObtenerPorId(padreId, id);
+            if (creado is FechaEliminacionDirectaDTO f)
+                creados.Add(f);
         }
         return creados;
     }

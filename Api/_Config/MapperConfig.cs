@@ -109,21 +109,12 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Equipos, opt => opt.MapFrom<EquiposDeZonaResolver>())
             .PreserveReferences();
         CreateMap<Fecha, FechaDTO>()
-            .Include<FechaTodosContraTodos, FechaDTO>()
-            .Include<FechaEliminacionDirecta, FechaDTO>();
-        CreateMap<FechaTodosContraTodos, FechaDTO>()
-            .ForMember(dest => dest.InstanciaId, opt => opt.MapFrom(_ => (int?)null))
-            .ForMember(dest => dest.InstanciaNombre, opt => opt.MapFrom(_ => (string?)null))
+            .Include<FechaTodosContraTodos, FechaTodosContraTodosDTO>()
+            .Include<FechaEliminacionDirecta, FechaEliminacionDirectaDTO>();
+        CreateMap<FechaTodosContraTodos, FechaTodosContraTodosDTO>()
             .ForMember(dest => dest.Jornadas, opt => opt.MapFrom(src => src.Jornadas != null ? src.Jornadas : new List<Jornada>()))
-            .PreserveReferences()
-            .ReverseMap()
-            .ForMember(dest => dest.Zona, opt => opt.Ignore())
-            .ForMember(dest => dest.Jornadas, opt => opt.Ignore())
-            .ForSourceMember(src => src.InstanciaId, opt => opt.DoNotValidate())
-            .ForSourceMember(src => src.InstanciaNombre, opt => opt.DoNotValidate())
-            .ForSourceMember(src => src.Jornadas, opt => opt.DoNotValidate());
-        CreateMap<FechaEliminacionDirecta, FechaDTO>()
-            .ForMember(dest => dest.Numero, opt => opt.MapFrom(_ => 0))
+            .PreserveReferences();
+        CreateMap<FechaEliminacionDirecta, FechaEliminacionDirectaDTO>()
             .ForMember(dest => dest.InstanciaNombre, opt => opt.MapFrom(src => src.Instancia != null ? src.Instancia.Nombre : null))
             .ForMember(dest => dest.Jornadas, opt => opt.MapFrom(src => src.Jornadas != null ? src.Jornadas : new List<Jornada>()))
             .PreserveReferences();

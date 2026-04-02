@@ -20,6 +20,7 @@ try
     .AddJsonOptions(o =>
     {
         o.JsonSerializerOptions.Converters.Add(new Api._Config.DateOnlyJsonConverter());
+        o.JsonSerializerOptions.Converters.Add(new Api._Config.FechaJsonConverter());
         o.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowReadingFromString;
     });
 
