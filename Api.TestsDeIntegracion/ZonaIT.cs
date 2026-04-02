@@ -54,6 +54,40 @@ public class ZonaIT : TestBase
         return fase.Id;
     }
 
+    /// <summary>
+    /// Torneo con dos categorías y una fase de eliminación directa (para zonas con CategoriaId).
+    /// </summary>
+    private static async Task<(int faseId, int categoriaId1, int categoriaId2)> CrearFaseEliminacionDirectaConCategorias(
+        CustomWebApplicationFactory<Program> factory)
+    {
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var torneo = new Torneo { Id = 0, Nombre = "Torneo ED Zonas", Anio = 2026, TorneoAgrupadorId = 1 };
+        context.Torneos.Add(torneo);
+        await context.SaveChangesAsync();
+
+        var cat1 = new TorneoCategoria
+            { Id = 0, TorneoId = torneo.Id, Nombre = "Cat A", AnioDesde = 2010, AnioHasta = 2020 };
+        var cat2 = new TorneoCategoria
+            { Id = 0, TorneoId = torneo.Id, Nombre = "Cat B", AnioDesde = 2010, AnioHasta = 2020 };
+        context.TorneoCategorias.AddRange(cat1, cat2);
+        await context.SaveChangesAsync();
+
+        var fase = new FaseEliminacionDirecta
+        {
+            Id = 0,
+            Nombre = "Playoffs",
+            Numero = 1,
+            TorneoId = torneo.Id,
+            EstadoFaseId = 100,
+            EsVisibleEnApp = true
+        };
+        context.Fases.Add(fase);
+        await context.SaveChangesAsync();
+
+        return (fase.Id, cat1.Id, cat2.Id);
+    }
+
     [Fact]
     public async Task ListarZonas_FaseExistente_DevuelveLista()
     {
@@ -670,6 +704,28 @@ public class ZonaIT : TestBase
         Assert.Equal(equipo1Nombre, zonaAGet.Equipos[0].Nombre);
         Assert.Equal(clubNombre, zonaAGet.Equipos[0].Club);
         Assert.NotEmpty(zonaAGet.Equipos[0].Codigo);
+    }
+
+    [Fact]
+    public async Task CrearZonasMasivamente_FaseEliminacionDirecta_ConCategorias_200()
+    {
+        var (faseId, cat1Id, cat2Id) = await CrearFaseEliminacionDirectaConCategorias(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var dtos = new List<ZonaDTO>
+        {
+            new() { Nombre = "Zona Cat A", CategoriaId = cat1Id },
+            new() { Nombre = "Zona Cat B", CategoriaId = cat2Id }
+        };
+
+        var response = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas/crear-zonas-masivamente", dtos);
+        response.EnsureSuccessStatusCode();
+
+        var creados = JsonConvert.DeserializeObject<List<ZonaDTO>>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(creados);
+        Assert.Equal(2, creados.Count);
+        Assert.Contains(creados, z => z.Nombre == "Zona Cat A" && z.CategoriaId == cat1Id);
+        Assert.Contains(creados, z => z.Nombre == "Zona Cat B" && z.CategoriaId == cat2Id);
     }
 
     [Fact]

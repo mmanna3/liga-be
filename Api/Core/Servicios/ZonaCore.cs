@@ -25,8 +25,13 @@ public class ZonaCore : ABMCoreAnidado<IZonaRepo, Zona, ZonaDTO, int>, IZonaCore
         var fase = await _torneoFaseRepo.ObtenerPorId(padreId);
         if (fase == null)
             throw new ExcepcionControlada("La fase indicada no existe.");
-        if (fase is not FaseTodosContraTodos)
-            throw new ExcepcionControlada("Solo las fases todos contra todos admiten zonas.");
+
+        if (fase is FaseTodosContraTodos && entidad is not ZonaTodosContraTodos)
+            throw new ExcepcionControlada("En una fase todos contra todos solo se pueden crear zonas todos contra todos.");
+        if (fase is FaseEliminacionDirecta && entidad is not ZonaEliminacionDirecta)
+            throw new ExcepcionControlada("En una fase de eliminación directa solo se pueden crear zonas de eliminación directa.");
+        if (fase is not FaseTodosContraTodos and not FaseEliminacionDirecta)
+            throw new ExcepcionControlada("Tipo de fase no soportado para crear zonas.");
 
         entidad.FaseId = padreId;
         return entidad;
@@ -34,13 +39,30 @@ public class ZonaCore : ABMCoreAnidado<IZonaRepo, Zona, ZonaDTO, int>, IZonaCore
 
     public override async Task<int> Crear(int padreId, ZonaDTO dto)
     {
-        var entidad = new ZonaTodosContraTodos
+        var fase = await _torneoFaseRepo.ObtenerPorId(padreId);
+        if (fase == null)
+            throw new ExcepcionControlada("La fase indicada no existe.");
+
+        Zona entidad = fase switch
         {
-            Id = 0,
-            Nombre = dto.Nombre ?? string.Empty,
-            FaseId = padreId
+            FaseTodosContraTodos => new ZonaTodosContraTodos
+            {
+                Id = 0,
+                Nombre = dto.Nombre ?? string.Empty,
+                FaseId = padreId
+            },
+            FaseEliminacionDirecta => new ZonaEliminacionDirecta
+            {
+                Id = 0,
+                Nombre = dto.Nombre ?? string.Empty,
+                FaseId = padreId,
+                CategoriaId = dto.CategoriaId
+                    ?? throw new ExcepcionControlada("La categoría es obligatoria para zonas de eliminación directa.")
+            },
+            _ => throw new ExcepcionControlada("Tipo de fase no soportado para crear zonas.")
         };
-        entidad = (ZonaTodosContraTodos)await AntesDeCrear(padreId, dto, entidad);
+
+        entidad = await AntesDeCrear(padreId, dto, entidad);
         Repo.Crear(entidad);
         await BDVirtual.GuardarCambios();
         var id = entidad.Id;
@@ -66,15 +88,25 @@ public class ZonaCore : ABMCoreAnidado<IZonaRepo, Zona, ZonaDTO, int>, IZonaCore
         var entidadAnterior = await Repo.ObtenerPorIdYPadre(padreId, id);
         if (entidadAnterior == null)
             throw new ExcepcionControlada("No existe la entidad a modificar o no pertenece al recurso padre indicado.");
-        if (entidadAnterior is not ZonaTodosContraTodos)
-            throw new ExcepcionControlada("Solo se pueden modificar zonas todos contra todos.");
 
-        var entidadNueva = new ZonaTodosContraTodos
+        Zona entidadNueva = entidadAnterior switch
         {
-            Id = id,
-            Nombre = dto.Nombre ?? string.Empty,
-            FaseId = padreId
+            ZonaTodosContraTodos => new ZonaTodosContraTodos
+            {
+                Id = id,
+                Nombre = dto.Nombre ?? string.Empty,
+                FaseId = padreId
+            },
+            ZonaEliminacionDirecta ed => new ZonaEliminacionDirecta
+            {
+                Id = id,
+                Nombre = dto.Nombre ?? string.Empty,
+                FaseId = padreId,
+                CategoriaId = dto.CategoriaId ?? ed.CategoriaId
+            },
+            _ => throw new ExcepcionControlada("Tipo de zona no soportado para modificar.")
         };
+
         await AntesDeModificar(padreId, id, dto, entidadAnterior, entidadNueva);
         Repo.Modificar(entidadAnterior, entidadNueva);
         await BDVirtual.GuardarCambios();

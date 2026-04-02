@@ -30,4 +30,14 @@ public class FechaController : ABMControllerAnidado<FechaDTO, IFechaCore>
         await Core.ModificarMasivamente(padreId, dtos);
         return NoContent();
     }
+
+    /// <summary>
+    /// Actualiza los resultados (local y visitante) de todos los partidos de una jornada y el flag ResultadosVerificados.
+    /// </summary>
+    [HttpPost("cargar-resultados/{jornadaId}")]
+    public async Task<IActionResult> CargarResultados(int padreId, int jornadaId, [FromBody] CargarResultadosDTO dto)
+    {
+        await Core.CargarResultados(padreId, jornadaId, dto);
+        return NoContent();
+    }
 }

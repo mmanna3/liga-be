@@ -380,4 +380,65 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
                 break;
         }
     }
+
+    public async Task CargarResultados(int zonaId, int jornadaId, CargarResultadosDTO dto)
+    {
+        if (dto.JornadaId != jornadaId)
+            throw new ExcepcionControlada("El identificador de jornada no coincide con la ruta.");
+
+        var jornada = await _context.Jornadas
+            .Include(j => j.Fecha)
+            .FirstOrDefaultAsync(j => j.Id == jornadaId);
+
+        if (jornada == null)
+            throw new ExcepcionControlada("La jornada indicada no existe.");
+
+        if (jornada.Fecha.ZonaId != zonaId)
+            throw new ExcepcionControlada("La jornada no pertenece a la zona indicada.");
+
+        jornada.ResultadosVerificados = dto.ResultadosVerificados;
+
+        var partidos = dto.Partidos?.ToList() ?? new List<PartidoDTO>();
+
+        var partidosDb = await _context.Partidos
+            .Where(p => p.JornadaId == jornadaId)
+            .ToListAsync();
+
+        if (partidosDb.Count == 0 && partidos.Count == 0)
+        {
+            await BDVirtual.GuardarCambios();
+            return;
+        }
+
+        if (partidosDb.Count != partidos.Count)
+            throw new ExcepcionControlada("Debe enviar exactamente un partido por cada categoría de la jornada.");
+
+        var porId = partidosDb.ToDictionary(p => p.Id);
+        var idsEnRequest = new HashSet<int>();
+
+        foreach (var partidoDto in partidos)
+        {
+            if (partidoDto.Id <= 0)
+                throw new ExcepcionControlada("Cada partido debe tener un identificador válido.");
+
+            if (!idsEnRequest.Add(partidoDto.Id))
+                throw new ExcepcionControlada("Hay partidos duplicados en la solicitud.");
+
+            if (!porId.TryGetValue(partidoDto.Id, out var entidad))
+                throw new ExcepcionControlada("Uno de los partidos no pertenece a esta jornada.");
+
+            if (entidad.CategoriaId != partidoDto.CategoriaId)
+                throw new ExcepcionControlada("La categoría de un partido no coincide con el registro existente.");
+
+            PartidoResultadoValidador.ValidarParResultados(partidoDto.ResultadoLocal, partidoDto.ResultadoVisitante);
+
+            entidad.ResultadoLocal = partidoDto.ResultadoLocal.Trim();
+            entidad.ResultadoVisitante = partidoDto.ResultadoVisitante.Trim();
+        }
+
+        if (idsEnRequest.Count != partidosDb.Count)
+            throw new ExcepcionControlada("Debe enviar exactamente un partido por cada categoría de la jornada.");
+
+        await BDVirtual.GuardarCambios();
+    }
 }

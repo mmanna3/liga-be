@@ -1,5 +1,8 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace Api.Core.Entidades;
 
+[Index(nameof(FaseId), nameof(CategoriaId), IsUnique = true)]
 public class ZonaEliminacionDirecta : Zona
 {
     public virtual TorneoCategoria Categoria { get; set; } = null!;
