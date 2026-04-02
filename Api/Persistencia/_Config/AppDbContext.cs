@@ -180,11 +180,11 @@ public class AppDbContext : DbContext
                 {
                     t.HasCheckConstraint(
                         "CK_Jornada_Tipo_Valido",
-                        @"([Tipo] = N'Normal' AND [LocalEquipoId] IS NOT NULL AND [VisitanteEquipoId] IS NOT NULL AND [LocalEquipoId] <> [VisitanteEquipoId] AND [EquipoId] IS NULL AND [JornadaLibre_EquipoId] IS NULL AND [LocalOVisitanteId] IS NULL)
+                        @"([Tipo] = N'Normal' AND [LocalEquipoId] IS NOT NULL AND [VisitanteEquipoId] IS NOT NULL AND [LocalEquipoId] <> [VisitanteEquipoId] AND [EquipoId] IS NULL AND [EquipoLocalId] IS NULL AND [LocalOVisitanteId] IS NULL)
     OR
-    ([Tipo] = N'Libre' AND [JornadaLibre_EquipoId] IS NOT NULL AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL AND [EquipoId] IS NULL AND [LocalOVisitanteId] IS NULL)
+    ([Tipo] = N'Libre' AND [EquipoLocalId] IS NOT NULL AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL AND [EquipoId] IS NULL AND [LocalOVisitanteId] IS NULL)
     OR
-    ([Tipo] = N'Interzonal' AND [EquipoId] IS NOT NULL AND [LocalOVisitanteId] IS NOT NULL AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL AND [JornadaLibre_EquipoId] IS NULL)");
+    ([Tipo] = N'Interzonal' AND [EquipoId] IS NOT NULL AND [LocalOVisitanteId] IS NOT NULL AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL AND [EquipoLocalId] IS NULL)");
                 }
             });
         builder.Entity<Jornada>()
@@ -210,9 +210,9 @@ public class AppDbContext : DbContext
             .HasForeignKey(j => j.VisitanteEquipoId)
             .OnDelete(DeleteBehavior.Restrict);
         builder.Entity<JornadaLibre>()
-            .HasOne(j => j.Equipo)
+            .HasOne(j => j.EquipoLocal)
             .WithMany()
-            .HasForeignKey(j => j.EquipoId)
+            .HasForeignKey(j => j.EquipoLocalId)
             .OnDelete(DeleteBehavior.Restrict);
         builder.Entity<JornadaInterzonal>()
             .HasOne(j => j.Equipo)

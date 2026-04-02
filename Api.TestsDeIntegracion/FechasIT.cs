@@ -547,7 +547,7 @@ public class FechasIT : TestBase
                     {
                         Tipo = "Libre",
                         ResultadosVerificados = false,
-                        EquipoId = equipo1Id
+                        EquipoLocalId = equipo1Id
                     }
                 ]
             }
@@ -608,7 +608,7 @@ public class FechasIT : TestBase
                     Jornadas =
                     [
                         new JornadaDTO { Tipo = "Normal", ResultadosVerificados = false, LocalId = equipo1Id, VisitanteId = equipo2Id },
-                        new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoId = equipo1Id }
+                        new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoLocalId = equipo1Id }
                     ]
                 }
             });
@@ -629,7 +629,7 @@ public class FechasIT : TestBase
                 Jornadas =
                 [
                     new JornadaDTO { Id = jornadaNormalId, Tipo = "Normal", ResultadosVerificados = true, LocalId = equipo1Id, VisitanteId = equipo2Id },
-                    new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoId = equipo2Id }
+                    new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoLocalId = equipo2Id }
                 ]
             }
         };
@@ -650,7 +650,7 @@ public class FechasIT : TestBase
 
         var jornadaLibre = fecha.Jornadas.FirstOrDefault(j => j.Tipo == "Libre");
         Assert.NotNull(jornadaLibre);
-        Assert.Equal(equipo2Id, jornadaLibre.EquipoId);
+        Assert.Equal(equipo2Id, jornadaLibre.EquipoLocalId);
 
         using (var scope = Factory.Services.CreateScope())
         {
@@ -691,7 +691,7 @@ public class FechasIT : TestBase
                     "esVisibleEnApp": false,
                     "jornadas": [
                         { "tipo": "Normal", "resultadosVerificados": false, "localId": "{{equipo1Id}}", "visitanteId": "{{equipo2Id}}" },
-                        { "tipo": "Libre", "resultadosVerificados": false, "equipoId": "{{equipo3Id}}" }
+                        { "tipo": "Libre", "resultadosVerificados": false, "equipoLocalId": "{{equipo3Id}}" }
                     ]
                 },
                 {
@@ -700,7 +700,7 @@ public class FechasIT : TestBase
                     "esVisibleEnApp": false,
                     "jornadas": [
                         { "tipo": "Normal", "resultadosVerificados": false, "localId": "{{equipo1Id}}", "visitanteId": "{{equipo3Id}}" },
-                        { "tipo": "Libre", "resultadosVerificados": false, "equipoId": "{{equipo2Id}}" }
+                        { "tipo": "Libre", "resultadosVerificados": false, "equipoLocalId": "{{equipo2Id}}" }
                     ]
                 }
             ]

@@ -19,10 +19,12 @@ public class JornadaDTO : DTO
     public string? Local { get; set; }
     public string? Visitante { get; set; }
 
-    // JornadaLibre y JornadaInterzonal
-    public int? EquipoId { get; set; }
-    public string? Equipo { get; set; }
+    // JornadaLibre
+    public int? EquipoLocalId { get; set; }
+    public string? EquipoLocal { get; set; }
 
     // JornadaInterzonal
+    public int? EquipoId { get; set; }
+    public string? Equipo { get; set; }
     public LocalVisitanteEnum? LocalOVisitante { get; set; }
 }

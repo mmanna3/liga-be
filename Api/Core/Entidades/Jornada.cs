@@ -23,8 +23,8 @@ public class JornadaNormal : Jornada
 
 public class JornadaLibre : Jornada
 {
-    public required int EquipoId { get; set; }
-    public virtual Equipo Equipo { get; set; } = null!;
+    public required int EquipoLocalId { get; set; }
+    public virtual Equipo EquipoLocal { get; set; } = null!;
 }
 
 public class JornadaInterzonal : Jornada
