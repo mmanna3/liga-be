@@ -20,7 +20,7 @@ public class FechaRepo : RepositorioABMAnidado<Fecha, int>, IFechaRepo
     protected override IQueryable<Fecha> Set()
     {
         return Context.Set<Fecha>()
-            .Include("InstanciaEliminacionDirecta")
+            .Include("Instancia")
             .Include(x => x.Jornadas)
                 .ThenInclude(j => ((JornadaNormal)j).LocalEquipo)
             .Include(x => x.Jornadas)

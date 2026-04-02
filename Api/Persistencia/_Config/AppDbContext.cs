@@ -160,9 +160,9 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Entity<FechaEliminacionDirecta>()
-            .HasOne(f => f.InstanciaEliminacionDirecta)
+            .HasOne(f => f.Instancia)
             .WithMany()
-            .HasForeignKey(f => f.InstanciaEliminacionDirectaId)
+            .HasForeignKey(f => f.InstanciaId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<FechaTodosContraTodos>()
@@ -170,7 +170,7 @@ public class AppDbContext : DbContext
             .IsUnique();
 
         builder.Entity<FechaEliminacionDirecta>()
-            .HasIndex(f => new { f.ZonaId, f.InstanciaEliminacionDirectaId })
+            .HasIndex(f => new { f.ZonaId, f.InstanciaId })
             .IsUnique();
 
         builder.Entity<Jornada>()

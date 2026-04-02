@@ -60,7 +60,7 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
                 Dia = dto.Dia,
                 EsVisibleEnApp = dto.EsVisibleEnApp,
                 ZonaId = padreId,
-                InstanciaEliminacionDirectaId = dto.InstanciaEliminacionDirectaId
+                InstanciaId = dto.InstanciaId
                     ?? throw new ExcepcionControlada("La instancia de eliminación directa es obligatoria.")
             },
             _ => throw new ExcepcionControlada("Tipo de zona no soportado para fechas.")
@@ -108,7 +108,7 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
                 Dia = dto.Dia,
                 EsVisibleEnApp = dto.EsVisibleEnApp,
                 ZonaId = padreId,
-                InstanciaEliminacionDirectaId = dto.InstanciaEliminacionDirectaId
+                InstanciaId = dto.InstanciaId
                     ?? throw new ExcepcionControlada("La instancia de eliminación directa es obligatoria.")
             },
             _ => throw new ExcepcionControlada("Tipo de fecha no soportado.")

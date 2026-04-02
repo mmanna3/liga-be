@@ -8,8 +8,8 @@ public class FechaDTO : DTO
 
     public int ZonaId { get; set; }
 
-    public int? InstanciaEliminacionDirectaId { get; set; }
-    public string? InstanciaEliminacionDirectaNombre { get; set; }
+    public int? InstanciaId { get; set; }
+    public string? InstanciaNombre { get; set; }
 
     public required bool EsVisibleEnApp { get; set; }
 
