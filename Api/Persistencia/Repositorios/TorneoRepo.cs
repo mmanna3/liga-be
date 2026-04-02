@@ -20,7 +20,6 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
             .Include("Fases.Zonas")
             .Include("Fases.Zonas.Fechas")
             .Include("Fases.Zonas.EquiposZona")
-            .Include("Fases.InstanciaEliminacionDirecta")
             .Include(x => x.Fases)
                 .ThenInclude(f => f.EstadoFase)
             .AsQueryable();

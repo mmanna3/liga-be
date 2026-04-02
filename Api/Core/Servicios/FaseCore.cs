@@ -97,8 +97,7 @@ public class FaseCore : ABMCoreAnidado<IFaseRepo, Fase, FaseDTO, int>, IFaseCore
                 Numero = dto.Numero,
                 TorneoId = dto.TorneoId,
                 EstadoFaseId = dto.EstadoFaseId,
-                EsVisibleEnApp = dto.EsVisibleEnApp,
-                InstanciaEliminacionDirectaId = dto.InstanciaEliminacionDirectaId
+                EsVisibleEnApp = dto.EsVisibleEnApp
             },
             _ => throw new ExcepcionControlada("Tipo de fase no válido.")
         };
@@ -110,23 +109,13 @@ public class FaseCore : ABMCoreAnidado<IFaseRepo, Fase, FaseDTO, int>, IFaseCore
         if (torneo == null)
             throw new ExcepcionControlada("El torneo indicado no existe.");
 
-        ValidarInstanciaEliminacionDirecta(dto);
-
         entidad.TorneoId = padreId;
         return entidad;
     }
 
     protected override Task AntesDeModificar(int padreId, int id, FaseDTO dto, Fase entidadAnterior, Fase entidadNueva)
     {
-        ValidarInstanciaEliminacionDirecta(dto);
-
         entidadNueva.TorneoId = padreId;
         return Task.CompletedTask;
-    }
-
-    private static void ValidarInstanciaEliminacionDirecta(FaseDTO dto)
-    {
-        if (dto.TipoDeFase == TipoDeFaseEnum.TodosContraTodos && dto.InstanciaEliminacionDirectaId.HasValue)
-            throw new ExcepcionControlada("La instancia de eliminación directa solo aplica cuando el tipo de fase es eliminación directa.");
     }
 }

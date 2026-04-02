@@ -65,9 +65,6 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
 
         foreach (var dto in fasesDto)
         {
-            if (dto.TipoDeFase == TipoDeFaseEnum.TodosContraTodos && dto.InstanciaEliminacionDirectaId.HasValue)
-                throw new ExcepcionControlada("La instancia de eliminación directa solo aplica cuando el tipo de fase es eliminación directa.");
-
             Fase fase = dto.TipoDeFase switch
             {
                 TipoDeFaseEnum.TodosContraTodos => new FaseTodosContraTodos
@@ -86,8 +83,7 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
                     Nombre = dto.Nombre ?? string.Empty,
                     Numero = dto.Numero,
                     EstadoFaseId = dto.EstadoFaseId,
-                    EsVisibleEnApp = dto.EsVisibleEnApp,
-                    InstanciaEliminacionDirectaId = dto.InstanciaEliminacionDirectaId
+                    EsVisibleEnApp = dto.EsVisibleEnApp
                 },
                 _ => throw new ExcepcionControlada("Tipo de fase no válido.")
             };
@@ -170,9 +166,6 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
 
     private async Task CrearFaseConDatos(int torneoId, FaseDTO dto)
     {
-        if (dto.TipoDeFase == TipoDeFaseEnum.TodosContraTodos && dto.InstanciaEliminacionDirectaId.HasValue)
-            throw new ExcepcionControlada("La instancia de eliminación directa solo aplica cuando el tipo de fase es eliminación directa.");
-
         Fase fase = dto.TipoDeFase switch
         {
             TipoDeFaseEnum.TodosContraTodos => new FaseTodosContraTodos
@@ -191,8 +184,7 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
                 Nombre = dto.Nombre ?? string.Empty,
                 Numero = dto.Numero,
                 EstadoFaseId = dto.EstadoFaseId,
-                EsVisibleEnApp = dto.EsVisibleEnApp,
-                InstanciaEliminacionDirectaId = dto.InstanciaEliminacionDirectaId
+                EsVisibleEnApp = dto.EsVisibleEnApp
             },
             _ => throw new ExcepcionControlada("Tipo de fase no válido.")
         };

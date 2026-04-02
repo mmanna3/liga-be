@@ -21,8 +21,6 @@ public class FaseDTO : DTO
     [Required]
     public TipoDeFaseEnum TipoDeFase { get; set; }
     public string TipoDeFaseNombre { get; set; } = string.Empty;
-    public int? InstanciaEliminacionDirectaId { get; set; }
-    public string? InstanciaEliminacionDirectaNombre { get; set; }
     public int EstadoFaseId { get; set; }
     public string EstadoFaseNombre { get; set; } = string.Empty;
     public bool EsVisibleEnApp { get; set; }

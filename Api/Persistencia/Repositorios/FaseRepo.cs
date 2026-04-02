@@ -21,7 +21,6 @@ public class FaseRepo : RepositorioABMAnidado<Fase, int>, IFaseRepo
     public override async Task<IEnumerable<Fase>> ListarPorPadre(int padreId)
     {
         return await Set()
-            .Include("InstanciaEliminacionDirecta")
             .Include(x => x.EstadoFase)
             .Include("Zonas")
             .Include("Zonas.Fechas")
@@ -34,7 +33,6 @@ public class FaseRepo : RepositorioABMAnidado<Fase, int>, IFaseRepo
     {
         return await Set()
             .AsNoTracking()
-            .Include("InstanciaEliminacionDirecta")
             .Include(x => x.EstadoFase)
             .Include("Zonas")
             .Include("Zonas.Fechas")

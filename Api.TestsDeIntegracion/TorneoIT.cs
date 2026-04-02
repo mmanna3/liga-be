@@ -39,7 +39,6 @@ public class TorneoIT : TestBase
                 Nombre = "Fase de grupos",
                 Numero = 1,
                 TipoDeFase = TipoDeFaseEnum.TodosContraTodos,
-                InstanciaEliminacionDirectaId = null,
                 EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
                 EsVisibleEnApp = true
             },

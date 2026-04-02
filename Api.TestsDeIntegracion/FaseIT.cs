@@ -41,20 +41,18 @@ public class FaseIT : TestBase
             Nombre = $"Fase {numero}",
             Numero = numero,
             TipoDeFase = TipoDeFaseEnum.TodosContraTodos,
-            InstanciaEliminacionDirectaId = null,
             EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
             EsVisibleEnApp = true
         };
     }
 
-    private static FaseDTO CrearDtoFaseEliminacionDirecta(int numero = 2, int instanciaId = 8)
+    private static FaseDTO CrearDtoFaseEliminacionDirecta(int numero = 2)
     {
         return new FaseDTO
         {
             Nombre = $"Fase {numero}",
             Numero = numero,
             TipoDeFase = TipoDeFaseEnum.EliminacionDirecta,
-            InstanciaEliminacionDirectaId = instanciaId,
             EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
             EsVisibleEnApp = false
         };
@@ -93,19 +91,17 @@ public class FaseIT : TestBase
         Assert.Equal(1, content.Numero);
         Assert.Equal(TipoDeFaseEnum.TodosContraTodos, content.TipoDeFase);
         Assert.Equal("Todos contra todos", content.TipoDeFaseNombre);
-        Assert.Null(content.InstanciaEliminacionDirectaId);
-        Assert.Null(content.InstanciaEliminacionDirectaNombre);
         Assert.Equal("Inicio pendiente", content.EstadoFaseNombre);
         Assert.Equal(torneoId, content.TorneoId);
     }
 
     [Fact]
-    public async Task CrearFase_EliminacionDirectaConInstancia_200()
+    public async Task CrearFase_EliminacionDirecta_200()
     {
         var torneoId = await CrearTorneoDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
-        var dto = CrearDtoFaseEliminacionDirecta(1, 8);
+        var dto = CrearDtoFaseEliminacionDirecta(1);
 
         var response = await client.PostAsJsonAsync($"/api/Torneo/{torneoId}/fases", dto);
 
@@ -114,8 +110,6 @@ public class FaseIT : TestBase
         var content = JsonConvert.DeserializeObject<FaseDTO>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.True(content.Id > 0);
-        Assert.Equal(8, content.InstanciaEliminacionDirectaId);
-        Assert.Equal("Cuartos de final", content.InstanciaEliminacionDirectaNombre);
         Assert.Equal("Eliminación directa", content.TipoDeFaseNombre);
     }
 
@@ -132,23 +126,6 @@ public class FaseIT : TestBase
 
         var mensaje = await response.Content.ReadAsStringAsync();
         Assert.Contains("torneo", mensaje.ToLowerInvariant());
-    }
-
-    [Fact]
-    public async Task CrearFase_TodosContraTodosConInstancia_400()
-    {
-        var torneoId = await CrearTorneoDePrueba(Factory);
-        var client = await GetAuthenticatedClient();
-
-        var dto = CrearDtoFaseGrupos(1);
-        dto.InstanciaEliminacionDirectaId = 8;
-
-        var response = await client.PostAsJsonAsync($"/api/Torneo/{torneoId}/fases", dto);
-
-        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
-
-        var mensaje = await response.Content.ReadAsStringAsync();
-        Assert.Contains("eliminación", mensaje.ToLowerInvariant());
     }
 
     [Fact]
@@ -353,11 +330,9 @@ public class FaseIT : TestBase
 
         var faseGrupos = content.Single(f => f.Numero == 1);
         Assert.Equal("Todos contra todos", faseGrupos.TipoDeFaseNombre);
-        Assert.Null(faseGrupos.InstanciaEliminacionDirectaNombre);
 
         var faseEliminacion = content.Single(f => f.Numero == 2);
         Assert.Equal("Eliminación directa", faseEliminacion.TipoDeFaseNombre);
-        Assert.Equal("Cuartos de final", faseEliminacion.InstanciaEliminacionDirectaNombre);
     }
 
     [Fact]
@@ -481,7 +456,6 @@ public class FaseIT : TestBase
                 Nombre = "",
                 Numero = 1,
                 TorneoId = torneoId,
-                InstanciaEliminacionDirectaId = 4,
                 EstadoFaseId = 200,
                 EsVisibleEnApp = true
             };
@@ -496,7 +470,6 @@ public class FaseIT : TestBase
         var content = JsonConvert.DeserializeObject<FaseDTO>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.Equal("Eliminación directa", content.TipoDeFaseNombre);
-        Assert.Equal("Semifinal", content.InstanciaEliminacionDirectaNombre);
         Assert.Equal("En curso", content.EstadoFaseNombre);
     }
 }

@@ -60,7 +60,6 @@ public class MapperConfig : Profile
         CreateMap<FaseTodosContraTodos, FaseDTO>()
             .ForMember(dest => dest.TipoDeFase, opt => opt.MapFrom(_ => TipoDeFaseEnum.TodosContraTodos))
             .ForMember(dest => dest.TipoDeFaseNombre, opt => opt.MapFrom(_ => "Todos contra todos"))
-            .ForMember(dest => dest.InstanciaEliminacionDirectaNombre, opt => opt.MapFrom(_ => (string?)null))
             .ForMember(dest => dest.EstadoFaseNombre, opt => opt.MapFrom(src => src.EstadoFase != null ? src.EstadoFase.Estado : string.Empty))
             .ForMember(dest => dest.SePuedeEditar, opt => opt.MapFrom(src =>
                 src.Zonas == null || !src.Zonas.Any()))
@@ -69,7 +68,6 @@ public class MapperConfig : Profile
         CreateMap<FaseEliminacionDirecta, FaseDTO>()
             .ForMember(dest => dest.TipoDeFase, opt => opt.MapFrom(_ => TipoDeFaseEnum.EliminacionDirecta))
             .ForMember(dest => dest.TipoDeFaseNombre, opt => opt.MapFrom(_ => "Eliminación directa"))
-            .ForMember(dest => dest.InstanciaEliminacionDirectaNombre, opt => opt.MapFrom(src => src.InstanciaEliminacionDirecta != null ? src.InstanciaEliminacionDirecta.Nombre : null))
             .ForMember(dest => dest.EstadoFaseNombre, opt => opt.MapFrom(src => src.EstadoFase != null ? src.EstadoFase.Estado : string.Empty))
             .ForMember(dest => dest.SePuedeEditar, opt => opt.MapFrom(_ => true))
             .ForMember(dest => dest.Zonas, opt => opt.MapFrom(src => src.Zonas != null ? src.Zonas.Cast<Zona>().ToList() : new List<Zona>()))

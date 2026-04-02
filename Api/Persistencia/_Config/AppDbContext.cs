@@ -126,11 +126,6 @@ public class AppDbContext : DbContext
             .HasForeignKey(z => z.FaseId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Entity<FaseEliminacionDirecta>()
-            .HasOne(f => f.InstanciaEliminacionDirecta)
-            .WithMany()
-            .HasForeignKey(f => f.InstanciaEliminacionDirectaId);
-
         builder.Entity<Fecha>()
             .ToTable("Fechas")
             .HasDiscriminator<string>("TipoFecha")
