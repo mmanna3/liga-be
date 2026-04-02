@@ -107,6 +107,11 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
     private async Task ReemplazarCategorias(int torneoId, List<TorneoCategoriaDTO> categoriasDto)
     {
         var categoriasExistentes = await _torneoCategoriaRepo.ListarPorPadre(torneoId);
+        var idsExistentes = categoriasExistentes.Select(c => c.Id).ToList();
+        if (idsExistentes.Count > 0 &&
+            await _torneoCategoriaRepo.AlgunaTienePartidosOZonas(idsExistentes))
+            throw new ExcepcionControlada("No se pueden eliminar categorías con partidos o zonas asociadas.");
+
         foreach (var cat in categoriasExistentes)
         {
             _torneoCategoriaRepo.Eliminar(cat);

@@ -75,6 +75,8 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
         {
             await AplicarJornadasEnFecha(id, dto.Jornadas);
             await BDVirtual.GuardarCambios();
+            await AsegurarPartidosPorCategoriaPorJornada(id, padreId);
+            await BDVirtual.GuardarCambios();
         }
 
         return id;
@@ -121,6 +123,8 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
         if (dto.Jornadas != null)
         {
             await AplicarJornadasEnFecha(id, dto.Jornadas);
+            await BDVirtual.GuardarCambios();
+            await AsegurarPartidosPorCategoriaPorJornada(id, padreId);
             await BDVirtual.GuardarCambios();
         }
 
@@ -225,6 +229,64 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
         }
     }
 
+    /// <summary>
+    /// Un partido por cada par (jornada, categoría del torneo), con resultados vacíos.
+    /// Idempotente: no duplica si ya existía el partido.
+    /// </summary>
+    private async Task AsegurarPartidosPorCategoriaPorJornada(int fechaId, int zonaId)
+    {
+        var torneoId = await (
+            from z in _context.Zonas
+            join f in _context.Fases on z.FaseId equals f.Id
+            where z.Id == zonaId
+            select f.TorneoId).FirstOrDefaultAsync();
+
+        if (torneoId == 0)
+            return;
+
+        var categoriaIds = await _context.TorneoCategorias
+            .Where(tc => tc.TorneoId == torneoId)
+            .Select(tc => tc.Id)
+            .ToListAsync();
+
+        if (categoriaIds.Count == 0)
+            return;
+
+        var jornadaIds = await _context.Jornadas
+            .Where(j => j.FechaId == fechaId)
+            .Select(j => j.Id)
+            .ToListAsync();
+
+        if (jornadaIds.Count == 0)
+            return;
+
+        var existentes = await _context.Partidos
+            .Where(p => jornadaIds.Contains(p.JornadaId))
+            .Select(p => new { p.JornadaId, p.CategoriaId })
+            .ToListAsync();
+
+        var existentesSet = existentes.Select(x => (x.JornadaId, x.CategoriaId)).ToHashSet();
+
+        foreach (var jornadaId in jornadaIds)
+        {
+            foreach (var categoriaId in categoriaIds)
+            {
+                if (existentesSet.Contains((jornadaId, categoriaId)))
+                    continue;
+
+                _context.Partidos.Add(new Partido
+                {
+                    Id = 0,
+                    CategoriaId = categoriaId,
+                    JornadaId = jornadaId,
+                    ResultadoLocal = "",
+                    ResultadoVisitante = ""
+                });
+                existentesSet.Add((jornadaId, categoriaId));
+            }
+        }
+    }
+
     private async Task AplicarJornadasEnFecha(int fechaId, List<JornadaDTO> jornadasDtos)
     {
         var idsEnRequest = jornadasDtos.Where(j => j.Id > 0).Select(j => j.Id).ToHashSet();
@@ -235,9 +297,17 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
         var idsExistentes = jornadasExistentes.Select(j => j.Id).ToHashSet();
         var idsAEliminar = idsExistentes.Where(id => !idsEnRequest.Contains(id)).ToList();
 
-        foreach (var jornada in jornadasExistentes.Where(j => idsAEliminar.Contains(j.Id)))
+        if (idsAEliminar.Count > 0)
         {
-            _context.Jornadas.Remove(jornada);
+            var partidosDeJornadasEliminadas = await _context.Partidos
+                .Where(p => idsAEliminar.Contains(p.JornadaId))
+                .ToListAsync();
+            _context.Partidos.RemoveRange(partidosDeJornadasEliminadas);
+
+            foreach (var jornada in jornadasExistentes.Where(j => idsAEliminar.Contains(j.Id)))
+            {
+                _context.Jornadas.Remove(jornada);
+            }
         }
 
         foreach (var dto in jornadasDtos)

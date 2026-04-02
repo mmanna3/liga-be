@@ -57,6 +57,34 @@ public class FechasIT : TestBase
         return zona.Id;
     }
 
+    private static async Task<int> ObtenerTorneoIdDeZona(CustomWebApplicationFactory<Program> factory, int zonaId)
+    {
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        return await (from z in context.Zonas
+            join f in context.Fases on z.FaseId equals f.Id
+            where z.Id == zonaId
+            select f.TorneoId).FirstAsync();
+    }
+
+    private static async Task SeedTorneoCategorias(CustomWebApplicationFactory<Program> factory, int torneoId, int cantidad)
+    {
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        for (var i = 0; i < cantidad; i++)
+        {
+            context.TorneoCategorias.Add(new TorneoCategoria
+            {
+                Id = 0,
+                Nombre = $"Cat Test {i}",
+                AnioDesde = 2010,
+                AnioHasta = 2020,
+                TorneoId = torneoId
+            });
+        }
+        await context.SaveChangesAsync();
+    }
+
     [Fact]
     public async Task ListarFechas_ZonaExistente_DevuelveLista()
     {
@@ -505,6 +533,8 @@ public class FechasIT : TestBase
     {
         Assert.NotNull(_club);
         var zonaId = await CrearZonaDePrueba(Factory);
+        var torneoId = await ObtenerTorneoIdDeZona(Factory, zonaId);
+        await SeedTorneoCategorias(Factory, torneoId, 3);
         var client = await GetAuthenticatedClient();
 
         int equipo1Id;
@@ -567,6 +597,74 @@ public class FechasIT : TestBase
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var fecha = context.Fechas.Include(f => f.Jornadas).First(f => f.Id == creados[0].Id);
             Assert.Equal(2, fecha.Jornadas.Count);
+            var jornadaIds = fecha.Jornadas.Select(j => j.Id).ToList();
+            var partidos = context.Partidos.Where(p => jornadaIds.Contains(p.JornadaId)).ToList();
+            Assert.Equal(6, partidos.Count); // 3 categorías × 2 jornadas
+            Assert.All(partidos, p =>
+            {
+                Assert.Equal("", p.ResultadoLocal);
+                Assert.Equal("", p.ResultadoVisitante);
+            });
+        }
+    }
+
+    [Fact]
+    public async Task CrearFechasMasivamente_CincoCategoriasYTresJornadas_CreaQuincePartidos()
+    {
+        Assert.NotNull(_club);
+        var zonaId = await CrearZonaDePrueba(Factory);
+        var torneoId = await ObtenerTorneoIdDeZona(Factory, zonaId);
+        await SeedTorneoCategorias(Factory, torneoId, 5);
+        var client = await GetAuthenticatedClient();
+
+        int e1, e2;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var equipos = context.Equipos.Where(e => e.ClubId == _club.Id).ToList();
+            e1 = equipos[0].Id;
+            if (equipos.Count < 2)
+            {
+                var eq2 = new Equipo { Id = 0, Nombre = "Eq 15", ClubId = _club.Id, Jugadores = [] };
+                context.Equipos.Add(eq2);
+                context.SaveChanges();
+                e2 = eq2.Id;
+            }
+            else
+            {
+                e2 = equipos[1].Id;
+            }
+        }
+
+        var dtos = new List<FechaDTO>
+        {
+            new()
+            {
+                Dia = new DateOnly(2026, 4, 1),
+                Numero = 1,
+                EsVisibleEnApp = true,
+                Jornadas =
+                [
+                    new JornadaDTO { Tipo = "Normal", ResultadosVerificados = false, LocalId = e1, VisitanteId = e2 },
+                    new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoLocalId = e1 },
+                    new JornadaDTO { Tipo = "Normal", ResultadosVerificados = false, LocalId = e2, VisitanteId = e1 }
+                ]
+            }
+        };
+
+        var response = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-masivamente", dtos);
+        response.EnsureSuccessStatusCode();
+        var creados = JsonConvert.DeserializeObject<List<FechaDTO>>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(creados);
+        Assert.Single(creados);
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var jornadaIds = await context.Jornadas.Where(j => j.FechaId == creados[0].Id).Select(j => j.Id).ToListAsync();
+            Assert.Equal(3, jornadaIds.Count);
+            var total = await context.Partidos.CountAsync(p => jornadaIds.Contains(p.JornadaId));
+            Assert.Equal(15, total); // 5 categorías × 3 jornadas
         }
     }
 
@@ -575,6 +673,8 @@ public class FechasIT : TestBase
     {
         Assert.NotNull(_club);
         var zonaId = await CrearZonaDePrueba(Factory);
+        var torneoId = await ObtenerTorneoIdDeZona(Factory, zonaId);
+        await SeedTorneoCategorias(Factory, torneoId, 2);
         var client = await GetAuthenticatedClient();
 
         int equipo1Id;
@@ -657,6 +757,99 @@ public class FechasIT : TestBase
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var jornadas = context.Jornadas.Where(j => j.FechaId == fechaId).ToList();
             Assert.Equal(2, jornadas.Count);
+            var jornadaIds = jornadas.Select(j => j.Id).ToList();
+            var partidos = context.Partidos.Where(p => jornadaIds.Contains(p.JornadaId)).ToList();
+            Assert.Equal(4, partidos.Count); // 2 categorías × 2 jornadas
+        }
+    }
+
+    [Fact]
+    public async Task ModificarFecha_EliminaJornada_EliminaPartidosDeEsaJornada()
+    {
+        Assert.NotNull(_club);
+        var zonaId = await CrearZonaDePrueba(Factory);
+        var torneoId = await ObtenerTorneoIdDeZona(Factory, zonaId);
+        await SeedTorneoCategorias(Factory, torneoId, 2);
+        var client = await GetAuthenticatedClient();
+
+        int equipo1Id;
+        int equipo2Id;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var equipos = context.Equipos.Where(e => e.ClubId == _club.Id).ToList();
+            equipo1Id = equipos[0].Id;
+            if (equipos.Count < 2)
+            {
+                var eq2 = new Equipo { Id = 0, Nombre = "Eq del part", ClubId = _club.Id, Jugadores = [] };
+                context.Equipos.Add(eq2);
+                context.SaveChanges();
+                equipo2Id = eq2.Id;
+            }
+            else
+            {
+                equipo2Id = equipos[1].Id;
+            }
+        }
+
+        var postResponse = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-masivamente",
+            new List<FechaDTO>
+            {
+                new()
+                {
+                    Dia = new DateOnly(2026, 5, 1),
+                    Numero = 1,
+                    EsVisibleEnApp = true,
+                    Jornadas =
+                    [
+                        new JornadaDTO { Tipo = "Normal", ResultadosVerificados = false, LocalId = equipo1Id, VisitanteId = equipo2Id },
+                        new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoLocalId = equipo1Id }
+                    ]
+                }
+            });
+        postResponse.EnsureSuccessStatusCode();
+        var creados = JsonConvert.DeserializeObject<List<FechaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
+        var fechaId = creados[0].Id;
+        var jornadaNormalId = creados[0].Jornadas!.First(j => j.Tipo == "Normal").Id;
+        var jornadaLibreId = creados[0].Jornadas!.First(j => j.Tipo == "Libre").Id;
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Assert.Equal(2, await context.Partidos.CountAsync(p => p.JornadaId == jornadaLibreId));
+        }
+
+        var dtoModificar = new FechaDTO
+        {
+            Id = fechaId,
+            Dia = new DateOnly(2026, 5, 1),
+            Numero = 1,
+            ZonaId = zonaId,
+            EsVisibleEnApp = true,
+            Jornadas =
+            [
+                new JornadaDTO
+                {
+                    Id = jornadaNormalId,
+                    Tipo = "Normal",
+                    ResultadosVerificados = false,
+                    LocalId = equipo1Id,
+                    VisitanteId = equipo2Id
+                }
+            ]
+        };
+
+        var putResponse = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/fechas/{fechaId}", dtoModificar);
+        Assert.Equal(System.Net.HttpStatusCode.NoContent, putResponse.StatusCode);
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Assert.False(await context.Jornadas.AnyAsync(j => j.Id == jornadaLibreId));
+            Assert.Equal(0, await context.Partidos.CountAsync(p => p.JornadaId == jornadaLibreId));
+            var jornadaIdsRestantes = await context.Jornadas.Where(j => j.FechaId == fechaId).Select(j => j.Id).ToListAsync();
+            Assert.Single(jornadaIdsRestantes);
+            Assert.Equal(2, await context.Partidos.CountAsync(p => jornadaIdsRestantes.Contains(p.JornadaId)));
         }
     }
 
@@ -665,6 +858,8 @@ public class FechasIT : TestBase
     {
         Assert.NotNull(_club);
         var zonaId = await CrearZonaDePrueba(Factory);
+        var torneoId = await ObtenerTorneoIdDeZona(Factory, zonaId);
+        await SeedTorneoCategorias(Factory, torneoId, 2);
         var client = await GetAuthenticatedClient();
 
         int equipo1Id, equipo2Id, equipo3Id;
@@ -716,5 +911,15 @@ public class FechasIT : TestBase
         Assert.Contains(creados, f => f.Numero == 1 && f.Dia == new DateOnly(2026, 3, 21));
         Assert.Contains(creados, f => f.Numero == 2 && f.Dia == new DateOnly(2026, 3, 28));
         Assert.All(creados, f => Assert.Equal(2, f.Jornadas!.Count));
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var fechaIds = creados.Select(f => f.Id).ToList();
+            var jornadaIds = await context.Jornadas.Where(j => fechaIds.Contains(j.FechaId)).Select(j => j.Id).ToListAsync();
+            Assert.Equal(4, jornadaIds.Count);
+            var totalPartidos = await context.Partidos.CountAsync(p => jornadaIds.Contains(p.JornadaId));
+            Assert.Equal(8, totalPartidos); // 2 fechas × 2 jornadas × 2 categorías
+        }
     }
 }

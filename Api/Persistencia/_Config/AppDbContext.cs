@@ -251,6 +251,10 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(p => p.CategoriaId)
             .OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<Partido>()
+            .HasIndex(p => new { p.JornadaId, p.CategoriaId })
+            .IsUnique()
+            .HasDatabaseName("IX_Partidos_JornadaId_CategoriaId");
 
         builder.Entity<EquipoZona>()
             .HasOne(ez => ez.Equipo)
