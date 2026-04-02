@@ -29,6 +29,9 @@ public class FechaRepo : RepositorioABMAnidado<Fecha, int>, IFechaRepo
                 .ThenInclude(j => ((JornadaLibre)j).EquipoLocal)
             .Include(x => x.Jornadas)
                 .ThenInclude(j => ((JornadaInterzonal)j).Equipo)
+            .Include(x => x.Jornadas)
+                .ThenInclude(j => j.Partidos)
+                .ThenInclude(p => p.Categoria)
             .AsQueryable();
     }
 

@@ -27,4 +27,6 @@ public class JornadaDTO : DTO
     public int? EquipoId { get; set; }
     public string? Equipo { get; set; }
     public LocalVisitanteEnum? LocalOVisitante { get; set; }
+
+    public List<PartidoDTO>? Partidos { get; set; }
 }

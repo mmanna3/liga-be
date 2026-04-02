@@ -128,6 +128,9 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Jornadas, opt => opt.MapFrom(src => src.Jornadas != null ? src.Jornadas : new List<Jornada>()))
             .PreserveReferences();
 
+        CreateMap<Partido, PartidoDTO>()
+            .ForMember(dest => dest.Categoria,
+                opt => opt.MapFrom(src => src.Categoria != null ? src.Categoria.Nombre : string.Empty));
         CreateMap<Jornada, JornadaDTO>()
             .ForMember(dest => dest.Tipo, opt => opt.MapFrom<JornadaTipoResolver>())
             .ForMember(dest => dest.LocalId, opt => opt.MapFrom<JornadaLocalIdResolver>())
@@ -138,7 +141,9 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.EquipoLocal, opt => opt.MapFrom<JornadaEquipoLocalNombreResolver>())
             .ForMember(dest => dest.EquipoId, opt => opt.MapFrom<JornadaEquipoResolver>())
             .ForMember(dest => dest.Equipo, opt => opt.MapFrom<JornadaEquipoNombreResolver>())
-            .ForMember(dest => dest.LocalOVisitante, opt => opt.MapFrom<JornadaLocalOVisitanteResolver>());
+            .ForMember(dest => dest.LocalOVisitante, opt => opt.MapFrom<JornadaLocalOVisitanteResolver>())
+            .ForMember(dest => dest.Partidos,
+                opt => opt.MapFrom(src => src.Partidos != null ? src.Partidos.ToList() : new List<Partido>()));
         CreateMap<TorneoAgrupador, TorneoAgrupadorDTO>()
             .ForMember(dest => dest.CantidadDeTorneos, opt => opt.MapFrom(src => src.Torneos != null ? src.Torneos.Count : 0))
             .ForMember(dest => dest.Torneos, opt => opt.MapFrom(src => src.Torneos))
