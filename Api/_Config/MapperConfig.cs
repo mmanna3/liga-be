@@ -38,9 +38,20 @@ public class MapperConfig : Profile
             .ReverseMap()
             .ForMember(dest => dest.Torneo, opt => opt.Ignore());
         CreateMap<Zona, ZonaDeFaseDTO>()
+            .Include<ZonaTodosContraTodos, ZonaDeFaseDTO>()
+            .Include<ZonaEliminacionDirecta, ZonaDeFaseDTO>();
+        CreateMap<ZonaTodosContraTodos, ZonaDeFaseDTO>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombre))
-            .ForMember(dest => dest.CantidadDeEquipos, opt => opt.MapFrom<CantidadEquiposDeZonaResolver>());
+            .ForMember(dest => dest.CantidadDeEquipos, opt => opt.MapFrom<CantidadEquiposDeZonaResolver>())
+            .ForMember(dest => dest.CategoriaId, opt => opt.MapFrom(_ => (int?)null))
+            .ForMember(dest => dest.CategoriaNombre, opt => opt.MapFrom(_ => (string?)null));
+        CreateMap<ZonaEliminacionDirecta, ZonaDeFaseDTO>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombre))
+            .ForMember(dest => dest.CantidadDeEquipos, opt => opt.MapFrom<CantidadEquiposDeZonaResolver>())
+            .ForMember(dest => dest.CategoriaId, opt => opt.MapFrom(src => src.CategoriaId))
+            .ForMember(dest => dest.CategoriaNombre, opt => opt.MapFrom(src => src.Categoria != null ? src.Categoria.Nombre : null));
 
         CreateMap<Zona, ZonaResumenDTO>()
             .Include<ZonaTodosContraTodos, ZonaResumenDTO>()
@@ -82,14 +93,19 @@ public class MapperConfig : Profile
             .Include<ZonaTodosContraTodos, ZonaDTO>()
             .Include<ZonaEliminacionDirecta, ZonaDTO>();
         CreateMap<ZonaTodosContraTodos, ZonaDTO>()
+            .ForMember(dest => dest.CategoriaId, opt => opt.MapFrom(_ => (int?)null))
+            .ForMember(dest => dest.CategoriaNombre, opt => opt.MapFrom(_ => (string?)null))
             .ForMember(dest => dest.Equipos, opt => opt.MapFrom<EquiposDeZonaResolver>())
             .PreserveReferences()
             .ReverseMap()
             .ForMember(dest => dest.Fase, opt => opt.Ignore())
             .ForMember(dest => dest.EquiposZona, opt => opt.Ignore())
             .ForMember(dest => dest.Fechas, opt => opt.Ignore())
-            .ForSourceMember(src => src.Equipos, opt => opt.DoNotValidate());
+            .ForSourceMember(src => src.Equipos, opt => opt.DoNotValidate())
+            .ForSourceMember(src => src.CategoriaNombre, opt => opt.DoNotValidate());
         CreateMap<ZonaEliminacionDirecta, ZonaDTO>()
+            .ForMember(dest => dest.CategoriaId, opt => opt.MapFrom(src => src.CategoriaId))
+            .ForMember(dest => dest.CategoriaNombre, opt => opt.MapFrom(src => src.Categoria != null ? src.Categoria.Nombre : null))
             .ForMember(dest => dest.Equipos, opt => opt.MapFrom<EquiposDeZonaResolver>())
             .PreserveReferences();
         CreateMap<Fecha, FechaDTO>()

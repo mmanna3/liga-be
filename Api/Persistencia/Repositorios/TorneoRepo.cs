@@ -18,6 +18,7 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
             .Include(x => x.TorneoAgrupador)
             .Include(x => x.Categorias)
             .Include("Fases.Zonas")
+            .Include("Fases.Zonas.Categoria")
             .Include("Fases.Zonas.Fechas")
             .Include("Fases.Zonas.EquiposZona")
             .Include(x => x.Fases)

@@ -18,6 +18,13 @@ public class ZonaDTO : DTO
     public int FaseId { get; set; }
 
     /// <summary>
+    /// Solo aplica a zonas de eliminación directa; debe ser una categoría del mismo torneo que la fase.
+    /// </summary>
+    public int? CategoriaId { get; set; }
+
+    public string? CategoriaNombre { get; set; }
+
+    /// <summary>
     /// Null = no modificar. Lista vacía = borrar todas. Con items = reemplazar.
     /// </summary>
     public List<EquipoDeLaZonaDTO>? Equipos { get; set; }

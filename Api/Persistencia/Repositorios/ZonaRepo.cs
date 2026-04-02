@@ -16,6 +16,7 @@ public class ZonaRepo : RepositorioABMAnidado<Zona, int>, IZonaRepo
     {
         return Context.Set<Zona>()
             .Include("Fase.Torneo.TorneoAgrupador")
+            .Include("Categoria")
             .Include(x => x.EquiposZona)
                 .ThenInclude(e => e.Equipo)
                     .ThenInclude(e => e.Club)

@@ -1,5 +1,6 @@
 using Api.Core.Entidades;
 using Api.Core.Entidades.EntidadesConValoresPredefinidos;
+using Api.Core.Otros;
 using Api.Core.Servicios;
 using Microsoft.EntityFrameworkCore;
 
@@ -109,7 +110,15 @@ public class AppDbContext : DbContext
             .IsUnique();
 
         builder.Entity<Zona>()
-            .ToTable("Zonas")
+            .ToTable("Zonas", t =>
+            {
+                if (!Database.IsSqlite())
+                {
+                    t.HasCheckConstraint(
+                        "CK_Zonas_EliminacionDirecta_TieneCategoria",
+                        "([TipoZona] <> N'EliminacionDirecta') OR ([CategoriaId] IS NOT NULL)");
+                }
+            })
             .HasDiscriminator<string>("TipoZona")
             .HasValue<ZonaTodosContraTodos>("TodosContraTodos")
             .HasValue<ZonaEliminacionDirecta>("EliminacionDirecta");
@@ -125,6 +134,12 @@ public class AppDbContext : DbContext
             .WithMany(f => f.Zonas)
             .HasForeignKey(z => z.FaseId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ZonaEliminacionDirecta>()
+            .HasOne(z => z.Categoria)
+            .WithMany()
+            .HasForeignKey(z => z.CategoriaId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<Fecha>()
             .ToTable("Fechas")
@@ -350,4 +365,33 @@ public class AppDbContext : DbContext
     public DbSet<FixtureAlgoritmoFecha> FixtureAlgoritmoFecha { get; set; } = null!;
     public DbSet<HistorialDePagos> HistorialDePagos { get; set; } = null!;
     public DbSet<Jornada> Jornadas { get; set; } = null!;
+
+    public override int SaveChanges()
+    {
+        ValidarZonasEliminacionDirectaCategoriaDelTorneo();
+        return base.SaveChanges();
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        ValidarZonasEliminacionDirectaCategoriaDelTorneo();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    private void ValidarZonasEliminacionDirectaCategoriaDelTorneo()
+    {
+        var entries = ChangeTracker.Entries<ZonaEliminacionDirecta>()
+            .Where(e => e.State is EntityState.Added or EntityState.Modified)
+            .ToList();
+        foreach (var entry in entries)
+        {
+            var zona = entry.Entity;
+            var torneoFase = Fases.AsNoTracking().Where(f => f.Id == zona.FaseId).Select(f => (int?)f.TorneoId).FirstOrDefault();
+            var torneoCat = TorneoCategorias.AsNoTracking().Where(c => c.Id == zona.CategoriaId).Select(c => (int?)c.TorneoId).FirstOrDefault();
+            if (torneoFase is null || torneoCat is null)
+                throw new ExcepcionControlada("La categoría o la fase no existen.");
+            if (torneoFase != torneoCat)
+                throw new ExcepcionControlada("La categoría debe pertenecer al mismo torneo que la fase de la zona.");
+        }
+    }
 }
