@@ -9,8 +9,8 @@ public class Jornada : Entidad
 
     [ForeignKey("Fecha")]
     public required int FechaId { get; set; }
-
     public required bool ResultadosVerificados { get; set; }
+    public virtual ICollection<Partido> Partidos { get; set; } = null!;
 }
 
 public class JornadaNormal : Jornada

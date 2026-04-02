@@ -225,6 +225,33 @@ public class AppDbContext : DbContext
             .HasForeignKey(j => j.LocalOVisitanteId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Mismo criterio que Partido.ResultadoValidoRegex / Partido.EsResultadoValido (SQL no admite regex en CHECK).
+        const string sqlCkPartidoResultado =
+            "([{0}] NOT LIKE '%[^0-9]%' OR [{0}] IN (N'NP', N'S', N'P', N'GP', N'PP'))";
+        builder.Entity<Partido>()
+            .ToTable("Partidos", t =>
+            {
+                if (!Database.IsSqlite())
+                {
+                    t.HasCheckConstraint(
+                        "CK_Partido_ResultadoLocal_Valido",
+                        string.Format(sqlCkPartidoResultado, "ResultadoLocal"));
+                    t.HasCheckConstraint(
+                        "CK_Partido_ResultadoVisitante_Valido",
+                        string.Format(sqlCkPartidoResultado, "ResultadoVisitante"));
+                }
+            });
+        builder.Entity<Partido>()
+            .HasOne(p => p.Jornada)
+            .WithMany(j => j.Partidos)
+            .HasForeignKey(p => p.JornadaId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<Partido>()
+            .HasOne(p => p.Categoria)
+            .WithMany()
+            .HasForeignKey(p => p.CategoriaId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Entity<EquipoZona>()
             .HasOne(ez => ez.Equipo)
             .WithMany(e => e.Zonas)
@@ -365,6 +392,7 @@ public class AppDbContext : DbContext
     public DbSet<FixtureAlgoritmoFecha> FixtureAlgoritmoFecha { get; set; } = null!;
     public DbSet<HistorialDePagos> HistorialDePagos { get; set; } = null!;
     public DbSet<Jornada> Jornadas { get; set; } = null!;
+    public DbSet<Partido> Partidos { get; set; } = null!;
 
     public override int SaveChanges()
     {
