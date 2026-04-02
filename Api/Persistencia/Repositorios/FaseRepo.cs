@@ -26,6 +26,7 @@ public class FaseRepo : RepositorioABMAnidado<Fase, int>, IFaseRepo
             .Include("Zonas.Categoria")
             .Include("Zonas.Fechas")
             .Include("Zonas.EquiposZona")
+            .AsSplitQuery()
             .Where(FiltroPorPadre(padreId))
             .ToListAsync();
     }
@@ -39,6 +40,7 @@ public class FaseRepo : RepositorioABMAnidado<Fase, int>, IFaseRepo
             .Include("Zonas.Categoria")
             .Include("Zonas.Fechas")
             .Include("Zonas.EquiposZona")
+            .AsSplitQuery()
             .Where(FiltroPorPadre(padreId))
             .SingleOrDefaultAsync(x => x.Id == id);
     }

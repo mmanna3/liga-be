@@ -21,6 +21,7 @@ public class ZonaRepo : RepositorioABMAnidado<Zona, int>, IZonaRepo
                 .ThenInclude(e => e.Equipo)
                     .ThenInclude(e => e.Club)
             .Include("Fechas")
+            .AsSplitQuery()
             .AsQueryable();
     }
 

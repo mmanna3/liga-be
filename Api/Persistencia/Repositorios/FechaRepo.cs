@@ -32,6 +32,7 @@ public class FechaRepo : RepositorioABMAnidado<Fecha, int>, IFechaRepo
             .Include(x => x.Jornadas)
                 .ThenInclude(j => j.Partidos)
                 .ThenInclude(p => p.Categoria)
+            .AsSplitQuery()
             .AsQueryable();
     }
 

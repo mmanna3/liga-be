@@ -19,6 +19,7 @@ public class ClubRepo : RepositorioABM<Club>, IClubRepo
             .Include(x => x.DelegadoClubs)
                 .ThenInclude(dc => dc.EstadoDelegado)
             .Include("Equipos.Zonas.Zona.Fase.Torneo")
+            .AsSplitQuery()
             .AsQueryable();
     }
 

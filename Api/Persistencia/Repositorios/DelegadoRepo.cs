@@ -41,6 +41,7 @@ public class DelegadoRepo : RepositorioABM<Delegado>, IDelegadoRepo
             .Include(x => x.DelegadoClubs)
                 .ThenInclude(dc => dc.EstadoDelegado)
             .Include(x => x.Usuario)
+            .AsSplitQuery()
             .AsQueryable();
     }
 

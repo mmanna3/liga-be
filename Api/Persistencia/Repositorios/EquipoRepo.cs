@@ -20,6 +20,7 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
                 .ThenInclude(x => x.Jugador)
             .Include(x => x.Jugadores)
                 .ThenInclude(x => x.EstadoJugador)
+            .AsSplitQuery()
             .AsQueryable();
     }
 
