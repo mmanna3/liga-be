@@ -1,6 +1,7 @@
 using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Core.Enums;
+using Api.Core.Logica;
 using Api.Core.Otros;
 using Api.Core.Repositorios;
 using Api.Core.Servicios.Interfaces;
@@ -584,5 +585,136 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
             throw new ExcepcionControlada("Debe enviar exactamente un partido por cada categoría de la jornada.");
 
         await BDVirtual.GuardarCambios();
+
+        if (zonaEsEliminacionDirecta)
+        {
+            await PropagarGanadoresAFechaSiguienteSiCorresponde(zonaId, jornada.FechaId);
+            await BDVirtual.GuardarCambios();
+        }
+    }
+
+    private void ReemplazarJornadaSiguienteConEquipos(Jornada jNext, int? g1, int? g2)
+    {
+        var fechaId = jNext.FechaId;
+
+        if (g1.HasValue && g2.HasValue)
+        {
+            switch (jNext)
+            {
+                case JornadaSinEquipos sin:
+                    _context.Jornadas.Remove(sin);
+                    _context.Jornadas.Add(new JornadaNormal
+                    {
+                        Id = 0,
+                        FechaId = fechaId,
+                        ResultadosVerificados = false,
+                        LocalEquipoId = g1.Value,
+                        VisitanteEquipoId = g2.Value
+                    });
+                    break;
+                case JornadaNormal n:
+                    n.LocalEquipoId = g1.Value;
+                    n.VisitanteEquipoId = g2.Value;
+                    break;
+            }
+
+            return;
+        }
+
+        switch (jNext)
+        {
+            case JornadaNormal n:
+                _context.Jornadas.Remove(n);
+                _context.Jornadas.Add(new JornadaSinEquipos
+                {
+                    Id = 0,
+                    FechaId = fechaId,
+                    ResultadosVerificados = false
+                });
+                break;
+            case JornadaSinEquipos:
+            case JornadaLibre:
+            case JornadaInterzonal:
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Empareja jornadas de la fecha actual con las de la siguiente solo por orden de id de jornada (ascendente).
+    /// Los equipos que pasan se resuelven por id (sin nombres ni otros criterios).
+    /// </summary>
+    private async Task PropagarGanadoresAFechaSiguienteSiCorresponde(int zonaId, int fechaId)
+    {
+        var todasVerificadas = await _context.Jornadas
+            .Where(j => j.FechaId == fechaId)
+            .AllAsync(j => j.ResultadosVerificados);
+        if (!todasVerificadas)
+            return;
+
+        var fechaActual = await _context.Fechas
+            .OfType<FechaEliminacionDirecta>()
+            .FirstOrDefaultAsync(f => f.Id == fechaId);
+        if (fechaActual == null)
+            return;
+
+        var instanciasOrdenadasDesc = await _context.InstanciaEliminacionDirecta
+            .OrderByDescending(i => i.Id)
+            .Select(i => i.Id)
+            .ToListAsync();
+
+        var idx = instanciasOrdenadasDesc.IndexOf(fechaActual.InstanciaId);
+        if (idx < 0 || idx + 1 >= instanciasOrdenadasDesc.Count)
+            return;
+
+        var siguienteInstanciaId = instanciasOrdenadasDesc[idx + 1];
+
+        var fechaSiguiente = await _context.Fechas
+            .OfType<FechaEliminacionDirecta>()
+            .FirstOrDefaultAsync(f => f.ZonaId == zonaId && f.InstanciaId == siguienteInstanciaId);
+        if (fechaSiguiente == null)
+            return;
+
+        var esperadoActual = CantidadJornadasPorInstanciaEliminacionDirecta(fechaActual.InstanciaId);
+        var esperadoSiguiente = CantidadJornadasPorInstanciaEliminacionDirecta(siguienteInstanciaId);
+
+        var jornadasActual = await _context.Jornadas
+            .Where(j => j.FechaId == fechaId)
+            .OrderBy(j => j.Id)
+            .ToListAsync();
+
+        var jornadasSiguiente = await _context.Jornadas
+            .Where(j => j.FechaId == fechaSiguiente.Id)
+            .OrderBy(j => j.Id)
+            .ToListAsync();
+
+        if (jornadasActual.Count != esperadoActual || jornadasSiguiente.Count != esperadoSiguiente)
+            return;
+
+        if (jornadasActual.Count != 2 * jornadasSiguiente.Count)
+            return;
+
+        var idsJornadasActual = jornadasActual.Select(j => j.Id).ToList();
+        var partidosPorJornadaId = await _context.Partidos
+            .Where(p => idsJornadasActual.Contains(p.JornadaId))
+            .ToDictionaryAsync(p => p.JornadaId);
+
+        for (var k = 0; k < jornadasSiguiente.Count; k++)
+        {
+            var j1 = jornadasActual[2 * k];
+            var j2 = jornadasActual[2 * k + 1];
+            if (!partidosPorJornadaId.TryGetValue(j1.Id, out var p1) ||
+                !partidosPorJornadaId.TryGetValue(j2.Id, out var p2))
+                continue;
+
+            var entrada1 = EliminacionDirectaLogica.CrearEntrada(j1, p1);
+            var entrada2 = EliminacionDirectaLogica.CrearEntrada(j2, p2);
+            var g1 = EliminacionDirectaLogica.DecidirQueEquipoPasaALaSiguienteInstancia(entrada1);
+            var g2 = EliminacionDirectaLogica.DecidirQueEquipoPasaALaSiguienteInstancia(entrada2);
+
+            var jNext = jornadasSiguiente[k];
+            ReemplazarJornadaSiguienteConEquipos(jNext, g1, g2);
+        }
+
+        await AsegurarPartidosPorCategoriaPorJornada(fechaSiguiente.Id, zonaId);
     }
 }
