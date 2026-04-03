@@ -1016,6 +1016,185 @@ public class FechasIT : TestBase
     }
 
     [Fact]
+    public async Task CrearFechasEliminacionDirectaMasivamente_CadaJornadaTienePartido_IncluidaInstanciaFinal()
+    {
+        var zonaId = await CrearZonaEliminacionDirectaDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var dto = new FechaEliminacionDirectaDTO
+        {
+            Dia = new DateOnly(2026, 6, 1),
+            EsVisibleEnApp = true,
+            InstanciaId = 16
+        };
+
+        var response = await client.PostAsJsonAsync(
+            $"/api/Zona/{zonaId}/fechas/crear-fechas-eliminaciondirecta-masivamente", dto, FechaJsonOptions);
+        response.EnsureSuccessStatusCode();
+
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var categoriaZonaId = await context.Zonas.OfType<ZonaEliminacionDirecta>()
+            .Where(z => z.Id == zonaId)
+            .Select(z => z.CategoriaId)
+            .FirstAsync();
+
+        var fechaIds = await context.Fechas.Where(f => f.ZonaId == zonaId).Select(f => f.Id).ToListAsync();
+        var jornadas = await context.Jornadas.Where(j => fechaIds.Contains(j.FechaId)).ToListAsync();
+        Assert.NotEmpty(jornadas);
+
+        var fechaFinal = await context.Fechas.OfType<FechaEliminacionDirecta>()
+            .FirstAsync(f => f.ZonaId == zonaId && f.InstanciaId == 2);
+        Assert.Contains(jornadas, j => j.FechaId == fechaFinal.Id);
+
+        foreach (var j in jornadas)
+        {
+            var partidosDeJornada = await context.Partidos
+                .Where(p => p.JornadaId == j.Id && p.CategoriaId == categoriaZonaId)
+                .CountAsync();
+            Assert.Equal(1, partidosDeJornada);
+        }
+    }
+
+    [Fact]
+    public async Task PropagarEliminacionDirecta_CuartosASemifinal_SemifinalTienePartidosTrasCargarResultados()
+    {
+        Assert.NotNull(_club);
+        var zonaId = await CrearZonaEliminacionDirectaDePrueba(Factory);
+        int categoriaZonaId;
+        var equiposIds = new int[8];
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            categoriaZonaId = await context.Zonas.OfType<ZonaEliminacionDirecta>()
+                .Where(z => z.Id == zonaId)
+                .Select(z => z.CategoriaId)
+                .FirstAsync();
+            var equipos = Enumerable.Range(0, 8)
+                .Select(i => new Equipo
+                {
+                    Id = 0,
+                    Nombre = $"ED Prop {i}",
+                    ClubId = _club.Id,
+                    Jugadores = [],
+                    Zonas = []
+                })
+                .ToList();
+            context.Equipos.AddRange(equipos);
+            await context.SaveChangesAsync();
+            for (var i = 0; i < 8; i++)
+                equiposIds[i] = equipos[i].Id;
+            context.EquipoZona.AddRange(equipos.Select(e => new EquipoZona { Id = 0, EquipoId = e.Id, ZonaId = zonaId }));
+            await context.SaveChangesAsync();
+        }
+
+        var client = await GetAuthenticatedClient();
+        var dto = new FechaEliminacionDirectaDTO
+        {
+            Dia = new DateOnly(2026, 7, 1),
+            EsVisibleEnApp = true,
+            InstanciaId = 8,
+            Jornadas =
+            [
+                new JornadaDTO
+                {
+                    Tipo = "Normal",
+                    ResultadosVerificados = false,
+                    LocalId = equiposIds[0],
+                    VisitanteId = equiposIds[1]
+                },
+                new JornadaDTO
+                {
+                    Tipo = "Normal",
+                    ResultadosVerificados = false,
+                    LocalId = equiposIds[2],
+                    VisitanteId = equiposIds[3]
+                },
+                new JornadaDTO
+                {
+                    Tipo = "Normal",
+                    ResultadosVerificados = false,
+                    LocalId = equiposIds[4],
+                    VisitanteId = equiposIds[5]
+                },
+                new JornadaDTO
+                {
+                    Tipo = "Normal",
+                    ResultadosVerificados = false,
+                    LocalId = equiposIds[6],
+                    VisitanteId = equiposIds[7]
+                }
+            ]
+        };
+
+        var response = await client.PostAsJsonAsync(
+            $"/api/Zona/{zonaId}/fechas/crear-fechas-eliminaciondirecta-masivamente", dto, FechaJsonOptions);
+        response.EnsureSuccessStatusCode();
+
+        List<int> jornadasCuartosIds;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var fechaCuartosId = await context.Fechas.OfType<FechaEliminacionDirecta>()
+                .Where(f => f.ZonaId == zonaId && f.InstanciaId == 8)
+                .Select(f => f.Id)
+                .FirstAsync();
+            jornadasCuartosIds = await context.Jornadas
+                .Where(j => j.FechaId == fechaCuartosId)
+                .OrderBy(j => j.Id)
+                .Select(j => j.Id)
+                .ToListAsync();
+            Assert.Equal(4, jornadasCuartosIds.Count);
+        }
+
+        foreach (var jornadaId in jornadasCuartosIds)
+        {
+            int partidoId;
+            using (var scope = Factory.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                partidoId = await context.Partidos.Where(p => p.JornadaId == jornadaId).Select(p => p.Id).FirstAsync();
+            }
+
+            var cargar = new CargarResultadosDTO
+            {
+                JornadaId = jornadaId,
+                ResultadosVerificados = true,
+                Partidos =
+                [
+                    new PartidoDTO
+                    {
+                        Id = partidoId,
+                        CategoriaId = categoriaZonaId,
+                        ResultadoLocal = "1",
+                        ResultadoVisitante = "0"
+                    }
+                ]
+            };
+            var postRes = await client.PostAsJsonAsync(
+                $"/api/Zona/{zonaId}/fechas/cargar-resultados/{jornadaId}", cargar, FechaJsonOptions);
+            postRes.EnsureSuccessStatusCode();
+        }
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var fechaSemiId = await context.Fechas.OfType<FechaEliminacionDirecta>()
+                .Where(f => f.ZonaId == zonaId && f.InstanciaId == 4)
+                .Select(f => f.Id)
+                .FirstAsync();
+            var jornadasSemi = await context.Jornadas.Where(j => j.FechaId == fechaSemiId).OrderBy(j => j.Id).ToListAsync();
+            Assert.Equal(2, jornadasSemi.Count);
+            Assert.All(jornadasSemi, j => Assert.IsType<JornadaNormal>(j));
+            foreach (var j in jornadasSemi)
+            {
+                var n = await context.Partidos.CountAsync(p => p.JornadaId == j.Id && p.CategoriaId == categoriaZonaId);
+                Assert.Equal(1, n);
+            }
+        }
+    }
+
+    [Fact]
     public async Task CrearFechasEliminacionDirectaMasivamente_ConVariasCategoriasEnTorneo_UnSoloPartidoPorJornada()
     {
         Assert.NotNull(_club);

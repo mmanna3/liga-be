@@ -328,6 +328,28 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
     }
 
     /// <summary>
+    /// Ids de jornadas de una fecha: consulta a BD + entidades rastreadas (evita desajustes tras guardar jornadas nuevas).
+    /// </summary>
+    private async Task<List<int>> ListarIdsJornadasDeFecha(int fechaId)
+    {
+        _context.ChangeTracker.DetectChanges();
+
+        var desdeDb = await _context.Jornadas
+            .Where(j => j.FechaId == fechaId)
+            .Select(j => j.Id)
+            .ToListAsync();
+
+        var desdeTracker = _context.ChangeTracker
+            .Entries<Jornada>()
+            .Where(e => e.Entity.FechaId == fechaId && e.State != EntityState.Deleted)
+            .Select(e => e.Entity.Id)
+            .Where(id => id > 0)
+            .ToList();
+
+        return desdeDb.Union(desdeTracker).Distinct().ToList();
+    }
+
+    /// <summary>
     /// Zona todos contra todos: un partido por cada par (jornada, categoría del torneo).
     /// Zona eliminación directa: un solo partido por jornada, con la categoría de la zona.
     /// Resultados vacíos. Idempotente: no duplica si ya existía el partido.
@@ -360,10 +382,7 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
         if (categoriaIds.Count == 0)
             return;
 
-        var jornadaIds = await _context.Jornadas
-            .Where(j => j.FechaId == fechaId)
-            .Select(j => j.Id)
-            .ToListAsync();
+        var jornadaIds = await ListarIdsJornadasDeFecha(fechaId);
 
         if (jornadaIds.Count == 0)
             return;
@@ -715,6 +734,9 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
             ReemplazarJornadaSiguienteConEquipos(jNext, g1, g2);
         }
 
+        // Las jornadas nuevas (p. ej. Normal reemplazando SinEquipos) tienen Id=0 hasta guardar;
+        // sin esto, ListarIdsJornadasDeFecha no las ve y no se crean partidos en la instancia siguiente.
+        await BDVirtual.GuardarCambios();
         await AsegurarPartidosPorCategoriaPorJornada(fechaSiguiente.Id, zonaId);
     }
 }
