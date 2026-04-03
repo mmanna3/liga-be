@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace Api.Core.Otros;
@@ -48,5 +49,65 @@ public static class PartidoResultadoValidador
 
         if (!PatronSoloDigitos.IsMatch(valor.Trim()))
             throw new ExcepcionControlada("Los penales solo pueden contener números.");
+    }
+
+    /// <summary>
+    /// En zona de eliminación directa, si el resultado es empate numérico, los penales son obligatorios,
+    /// enteros distintos y mayores que cero. En el resto de los casos aplica <see cref="ValidarPenalesOpcional"/>.
+    /// </summary>
+    public static void ValidarPenalesSegunZonaYResultado(
+        bool zonaEsEliminacionDirecta,
+        string resultadoLocal,
+        string resultadoVisitante,
+        string? penalesLocal,
+        string? penalesVisitante)
+    {
+        if (zonaEsEliminacionDirecta && EsEmpateSoloDigitosIgual(resultadoLocal, resultadoVisitante))
+        {
+            ValidarPenalesObligatoriosEmpateEliminacionDirecta(penalesLocal, penalesVisitante);
+            return;
+        }
+
+        ValidarPenalesOpcional(penalesLocal);
+        ValidarPenalesOpcional(penalesVisitante);
+    }
+
+    private static bool EsEmpateSoloDigitosIgual(string resultadoLocal, string resultadoVisitante)
+    {
+        var a = resultadoLocal.Trim();
+        var b = resultadoVisitante.Trim();
+        if (!PatronSoloDigitos.IsMatch(a) || !PatronSoloDigitos.IsMatch(b))
+            return false;
+
+        if (!int.TryParse(a, NumberStyles.Integer, CultureInfo.InvariantCulture, out var va) ||
+            !int.TryParse(b, NumberStyles.Integer, CultureInfo.InvariantCulture, out var vb))
+            return false;
+
+        return va == vb;
+    }
+
+    private static void ValidarPenalesObligatoriosEmpateEliminacionDirecta(string? penalesLocal, string? penalesVisitante)
+    {
+        if (string.IsNullOrWhiteSpace(penalesLocal) || string.IsNullOrWhiteSpace(penalesVisitante))
+            throw new ExcepcionControlada(
+                "En eliminación directa, si el resultado es empate numérico, debe cargar los penales de ambos equipos.");
+
+        var pl = penalesLocal.Trim();
+        var pv = penalesVisitante.Trim();
+
+        if (!PatronSoloDigitos.IsMatch(pl) || !PatronSoloDigitos.IsMatch(pv))
+            throw new ExcepcionControlada("Los penales solo pueden contener números.");
+
+        if (!int.TryParse(pl, NumberStyles.Integer, CultureInfo.InvariantCulture, out var nL) ||
+            !int.TryParse(pv, NumberStyles.Integer, CultureInfo.InvariantCulture, out var nV))
+            throw new ExcepcionControlada("Los penales solo pueden contener números.");
+
+        if (nL <= 0 || nV <= 0)
+            throw new ExcepcionControlada(
+                "En eliminación directa, si el resultado es empate numérico, los penales deben ser mayores que cero.");
+
+        if (nL == nV)
+            throw new ExcepcionControlada(
+                "En eliminación directa, si el resultado es empate numérico, los penales deben ser distintos.");
     }
 }

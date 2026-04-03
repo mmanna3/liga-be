@@ -541,6 +541,10 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
         if (partidosDb.Count != partidos.Count)
             throw new ExcepcionControlada("Debe enviar exactamente un partido por cada categoría de la jornada.");
 
+        var zonaEsEliminacionDirecta = await _context.Zonas
+            .OfType<ZonaEliminacionDirecta>()
+            .AnyAsync(z => z.Id == zonaId);
+
         var porId = partidosDb.ToDictionary(p => p.Id);
         var idsEnRequest = new HashSet<int>();
 
@@ -559,8 +563,12 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
                 throw new ExcepcionControlada("La categoría de un partido no coincide con el registro existente.");
 
             PartidoResultadoValidador.ValidarParResultados(partidoDto.ResultadoLocal, partidoDto.ResultadoVisitante);
-            PartidoResultadoValidador.ValidarPenalesOpcional(partidoDto.PenalesLocal);
-            PartidoResultadoValidador.ValidarPenalesOpcional(partidoDto.PenalesVisitante);
+            PartidoResultadoValidador.ValidarPenalesSegunZonaYResultado(
+                zonaEsEliminacionDirecta,
+                partidoDto.ResultadoLocal,
+                partidoDto.ResultadoVisitante,
+                partidoDto.PenalesLocal,
+                partidoDto.PenalesVisitante);
 
             entidad.ResultadoLocal = partidoDto.ResultadoLocal.Trim();
             entidad.ResultadoVisitante = partidoDto.ResultadoVisitante.Trim();
