@@ -12,4 +12,9 @@ public interface IFechaCore : ICoreABMAnidado<int, FechaDTO>
 
     Task ModificarMasivamente(int padreId, IEnumerable<FechaDTO> dtos);
     Task CargarResultados(int zonaId, int jornadaId, CargarResultadosDTO dto);
+
+    /// <summary>
+    /// Elimina todas las fechas de una zona de eliminación directa, con sus jornadas y partidos.
+    /// </summary>
+    Task BorrarFechasEliminacionDirectaMasivamente(int padreId);
 }

@@ -33,6 +33,16 @@ public class FechaController : ABMControllerAnidado<FechaDTO, IFechaCore>
         return Ok(creado);
     }
 
+    /// <summary>
+    /// Elimina todas las fechas de la zona (solo eliminación directa), con sus jornadas y partidos.
+    /// </summary>
+    [HttpDelete("borrar-fechas-eliminaciondirecta-masivamente")]
+    public async Task<IActionResult> BorrarFechasEliminacionDirectaMasivamente(int padreId)
+    {
+        await Core.BorrarFechasEliminacionDirectaMasivamente(padreId);
+        return NoContent();
+    }
+
     [HttpPut("modificar-fechas-masivamente")]
     public async Task<IActionResult> ModificarMasivamente(int padreId, [FromBody] List<FechaDTO> dtos)
     {

@@ -187,6 +187,19 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
         throw new ExcepcionControlada("No se pudo obtener la fecha de eliminación directa recién creada.");
     }
 
+    public async Task BorrarFechasEliminacionDirectaMasivamente(int padreId)
+    {
+        var zona = await _torneoZonaRepo.ObtenerPorId(padreId);
+        if (zona == null)
+            throw new ExcepcionControlada("La zona indicada no existe.");
+        if (zona is not ZonaEliminacionDirecta)
+            throw new ExcepcionControlada("Solo las zonas de eliminación directa admiten esta operación.");
+
+        var ids = (await Repo.ListarIdsPorPadre(padreId)).ToList();
+        foreach (var id in ids)
+            await Eliminar(padreId, id);
+    }
+
     public override async Task<int> Eliminar(int padreId, int id)
     {
         var entidad = await Repo.ObtenerPorIdYPadreParaEliminar(padreId, id);

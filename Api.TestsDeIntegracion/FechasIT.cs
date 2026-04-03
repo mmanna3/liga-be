@@ -1069,4 +1069,40 @@ public class FechasIT : TestBase
             Assert.All(partidos, p => Assert.Equal(categoriaZonaId, p.CategoriaId));
         }
     }
+
+    [Fact]
+    public async Task BorrarFechasEliminacionDirectaMasivamente_ZonaEd_EliminaFechasJornadasPartidos()
+    {
+        var zonaId = await CrearZonaEliminacionDirectaDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var dto = new FechaEliminacionDirectaDTO
+        {
+            Dia = new DateOnly(2026, 6, 1),
+            EsVisibleEnApp = true,
+            InstanciaId = 16
+        };
+        var post = await client.PostAsJsonAsync(
+            $"/api/Zona/{zonaId}/fechas/crear-fechas-eliminaciondirecta-masivamente", dto, FechaJsonOptions);
+        post.EnsureSuccessStatusCode();
+
+        var delete = await client.DeleteAsync($"/api/Zona/{zonaId}/fechas/borrar-fechas-eliminaciondirecta-masivamente");
+        delete.EnsureSuccessStatusCode();
+        Assert.Equal(System.Net.HttpStatusCode.NoContent, delete.StatusCode);
+
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.Equal(0, await context.Fechas.CountAsync(f => f.ZonaId == zonaId));
+        Assert.Equal(0, await context.Jornadas.CountAsync());
+        Assert.Equal(0, await context.Partidos.CountAsync());
+    }
+
+    [Fact]
+    public async Task BorrarFechasEliminacionDirectaMasivamente_ZonaTodosContraTodos_400()
+    {
+        var zonaId = await CrearZonaDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+        var response = await client.DeleteAsync($"/api/Zona/{zonaId}/fechas/borrar-fechas-eliminaciondirecta-masivamente");
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }
