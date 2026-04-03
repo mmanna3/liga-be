@@ -242,6 +242,14 @@ public class AppDbContext : DbContext
                     t.HasCheckConstraint(
                         "CK_Partido_ResultadoVisitante_Valido",
                         string.Format(sqlCkPartidoResultado, "ResultadoVisitante"));
+                    const string sqlCkPenalesOpcional =
+                        "([{0}] IS NULL OR ([{0}] NOT LIKE '%[^0-9]%' AND LEN([{0}]) > 0))";
+                    t.HasCheckConstraint(
+                        "CK_Partido_PenalesLocal_Valido",
+                        string.Format(sqlCkPenalesOpcional, "PenalesLocal"));
+                    t.HasCheckConstraint(
+                        "CK_Partido_PenalesVisitante_Valido",
+                        string.Format(sqlCkPenalesOpcional, "PenalesVisitante"));
                 }
             });
         builder.Entity<Partido>()

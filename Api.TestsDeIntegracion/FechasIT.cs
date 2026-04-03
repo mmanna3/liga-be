@@ -1007,6 +1007,12 @@ public class FechasIT : TestBase
         var creado = DeserializeFechaEd(await response.Content.ReadAsStringAsync());
         Assert.Equal(16, creado.InstanciaId);
         Assert.Equal(new DateOnly(2026, 6, 1), creado.Dia);
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Assert.Equal(4, await context.Fechas.CountAsync(f => f.ZonaId == zonaId));
+        }
     }
 
     [Fact]
@@ -1062,10 +1068,11 @@ public class FechasIT : TestBase
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var fechaIds = await context.Fechas.Where(f => f.ZonaId == zonaId).Select(f => f.Id).ToListAsync();
+            Assert.Equal(4, fechaIds.Count);
             var jornadaIds = await context.Jornadas.Where(j => fechaIds.Contains(j.FechaId)).Select(j => j.Id).ToListAsync();
-            Assert.Equal(2, jornadaIds.Count);
+            Assert.Equal(9, jornadaIds.Count);
             var partidos = await context.Partidos.Where(p => jornadaIds.Contains(p.JornadaId)).ToListAsync();
-            Assert.Equal(2, partidos.Count);
+            Assert.Equal(9, partidos.Count);
             Assert.All(partidos, p => Assert.Equal(categoriaZonaId, p.CategoriaId));
         }
     }

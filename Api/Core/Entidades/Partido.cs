@@ -11,4 +11,10 @@ public class Partido : Entidad
     public virtual Jornada Jornada { get; set; } = null!;
     public required string ResultadoLocal { get; set; } = string.Empty;
     public required string ResultadoVisitante { get; set; } = string.Empty;
+
+    /// <summary>Opcional. Solo dígitos (0-9) cuando tiene valor.</summary>
+    public string? PenalesLocal { get; set; }
+
+    /// <summary>Opcional. Solo dígitos (0-9) cuando tiene valor.</summary>
+    public string? PenalesVisitante { get; set; }
 }

@@ -12,6 +12,8 @@ public static class PartidoResultadoValidador
         @"^(?:[0-9]+|NP|GP|PP|S|P)$",
         RegexOptions.Compiled);
 
+    private static readonly Regex PatronSoloDigitos = new(@"^[0-9]+$", RegexOptions.Compiled);
+
     public static void ValidarResultado(string valor)
     {
         if (string.IsNullOrWhiteSpace(valor))
@@ -36,5 +38,15 @@ public static class PartidoResultadoValidador
                 throw new ExcepcionControlada(
                     "Si el resultado local o visitante es S o P, el otro debe ser el mismo.");
         }
+    }
+
+    /// <summary>Null o vacío es válido; si hay texto, debe ser solo dígitos.</summary>
+    public static void ValidarPenalesOpcional(string? valor)
+    {
+        if (valor == null || string.IsNullOrWhiteSpace(valor))
+            return;
+
+        if (!PatronSoloDigitos.IsMatch(valor.Trim()))
+            throw new ExcepcionControlada("Los penales solo pueden contener números.");
     }
 }

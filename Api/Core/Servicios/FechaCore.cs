@@ -180,11 +180,52 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
     public async Task<FechaEliminacionDirectaDTO> CrearFechasEliminacionDirectaMasivamente(
         int padreId, FechaEliminacionDirectaDTO dto)
     {
-        var id = await CrearFechaEliminacionDirecta(padreId, dto);
-        var creado = await ObtenerPorId(padreId, id);
+        var instanciasOrdenadas = await _context.InstanciaEliminacionDirecta
+            .OrderByDescending(i => i.Id)
+            .AsNoTracking()
+            .ToListAsync();
+
+        var idxInicio = instanciasOrdenadas.FindIndex(i => i.Id == dto.InstanciaId);
+        if (idxInicio < 0)
+            throw new ExcepcionControlada("La instancia de eliminación directa no es válida.");
+
+        var desdeInicio = instanciasOrdenadas.Skip(idxInicio).ToList();
+
+        var idPrimera = await CrearFechaEliminacionDirecta(padreId, dto);
+
+        foreach (var inst in desdeInicio.Skip(1))
+        {
+            var cantidadJornadas = CantidadJornadasPorInstanciaEliminacionDirecta(inst.Id);
+            var jornadasPlaceholder = Enumerable.Range(0, cantidadJornadas)
+                .Select(_ => new JornadaDTO
+                {
+                    Tipo = "SinEquipos",
+                    ResultadosVerificados = false
+                })
+                .ToList();
+
+            var dtoPlaceholder = new FechaEliminacionDirectaDTO
+            {
+                Dia = dto.Dia,
+                EsVisibleEnApp = dto.EsVisibleEnApp,
+                InstanciaId = inst.Id,
+                Jornadas = jornadasPlaceholder
+            };
+
+            await CrearFechaEliminacionDirecta(padreId, dtoPlaceholder);
+        }
+
+        var creado = await ObtenerPorId(padreId, idPrimera);
         if (creado is FechaEliminacionDirectaDTO f)
             return f;
         throw new ExcepcionControlada("No se pudo obtener la fecha de eliminación directa recién creada.");
+    }
+
+    private static int CantidadJornadasPorInstanciaEliminacionDirecta(int instanciaId)
+    {
+        if (instanciaId < 2 || instanciaId % 2 != 0)
+            throw new ExcepcionControlada("Instancia de eliminación directa no válida.");
+        return instanciaId / 2;
     }
 
     public async Task BorrarFechasEliminacionDirectaMasivamente(int padreId)
@@ -518,9 +559,17 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
                 throw new ExcepcionControlada("La categoría de un partido no coincide con el registro existente.");
 
             PartidoResultadoValidador.ValidarParResultados(partidoDto.ResultadoLocal, partidoDto.ResultadoVisitante);
+            PartidoResultadoValidador.ValidarPenalesOpcional(partidoDto.PenalesLocal);
+            PartidoResultadoValidador.ValidarPenalesOpcional(partidoDto.PenalesVisitante);
 
             entidad.ResultadoLocal = partidoDto.ResultadoLocal.Trim();
             entidad.ResultadoVisitante = partidoDto.ResultadoVisitante.Trim();
+            entidad.PenalesLocal = string.IsNullOrWhiteSpace(partidoDto.PenalesLocal)
+                ? null
+                : partidoDto.PenalesLocal.Trim();
+            entidad.PenalesVisitante = string.IsNullOrWhiteSpace(partidoDto.PenalesVisitante)
+                ? null
+                : partidoDto.PenalesVisitante.Trim();
         }
 
         if (idsEnRequest.Count != partidosDb.Count)
