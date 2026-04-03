@@ -3,11 +3,11 @@ using Api.Core.Enums;
 namespace Api.Core.DTOs;
 
 /// <summary>
-/// DTO para Jornada. Soporta los tipos: Normal, Libre, Interzonal.
+/// DTO para Jornada. Soporta los tipos: Normal, Libre, Interzonal, SinEquipos.
 /// </summary>
 public class JornadaDTO : DTO
 {
-    public required string Tipo { get; set; } // "Normal", "Libre", "Interzonal"
+    public required string Tipo { get; set; } // "Normal", "Libre", "Interzonal", "SinEquipos"
 
     public required bool ResultadosVerificados { get; set; }
 

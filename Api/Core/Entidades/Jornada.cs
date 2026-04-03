@@ -36,3 +36,8 @@ public class JornadaInterzonal : Jornada
     public required int LocalOVisitanteId { get; set; }
     public virtual LocalVisitante LocalVisitante { get; set; } = null!;
 }
+
+/// <summary>
+/// Jornada sin equipos asignados (placeholders, BYE, etc.). Las columnas de equipo en la fila quedan en NULL.
+/// </summary>
+public class JornadaSinEquipos : Jornada;

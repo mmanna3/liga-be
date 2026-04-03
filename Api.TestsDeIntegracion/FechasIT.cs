@@ -32,8 +32,8 @@ public class FechasIT : TestBase
     private static List<FechaTodosContraTodosDTO> DeserializeFechaTctList(string json) =>
         JsonSerializer.Deserialize<List<FechaTodosContraTodosDTO>>(json, FechaJsonOptions) ?? [];
 
-    private static List<FechaEliminacionDirectaDTO> DeserializeFechaEdList(string json) =>
-        JsonSerializer.Deserialize<List<FechaEliminacionDirectaDTO>>(json, FechaJsonOptions) ?? [];
+    private static FechaEliminacionDirectaDTO DeserializeFechaEd(string json) =>
+        JsonSerializer.Deserialize<FechaEliminacionDirectaDTO>(json, FechaJsonOptions)!;
 
     private global::Api.TestsUtilidades.Utilidades? _utilidades;
     private Club? _club;
@@ -994,18 +994,19 @@ public class FechasIT : TestBase
         var zonaId = await CrearZonaEliminacionDirectaDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
-        var dtos = new List<FechaEliminacionDirectaDTO>
+        var dto = new FechaEliminacionDirectaDTO
         {
-            new() { Dia = new DateOnly(2026, 6, 1), EsVisibleEnApp = true, InstanciaId = 16 }
+            Dia = new DateOnly(2026, 6, 1),
+            EsVisibleEnApp = true,
+            InstanciaId = 16
         };
 
-        var response = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-eliminaciondirecta-masivamente", dtos, FechaJsonOptions);
+        var response = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/fechas/crear-fechas-eliminaciondirecta-masivamente", dto, FechaJsonOptions);
         response.EnsureSuccessStatusCode();
 
-        var creados = DeserializeFechaEdList(await response.Content.ReadAsStringAsync());
-        Assert.Single(creados);
-        Assert.Equal(16, creados[0].InstanciaId);
-        Assert.Equal(new DateOnly(2026, 6, 1), creados[0].Dia);
+        var creado = DeserializeFechaEd(await response.Content.ReadAsStringAsync());
+        Assert.Equal(16, creado.InstanciaId);
+        Assert.Equal(new DateOnly(2026, 6, 1), creado.Dia);
     }
 
     [Fact]
@@ -1039,25 +1040,22 @@ public class FechasIT : TestBase
         }
 
         var client = await GetAuthenticatedClient();
-        var dtos = new List<FechaEliminacionDirectaDTO>
+        var dto = new FechaEliminacionDirectaDTO
         {
-            new()
-            {
-                Dia = new DateOnly(2026, 6, 1),
-                EsVisibleEnApp = true,
-                InstanciaId = 16,
-                Jornadas =
-                [
-                    new JornadaDTO
-                        { Tipo = "Normal", ResultadosVerificados = false, LocalId = equipo1Id, VisitanteId = equipo2Id },
-                    new JornadaDTO
-                        { Tipo = "Normal", ResultadosVerificados = false, LocalId = equipo2Id, VisitanteId = equipo1Id }
-                ]
-            }
+            Dia = new DateOnly(2026, 6, 1),
+            EsVisibleEnApp = true,
+            InstanciaId = 16,
+            Jornadas =
+            [
+                new JornadaDTO
+                    { Tipo = "Normal", ResultadosVerificados = false, LocalId = equipo1Id, VisitanteId = equipo2Id },
+                new JornadaDTO
+                    { Tipo = "Normal", ResultadosVerificados = false, LocalId = equipo2Id, VisitanteId = equipo1Id }
+            ]
         };
 
         var response = await client.PostAsJsonAsync(
-            $"/api/Zona/{zonaId}/fechas/crear-fechas-eliminaciondirecta-masivamente", dtos, FechaJsonOptions);
+            $"/api/Zona/{zonaId}/fechas/crear-fechas-eliminaciondirecta-masivamente", dto, FechaJsonOptions);
         response.EnsureSuccessStatusCode();
 
         using (var scope = Factory.Services.CreateScope())

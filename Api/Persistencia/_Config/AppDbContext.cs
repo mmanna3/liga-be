@@ -184,14 +184,17 @@ public class AppDbContext : DbContext
     OR
     ([Tipo] = N'Libre' AND [EquipoLocalId] IS NOT NULL AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL AND [EquipoId] IS NULL AND [LocalOVisitanteId] IS NULL)
     OR
-    ([Tipo] = N'Interzonal' AND [EquipoId] IS NOT NULL AND [LocalOVisitanteId] IS NOT NULL AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL AND [EquipoLocalId] IS NULL)");
+    ([Tipo] = N'Interzonal' AND [EquipoId] IS NOT NULL AND [LocalOVisitanteId] IS NOT NULL AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL AND [EquipoLocalId] IS NULL)
+    OR
+    ([Tipo] = N'SinEquipos' AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL AND [EquipoId] IS NULL AND [EquipoLocalId] IS NULL AND [LocalOVisitanteId] IS NULL)");
                 }
             });
         builder.Entity<Jornada>()
             .HasDiscriminator<string>("Tipo")
             .HasValue<JornadaNormal>("Normal")
             .HasValue<JornadaLibre>("Libre")
-            .HasValue<JornadaInterzonal>("Interzonal");
+            .HasValue<JornadaInterzonal>("Interzonal")
+            .HasValue<JornadaSinEquipos>("SinEquipos");
         builder.Entity<Jornada>()
             .HasOne(j => j.Fecha)
             .WithMany(f => f.Jornadas)

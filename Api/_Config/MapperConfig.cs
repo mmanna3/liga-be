@@ -305,6 +305,7 @@ public class JornadaTipoResolver : IValueResolver<Jornada, JornadaDTO, string>
             JornadaNormal => "Normal",
             JornadaLibre => "Libre",
             JornadaInterzonal => "Interzonal",
+            JornadaSinEquipos => "SinEquipos",
             _ => "Normal"
         };
     }

@@ -177,18 +177,14 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
         return creados;
     }
 
-    public async Task<IEnumerable<FechaEliminacionDirectaDTO>> CrearFechasEliminacionDirectaMasivamente(
-        int padreId, IEnumerable<FechaEliminacionDirectaDTO> dtos)
+    public async Task<FechaEliminacionDirectaDTO> CrearFechasEliminacionDirectaMasivamente(
+        int padreId, FechaEliminacionDirectaDTO dto)
     {
-        var creados = new List<FechaEliminacionDirectaDTO>();
-        foreach (var dto in dtos)
-        {
-            var id = await CrearFechaEliminacionDirecta(padreId, dto);
-            var creado = await ObtenerPorId(padreId, id);
-            if (creado is FechaEliminacionDirectaDTO f)
-                creados.Add(f);
-        }
-        return creados;
+        var id = await CrearFechaEliminacionDirecta(padreId, dto);
+        var creado = await ObtenerPorId(padreId, id);
+        if (creado is FechaEliminacionDirectaDTO f)
+            return f;
+        throw new ExcepcionControlada("No se pudo obtener la fecha de eliminación directa recién creada.");
     }
 
     public override async Task<int> Eliminar(int padreId, int id)
@@ -427,7 +423,13 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
                 EquipoId = dto.EquipoId ?? 0,
                 LocalOVisitanteId = (int)(dto.LocalOVisitante ?? LocalVisitanteEnum.Local)
             },
-            _ => throw new ExcepcionControlada($"Tipo de jornada no válido: '{dto.Tipo}'. Debe ser Normal, Libre o Interzonal.")
+            "SinEquipos" => new JornadaSinEquipos
+            {
+                Id = 0,
+                FechaId = fechaId,
+                ResultadosVerificados = dto.ResultadosVerificados
+            },
+            _ => throw new ExcepcionControlada($"Tipo de jornada no válido: '{dto.Tipo}'. Debe ser Normal, Libre, Interzonal o SinEquipos.")
         };
     }
 
@@ -447,6 +449,8 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
             case JornadaInterzonal interzonal:
                 if (dto.EquipoId.HasValue) interzonal.EquipoId = dto.EquipoId.Value;
                 if (dto.LocalOVisitante.HasValue) interzonal.LocalOVisitanteId = (int)dto.LocalOVisitante.Value;
+                break;
+            case JornadaSinEquipos:
                 break;
         }
     }

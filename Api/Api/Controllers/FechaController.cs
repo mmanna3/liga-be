@@ -26,11 +26,11 @@ public class FechaController : ABMControllerAnidado<FechaDTO, IFechaCore>
     }
 
     [HttpPost("crear-fechas-eliminaciondirecta-masivamente")]
-    public async Task<ActionResult<IEnumerable<FechaEliminacionDirectaDTO>>> CrearFechasEliminacionDirectaMasivamente(
-        int padreId, [FromBody] List<FechaEliminacionDirectaDTO> dtos)
+    public async Task<ActionResult<FechaEliminacionDirectaDTO>> CrearFechasEliminacionDirectaMasivamente(
+        int padreId, [FromBody] FechaEliminacionDirectaDTO dto)
     {
-        var creados = await Core.CrearFechasEliminacionDirectaMasivamente(padreId, dtos);
-        return Ok(creados);
+        var creado = await Core.CrearFechasEliminacionDirectaMasivamente(padreId, dto);
+        return Ok(creado);
     }
 
     [HttpPut("modificar-fechas-masivamente")]
