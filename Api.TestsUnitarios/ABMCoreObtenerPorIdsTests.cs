@@ -18,15 +18,15 @@ public class ABMCoreObtenerPorIdsTests
 
         var torneos = new List<Torneo>
         {
-            new() { Id = 1, Nombre = "Torneo 1", Anio = 2026 },
-            new() { Id = 2, Nombre = "Torneo 2", Anio = 2026 }
+            new() { Id = 1, Nombre = "Torneo 1", Anio = 2026, EsVisibleEnApp = true },
+            new() { Id = 2, Nombre = "Torneo 2", Anio = 2026, EsVisibleEnApp = true }
         };
 
         repoMock.Setup(r => r.ObtenerPorIds(It.IsAny<IEnumerable<int>>()))
             .ReturnsAsync(torneos);
 
-        var dto1 = new TorneoDTO { Id = 1, Nombre = "Torneo 1", Anio = 2026 };
-        var dto2 = new TorneoDTO { Id = 2, Nombre = "Torneo 2", Anio = 2026 };
+        var dto1 = new TorneoDTO { Id = 1, Nombre = "Torneo 1", Anio = 2026, EsVisibleEnApp = true };
+        var dto2 = new TorneoDTO { Id = 2, Nombre = "Torneo 2", Anio = 2026, EsVisibleEnApp = true };
         mapperMock.Setup(m => m.Map<TorneoDTO>(torneos[0])).Returns(dto1);
         mapperMock.Setup(m => m.Map<TorneoDTO>(torneos[1])).Returns(dto2);
 

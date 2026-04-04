@@ -36,7 +36,7 @@ public class ZonaIT : TestBase
     {
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var torneo = new Torneo { Id = 0, Nombre = "Torneo Test Zonas", Anio = 2026, TorneoAgrupadorId = 1 };
+        var torneo = new Torneo { Id = 0, Nombre = "Torneo Test Zonas", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true };
         context.Torneos.Add(torneo);
         await context.SaveChangesAsync();
 
@@ -62,7 +62,7 @@ public class ZonaIT : TestBase
     {
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var torneo = new Torneo { Id = 0, Nombre = "Torneo ED Zonas", Anio = 2026, TorneoAgrupadorId = 1 };
+        var torneo = new Torneo { Id = 0, Nombre = "Torneo ED Zonas", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true };
         context.Torneos.Add(torneo);
         await context.SaveChangesAsync();
 
@@ -175,7 +175,7 @@ public class ZonaIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var torneo2 = new Torneo { Id = 0, Nombre = "Otro Torneo", Anio = 2026, TorneoAgrupadorId = 1 };
+            var torneo2 = new Torneo { Id = 0, Nombre = "Otro Torneo", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true };
             context.Torneos.Add(torneo2);
             await context.SaveChangesAsync();
 
@@ -288,7 +288,7 @@ public class ZonaIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var torneo2 = new Torneo { Id = 0, Nombre = "Otro Torneo", Anio = 2026, TorneoAgrupadorId = 1 };
+            var torneo2 = new Torneo { Id = 0, Nombre = "Otro Torneo", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true };
             context.Torneos.Add(torneo2);
             await context.SaveChangesAsync();
 

@@ -1,13 +1,15 @@
 using System.ComponentModel.DataAnnotations;
+using Api.Core;
 
 namespace Api.Core.DTOs;
 
-public class TorneoDTO : DTO
+public class TorneoDTO : DTO, IEsVisibleEnApp
 {
     [Required]
     public required string Nombre { get; set; }
 
     public required int Anio { get; set; }
+    public required bool EsVisibleEnApp { get; set; }
     public int TorneoAgrupadorId { get; set; }
     public string TorneoAgrupadorNombre { get; set; } = string.Empty;
     public bool SePuedeEditar { get; set; }

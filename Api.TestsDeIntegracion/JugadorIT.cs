@@ -213,8 +213,8 @@ public class JugadorIT : TestBase
     private void SeedEscenarioPases(AppDbContext context, int baseId,
         out int azulId, out int rojoId, out int verdeId, out int jugadorId)
     {
-        var torneoOro = new Torneo { Id = 0, Nombre = $"Oro {baseId}", Anio = 2026, TorneoAgrupadorId = 1 };
-        var torneoPlata = new Torneo { Id = 0, Nombre = $"Plata {baseId}", Anio = 2026, TorneoAgrupadorId = 1 };
+        var torneoOro = new Torneo { Id = 0, Nombre = $"Oro {baseId}", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true };
+        var torneoPlata = new Torneo { Id = 0, Nombre = $"Plata {baseId}", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true };
         context.Torneos.AddRange(torneoOro, torneoPlata);
         context.SaveChanges();
         torneoOro = context.Torneos.First(t => t.Nombre == $"Oro {baseId}");

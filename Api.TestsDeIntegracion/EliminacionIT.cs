@@ -36,7 +36,7 @@ public class EliminacionIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var torneo = new Torneo { Id = 0, Nombre = "Torneo a Eliminar", Anio = 2026, TorneoAgrupadorId = 1 };
+            var torneo = new Torneo { Id = 0, Nombre = "Torneo a Eliminar", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true };
             context.Torneos.Add(torneo);
             context.SaveChanges();
             torneoId = context.Torneos.First(t => t.Nombre == "Torneo a Eliminar").Id;

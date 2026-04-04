@@ -34,6 +34,7 @@ public class TorneoIT : TestBase
             Nombre = "Torneo con Fase y Categorías",
             Anio = 2026,
             TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true,
             PrimeraFase = new FaseDTO
             {
                 Nombre = "Fase de grupos",
@@ -88,7 +89,8 @@ public class TorneoIT : TestBase
         {
             Nombre = "Torneo básico",
             Anio = 2026,
-            TorneoAgrupadorId = 1
+            TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true
         };
 
         var response = await client.PostAsJsonAsync("/api/torneo", dto);
@@ -126,6 +128,7 @@ public class TorneoIT : TestBase
             Nombre = "Torneo con categorías",
             Anio = 2026,
             TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true,
             Categorias =
             [
                 new TorneoCategoriaDTO { Nombre = "Primera", AnioDesde = 2005, AnioHasta = 2010 }
@@ -164,6 +167,7 @@ public class TorneoIT : TestBase
             Nombre = "Torneo inválido",
             Anio = 2026,
             TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true,
             Categorias =
             [
                 new TorneoCategoriaDTO { Nombre = "Sub-15", AnioDesde = 2015, AnioHasta = 2010 }
@@ -186,7 +190,8 @@ public class TorneoIT : TestBase
         {
             Nombre = "Torneo Único",
             Anio = 2026,
-            TorneoAgrupadorId = 1
+            TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true
         };
 
         var response1 = await client.PostAsJsonAsync("/api/torneo", dto);
@@ -220,7 +225,8 @@ public class TorneoIT : TestBase
         {
             Nombre = "Torneo Compartido",
             Anio = 2026,
-            TorneoAgrupadorId = 1
+            TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true
         };
 
         var response1 = await client.PostAsJsonAsync("/api/torneo", dto);
@@ -246,7 +252,7 @@ public class TorneoIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var torneo = new Torneo { Id = 0, Nombre = "Torneo Editable", Anio = 2026, TorneoAgrupadorId = 1 };
+            var torneo = new Torneo { Id = 0, Nombre = "Torneo Editable", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true };
             context.Torneos.Add(torneo);
             await context.SaveChangesAsync();
             torneoId = torneo.Id;
@@ -279,7 +285,7 @@ public class TorneoIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var torneo = new Torneo { Id = 0, Nombre = "Torneo No Editable", Anio = 2026, TorneoAgrupadorId = 1 };
+            var torneo = new Torneo { Id = 0, Nombre = "Torneo No Editable", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true };
             context.Torneos.Add(torneo);
             await context.SaveChangesAsync();
             torneoId = torneo.Id;
@@ -318,8 +324,8 @@ public class TorneoIT : TestBase
     {
         var client = await GetAuthenticatedClient();
 
-        var dto1 = new CrearTorneoDTO { Nombre = "Torneo A", Anio = 2026, TorneoAgrupadorId = 1 };
-        var dto2 = new CrearTorneoDTO { Nombre = "Torneo B", Anio = 2026, TorneoAgrupadorId = 1 };
+        var dto1 = new CrearTorneoDTO { Nombre = "Torneo A", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true };
+        var dto2 = new CrearTorneoDTO { Nombre = "Torneo B", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true };
 
         var response1 = await client.PostAsJsonAsync("/api/torneo", dto1);
         response1.EnsureSuccessStatusCode();
@@ -337,7 +343,8 @@ public class TorneoIT : TestBase
             Id = torneoB.Id,
             Nombre = "Torneo A",
             Anio = 2026,
-            TorneoAgrupadorId = 1
+            TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true
         };
 
         var responseModificar = await client.PutAsJsonAsync($"/api/torneo/{torneoB.Id}", dtoModificar);
@@ -359,6 +366,7 @@ public class TorneoIT : TestBase
             Nombre = "Torneo Filtrado",
             Anio = 2025,
             TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true,
             PrimeraFase = new FaseDTO
             {
                 Nombre = "Fase grupos",
@@ -397,6 +405,7 @@ public class TorneoIT : TestBase
             Nombre = "Torneo Completo",
             Anio = 2024,
             TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true,
             PrimeraFase = new FaseDTO
             {
                 Nombre = "Fase inicial",
@@ -436,6 +445,7 @@ public class TorneoIT : TestBase
             Nombre = "Torneo a Vaciar",
             Anio = 2023,
             TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true,
             PrimeraFase = new FaseDTO
             {
                 Nombre = "Fase",
@@ -457,6 +467,7 @@ public class TorneoIT : TestBase
             Nombre = "Torneo a Vaciar",
             Anio = 2023,
             TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true,
             Fases = [],
             Categorias = []
         };
@@ -482,6 +493,7 @@ public class TorneoIT : TestBase
             Nombre = "Torneo a Reemplazar",
             Anio = 2022,
             TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true,
             PrimeraFase = new FaseDTO
             {
                 Nombre = "Fase vieja",
@@ -503,6 +515,7 @@ public class TorneoIT : TestBase
             Nombre = "Torneo a Reemplazar",
             Anio = 2022,
             TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true,
             Fases =
             [
                 new FaseDTO
@@ -544,6 +557,7 @@ public class TorneoIT : TestBase
             Nombre = "Torneo Sin Tocar",
             Anio = 2021,
             TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true,
             PrimeraFase = new FaseDTO
             {
                 Nombre = "Fase original",
@@ -564,7 +578,8 @@ public class TorneoIT : TestBase
             Id = torneoCreado.Id,
             Nombre = "Torneo Sin Tocar Modificado",
             Anio = 2021,
-            TorneoAgrupadorId = 1
+            TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true
         };
 
         var putResponse = await client.PutAsJsonAsync($"/api/torneo/{torneoCreado.Id}", modificarDto);
