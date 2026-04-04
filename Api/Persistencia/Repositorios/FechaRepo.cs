@@ -50,4 +50,11 @@ public class FechaRepo : RepositorioABMAnidado<Fecha, int>, IFechaRepo
             .Where(x => x.ZonaId == padreId && x.Id == id)
             .FirstOrDefaultAsync();
     }
+
+    public async Task<int> ActualizarEsVisibleEnApp(int zonaId, int fechaId, bool esVisibleEnApp)
+    {
+        return await Context.Set<Fecha>()
+            .Where(f => f.ZonaId == zonaId && f.Id == fechaId)
+            .ExecuteUpdateAsync(s => s.SetProperty(f => f.EsVisibleEnApp, esVisibleEnApp));
+    }
 }

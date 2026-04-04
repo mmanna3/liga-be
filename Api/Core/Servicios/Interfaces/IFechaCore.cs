@@ -17,4 +17,6 @@ public interface IFechaCore : ICoreABMAnidado<int, FechaDTO>
     /// Elimina todas las fechas de una zona de eliminación directa, con sus jornadas y partidos.
     /// </summary>
     Task BorrarFechasEliminacionDirectaMasivamente(int padreId);
+
+    Task CambiarVisibilidadEnApp(int zonaId, int fechaId, bool esVisibleEnApp);
 }

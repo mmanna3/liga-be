@@ -59,4 +59,15 @@ public class FechaController : ABMControllerAnidado<FechaDTO, IFechaCore>
         await Core.CargarResultados(padreId, jornadaId, dto);
         return NoContent();
     }
+
+    /// <summary>Cambia solo la visibilidad de la fecha en la app (request con una sola propiedad).</summary>
+    [HttpPut("{id}/visibilidad-en-app", Name = "fechasCambiarVisibilidadEnApp")]
+    public async Task<IActionResult> CambiarVisibilidadEnApp(
+        int padreId,
+        int id,
+        [FromBody] CambiarVisibilidadEnAppDTO dto)
+    {
+        await Core.CambiarVisibilidadEnApp(padreId, id, dto.EsVisibleEnApp);
+        return NoContent();
+    }
 }

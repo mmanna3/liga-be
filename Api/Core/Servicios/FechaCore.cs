@@ -529,6 +529,13 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
         }
     }
 
+    public async Task CambiarVisibilidadEnApp(int zonaId, int fechaId, bool esVisibleEnApp)
+    {
+        var filas = await Repo.ActualizarEsVisibleEnApp(zonaId, fechaId, esVisibleEnApp);
+        if (filas == 0)
+            throw new ExcepcionControlada("No existe la fecha a modificar o no pertenece a la zona indicada.");
+    }
+
     public async Task CargarResultados(int zonaId, int jornadaId, CargarResultadosDTO dto)
     {
         if (dto.JornadaId != jornadaId)
