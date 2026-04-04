@@ -14,14 +14,18 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
     private readonly IEquipoRepo _equipoRepo;
     private readonly IImagenJugadorRepo _imagenJugadorRepo;
     private readonly IImagenDelegadoRepo _imagenDelegadoRepo;
+    private readonly ITorneoAgrupadorRepo _torneoAgrupadorRepo;
 
-    public AppCarnetDigitalCore(IDelegadoRepo delegadoRepo, IEquipoRepo equipoRepo, IMapper mapper, IImagenJugadorRepo imagenJugadorRepo, IImagenDelegadoRepo imagenDelegadoRepo)
+    public AppCarnetDigitalCore(IDelegadoRepo delegadoRepo, IEquipoRepo equipoRepo, IMapper mapper,
+        IImagenJugadorRepo imagenJugadorRepo, IImagenDelegadoRepo imagenDelegadoRepo,
+        ITorneoAgrupadorRepo torneoAgrupadorRepo)
     {
         _delegadoRepo = delegadoRepo;
         _mapper = mapper;
         _imagenJugadorRepo = imagenJugadorRepo;
         _imagenDelegadoRepo = imagenDelegadoRepo;
         _equipoRepo = equipoRepo;
+        _torneoAgrupadorRepo = torneoAgrupadorRepo;
     }
 
     public async Task<EquiposDelDelegadoDTO> ObtenerEquiposPorUsuarioDeDelegado(string usuario)
@@ -110,4 +114,8 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         var id = GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos(codigoAlfanumerico);
         return Carnets(id);
     }
+
+    public Task<IReadOnlyList<InformacionInicialAgrupadorDTO>> InformacionInicialDeTorneosAsync(
+        CancellationToken cancellationToken = default) =>
+        _torneoAgrupadorRepo.ListarInformacionInicialParaAppAsync(cancellationToken);
 }

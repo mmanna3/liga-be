@@ -24,6 +24,14 @@ public class AppCarnetDigitalIT : TestBase
 
     private void SeedData(AppDbContext context, AppPaths paths)
     {
+        // HasData crea "General" con EsVisibleEnApp=false; lo activamos para probar info-inicial-de-torneos.
+        var agrupadorGeneral = context.TorneoAgrupadores.Find(1);
+        if (agrupadorGeneral != null)
+        {
+            agrupadorGeneral.EsVisibleEnApp = true;
+            context.SaveChanges();
+        }
+
         // Crear un club
         var club = new Club
         {
@@ -308,7 +316,31 @@ public class AppCarnetDigitalIT : TestBase
         Assert.Equal("Torneo 2024", equipo.Torneo);
         Assert.NotNull(equipo.CodigoAlfanumerico);
     }
-    
+
+    [Fact]
+    public async Task InformacionInicialDeTorneos_DevuelveAgrupadorTorneoFaseZona_SoloIdYNombre()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var response = await client.GetAsync("/api/carnet-digital/info-inicial-de-torneos");
+
+        response.EnsureSuccessStatusCode();
+
+        var lista = await response.Content.ReadFromJsonAsync<List<InformacionInicialAgrupadorDTO>>();
+        Assert.NotNull(lista);
+
+        var agrupador = Assert.Single(lista, a => a.Id == 1 && a.Nombre == "General");
+        var torneo = Assert.Single(agrupador.Torneos, t => t.Id == 1 && t.Nombre == "Torneo 2024");
+
+        var fase = Assert.Single(torneo.Fases);
+        Assert.Equal(1, fase.Id);
+        Assert.Equal(string.Empty, fase.Nombre);
+
+        var zona = Assert.Single(fase.Zonas);
+        Assert.True(zona.Id > 0);
+        Assert.Equal("Zona única", zona.Nombre);
+    }
+
     // [Fact]
     // public async Task CarnetsPorCodigoAlfanumerico_EquipoExistente_DevuelveCarnets()
     // {

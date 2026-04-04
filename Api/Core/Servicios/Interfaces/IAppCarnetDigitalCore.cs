@@ -8,4 +8,6 @@ public interface IAppCarnetDigitalCore
     Task<ICollection<CarnetDigitalDTO>?> Carnets(int equipoId);
     Task<ICollection<CarnetDigitalPendienteDTO>?> JugadoresPendientes(int equipoId);
     Task<ICollection<CarnetDigitalDTO>?> CarnetsPorCodigoAlfanumerico(string codigoAlfanumerico);
+    Task<IReadOnlyList<InformacionInicialAgrupadorDTO>> InformacionInicialDeTorneosAsync(
+        CancellationToken cancellationToken = default);
 }

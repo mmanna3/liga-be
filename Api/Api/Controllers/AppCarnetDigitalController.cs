@@ -67,5 +67,17 @@ namespace Api.Api.Controllers
 
             return Ok(equipos);
         }
+
+        /// <summary>
+        /// El <see cref="CancellationToken"/> lo inyecta ASP.NET Core: si el cliente corta la petición, se propaga
+        /// a EF y la consulta puede cancelarse sin seguir usando la base cuando ya no hay respuesta esperando.
+        /// </summary>
+        [HttpGet("info-inicial-de-torneos")]
+        public async Task<ActionResult<IReadOnlyList<InformacionInicialAgrupadorDTO>>> InformacionInicialDeTorneos(
+            CancellationToken cancellationToken)
+        {
+            var datos = await _core.InformacionInicialDeTorneosAsync(cancellationToken);
+            return Ok(datos);
+        }
     }
 }
