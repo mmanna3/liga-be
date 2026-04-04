@@ -170,6 +170,7 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
         var creados = new List<FechaTodosContraTodosDTO>();
         foreach (var dto in dtos)
         {
+            dto.EsVisibleEnApp = true;
             var id = await CrearFechaTodosContraTodos(padreId, dto);
             var creado = await ObtenerPorId(padreId, id);
             if (creado is FechaTodosContraTodosDTO f)
@@ -181,6 +182,8 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
     public async Task<FechaEliminacionDirectaDTO> CrearFechasEliminacionDirectaMasivamente(
         int padreId, FechaEliminacionDirectaDTO dto)
     {
+        dto.EsVisibleEnApp = true;
+
         var instanciasOrdenadas = await _context.InstanciaEliminacionDirecta
             .OrderByDescending(i => i.Id)
             .AsNoTracking()
