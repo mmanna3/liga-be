@@ -1,6 +1,8 @@
+using Api.Core;
+
 namespace Api.Core.DTOs;
 
-public abstract class FechaDTO : DTO
+public abstract class FechaDTO : DTO, IEsVisibleEnApp
 {
     public DateOnly? Dia { get; set; }
 

@@ -80,7 +80,7 @@ public class AppDbContext : DbContext
         builder.Entity<TorneoAgrupador>()
             .ToTable("TorneoAgrupadores")
             .HasData(
-                new TorneoAgrupador { Id = 1, Nombre = "General", VisibleEnApp = false }
+                new TorneoAgrupador { Id = 1, Nombre = "General", EsVisibleEnApp = false }
             );
 
         builder.Entity<Torneo>()

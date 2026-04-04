@@ -46,7 +46,7 @@ public class TorneoAgrupadorIT : TestBase
         var dto = new TorneoAgrupadorDTO
         {
             Nombre = "Torneos Locales",
-            VisibleEnApp = true
+            EsVisibleEnApp = true
         };
 
         var response = await client.PostAsJsonAsync("/api/torneoagrupador", dto);
@@ -57,7 +57,7 @@ public class TorneoAgrupadorIT : TestBase
         Assert.NotNull(content);
         Assert.True(content.Id > 0);
         Assert.Equal("Torneos Locales", content.Nombre);
-        Assert.True(content.VisibleEnApp);
+        Assert.True(content.EsVisibleEnApp);
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public class TorneoAgrupadorIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            agrupador = new TorneoAgrupador { Id = 0, Nombre = "Para Modificar", VisibleEnApp = false };
+            agrupador = new TorneoAgrupador { Id = 0, Nombre = "Para Modificar", EsVisibleEnApp = false };
             context.TorneoAgrupadores.Add(agrupador);
             context.SaveChanges();
         }
@@ -93,7 +93,7 @@ public class TorneoAgrupadorIT : TestBase
         {
             Id = agrupador.Id,
             Nombre = "Modificado",
-            VisibleEnApp = true
+            EsVisibleEnApp = true
         };
 
         var response = await client.PutAsJsonAsync($"/api/torneoagrupador/{agrupador.Id}", dto);
@@ -107,7 +107,7 @@ public class TorneoAgrupadorIT : TestBase
             var actualizado = context.TorneoAgrupadores.Find(agrupador.Id);
             Assert.NotNull(actualizado);
             Assert.Equal("Modificado", actualizado.Nombre);
-            Assert.True(actualizado.VisibleEnApp);
+            Assert.True(actualizado.EsVisibleEnApp);
         }
     }
 
@@ -120,7 +120,7 @@ public class TorneoAgrupadorIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            agrupador = new TorneoAgrupador { Id = 0, Nombre = "Para Eliminar", VisibleEnApp = false };
+            agrupador = new TorneoAgrupador { Id = 0, Nombre = "Para Eliminar", EsVisibleEnApp = false };
             context.TorneoAgrupadores.Add(agrupador);
             context.SaveChanges();
         }
@@ -145,7 +145,7 @@ public class TorneoAgrupadorIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            agrupador = new TorneoAgrupador { Id = 0, Nombre = "Con Torneos", VisibleEnApp = true };
+            agrupador = new TorneoAgrupador { Id = 0, Nombre = "Con Torneos", EsVisibleEnApp = true };
             context.TorneoAgrupadores.Add(agrupador);
             context.SaveChanges();
 
@@ -177,7 +177,7 @@ public class TorneoAgrupadorIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var agrupador2 = new TorneoAgrupador { Id = 0, Nombre = "Segundo", VisibleEnApp = true };
+            var agrupador2 = new TorneoAgrupador { Id = 0, Nombre = "Segundo", EsVisibleEnApp = true };
             context.TorneoAgrupadores.Add(agrupador2);
             context.SaveChanges();
             id2 = agrupador2.Id;

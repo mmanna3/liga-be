@@ -1,8 +1,10 @@
+using Api.Core;
+
 namespace Api.Core.Entidades;
 
-public class TorneoAgrupador : Entidad
+public class TorneoAgrupador : Entidad, IEsVisibleEnApp
 {
     public required string Nombre { get; set; }
-    public required bool VisibleEnApp { get; set; }
+    public required bool EsVisibleEnApp { get; set; }
     public virtual ICollection<Torneo> Torneos { get; set; } = null!;
 }

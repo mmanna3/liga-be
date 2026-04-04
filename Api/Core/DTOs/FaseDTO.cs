@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Api.Core;
 using Api.Core.Enums;
 
 namespace Api.Core.DTOs;
@@ -12,7 +13,7 @@ public class ZonaDeFaseDTO
     public string? CategoriaNombre { get; set; }
 }
 
-public class FaseDTO : DTO
+public class FaseDTO : DTO, IEsVisibleEnApp
 {
     [Required, MaxLength(50)]
     public string Nombre { get; set; } = string.Empty;
@@ -25,7 +26,7 @@ public class FaseDTO : DTO
     public string TipoDeFaseNombre { get; set; } = string.Empty;
     public int EstadoFaseId { get; set; }
     public string EstadoFaseNombre { get; set; } = string.Empty;
-    public bool EsVisibleEnApp { get; set; }
+    public required bool EsVisibleEnApp { get; set; }
     public bool SePuedeEditar { get; set; }
     public List<ZonaDeFaseDTO> Zonas { get; set; } = [];
 }

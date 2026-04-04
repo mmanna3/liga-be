@@ -29,7 +29,7 @@ public class FechaCoreCargarResultadosTests
     private static async Task<(int zonaId, int jornadaId, int p1Id, int p2Id, int cat1Id, int cat2Id)>
         SeedJornadaConDosPartidos(AppDbContext ctx)
     {
-        var agr = new TorneoAgrupador { Id = 0, Nombre = "G", VisibleEnApp = false };
+        var agr = new TorneoAgrupador { Id = 0, Nombre = "G", EsVisibleEnApp = false };
         ctx.TorneoAgrupadores.Add(agr);
         await ctx.SaveChangesAsync();
 
@@ -139,7 +139,7 @@ public class FechaCoreCargarResultadosTests
 
     private static async Task<(int zonaId, int jornadaId)> SeedJornadaSinPartidos(AppDbContext ctx)
     {
-        var agr = new TorneoAgrupador { Id = 0, Nombre = "G2", VisibleEnApp = false };
+        var agr = new TorneoAgrupador { Id = 0, Nombre = "G2", EsVisibleEnApp = false };
         ctx.TorneoAgrupadores.Add(agr);
         await ctx.SaveChangesAsync();
 

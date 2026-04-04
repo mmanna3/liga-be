@@ -1,13 +1,14 @@
 using System.ComponentModel.DataAnnotations;
+using Api.Core;
 
 namespace Api.Core.DTOs;
 
-public class TorneoAgrupadorDTO : DTO
+public class TorneoAgrupadorDTO : DTO, IEsVisibleEnApp
 {
     [Required]
     public required string Nombre { get; set; }
 
-    public bool VisibleEnApp { get; set; }
+    public required bool EsVisibleEnApp { get; set; }
 
     public int CantidadDeTorneos { get; set; }
 

@@ -16,7 +16,15 @@ public class FaseCoreEliminarTests
     }
 
     private static FaseTodosContraTodos FaseConNumero(int id, int numero) =>
-        new() { Id = id, Nombre = $"Fase {numero}", Numero = numero, TorneoId = 1, EstadoFaseId = 100 };
+        new()
+        {
+            Id = id,
+            Nombre = $"Fase {numero}",
+            Numero = numero,
+            TorneoId = 1,
+            EstadoFaseId = 100,
+            EsVisibleEnApp = true
+        };
 
     // Casos: (faseIdAEliminar, numeroDeLaFaseEliminada)
     // El test verifica que DecrementarNumeroDeFasesPosteriores se llame

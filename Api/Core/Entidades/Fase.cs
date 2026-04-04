@@ -1,9 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using Api.Core.Entidades.EntidadesConValoresPredefinidos;
 
+using Api.Core;
+
 namespace Api.Core.Entidades;
 
-public abstract class Fase : Entidad
+public abstract class Fase : Entidad, IEsVisibleEnApp
 {
     [Required, MaxLength(50)]
     public string Nombre { get; set; } = string.Empty;
@@ -14,5 +16,5 @@ public abstract class Fase : Entidad
     public int EstadoFaseId { get; set; }
     public virtual EstadoFase EstadoFase { get; set; } = null!;
 
-    public bool EsVisibleEnApp { get; set; }
+    public required bool EsVisibleEnApp { get; set; }
 }
