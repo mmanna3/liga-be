@@ -79,4 +79,11 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
 
         return await query.ToListAsync();
     }
+
+    public async Task<int> ActualizarEsVisibleEnApp(int id, bool esVisibleEnApp)
+    {
+        return await Context.Set<Torneo>()
+            .Where(t => t.Id == id)
+            .ExecuteUpdateAsync(s => s.SetProperty(t => t.EsVisibleEnApp, esVisibleEnApp));
+    }
 } 

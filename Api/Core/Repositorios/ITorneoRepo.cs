@@ -8,4 +8,7 @@ public interface ITorneoRepo : IRepositorioABM<Torneo>
     Task CrearFaseUnicaYZonaUnica(int torneoId);
     Task<bool> ExisteTorneoConNombreAnioYAgrupador(string nombre, int anio, int torneoAgrupadorId, int? excluirId = null);
     Task<IEnumerable<Torneo>> ListarFiltrado(int? anio, int? torneoAgrupadorId);
+
+    /// <summary>Filas afectadas (0 si no existe el torneo).</summary>
+    Task<int> ActualizarEsVisibleEnApp(int id, bool esVisibleEnApp);
 } 

@@ -228,4 +228,11 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
         var entidades = await Repo.ListarFiltrado(anio, agrupadorId);
         return Mapper.Map<List<TorneoDTO>>(entidades);
     }
+
+    public async Task CambiarVisibilidadEnApp(int id, bool esVisibleEnApp)
+    {
+        var filas = await Repo.ActualizarEsVisibleEnApp(id, esVisibleEnApp);
+        if (filas == 0)
+            throw new ExcepcionControlada("No existe el torneo a modificar.");
+    }
 }
