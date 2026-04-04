@@ -26,4 +26,15 @@ public class FaseController : ABMControllerAnidado<FaseDTO, IFaseCore>
     {
         dto.TorneoId = padreId;
     }
+
+    /// <summary>Cambia solo la visibilidad de la fase en la app (request con una sola propiedad).</summary>
+    [HttpPut("{id}/visibilidad-en-app", Name = "fasesCambiarVisibilidadEnApp")]
+    public async Task<IActionResult> CambiarVisibilidadEnApp(
+        int padreId,
+        int id,
+        [FromBody] CambiarVisibilidadEnAppDTO dto)
+    {
+        await Core.CambiarVisibilidadEnApp(padreId, id, dto.EsVisibleEnApp);
+        return NoContent();
+    }
 }

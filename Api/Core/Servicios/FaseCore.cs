@@ -118,4 +118,11 @@ public class FaseCore : ABMCoreAnidado<IFaseRepo, Fase, FaseDTO, int>, IFaseCore
         entidadNueva.TorneoId = padreId;
         return Task.CompletedTask;
     }
+
+    public async Task CambiarVisibilidadEnApp(int torneoId, int faseId, bool esVisibleEnApp)
+    {
+        var filas = await Repo.ActualizarEsVisibleEnApp(torneoId, faseId, esVisibleEnApp);
+        if (filas == 0)
+            throw new ExcepcionControlada("No existe la fase a modificar o no pertenece al torneo indicado.");
+    }
 }

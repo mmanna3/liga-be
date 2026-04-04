@@ -26,7 +26,7 @@ public class TorneoController : ABMController<TorneoDTO, ITorneoCore, CrearTorne
     [HttpPut("{id}/visibilidad-en-app", Name = "torneoCambiarVisibilidadEnApp")]
     public async Task<IActionResult> CambiarVisibilidadEnApp(
         int id,
-        [FromBody] CambiarVisibilidadTorneoEnAppDTO dto)
+        [FromBody] CambiarVisibilidadEnAppDTO dto)
     {
         await Core.CambiarVisibilidadEnApp(id, dto.EsVisibleEnApp);
         return NoContent();

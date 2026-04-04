@@ -61,4 +61,11 @@ public class FaseRepo : RepositorioABMAnidado<Fase, int>, IFaseRepo
             "UPDATE [Fases] SET [TipoFase] = {0} WHERE [Id] = {1} AND [TorneoId] = {2}",
             discriminador, id, padreId);
     }
+
+    public async Task<int> ActualizarEsVisibleEnApp(int torneoId, int faseId, bool esVisibleEnApp)
+    {
+        return await Context.Set<Fase>()
+            .Where(f => f.TorneoId == torneoId && f.Id == faseId)
+            .ExecuteUpdateAsync(s => s.SetProperty(f => f.EsVisibleEnApp, esVisibleEnApp));
+    }
 }
