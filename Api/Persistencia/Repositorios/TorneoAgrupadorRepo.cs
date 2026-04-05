@@ -1,5 +1,6 @@
 using Api.Core.DTOs.AppCarnetDigital;
 using Api.Core.Entidades;
+using Api.Core.Enums;
 using Api.Core.Repositorios;
 using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,7 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
             .AsNoTracking()
             .Where(a => a.EsVisibleEnApp)
             .OrderBy(a => a.Nombre)
+            .Include(a => a.Color)
             .Include(a => a.Torneos.Where(t => t.EsVisibleEnApp))
             .ThenInclude(t => t.Fases.Where(f => f.EsVisibleEnApp))
             .ToListAsync(cancellationToken);
@@ -62,6 +64,7 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
             {
                 Id = agr.Id,
                 Nombre = agr.Nombre,
+                Color = agr.Color != null ? agr.Color.Nombre : nameof(ColorEnum.Negro),
                 Torneos = agr.Torneos
                     .OrderBy(t => t.Nombre)
                     .Select(t => new InformacionInicialTorneoDTO

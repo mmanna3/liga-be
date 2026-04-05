@@ -330,6 +330,7 @@ public class AppCarnetDigitalIT : TestBase
         Assert.NotNull(lista);
 
         var agrupador = Assert.Single(lista, a => a.Id == 1 && a.Nombre == "General");
+        Assert.Equal("Negro", agrupador.Color);
         var torneo = Assert.Single(agrupador.Torneos, t => t.Id == 1 && t.Nombre == "Torneo 2024");
 
         var fase = Assert.Single(torneo.Fases);
