@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Api._Config;
 using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using NLog;
 using NLog.Web;
 
@@ -73,6 +74,15 @@ try
 
     app.UseDefaultFiles();
     app.UseStaticFiles();
+
+    // Imágenes (escudos, jugadores, etc.) viven en ContentRoot/Imagenes/, no en wwwroot.
+    var imagenesRoot = Path.Combine(app.Environment.ContentRootPath, "Imagenes");
+    Directory.CreateDirectory(imagenesRoot);
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(imagenesRoot),
+        RequestPath = "/Imagenes"
+    });
 
     // Habilitar la autenticación y autorización
     app.UseAuthentication();

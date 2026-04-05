@@ -358,7 +358,7 @@ public class AppCarnetDigitalIT : TestBase
 
         response.EnsureSuccessStatusCode();
 
-        var lista = await response.Content.ReadFromJsonAsync<List<ClubDTO>>();
+        var lista = await response.Content.ReadFromJsonAsync<List<EquipoConDatosDelClubDTO>>();
         Assert.NotNull(lista);
         Assert.Single(lista);
 
@@ -379,7 +379,7 @@ public class AppCarnetDigitalIT : TestBase
 
         response.EnsureSuccessStatusCode();
 
-        var lista = await response.Content.ReadFromJsonAsync<List<ClubDTO>>();
+        var lista = await response.Content.ReadFromJsonAsync<List<EquipoConDatosDelClubDTO>>();
         Assert.NotNull(lista);
         Assert.Empty(lista);
     }
