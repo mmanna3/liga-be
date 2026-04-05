@@ -1,6 +1,6 @@
 namespace Api.Core.DTOs.AppCarnetDigital;
 
-public class EquipoConDatosDelClubDTO
+public class ClubesDTO
 {
     public string Equipo { get; set; } = string.Empty;
     public string Escudo { get; set; } = string.Empty;

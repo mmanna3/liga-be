@@ -89,7 +89,7 @@ namespace Api.Api.Controllers
         /// </summary>
         [AllowAnonymous]
         [HttpGet("clubes")]
-        public async Task<ActionResult<IReadOnlyList<EquipoConDatosDelClubDTO>>> Clubes([FromQuery] int zonaId,
+        public async Task<ActionResult<IReadOnlyList<ClubesDTO>>> Clubes([FromQuery] int zonaId,
             CancellationToken cancellationToken)
         {
             var datos = await _core.ClubesPorZonaAsync(zonaId, cancellationToken);

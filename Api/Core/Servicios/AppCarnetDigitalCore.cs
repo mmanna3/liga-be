@@ -121,7 +121,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         CancellationToken cancellationToken = default) =>
         _torneoAgrupadorRepo.ListarInformacionInicialParaAppAsync(cancellationToken);
 
-    public async Task<IReadOnlyList<EquipoConDatosDelClubDTO>> ClubesPorZonaAsync(int zonaId,
+    public async Task<IReadOnlyList<ClubesDTO>> ClubesPorZonaAsync(int zonaId,
         CancellationToken cancellationToken = default)
     {
         var equipos = await _equipoRepo.ListarPorZonaIdAsync(zonaId, cancellationToken);
@@ -129,7 +129,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         return equipos.Select(e =>
         {
             var club = e.Club;
-            return new EquipoConDatosDelClubDTO
+            return new ClubesDTO
             {
                 Equipo = e.Nombre,
                 Escudo = $"{baseEscudo}/{club.Id}.jpg",

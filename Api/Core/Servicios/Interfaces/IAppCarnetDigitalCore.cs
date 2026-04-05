@@ -11,5 +11,5 @@ public interface IAppCarnetDigitalCore
     Task<IReadOnlyList<InformacionInicialAgrupadorDTO>> InformacionInicialDeTorneosAsync(
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<EquipoConDatosDelClubDTO>> ClubesPorZonaAsync(int zonaId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ClubesDTO>> ClubesPorZonaAsync(int zonaId, CancellationToken cancellationToken = default);
 }
