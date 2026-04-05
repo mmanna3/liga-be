@@ -1,4 +1,3 @@
-using Api.Core.DTOs;
 using Api.Core.DTOs.AppCarnetDigital;
 using Api.Core.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -82,6 +81,18 @@ namespace Api.Api.Controllers
             CancellationToken cancellationToken)
         {
             var datos = await _core.InformacionInicialDeTorneosAsync(cancellationToken);
+            return Ok(datos);
+        }
+
+        /// <summary>
+        /// Equipos de la zona con datos del club (escudo por URL relativa al mismo criterio que el resto de la API).
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("clubes")]
+        public async Task<ActionResult<IReadOnlyList<ClubDTO>>> Clubes([FromQuery] int zonaId,
+            CancellationToken cancellationToken)
+        {
+            var datos = await _core.ClubesPorZonaAsync(zonaId, cancellationToken);
             return Ok(datos);
         }
     }

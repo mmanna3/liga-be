@@ -13,6 +13,8 @@ namespace Api.TestsDeIntegracion;
 
 public class AppCarnetDigitalIT : TestBase
 {
+    private int _zonaIdDePrueba;
+
     public AppCarnetDigitalIT(CustomWebApplicationFactory<Program> factory) : base(factory)
     {
         using var scope = Factory.Services.CreateScope();
@@ -36,7 +38,10 @@ public class AppCarnetDigitalIT : TestBase
         var club = new Club
         {
             Id = 1,
-            Nombre = "Club de Prueba"
+            Nombre = "Club de Prueba",
+            Localidad = "Rosario",
+            Direccion = "Calle Falsa 123",
+            EsTechado = true
         };
         context.Clubs.Add(club);
 
@@ -60,6 +65,7 @@ public class AppCarnetDigitalIT : TestBase
         var zona = new ZonaTodosContraTodos { Id = 0, FaseId = fase.Id, Nombre = "Zona única" };
         context.Zonas.Add(zona);
         context.SaveChanges();
+        _zonaIdDePrueba = zona.Id;
 
         // Crear un equipo
         var equipo = new Equipo
@@ -341,6 +347,41 @@ public class AppCarnetDigitalIT : TestBase
         var zona = Assert.Single(fase.Zonas);
         Assert.True(zona.Id > 0);
         Assert.Equal("Zona única", zona.Nombre);
+    }
+
+    [Fact]
+    public async Task Clubes_ZonaConEquipos_DevuelveUnaFilaPorEquipo_ConDatosDelClub()
+    {
+        var client = Factory.CreateClient();
+
+        var response = await client.GetAsync($"/api/carnet-digital/clubes?zonaId={_zonaIdDePrueba}");
+
+        response.EnsureSuccessStatusCode();
+
+        var lista = await response.Content.ReadFromJsonAsync<List<ClubDTO>>();
+        Assert.NotNull(lista);
+        Assert.Single(lista);
+
+        var dto = lista[0];
+        Assert.Equal("Equipo de Prueba", dto.Equipo);
+        Assert.Equal("/Imagenes/Escudos/1.jpg", dto.Escudo);
+        Assert.Equal("Rosario", dto.Localidad);
+        Assert.Equal("Calle Falsa 123", dto.Direccion);
+        Assert.Equal("Sí", dto.EsTechado);
+    }
+
+    [Fact]
+    public async Task Clubes_ZonaSinEquipos_DevuelveListaVacia()
+    {
+        var client = Factory.CreateClient();
+
+        var response = await client.GetAsync("/api/carnet-digital/clubes?zonaId=999999");
+
+        response.EnsureSuccessStatusCode();
+
+        var lista = await response.Content.ReadFromJsonAsync<List<ClubDTO>>();
+        Assert.NotNull(lista);
+        Assert.Empty(lista);
     }
 
     // [Fact]

@@ -10,4 +10,7 @@ public interface IEquipoRepo : IRepositorioABM<Equipo>
     Task AsignarEquiposAZona(int zonaId, IEnumerable<int> equipoIds);
     Task SincronizarZonasDelEquipo(int equipoId, IEnumerable<int> zonaIds);
     Task<IEnumerable<Equipo>> ListarConZonasParaEquiposParaZonas();
+
+    /// <summary>Equipos asignados a la zona, con club, ordenados por nombre de equipo.</summary>
+    Task<IReadOnlyList<Equipo>> ListarPorZonaIdAsync(int zonaId, CancellationToken cancellationToken = default);
 }

@@ -15,10 +15,11 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
     private readonly IImagenJugadorRepo _imagenJugadorRepo;
     private readonly IImagenDelegadoRepo _imagenDelegadoRepo;
     private readonly ITorneoAgrupadorRepo _torneoAgrupadorRepo;
+    private readonly AppPaths _paths;
 
     public AppCarnetDigitalCore(IDelegadoRepo delegadoRepo, IEquipoRepo equipoRepo, IMapper mapper,
         IImagenJugadorRepo imagenJugadorRepo, IImagenDelegadoRepo imagenDelegadoRepo,
-        ITorneoAgrupadorRepo torneoAgrupadorRepo)
+        ITorneoAgrupadorRepo torneoAgrupadorRepo, AppPaths paths)
     {
         _delegadoRepo = delegadoRepo;
         _mapper = mapper;
@@ -26,6 +27,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         _imagenDelegadoRepo = imagenDelegadoRepo;
         _equipoRepo = equipoRepo;
         _torneoAgrupadorRepo = torneoAgrupadorRepo;
+        _paths = paths;
     }
 
     public async Task<EquiposDelDelegadoDTO> ObtenerEquiposPorUsuarioDeDelegado(string usuario)
@@ -118,4 +120,28 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
     public Task<IReadOnlyList<InformacionInicialAgrupadorDTO>> InformacionInicialDeTorneosAsync(
         CancellationToken cancellationToken = default) =>
         _torneoAgrupadorRepo.ListarInformacionInicialParaAppAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<ClubDTO>> ClubesPorZonaAsync(int zonaId,
+        CancellationToken cancellationToken = default)
+    {
+        var equipos = await _equipoRepo.ListarPorZonaIdAsync(zonaId, cancellationToken);
+        var baseEscudo = _paths.ImagenesEscudosRelative.TrimEnd('/');
+        return equipos.Select(e =>
+        {
+            var club = e.Club;
+            return new ClubDTO
+            {
+                Equipo = e.Nombre,
+                Escudo = $"{baseEscudo}/{club.Id}.jpg",
+                Localidad = club.Localidad ?? string.Empty,
+                Direccion = club.Direccion ?? string.Empty,
+                EsTechado = club.EsTechado switch
+                {
+                    true => "Sí",
+                    false => "No",
+                    null => string.Empty
+                }
+            };
+        }).ToList();
+    }
 }

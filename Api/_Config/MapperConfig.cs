@@ -7,6 +7,7 @@ using Api.Core.Logica;
 using AutoMapper;
 using System.Linq;
 using Api.Core.DTOs.AppCarnetDigital;
+using ClubDTOAdmin = Api.Core.DTOs.ClubDTO;
 
 namespace Api._Config;
 
@@ -14,7 +15,7 @@ public class MapperConfig : Profile
 {
     public MapperConfig()
     {
-        CreateMap<Club, ClubDTO>()
+        CreateMap<Club, ClubDTOAdmin>()
             .ForMember(dest => dest.Delegados, opt => opt.MapFrom(src => src.DelegadoClubs.Select(dc => dc.Delegado).ToList()))
             .ForMember(dest => dest.Direccion, opt => opt.MapFrom(src => src.Direccion))
             .ForMember(dest => dest.EsTechado, opt => opt.MapFrom(src => src.EsTechado))

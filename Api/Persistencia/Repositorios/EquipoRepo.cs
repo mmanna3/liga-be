@@ -107,4 +107,14 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
             .Include("Zonas.Zona.Fase.Torneo.TorneoAgrupador")
             .ToListAsync();
     }
+
+    public async Task<IReadOnlyList<Equipo>> ListarPorZonaIdAsync(int zonaId, CancellationToken cancellationToken = default)
+    {
+        return await Context.Set<Equipo>()
+            .AsNoTracking()
+            .Where(e => e.Zonas.Any(z => z.ZonaId == zonaId))
+            .Include(e => e.Club)
+            .OrderBy(e => e.Nombre)
+            .ToListAsync(cancellationToken);
+    }
 }
