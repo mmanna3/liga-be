@@ -24,12 +24,14 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
     public async Task<IReadOnlyList<InformacionInicialAgrupadorDTO>> ListarInformacionInicialParaAppAsync(
         CancellationToken cancellationToken = default)
     {
+        var anioActual = DateTime.Today.Year;
+
         var agrupadores = await Context.Set<TorneoAgrupador>()
             .AsNoTracking()
             .Where(a => a.EsVisibleEnApp)
             .OrderBy(a => a.Nombre)
             .Include(a => a.Color)
-            .Include(a => a.Torneos.Where(t => t.EsVisibleEnApp))
+            .Include(a => a.Torneos.Where(t => t.EsVisibleEnApp && t.Anio == anioActual))
             .ThenInclude(t => t.Fases.Where(f => f.EsVisibleEnApp))
             .ToListAsync(cancellationToken);
 
@@ -84,7 +86,8 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
                     })
                     .ToList()
             };
-            resultado.Add(dtoAgr);
+            if (dtoAgr.Torneos.Count > 0)
+                resultado.Add(dtoAgr);
         }
 
         return resultado;

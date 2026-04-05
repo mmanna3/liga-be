@@ -40,12 +40,13 @@ public class AppCarnetDigitalIT : TestBase
         };
         context.Clubs.Add(club);
 
-        // Crear un torneo
+        // Crear un torneo (año = calendario actual: info-inicial-de-torneos solo lista torneos de este año)
+        var anioActual = DateTime.Today.Year;
         var torneo = new Torneo
         {
             Id = 1,
             Nombre = "Torneo 2024",
-            Anio = 2024,
+            Anio = anioActual,
             EsVisibleEnApp = true,
             TorneoAgrupadorId = 1
         };

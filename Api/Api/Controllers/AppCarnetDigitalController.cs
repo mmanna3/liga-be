@@ -69,9 +69,13 @@ namespace Api.Api.Controllers
         }
 
         /// <summary>
+        /// Lista agrupadores visibles en app con sus torneos (solo año calendario actual y visibles en app).
+        /// Los agrupadores sin ningún torneo en ese conjunto no se incluyen en la respuesta.
+        /// </summary>
+        /// <remarks>
         /// El <see cref="CancellationToken"/> lo inyecta ASP.NET Core: si el cliente corta la petición, se propaga
         /// a EF y la consulta puede cancelarse sin seguir usando la base cuando ya no hay respuesta esperando.
-        /// </summary>
+        /// </remarks>
         [AllowAnonymous]
         [HttpGet("info-inicial-de-torneos")]
         public async Task<ActionResult<IReadOnlyList<InformacionInicialAgrupadorDTO>>> InformacionInicialDeTorneos(
