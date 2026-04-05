@@ -21,7 +21,7 @@ namespace Api.Api.Controllers
         {
             _core = core;
         }
-        
+
         [HttpGet("equipos-del-delegado")]
         public async Task<ActionResult<EquiposDelDelegadoDTO>> Equipos()
         {
@@ -30,7 +30,7 @@ namespace Api.Api.Controllers
             {
                 var userClaims = identity.Claims;
                 var usuario = userClaims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
-                
+
                 if (usuario != null)
                 {
                     var equipos = await _core.ObtenerEquiposPorUsuarioDeDelegado(usuario);
@@ -40,7 +40,7 @@ namespace Api.Api.Controllers
 
             return Unauthorized("No se pudo obtener el usuario del token.");
         }
-        
+
         [HttpGet("carnets")]
         public async Task<ActionResult<ICollection<CarnetDigitalDTO>>> Carnets(int equipoId)
         {
@@ -48,7 +48,7 @@ namespace Api.Api.Controllers
 
             return Ok(equipos);
         }
-        
+
         [HttpGet("carnets-por-codigo-alfanumerico")]
         public async Task<ActionResult<ICollection<CarnetDigitalDTO>>> CarnetsPorCodigoAlfanumerico(string codigoAlfanumerico)
         {
@@ -56,7 +56,7 @@ namespace Api.Api.Controllers
 
             return Ok(equipos);
         }
-        
+
         [HttpGet("jugadores-pendientes")]
         public async Task<ActionResult<ICollection<CarnetDigitalPendienteDTO>>> JugadoresPendientes(int equipoId)
         {
@@ -72,6 +72,7 @@ namespace Api.Api.Controllers
         /// El <see cref="CancellationToken"/> lo inyecta ASP.NET Core: si el cliente corta la petición, se propaga
         /// a EF y la consulta puede cancelarse sin seguir usando la base cuando ya no hay respuesta esperando.
         /// </summary>
+        [AllowAnonymous]
         [HttpGet("info-inicial-de-torneos")]
         public async Task<ActionResult<IReadOnlyList<InformacionInicialAgrupadorDTO>>> InformacionInicialDeTorneos(
             CancellationToken cancellationToken)
