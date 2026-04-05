@@ -57,4 +57,23 @@ public class FechaRepo : RepositorioABMAnidado<Fecha, int>, IFechaRepo
             .Where(f => f.ZonaId == zonaId && f.Id == fechaId)
             .ExecuteUpdateAsync(s => s.SetProperty(f => f.EsVisibleEnApp, esVisibleEnApp));
     }
+
+    public async Task<IReadOnlyList<FechaTodosContraTodos>> ListarTodosContraTodosPorZonaParaAppAsync(int zonaId,
+        CancellationToken cancellationToken = default)
+    {
+        return await Context.Set<FechaTodosContraTodos>()
+            .AsNoTracking()
+            .Where(f => f.ZonaId == zonaId && f.EsVisibleEnApp)
+            .OrderBy(f => f.Numero)
+            .Include(x => x.Jornadas)
+            .ThenInclude(j => ((JornadaNormal)j).LocalEquipo)
+            .Include(x => x.Jornadas)
+            .ThenInclude(j => ((JornadaNormal)j).VisitanteEquipo)
+            .Include(x => x.Jornadas)
+            .ThenInclude(j => ((JornadaLibre)j).EquipoLocal)
+            .Include(x => x.Jornadas)
+            .ThenInclude(j => ((JornadaInterzonal)j).Equipo)
+            .AsSplitQuery()
+            .ToListAsync(cancellationToken);
+    }
 }

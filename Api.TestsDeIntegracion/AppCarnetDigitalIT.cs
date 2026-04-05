@@ -384,6 +384,21 @@ public class AppCarnetDigitalIT : TestBase
         Assert.Empty(lista);
     }
 
+    [Fact]
+    public async Task FixtureTodosContraTodos_ZonaSinFechas_DevuelveFechasVacia()
+    {
+        var client = Factory.CreateClient();
+
+        var response = await client.GetAsync($"/api/carnet-digital/fixture-todos-contra-todos?zonaId={_zonaIdDePrueba}");
+
+        response.EnsureSuccessStatusCode();
+
+        var dto = await response.Content.ReadFromJsonAsync<FixtureDTO>();
+        Assert.NotNull(dto);
+        Assert.NotNull(dto.Fechas);
+        Assert.Empty(dto.Fechas);
+    }
+
     // [Fact]
     // public async Task CarnetsPorCodigoAlfanumerico_EquipoExistente_DevuelveCarnets()
     // {

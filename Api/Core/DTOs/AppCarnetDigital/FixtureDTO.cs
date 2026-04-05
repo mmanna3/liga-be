@@ -9,6 +9,7 @@ public class FixtureFechaDTO
 {
     public ICollection<FixturePartidoDTO> Partidos { get; set; } = [];
     public string Titulo { get; set; } = string.Empty;
+    public string Dia { get; set; } = string.Empty;
 }
 
 public class FixturePartidoDTO

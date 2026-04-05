@@ -95,5 +95,17 @@ namespace Api.Api.Controllers
             var datos = await _core.ClubesPorZonaAsync(zonaId, cancellationToken);
             return Ok(datos);
         }
+
+        /// <summary>
+        /// Fixture todos contra todos de la zona: una entrada por fecha con título "Fecha N" y partidos (local/visitante y escudos).
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("fixture-todos-contra-todos")]
+        public async Task<ActionResult<FixtureDTO>> FixtureTodosContraTodos([FromQuery] int zonaId,
+            CancellationToken cancellationToken)
+        {
+            var datos = await _core.FixtureTodosContraTodosAsync(zonaId, cancellationToken);
+            return Ok(datos);
+        }
     }
 }

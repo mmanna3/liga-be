@@ -1,4 +1,5 @@
 using Api.Core.DTOs.AppCarnetDigital;
+using Api.Core.Entidades;
 using Api.Core.Enums;
 using Api.Core.Logica;
 using Api.Core.Repositorios;
@@ -15,11 +16,12 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
     private readonly IImagenJugadorRepo _imagenJugadorRepo;
     private readonly IImagenDelegadoRepo _imagenDelegadoRepo;
     private readonly ITorneoAgrupadorRepo _torneoAgrupadorRepo;
+    private readonly IFechaRepo _fechaRepo;
     private readonly AppPaths _paths;
 
     public AppCarnetDigitalCore(IDelegadoRepo delegadoRepo, IEquipoRepo equipoRepo, IMapper mapper,
         IImagenJugadorRepo imagenJugadorRepo, IImagenDelegadoRepo imagenDelegadoRepo,
-        ITorneoAgrupadorRepo torneoAgrupadorRepo, AppPaths paths)
+        ITorneoAgrupadorRepo torneoAgrupadorRepo, IFechaRepo fechaRepo, AppPaths paths)
     {
         _delegadoRepo = delegadoRepo;
         _mapper = mapper;
@@ -27,6 +29,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         _imagenDelegadoRepo = imagenDelegadoRepo;
         _equipoRepo = equipoRepo;
         _torneoAgrupadorRepo = torneoAgrupadorRepo;
+        _fechaRepo = fechaRepo;
         _paths = paths;
     }
 
@@ -144,4 +147,62 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             };
         }).ToList();
     }
+
+    public async Task<FixtureDTO> FixtureTodosContraTodosAsync(int zonaId,
+        CancellationToken cancellationToken = default)
+    {
+        var fechas = await _fechaRepo.ListarTodosContraTodosPorZonaParaAppAsync(zonaId, cancellationToken);
+        var dto = new FixtureDTO();
+        foreach (var fecha in fechas)
+        {
+            dto.Fechas.Add(new FixtureFechaDTO
+            {
+                Titulo = $"Fecha {fecha.Numero}",
+                Dia = fecha.Dia?.ToString("dd-MM") ?? string.Empty,
+                Partidos = fecha.Jornadas
+                    .OrderBy(j => j.Id)
+                    .Select(MapJornadaAFixturePartido)
+                    .ToList()
+            });
+        }
+
+        return dto;
+    }
+
+    private string EscudoRelativo(int clubId) =>
+        $"{_paths.ImagenesEscudosRelative.TrimEnd('/')}/{clubId}.jpg";
+
+    private FixturePartidoDTO MapJornadaAFixturePartido(Jornada j) => j switch
+    {
+        JornadaNormal n => new FixturePartidoDTO
+        {
+            Local = n.LocalEquipo.Nombre,
+            Visitante = n.VisitanteEquipo.Nombre,
+            LocalEscudo = EscudoRelativo(n.LocalEquipo.ClubId),
+            VisitanteEscudo = EscudoRelativo(n.VisitanteEquipo.ClubId)
+        },
+        JornadaLibre l => new FixturePartidoDTO
+        {
+            Local = l.EquipoLocal.Nombre,
+            Visitante = "LIBRE",
+            LocalEscudo = string.Empty,
+            VisitanteEscudo = string.Empty
+        },
+        JornadaInterzonal i when i.LocalOVisitanteId == (int)LocalVisitanteEnum.Local => new FixturePartidoDTO
+        {
+            Local = i.Equipo.Nombre,
+            Visitante = "INTERZONAL",
+            LocalEscudo = EscudoRelativo(i.Equipo.ClubId),
+            VisitanteEscudo = string.Empty
+        },
+        JornadaInterzonal i => new FixturePartidoDTO
+        {
+            Local = "INTERZONAL",
+            Visitante = i.Equipo.Nombre,
+            LocalEscudo = string.Empty,
+            VisitanteEscudo = EscudoRelativo(i.Equipo.ClubId)
+        },
+        JornadaSinEquipos => new FixturePartidoDTO(),
+        _ => throw new InvalidOperationException($"Tipo de jornada no soportado: {j.GetType().Name}")
+    };
 }
