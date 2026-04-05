@@ -16,6 +16,7 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
     {
         return Context.Set<TorneoAgrupador>()
             .Include(x => x.Torneos)
+            .Include(x => x.Color)
             .AsQueryable();
     }
 

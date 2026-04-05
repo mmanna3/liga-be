@@ -215,7 +215,13 @@ public class TorneoIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var agrupador2 = new TorneoAgrupador { Id = 0, Nombre = "Otro Agrupador", EsVisibleEnApp = false };
+            var agrupador2 = new TorneoAgrupador
+            {
+                Id = 0,
+                Nombre = "Otro Agrupador",
+                EsVisibleEnApp = false,
+                ColorId = (int)ColorEnum.Negro
+            };
             context.TorneoAgrupadores.Add(agrupador2);
             await context.SaveChangesAsync();
             agrupador2Id = agrupador2.Id;

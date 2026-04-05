@@ -11,6 +11,14 @@ public class TorneoAgrupadorController : ABMController<TorneoAgrupadorDTO, ITorn
     {
     }
 
+    [HttpPost]
+    public override async Task<ActionResult<TorneoAgrupadorDTO>> Crear(TorneoAgrupadorDTO dto)
+    {
+        var id = await Core.Crear(dto);
+        var creado = await Core.ObtenerPorId(id);
+        return Ok(creado);
+    }
+
     [HttpGet("por-ids", Name = "torneoAgrupadoresPorIds")]
     public async Task<ActionResult<IEnumerable<TorneoAgrupadorDTO>>> ObtenerPorIds([FromQuery] IEnumerable<int> ids) =>
         await ObtenerPorIdsCore(ids);

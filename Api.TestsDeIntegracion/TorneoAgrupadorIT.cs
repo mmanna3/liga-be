@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Api.Core.DTOs;
 using Api.Core.Entidades;
+using Api.Core.Enums;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,7 +36,7 @@ public class TorneoAgrupadorIT : TestBase
         var content = JsonConvert.DeserializeObject<List<TorneoAgrupadorDTO>>(await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
         Assert.NotEmpty(content);
-        Assert.Contains(content, ta => ta.Nombre == "General");
+        Assert.Contains(content, ta => ta.Nombre == "General" && ta.Color == nameof(ColorEnum.Negro));
     }
 
     [Fact]
@@ -46,6 +47,7 @@ public class TorneoAgrupadorIT : TestBase
         var dto = new TorneoAgrupadorDTO
         {
             Nombre = "Torneos Locales",
+            Color = nameof(ColorEnum.Azul),
             EsVisibleEnApp = true
         };
 
@@ -58,6 +60,7 @@ public class TorneoAgrupadorIT : TestBase
         Assert.True(content.Id > 0);
         Assert.Equal("Torneos Locales", content.Nombre);
         Assert.True(content.EsVisibleEnApp);
+        Assert.Equal(nameof(ColorEnum.Negro), content.Color);
     }
 
     [Fact]
@@ -73,6 +76,7 @@ public class TorneoAgrupadorIT : TestBase
         Assert.NotNull(content);
         Assert.Equal(1, content.Id);
         Assert.Equal("General", content.Nombre);
+        Assert.Equal(nameof(ColorEnum.Negro), content.Color);
     }
 
     [Fact]
@@ -84,7 +88,13 @@ public class TorneoAgrupadorIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            agrupador = new TorneoAgrupador { Id = 0, Nombre = "Para Modificar", EsVisibleEnApp = false };
+            agrupador = new TorneoAgrupador
+            {
+                Id = 0,
+                Nombre = "Para Modificar",
+                EsVisibleEnApp = false,
+                ColorId = (int)ColorEnum.Negro
+            };
             context.TorneoAgrupadores.Add(agrupador);
             context.SaveChanges();
         }
@@ -93,6 +103,7 @@ public class TorneoAgrupadorIT : TestBase
         {
             Id = agrupador.Id,
             Nombre = "Modificado",
+            Color = nameof(ColorEnum.Rojo),
             EsVisibleEnApp = true
         };
 
@@ -108,6 +119,7 @@ public class TorneoAgrupadorIT : TestBase
             Assert.NotNull(actualizado);
             Assert.Equal("Modificado", actualizado.Nombre);
             Assert.True(actualizado.EsVisibleEnApp);
+            Assert.Equal((int)ColorEnum.Rojo, actualizado.ColorId);
         }
     }
 
@@ -120,7 +132,13 @@ public class TorneoAgrupadorIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            agrupador = new TorneoAgrupador { Id = 0, Nombre = "Para Eliminar", EsVisibleEnApp = false };
+            agrupador = new TorneoAgrupador
+            {
+                Id = 0,
+                Nombre = "Para Eliminar",
+                EsVisibleEnApp = false,
+                ColorId = (int)ColorEnum.Negro
+            };
             context.TorneoAgrupadores.Add(agrupador);
             context.SaveChanges();
         }
@@ -145,7 +163,13 @@ public class TorneoAgrupadorIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            agrupador = new TorneoAgrupador { Id = 0, Nombre = "Con Torneos", EsVisibleEnApp = true };
+            agrupador = new TorneoAgrupador
+            {
+                Id = 0,
+                Nombre = "Con Torneos",
+                EsVisibleEnApp = true,
+                ColorId = (int)ColorEnum.Negro
+            };
             context.TorneoAgrupadores.Add(agrupador);
             context.SaveChanges();
 
@@ -177,7 +201,13 @@ public class TorneoAgrupadorIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var agrupador2 = new TorneoAgrupador { Id = 0, Nombre = "Segundo", EsVisibleEnApp = true };
+            var agrupador2 = new TorneoAgrupador
+            {
+                Id = 0,
+                Nombre = "Segundo",
+                EsVisibleEnApp = true,
+                ColorId = (int)ColorEnum.Negro
+            };
             context.TorneoAgrupadores.Add(agrupador2);
             context.SaveChanges();
             id2 = agrupador2.Id;

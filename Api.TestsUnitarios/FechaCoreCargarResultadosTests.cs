@@ -1,5 +1,6 @@
 using Api.Core.DTOs;
 using Api.Core.Entidades;
+using Api.Core.Enums;
 using Api.Core.Entidades.EntidadesConValoresPredefinidos;
 using Api.Core.Otros;
 using Api.Core.Repositorios;
@@ -29,7 +30,7 @@ public class FechaCoreCargarResultadosTests
     private static async Task<(int zonaId, int jornadaId, int p1Id, int p2Id, int cat1Id, int cat2Id)>
         SeedJornadaConDosPartidos(AppDbContext ctx)
     {
-        var agr = new TorneoAgrupador { Id = 0, Nombre = "G", EsVisibleEnApp = false };
+        var agr = new TorneoAgrupador { Id = 0, Nombre = "G", EsVisibleEnApp = false, ColorId = (int)ColorEnum.Negro };
         ctx.TorneoAgrupadores.Add(agr);
         await ctx.SaveChangesAsync();
 
@@ -140,7 +141,7 @@ public class FechaCoreCargarResultadosTests
 
     private static async Task<(int zonaId, int jornadaId)> SeedJornadaSinPartidos(AppDbContext ctx)
     {
-        var agr = new TorneoAgrupador { Id = 0, Nombre = "G2", EsVisibleEnApp = false };
+        var agr = new TorneoAgrupador { Id = 0, Nombre = "G2", EsVisibleEnApp = false, ColorId = (int)ColorEnum.Negro };
         ctx.TorneoAgrupadores.Add(agr);
         await ctx.SaveChangesAsync();
 

@@ -7,7 +7,7 @@ public class TorneoAgrupadorDTO : DTO, IEsVisibleEnApp
 {
     [Required]
     public required string Nombre { get; set; }
-
+    public required string Color { get; set; }
     public required bool EsVisibleEnApp { get; set; }
 
     public int CantidadDeTorneos { get; set; }

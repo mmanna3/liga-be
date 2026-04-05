@@ -136,10 +136,13 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Partidos,
                 opt => opt.MapFrom(src => src.Partidos != null ? src.Partidos.ToList() : new List<Partido>()));
         CreateMap<TorneoAgrupador, TorneoAgrupadorDTO>()
+            .ForMember(dest => dest.Color, opt => opt.MapFrom(src => src.Color != null ? src.Color.Nombre : nameof(ColorEnum.Negro)))
             .ForMember(dest => dest.CantidadDeTorneos, opt => opt.MapFrom(src => src.Torneos != null ? src.Torneos.Count : 0))
             .ForMember(dest => dest.Torneos, opt => opt.MapFrom(src => src.Torneos))
             .PreserveReferences()
             .ReverseMap()
+            .ForMember(dest => dest.Color, opt => opt.Ignore())
+            .ForMember(dest => dest.ColorId, opt => opt.Ignore())
             .ForMember(dest => dest.Torneos, opt => opt.Ignore());
 
         CreateMap<Equipo, EquipoDTO>()

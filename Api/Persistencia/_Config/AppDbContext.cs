@@ -1,5 +1,6 @@
 using Api.Core.Entidades;
 using Api.Core.Entidades.EntidadesConValoresPredefinidos;
+using Api.Core.Enums;
 using Api.Core.Otros;
 using Api.Core.Servicios;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,27 @@ public class AppDbContext : DbContext
         builder.Entity<InstanciaEliminacionDirecta>().ToTable("_InstanciaEliminacionDirecta");
         builder.Entity<EstadoFase>().ToTable("_EstadoFase");
         builder.Entity<LocalVisitante>().ToTable("_LocalVisitante");
+
+        builder.Entity<Color>()
+            .ToTable("_Color")
+            .Property(c => c.Id)
+            .ValueGeneratedNever();
+
+        builder.Entity<Color>().HasData(
+            new Color { Id = (int)ColorEnum.Negro, Nombre = nameof(ColorEnum.Negro) },
+            new Color { Id = (int)ColorEnum.Azul, Nombre = nameof(ColorEnum.Azul) },
+            new Color { Id = (int)ColorEnum.Rojo, Nombre = nameof(ColorEnum.Rojo) },
+            new Color { Id = (int)ColorEnum.Verde, Nombre = nameof(ColorEnum.Verde) },
+            new Color { Id = (int)ColorEnum.Amarillo, Nombre = nameof(ColorEnum.Amarillo) },
+            new Color { Id = (int)ColorEnum.Naranja, Nombre = nameof(ColorEnum.Naranja) },
+            new Color { Id = (int)ColorEnum.Violeta, Nombre = nameof(ColorEnum.Violeta) }
+        );
+
+        builder.Entity<TorneoAgrupador>()
+            .HasOne(t => t.Color)
+            .WithMany(c => c.Agrupadores)
+            .HasForeignKey(t => t.ColorId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<Rol>().HasData(
             new Rol { Id = 1, Nombre = "Administrador" },
@@ -80,7 +102,13 @@ public class AppDbContext : DbContext
         builder.Entity<TorneoAgrupador>()
             .ToTable("TorneoAgrupadores")
             .HasData(
-                new TorneoAgrupador { Id = 1, Nombre = "General", EsVisibleEnApp = false }
+                new TorneoAgrupador
+                {
+                    Id = 1,
+                    Nombre = "General",
+                    EsVisibleEnApp = false,
+                    ColorId = (int)ColorEnum.Negro
+                }
             );
 
         builder.Entity<Torneo>()
@@ -394,6 +422,7 @@ public class AppDbContext : DbContext
     public DbSet<InstanciaEliminacionDirecta> InstanciaEliminacionDirecta { get; set; } = null!;
     public DbSet<EstadoFase> EstadoFase { get; set; } = null!;
     public DbSet<LocalVisitante> LocalVisitante { get; set; } = null!;
+    public DbSet<Color> Colores { get; set; } = null!;
     public DbSet<Usuario> Usuarios { get; set; } = null!;
     public DbSet<Rol> Roles { get; set; } = null!;
     public DbSet<Torneo> Torneos { get; set; } = null!;
