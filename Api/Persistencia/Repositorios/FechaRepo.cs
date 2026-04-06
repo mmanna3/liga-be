@@ -76,4 +76,47 @@ public class FechaRepo : RepositorioABMAnidado<Fecha, int>, IFechaRepo
             .AsSplitQuery()
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<FechaTodosContraTodos>> ListarTodosContraTodosPorZonaParaAppConPartidosAsync(
+        int zonaId, CancellationToken cancellationToken = default)
+    {
+        return await Context.Set<FechaTodosContraTodos>()
+            .AsNoTracking()
+            .Where(f => f.ZonaId == zonaId && f.EsVisibleEnApp)
+            .OrderBy(f => f.Numero)
+            .Include(x => x.Zona)
+            .ThenInclude(z => z.Fase)
+            .ThenInclude(f => f.Torneo)
+            .ThenInclude(t => t.Categorias)
+            .Include(x => x.Jornadas)
+            .ThenInclude(j => ((JornadaNormal)j).LocalEquipo)
+            .Include(x => x.Jornadas)
+            .ThenInclude(j => ((JornadaNormal)j).VisitanteEquipo)
+            .Include(x => x.Jornadas)
+            .ThenInclude(j => ((JornadaLibre)j).EquipoLocal)
+            .Include(x => x.Jornadas)
+            .ThenInclude(j => ((JornadaInterzonal)j).Equipo)
+            .Include(x => x.Jornadas)
+            .ThenInclude(j => j.Partidos)
+            .ThenInclude(p => p.Categoria)
+            .AsSplitQuery()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<TorneoCategoria>> ListarCategoriasTorneoPorZonaTodosContraTodosAsync(int zonaId,
+        CancellationToken cancellationToken = default)
+    {
+        var zona = await Context.Set<ZonaTodosContraTodos>()
+            .AsNoTracking()
+            .Where(z => z.Id == zonaId)
+            .Include(z => z.Fase)
+            .ThenInclude(f => f.Torneo)
+            .ThenInclude(t => t.Categorias)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (zona == null)
+            return Array.Empty<TorneoCategoria>();
+
+        return zona.Fase.Torneo.Categorias.OrderBy(c => c.Id).ToList();
+    }
 }

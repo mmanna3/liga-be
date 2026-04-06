@@ -13,4 +13,12 @@ public interface IFechaRepo : IRepositorioABMAnidado<Fecha, int>
     /// <summary>Fechas todos-contra-todos de la zona visibles en app, ordenadas por número, con jornadas y equipos para armar fixture.</summary>
     Task<IReadOnlyList<FechaTodosContraTodos>> ListarTodosContraTodosPorZonaParaAppAsync(int zonaId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Igual que <see cref="ListarTodosContraTodosPorZonaParaAppAsync"/> más zona→fase→torneo→categorías y partidos con categoría para resultados.</summary>
+    Task<IReadOnlyList<FechaTodosContraTodos>> ListarTodosContraTodosPorZonaParaAppConPartidosAsync(int zonaId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Categorías del torneo de una zona todos-contra-todos (vacío si la zona no existe o no es TCT).</summary>
+    Task<IReadOnlyList<TorneoCategoria>> ListarCategoriasTorneoPorZonaTodosContraTodosAsync(int zonaId,
+        CancellationToken cancellationToken = default);
 }

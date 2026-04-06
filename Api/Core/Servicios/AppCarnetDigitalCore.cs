@@ -129,7 +129,9 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
     {
         var equipos = await _equipoRepo.ListarPorZonaIdAsync(zonaId, cancellationToken);
         var baseEscudo = _paths.ImagenesEscudosRelative.TrimEnd('/');
-        return equipos.Select(e =>
+        return equipos
+            .OrderBy(e => e.Nombre, StringComparer.CurrentCultureIgnoreCase)
+            .Select(e =>
         {
             var club = e.Club;
             return new ClubesDTO
@@ -205,4 +207,216 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         JornadaSinEquipos => new FixturePartidoDTO(),
         _ => throw new InvalidOperationException($"Tipo de jornada no soportado: {j.GetType().Name}")
     };
+
+    public async Task<JornadasDTO> JornadasTodosContraTodosAsync(int zonaId,
+        CancellationToken cancellationToken = default)
+    {
+        var fechas = await _fechaRepo.ListarTodosContraTodosPorZonaParaAppConPartidosAsync(zonaId, cancellationToken);
+        var dto = new JornadasDTO();
+        if (fechas.Count == 0)
+            return dto;
+
+        var categoriasOrdenadas = fechas[0].Zona.Fase.Torneo.Categorias.OrderBy(c => c.Id).ToList();
+
+        foreach (var fecha in fechas)
+        {
+            dto.Fechas.Add(new FechasParaJornadasDTO
+            {
+                Titulo = $"Fecha {fecha.Numero}",
+                Dia = fecha.Dia?.ToString("dd-MM") ?? string.Empty,
+                Jornadas = fecha.Jornadas.OrderBy(x => x.Id)
+                    .Select(j => MapJornadaAJornadasPorFecha(j, categoriasOrdenadas))
+                    .ToList()
+            });
+        }
+
+        return dto;
+    }
+
+    public async Task<PosicionesDTO> PosicionesTodosContraTodosAsync(int zonaId,
+        CancellationToken cancellationToken = default)
+    {
+        var categorias =
+            await _fechaRepo.ListarCategoriasTorneoPorZonaTodosContraTodosAsync(zonaId, cancellationToken);
+        var fechas = await _fechaRepo.ListarTodosContraTodosPorZonaParaAppConPartidosAsync(zonaId, cancellationToken);
+        var equipos = (await _equipoRepo.ListarPorZonaIdAsync(zonaId, cancellationToken))
+            .OrderBy(e => e.Nombre, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+
+        var dto = new PosicionesDTO();
+        var baseEscudo = _paths.ImagenesEscudosRelative.TrimEnd('/');
+
+        foreach (var cat in categorias)
+        {
+            var bloque = new CategoriasConPosicionesDTO
+            {
+                Categoria = cat.Nombre,
+                Renglones = []
+            };
+
+            var filas = new List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>();
+            foreach (var equipo in equipos)
+            {
+                var ac = new EstadisticasPosicionEquipo();
+                var puntos = 0;
+                foreach (var fecha in fechas)
+                {
+                    foreach (var j in fecha.Jornadas)
+                    {
+                        var partido = j.Partidos?.FirstOrDefault(p => p.CategoriaId == cat.Id);
+                        if (partido == null)
+                            continue;
+                        if (!PosicionesTodosContraTodosLogica.PartidoTieneResultadosCargados(partido))
+                            continue;
+                        if (!PosicionesTodosContraTodosLogica.IntentarObtenerMiResultadoYRival(partido, j, equipo.Id,
+                                out var mi, out var rival))
+                            continue;
+                        PosicionesTodosContraTodosLogica.AcumularPartido(ref ac, mi, rival);
+                        PosicionesTodosContraTodosLogica.AcumularPuntos(ref puntos, mi, rival);
+                    }
+                }
+
+                filas.Add((equipo, ac, puntos));
+            }
+
+            var ordenadas = filas
+                .OrderByDescending(f => f.Puntos)
+                .ThenBy(f => f.Equipo.Nombre, StringComparer.CurrentCultureIgnoreCase)
+                .ToList();
+
+            var numeroPosicion = 1;
+            foreach (var f in ordenadas)
+            {
+                var diff = f.Stats.GolesAFavor - f.Stats.GolesEnContra;
+                bloque.Renglones.Add(new PosicionDelEquipoDTO
+                {
+                    Posicion = numeroPosicion++.ToString(),
+                    Puntos = f.Puntos.ToString(),
+                    Equipo = f.Equipo.Nombre,
+                    Escudo = $"{baseEscudo}/{f.Equipo.ClubId}.jpg",
+                    PartidosJugados = f.Stats.PartidosJugados.ToString(),
+                    PartidosGanados = f.Stats.PartidosGanados.ToString(),
+                    PartidosEmpatados = f.Stats.PartidosEmpatados.ToString(),
+                    PartidosPerdidos = f.Stats.PartidosPerdidos.ToString(),
+                    GolesAFavor = f.Stats.GolesAFavor.ToString(),
+                    GolesEnContra = f.Stats.GolesEnContra.ToString(),
+                    GolesDiferencia = diff.ToString(),
+                    PartidosNoPresento = f.Stats.PartidosNoPresento.ToString(),
+                    PartidosGanoPuntos = f.Stats.PartidosGanoPuntos.ToString(),
+                    PartidosPerdioPuntos = f.Stats.PartidosPerdioPuntos.ToString()
+                });
+            }
+
+            dto.Posiciones.Add(bloque);
+        }
+
+        return dto;
+    }
+
+    private static string FormatearResultadoPartido(Partido? p)
+    {
+        if (p == null)
+            return string.Empty;
+
+        var rl = p.ResultadoLocal.Trim();
+        var rv = p.ResultadoVisitante.Trim();
+        if (string.IsNullOrEmpty(rl) && string.IsNullOrEmpty(rv))
+            return string.Empty;
+
+        var s = $"{rl} - {rv}";
+        var pl = p.PenalesLocal?.Trim();
+        var pv = p.PenalesVisitante?.Trim();
+        if (!string.IsNullOrEmpty(pl) || !string.IsNullOrEmpty(pv))
+            s += $" ({pl ?? ""} - {pv ?? ""})";
+
+        return s;
+    }
+
+    private JornadasPorFechaDTO MapJornadaAJornadasPorFecha(Jornada j,
+        IReadOnlyList<TorneoCategoria> categoriasOrdenadas)
+    {
+        var partidosPorCat = (j.Partidos ?? [])
+            .GroupBy(p => p.CategoriaId)
+            .ToDictionary(g => g.Key, g => g.First());
+
+        var categorias = categoriasOrdenadas.Select(cat =>
+        {
+            partidosPorCat.TryGetValue(cat.Id, out var p);
+            return new ResultadoCategoriaDTO
+            {
+                Categoria = cat.Nombre,
+                Resultado = FormatearResultadoPartido(p)
+            };
+        }).ToList();
+
+        return j switch
+        {
+            JornadaNormal n => new JornadasPorFechaDTO
+            {
+                Local = new JornadaPorEquipoDTO
+                {
+                    Escudo = EscudoRelativo(n.LocalEquipo.ClubId),
+                    Equipo = n.LocalEquipo.Nombre,
+                    Categorias = categorias
+                },
+                Visitante = new JornadaPorEquipoDTO
+                {
+                    Escudo = EscudoRelativo(n.VisitanteEquipo.ClubId),
+                    Equipo = n.VisitanteEquipo.Nombre,
+                    Categorias = categorias
+                }
+            },
+            JornadaLibre l => new JornadasPorFechaDTO
+            {
+                Local = new JornadaPorEquipoDTO
+                {
+                    Escudo = EscudoRelativo(l.EquipoLocal.ClubId),
+                    Equipo = l.EquipoLocal.Nombre,
+                    Categorias = categorias
+                },
+                Visitante = new JornadaPorEquipoDTO
+                {
+                    Escudo = string.Empty,
+                    Equipo = "LIBRE",
+                    Categorias = categorias
+                }
+            },
+            JornadaInterzonal i when i.LocalOVisitanteId == (int)LocalVisitanteEnum.Local => new JornadasPorFechaDTO
+            {
+                Local = new JornadaPorEquipoDTO
+                {
+                    Escudo = EscudoRelativo(i.Equipo.ClubId),
+                    Equipo = i.Equipo.Nombre,
+                    Categorias = categorias
+                },
+                Visitante = new JornadaPorEquipoDTO
+                {
+                    Escudo = string.Empty,
+                    Equipo = "INTERZONAL",
+                    Categorias = categorias
+                }
+            },
+            JornadaInterzonal i => new JornadasPorFechaDTO
+            {
+                Local = new JornadaPorEquipoDTO
+                {
+                    Escudo = string.Empty,
+                    Equipo = "INTERZONAL",
+                    Categorias = categorias
+                },
+                Visitante = new JornadaPorEquipoDTO
+                {
+                    Escudo = EscudoRelativo(i.Equipo.ClubId),
+                    Equipo = i.Equipo.Nombre,
+                    Categorias = categorias
+                }
+            },
+            JornadaSinEquipos => new JornadasPorFechaDTO
+            {
+                Local = new JornadaPorEquipoDTO { Categorias = categorias },
+                Visitante = new JornadaPorEquipoDTO { Categorias = categorias }
+            },
+            _ => throw new InvalidOperationException($"Tipo de jornada no soportado: {j.GetType().Name}")
+        };
+    }
 }

@@ -107,5 +107,29 @@ namespace Api.Api.Controllers
             var datos = await _core.FixtureTodosContraTodosAsync(zonaId, cancellationToken);
             return Ok(datos);
         }
+
+        /// <summary>
+        /// Jornadas todos contra todos con resultados por categoría del torneo. Una entrada por fecha (título "Fecha N") con un elemento por partido de esa fecha.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("jornadas-todos-contra-todos")]
+        public async Task<ActionResult<JornadasDTO>> JornadasTodosContraTodos([FromQuery] int zonaId,
+            CancellationToken cancellationToken)
+        {
+            var datos = await _core.JornadasTodosContraTodosAsync(zonaId, cancellationToken);
+            return Ok(datos);
+        }
+
+        /// <summary>
+        /// Tabla de posiciones por categoría del torneo (todos contra todos). Posición y puntos pueden ir vacíos hasta definir criterio de desempate.
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("posiciones-todos-contra-todos")]
+        public async Task<ActionResult<PosicionesDTO>> PosicionesTodosContraTodos([FromQuery] int zonaId,
+            CancellationToken cancellationToken)
+        {
+            var datos = await _core.PosicionesTodosContraTodosAsync(zonaId, cancellationToken);
+            return Ok(datos);
+        }
     }
 }
