@@ -131,5 +131,17 @@ namespace Api.Api.Controllers
             var datos = await _core.PosicionesTodosContraTodosAsync(zonaId, cancellationToken);
             return Ok(datos);
         }
+
+        /// <summary>
+        /// Eliminatorias de la zona: una entrada por fecha (instancia) con día, y un partido por jornada (equipos, escudos y resultado).
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("eliminacion-directa")]
+        public async Task<ActionResult<EliminacionDirectaDTO>> EliminacionDirecta([FromQuery] int zonaId,
+            CancellationToken cancellationToken)
+        {
+            var datos = await _core.EliminacionDirectaAsync(zonaId, cancellationToken);
+            return Ok(datos);
+        }
     }
 }

@@ -21,4 +21,8 @@ public interface IFechaRepo : IRepositorioABMAnidado<Fecha, int>
     /// <summary>Categorías del torneo de una zona todos-contra-todos (vacío si la zona no existe o no es TCT).</summary>
     Task<IReadOnlyList<TorneoCategoria>> ListarCategoriasTorneoPorZonaTodosContraTodosAsync(int zonaId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Fechas de eliminación directa visibles en app, ordenadas por instancia (de llave mayor a final).</summary>
+    Task<IReadOnlyList<FechaEliminacionDirecta>> ListarEliminacionDirectaPorZonaParaAppAsync(int zonaId,
+        CancellationToken cancellationToken = default);
 }

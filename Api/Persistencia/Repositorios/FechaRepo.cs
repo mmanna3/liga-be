@@ -119,4 +119,27 @@ public class FechaRepo : RepositorioABMAnidado<Fecha, int>, IFechaRepo
 
         return zona.Fase.Torneo.Categorias.OrderBy(c => c.Id).ToList();
     }
+
+    public async Task<IReadOnlyList<FechaEliminacionDirecta>> ListarEliminacionDirectaPorZonaParaAppAsync(int zonaId,
+        CancellationToken cancellationToken = default)
+    {
+        return await Context.Set<FechaEliminacionDirecta>()
+            .AsNoTracking()
+            .Where(f => f.ZonaId == zonaId && f.EsVisibleEnApp)
+            .OrderByDescending(f => f.InstanciaId)
+            .Include(f => f.Instancia)
+            .Include(f => f.Zona)
+            .Include(f => f.Jornadas)
+            .ThenInclude(j => ((JornadaNormal)j).LocalEquipo)
+            .Include(f => f.Jornadas)
+            .ThenInclude(j => ((JornadaNormal)j).VisitanteEquipo)
+            .Include(f => f.Jornadas)
+            .ThenInclude(j => ((JornadaLibre)j).EquipoLocal)
+            .Include(f => f.Jornadas)
+            .ThenInclude(j => ((JornadaInterzonal)j).Equipo)
+            .Include(f => f.Jornadas)
+            .ThenInclude(j => j.Partidos)
+            .AsSplitQuery()
+            .ToListAsync(cancellationToken);
+    }
 }

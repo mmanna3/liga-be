@@ -317,6 +317,93 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         return dto;
     }
 
+    public async Task<EliminacionDirectaDTO> EliminacionDirectaAsync(int zonaId,
+        CancellationToken cancellationToken = default)
+    {
+        var fechas = await _fechaRepo.ListarEliminacionDirectaPorZonaParaAppAsync(zonaId, cancellationToken);
+        var dto = new EliminacionDirectaDTO();
+        if (fechas.Count == 0)
+            return dto;
+
+        foreach (var fecha in fechas)
+        {
+            var categoriaId = fecha.Zona.CategoriaId;
+            dto.Instancias.Add(new InstanciasDTO
+            {
+                Titulo = fecha.Instancia.Nombre,
+                Dia = fecha.Dia?.ToString("dd-MM") ?? string.Empty,
+                Partidos = fecha.Jornadas
+                    .OrderBy(j => j.Id)
+                    .Select(j => MapJornadaAPartidoEliminacionDirecta(j, categoriaId))
+                    .ToList()
+            });
+        }
+
+        return dto;
+    }
+
+    private PartidoEliminacionDirectaDTO MapJornadaAPartidoEliminacionDirecta(Jornada j, int categoriaId)
+    {
+        var p = j.Partidos?.FirstOrDefault(x => x.CategoriaId == categoriaId);
+        return j switch
+        {
+            JornadaNormal n => new PartidoEliminacionDirectaDTO
+            {
+                Local = n.LocalEquipo.Nombre,
+                Visitante = n.VisitanteEquipo.Nombre,
+                EscudoLocal = EscudoRelativo(n.LocalEquipo.ClubId),
+                EscudoVisitante = EscudoRelativo(n.VisitanteEquipo.ClubId),
+                ResultadoLocal = TrimResultado(p?.ResultadoLocal),
+                ResultadoVisitante = TrimResultado(p?.ResultadoVisitante),
+                PenalesLocal = TrimResultado(p?.PenalesLocal),
+                PenalesVisitante = TrimResultado(p?.PenalesVisitante)
+            },
+            JornadaLibre l => new PartidoEliminacionDirectaDTO
+            {
+                Local = l.EquipoLocal.Nombre,
+                Visitante = "LIBRE",
+                EscudoLocal = EscudoRelativo(l.EquipoLocal.ClubId),
+                EscudoVisitante = string.Empty,
+                ResultadoLocal = TrimResultado(p?.ResultadoLocal),
+                ResultadoVisitante = TrimResultado(p?.ResultadoVisitante),
+                PenalesLocal = TrimResultado(p?.PenalesLocal),
+                PenalesVisitante = TrimResultado(p?.PenalesVisitante)
+            },
+            JornadaInterzonal i when i.LocalOVisitanteId == (int)LocalVisitanteEnum.Local => new PartidoEliminacionDirectaDTO
+            {
+                Local = i.Equipo.Nombre,
+                Visitante = "INTERZONAL",
+                EscudoLocal = EscudoRelativo(i.Equipo.ClubId),
+                EscudoVisitante = string.Empty,
+                ResultadoLocal = TrimResultado(p?.ResultadoLocal),
+                ResultadoVisitante = TrimResultado(p?.ResultadoVisitante),
+                PenalesLocal = TrimResultado(p?.PenalesLocal),
+                PenalesVisitante = TrimResultado(p?.PenalesVisitante)
+            },
+            JornadaInterzonal i => new PartidoEliminacionDirectaDTO
+            {
+                Local = "INTERZONAL",
+                Visitante = i.Equipo.Nombre,
+                EscudoLocal = string.Empty,
+                EscudoVisitante = EscudoRelativo(i.Equipo.ClubId),
+                ResultadoLocal = TrimResultado(p?.ResultadoLocal),
+                ResultadoVisitante = TrimResultado(p?.ResultadoVisitante),
+                PenalesLocal = TrimResultado(p?.PenalesLocal),
+                PenalesVisitante = TrimResultado(p?.PenalesVisitante)
+            },
+            JornadaSinEquipos => new PartidoEliminacionDirectaDTO
+            {
+                ResultadoLocal = TrimResultado(p?.ResultadoLocal),
+                ResultadoVisitante = TrimResultado(p?.ResultadoVisitante),
+                PenalesLocal = TrimResultado(p?.PenalesLocal),
+                PenalesVisitante = TrimResultado(p?.PenalesVisitante)
+            },
+            _ => throw new InvalidOperationException($"Tipo de jornada no soportado: {j.GetType().Name}")
+        };
+    }
+
+    private static string TrimResultado(string? s) => string.IsNullOrWhiteSpace(s) ? string.Empty : s.Trim();
+
     private static string FormatearResultadoPartido(Partido? p)
     {
         if (p == null)
