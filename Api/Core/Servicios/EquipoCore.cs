@@ -155,6 +155,7 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
             Id = zona.Id,
             Nombre = zona.Nombre,
             TorneoId = torneo?.Id,
+            Anio = torneo?.Anio,
             Torneo = torneo != null ? $"{torneo.Nombre} {torneo.Anio}" : string.Empty,
             Agrupador = torneo?.TorneoAgrupador?.Nombre ?? string.Empty,
             AgrupadorId = torneo?.TorneoAgrupadorId,

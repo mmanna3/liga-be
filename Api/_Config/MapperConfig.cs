@@ -59,10 +59,12 @@ public class MapperConfig : Profile
             .Include<ZonaEliminacionDirecta, ZonaResumenDTO>();
         CreateMap<ZonaTodosContraTodos, ZonaResumenDTO>()
             .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => src.Fase != null && src.Fase.Torneo != null ? $"{src.Fase.Torneo.Nombre} {src.Fase.Torneo.Anio}" : string.Empty))
+            .ForMember(dest => dest.Anio, opt => opt.MapFrom(src => src.Fase != null && src.Fase.Torneo != null ? (int?)src.Fase.Torneo.Anio : null))
             .ForMember(dest => dest.Agrupador, opt => opt.MapFrom(src => src.Fase != null && src.Fase.Torneo != null && src.Fase.Torneo.TorneoAgrupador != null ? src.Fase.Torneo.TorneoAgrupador.Nombre : string.Empty))
             .ForMember(dest => dest.AgrupadorId, opt => opt.MapFrom(src => src.Fase != null && src.Fase.Torneo != null ? (int?)src.Fase.Torneo.TorneoAgrupadorId : null));
         CreateMap<ZonaEliminacionDirecta, ZonaResumenDTO>()
             .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => src.Fase != null && src.Fase.Torneo != null ? $"{src.Fase.Torneo.Nombre} {src.Fase.Torneo.Anio}" : string.Empty))
+            .ForMember(dest => dest.Anio, opt => opt.MapFrom(src => src.Fase != null && src.Fase.Torneo != null ? (int?)src.Fase.Torneo.Anio : null))
             .ForMember(dest => dest.Agrupador, opt => opt.MapFrom(src => src.Fase != null && src.Fase.Torneo != null && src.Fase.Torneo.TorneoAgrupador != null ? src.Fase.Torneo.TorneoAgrupador.Nombre : string.Empty))
             .ForMember(dest => dest.AgrupadorId, opt => opt.MapFrom(src => src.Fase != null && src.Fase.Torneo != null ? (int?)src.Fase.Torneo.TorneoAgrupadorId : null));
 
