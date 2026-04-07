@@ -43,6 +43,18 @@ try
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();
 
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("EdefiWeb", policy =>
+        {
+            policy.WithOrigins(
+                    "https://web.edefi.com.ar",
+                    "https://web2.edefi.com.ar")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+    });
+
     var app = builder.Build();
 
     Console.WriteLine($"Entorno: {app.Environment.EnvironmentName}");
@@ -60,11 +72,14 @@ try
         // app.Urls.Add("https://" + localIp + ":7072");
     }
 
-    // CORS habilitado en desarrollo y en cualquier entorno E2E (tests de frontend
-    // necesitan hacer requests cross-origin desde localhost:5173 al backend).
+    // CORS: en desarrollo/E2E, abierto (localhost:5173, etc.). En el resto, solo orígenes Edefi.
     if (app.Environment.IsDevelopment() || Environment.GetEnvironmentVariable("E2E_SEED_ENABLED") == "true")
     {
         app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+    }
+    else
+    {
+        app.UseCors("EdefiWeb");
     }
 
     app.UseOpenApi();
