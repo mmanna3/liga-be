@@ -11,4 +11,7 @@ public interface ITorneoRepo : IRepositorioABM<Torneo>
 
     /// <summary>Filas afectadas (0 si no existe el torneo).</summary>
     Task<int> ActualizarEsVisibleEnApp(int id, bool esVisibleEnApp);
+
+    /// <summary>Torneo con categorías (sin fases/zonas), solo lectura.</summary>
+    Task<Torneo?> ObtenerPorIdConCategoriasAsync(int id, CancellationToken cancellationToken = default);
 } 

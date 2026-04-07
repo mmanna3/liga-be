@@ -20,4 +20,7 @@ public interface IAppCarnetDigitalCore
     Task<PosicionesDTO> PosicionesTodosContraTodosAsync(int zonaId, CancellationToken cancellationToken = default);
 
     Task<EliminacionDirectaDTO> EliminacionDirectaAsync(int zonaId, CancellationToken cancellationToken = default);
+
+    Task<PlanillaDeJuegoDTO> PlanillasDeJuegoAsync(string codigoAlfanumerico,
+        CancellationToken cancellationToken = default);
 }

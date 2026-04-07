@@ -2,6 +2,7 @@ using Api.Core.DTOs.AppCarnetDigital;
 using Api.Core.Entidades;
 using Api.Core.Enums;
 using Api.Core.Logica;
+using Api.Core.Otros;
 using Api.Core.Repositorios;
 using Api.Core.Servicios.Interfaces;
 using AutoMapper;
@@ -17,11 +18,12 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
     private readonly IImagenDelegadoRepo _imagenDelegadoRepo;
     private readonly ITorneoAgrupadorRepo _torneoAgrupadorRepo;
     private readonly IFechaRepo _fechaRepo;
+    private readonly ITorneoRepo _torneoRepo;
     private readonly AppPaths _paths;
 
     public AppCarnetDigitalCore(IDelegadoRepo delegadoRepo, IEquipoRepo equipoRepo, IMapper mapper,
         IImagenJugadorRepo imagenJugadorRepo, IImagenDelegadoRepo imagenDelegadoRepo,
-        ITorneoAgrupadorRepo torneoAgrupadorRepo, IFechaRepo fechaRepo, AppPaths paths)
+        ITorneoAgrupadorRepo torneoAgrupadorRepo, IFechaRepo fechaRepo, ITorneoRepo torneoRepo, AppPaths paths)
     {
         _delegadoRepo = delegadoRepo;
         _mapper = mapper;
@@ -30,6 +32,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         _equipoRepo = equipoRepo;
         _torneoAgrupadorRepo = torneoAgrupadorRepo;
         _fechaRepo = fechaRepo;
+        _torneoRepo = torneoRepo;
         _paths = paths;
     }
 
@@ -118,6 +121,80 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
     {
         var id = GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos(codigoAlfanumerico);
         return Carnets(id);
+    }
+
+    public async Task<PlanillaDeJuegoDTO> PlanillasDeJuegoAsync(string codigoAlfanumerico,
+        CancellationToken cancellationToken = default)
+    {
+        var equipoId = GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos(codigoAlfanumerico);
+
+        var anio = DateTime.Today.Year;
+        var torneoIds = await _equipoRepo.ListarTorneoIdsDelEquipoEnAnioAsync(equipoId, anio, cancellationToken);
+
+        if (torneoIds.Count == 0)
+            throw new ExcepcionControlada("El equipo no está inscripto en ningún torneo este año.");
+
+        if (torneoIds.Count > 1)
+            throw new ExcepcionControlada("El equipo juega más de un torneo este año.");
+
+        var torneo = await _torneoRepo.ObtenerPorIdConCategoriasAsync(torneoIds[0], cancellationToken);
+        if (torneo == null)
+            throw new ExcepcionControlada("No existe el torneo.");
+
+        var equipo = await _equipoRepo.ObtenerPorId(equipoId);
+        if (equipo == null)
+            throw new ExcepcionControlada("No existe el equipo.");
+
+        var categoriasOrdenadas = torneo.Categorias.OrderBy(c => c.Id).ToList();
+        var estadosPermitidos = new HashSet<int>
+        {
+            (int)EstadoJugadorEnum.Activo,
+            (int)EstadoJugadorEnum.Suspendido,
+            (int)EstadoJugadorEnum.Inhabilitado
+        };
+
+        var jugadoresPorCategoria = categoriasOrdenadas.ToDictionary(c => c.Id, _ => new List<JugadorDatosPlanillaDTO>());
+
+        foreach (var je in equipo.Jugadores)
+        {
+            if (!estadosPermitidos.Contains(je.EstadoJugadorId))
+                continue;
+
+            var jugador = je.Jugador;
+            if (jugador == null)
+                continue;
+
+            var anioNac = jugador.FechaNacimiento.Year;
+            var cat = categoriasOrdenadas.FirstOrDefault(c => anioNac >= c.AnioDesde && anioNac <= c.AnioHasta);
+            if (cat == null)
+                continue;
+
+            jugadoresPorCategoria[cat.Id].Add(new JugadorDatosPlanillaDTO
+            {
+                DNI = jugador.DNI,
+                Nombre = $"{jugador.Nombre} {jugador.Apellido}".Trim(),
+                Estado = ((EstadoJugadorEnum)je.EstadoJugadorId).ToString()
+            });
+        }
+
+        var planillas = new List<JugadoresPorCategoriaDTO>();
+        foreach (var c in categoriasOrdenadas)
+        {
+            var lista = jugadoresPorCategoria[c.Id];
+            lista.Sort((a, b) => string.Compare(a.Nombre, b.Nombre, StringComparison.CurrentCultureIgnoreCase));
+            planillas.Add(new JugadoresPorCategoriaDTO
+            {
+                Categoria = c.Nombre,
+                Jugadores = lista
+            });
+        }
+
+        return new PlanillaDeJuegoDTO
+        {
+            Torneo = torneo.Nombre,
+            Equipo = equipo.Nombre,
+            Planillas = planillas
+        };
     }
 
     public Task<IReadOnlyList<InformacionInicialAgrupadorDTO>> InformacionInicialDeTorneosAsync(

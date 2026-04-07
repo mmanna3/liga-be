@@ -86,4 +86,12 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
             .Where(t => t.Id == id)
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.EsVisibleEnApp, esVisibleEnApp));
     }
+
+    public async Task<Torneo?> ObtenerPorIdConCategoriasAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return await Context.Set<Torneo>()
+            .AsNoTracking()
+            .Include(t => t.Categorias)
+            .SingleOrDefaultAsync(t => t.Id == id, cancellationToken);
+    }
 } 

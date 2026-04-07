@@ -56,6 +56,16 @@ namespace Api.Api.Controllers
             return Ok(equipos);
         }
 
+        /// <summary>Planillas de juego por categoría del torneo (jugadores activos, suspendidos o inhabilitados).</summary>
+        [AllowAnonymous]
+        [HttpGet("planillas-de-juego")]
+        public async Task<ActionResult<PlanillaDeJuegoDTO>> PlanillasDeJuego([FromQuery] string codigoAlfanumerico,
+            CancellationToken cancellationToken)
+        {
+            var datos = await _core.PlanillasDeJuegoAsync(codigoAlfanumerico, cancellationToken);
+            return Ok(datos);
+        }
+
         [HttpGet("jugadores-pendientes")]
         public async Task<ActionResult<ICollection<CarnetDigitalPendienteDTO>>> JugadoresPendientes(int equipoId)
         {

@@ -117,4 +117,16 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
             .OrderBy(e => e.Nombre)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<int>> ListarTorneoIdsDelEquipoEnAnioAsync(int equipoId, int anio,
+        CancellationToken cancellationToken = default)
+    {
+        return await (
+            from ez in Context.Set<EquipoZona>()
+            join z in Context.Zonas on ez.ZonaId equals z.Id
+            join f in Context.Fases on z.FaseId equals f.Id
+            join t in Context.Torneos on f.TorneoId equals t.Id
+            where ez.EquipoId == equipoId && t.Anio == anio
+            select t.Id).Distinct().ToListAsync(cancellationToken);
+    }
 }
