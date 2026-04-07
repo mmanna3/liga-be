@@ -106,16 +106,22 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
 
     private async Task ReemplazarCategorias(int torneoId, List<TorneoCategoriaDTO> categoriasDto)
     {
-        var categoriasExistentes = await _torneoCategoriaRepo.ListarPorPadre(torneoId);
-        var idsExistentes = categoriasExistentes.Select(c => c.Id).ToList();
-        if (idsExistentes.Count > 0 &&
-            await _torneoCategoriaRepo.AlgunaTienePartidosOZonas(idsExistentes))
+        var categoriasExistentes = (await _torneoCategoriaRepo.ListarPorPadre(torneoId)).ToList();
+        var porId = categoriasExistentes.ToDictionary(c => c.Id);
+
+        var idsEnPayload = categoriasDto.Where(d => d.Id > 0).Select(d => d.Id).ToHashSet();
+        var idsAEliminar = categoriasExistentes.Select(c => c.Id).Where(id => !idsEnPayload.Contains(id)).ToList();
+
+        if (idsAEliminar.Count > 0 &&
+            await _torneoCategoriaRepo.AlgunaTienePartidosOZonas(idsAEliminar))
             throw new ExcepcionControlada("No se pueden eliminar categorías con partidos o zonas asociadas.");
 
-        foreach (var cat in categoriasExistentes)
+        foreach (var id in idsAEliminar)
         {
-            _torneoCategoriaRepo.Eliminar(cat);
+            _torneoCategoriaRepo.Eliminar(porId[id]);
+            porId.Remove(id);
         }
+
         await BDVirtual.GuardarCambios();
 
         foreach (var dto in categoriasDto)
@@ -123,17 +129,29 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
             if (dto.AnioDesde > dto.AnioHasta)
                 throw new ExcepcionControlada("El año desde no puede ser mayor que el año hasta.");
 
-            var categoria = new TorneoCategoria
+            if (dto.Id > 0)
             {
-                Id = 0,
-                TorneoId = torneoId,
-                Nombre = dto.Nombre,
-                AnioDesde = dto.AnioDesde,
-                AnioHasta = dto.AnioHasta
-            };
-            _torneoCategoriaRepo.Crear(categoria);
-            await BDVirtual.GuardarCambios();
+                if (!porId.TryGetValue(dto.Id, out var existente))
+                    throw new ExcepcionControlada("Categoría no encontrada para este torneo.");
+
+                existente.Nombre = dto.Nombre;
+                existente.AnioDesde = dto.AnioDesde;
+                existente.AnioHasta = dto.AnioHasta;
+            }
+            else
+            {
+                _torneoCategoriaRepo.Crear(new TorneoCategoria
+                {
+                    Id = 0,
+                    TorneoId = torneoId,
+                    Nombre = dto.Nombre,
+                    AnioDesde = dto.AnioDesde,
+                    AnioHasta = dto.AnioHasta
+                });
+            }
         }
+
+        await BDVirtual.GuardarCambios();
     }
 
     public override async Task<int> Crear(TorneoDTO dto)

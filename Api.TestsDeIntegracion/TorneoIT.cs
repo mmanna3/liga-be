@@ -1,9 +1,11 @@
+using System.Net;
 using System.Net.Http.Json;
 using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Core.Enums;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 // ReSharper disable InconsistentNaming
@@ -654,5 +656,133 @@ public class TorneoIT : TestBase
         var final = JsonConvert.DeserializeObject<TorneoDTO>(await getResp.Content.ReadAsStringAsync());
         Assert.NotNull(final);
         Assert.False(final.SeVenLosGolesEnTablaDePosiciones);
+    }
+
+    /// <summary>
+    /// PUT con la lista completa de categorías (mismos ids) no debe disparar la validación de “eliminar”
+    /// cuando hay partidos asociados a esas categorías.
+    /// </summary>
+    [Fact]
+    public async Task ModificarTorneo_ConTodasLasCategoriasDelTorneoInclusoConPartidosAsociados_204()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var crearDto = new CrearTorneoDTO
+        {
+            Nombre = "Torneo cat con partidos",
+            Anio = 2018,
+            TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true,
+            PrimeraFase = new FaseDTO
+            {
+                Nombre = "Fase",
+                Numero = 1,
+                TipoDeFase = TipoDeFaseEnum.TodosContraTodos,
+                EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
+                EsVisibleEnApp = true
+            },
+            Categorias =
+            [
+                new TorneoCategoriaDTO { Nombre = "Cat uno", AnioDesde = 2010, AnioHasta = 2015 },
+                new TorneoCategoriaDTO { Nombre = "Cat dos", AnioDesde = 2010, AnioHasta = 2015 }
+            ]
+        };
+        var crearResponse = await client.PostAsJsonAsync("/api/torneo", crearDto);
+        crearResponse.EnsureSuccessStatusCode();
+        var torneoCreado = JsonConvert.DeserializeObject<TorneoDTO>(await crearResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(torneoCreado);
+        var torneoId = torneoCreado.Id;
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var zona = await context.Zonas.OfType<ZonaTodosContraTodos>()
+                .FirstAsync(z => z.Fase.TorneoId == torneoId);
+            var club = new Club
+            {
+                Id = 0,
+                Nombre = "Club seed partido cat",
+                Localidad = "X",
+                Direccion = "Y",
+                EsTechado = false
+            };
+            context.Clubs.Add(club);
+            await context.SaveChangesAsync();
+
+            var eq1 = new Equipo { Id = 0, Nombre = "Eq A", ClubId = club.Id, Jugadores = [] };
+            var eq2 = new Equipo { Id = 0, Nombre = "Eq B", ClubId = club.Id, Jugadores = [] };
+            context.Equipos.AddRange(eq1, eq2);
+            await context.SaveChangesAsync();
+
+            context.EquipoZona.Add(new EquipoZona { Id = 0, EquipoId = eq1.Id, ZonaId = zona.Id });
+            context.EquipoZona.Add(new EquipoZona { Id = 0, EquipoId = eq2.Id, ZonaId = zona.Id });
+
+            var fecha = new FechaTodosContraTodos
+            {
+                Id = 0,
+                Dia = new DateOnly(2026, 3, 1),
+                Numero = 1,
+                ZonaId = zona.Id,
+                EsVisibleEnApp = true
+            };
+            context.Fechas.Add(fecha);
+            await context.SaveChangesAsync();
+
+            var jornada = new JornadaNormal
+            {
+                Id = 0,
+                FechaId = fecha.Id,
+                ResultadosVerificados = false,
+                LocalEquipoId = eq1.Id,
+                VisitanteEquipoId = eq2.Id,
+                Partidos = []
+            };
+            context.Jornadas.Add(jornada);
+            await context.SaveChangesAsync();
+
+            var primeraCategoriaId = await context.TorneoCategorias
+                .Where(c => c.TorneoId == torneoId)
+                .OrderBy(c => c.Id)
+                .Select(c => c.Id)
+                .FirstAsync();
+
+            context.Partidos.Add(new Partido
+            {
+                Id = 0,
+                CategoriaId = primeraCategoriaId,
+                JornadaId = jornada.Id,
+                ResultadoLocal = "1",
+                ResultadoVisitante = "0"
+            });
+            await context.SaveChangesAsync();
+        }
+
+        var getResponse = await client.GetAsync($"/api/torneo/{torneoId}");
+        getResponse.EnsureSuccessStatusCode();
+        var torneoActual = JsonConvert.DeserializeObject<TorneoDTO>(await getResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(torneoActual?.Categorias);
+        Assert.Equal(2, torneoActual.Categorias!.Count);
+
+        var modificarDto = new TorneoDTO
+        {
+            Id = torneoActual.Id,
+            Nombre = "Torneo cat con partidos renombrado",
+            Anio = torneoActual.Anio,
+            TorneoAgrupadorId = torneoActual.TorneoAgrupadorId,
+            EsVisibleEnApp = torneoActual.EsVisibleEnApp,
+            SeVenLosGolesEnTablaDePosiciones = torneoActual.SeVenLosGolesEnTablaDePosiciones,
+            Categorias = torneoActual.Categorias!.Select(c => new TorneoCategoriaDTO
+            {
+                Id = c.Id,
+                Nombre = c.Nombre,
+                AnioDesde = c.AnioDesde,
+                AnioHasta = c.AnioHasta,
+                TorneoId = torneoId
+            }).ToList()
+        };
+
+        var putResponse = await client.PutAsJsonAsync($"/api/torneo/{torneoId}", modificarDto);
+        Assert.Equal(HttpStatusCode.NoContent, putResponse.StatusCode);
     }
 }
