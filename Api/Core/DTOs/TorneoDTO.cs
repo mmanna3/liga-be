@@ -10,6 +10,7 @@ public class TorneoDTO : DTO, IEsVisibleEnApp
 
     public required int Anio { get; set; }
     public required bool EsVisibleEnApp { get; set; }
+    public required bool SeVenLosGolesEnTablaDePosiciones { get; set; }
     public int TorneoAgrupadorId { get; set; }
     public string TorneoAgrupadorNombre { get; set; } = string.Empty;
     public bool SePuedeEditar { get; set; }

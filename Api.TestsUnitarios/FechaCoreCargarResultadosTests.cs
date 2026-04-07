@@ -40,6 +40,7 @@ public class FechaCoreCargarResultadosTests
             Nombre = "T",
             Anio = 2026,
             EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true,
             TorneoAgrupadorId = agr.Id,
             Categorias = [],
             Fases = []
@@ -151,6 +152,7 @@ public class FechaCoreCargarResultadosTests
             Nombre = "T2",
             Anio = 2026,
             EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true,
             TorneoAgrupadorId = agr.Id,
             Categorias = [],
             Fases = []

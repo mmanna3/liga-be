@@ -173,7 +173,7 @@ public class TorneoAgrupadorIT : TestBase
             context.TorneoAgrupadores.Add(agrupador);
             context.SaveChanges();
 
-            var torneo = new Torneo { Id = 0, Nombre = "Torneo Test", Anio = 2026, TorneoAgrupadorId = agrupador.Id, EsVisibleEnApp = true };
+            var torneo = new Torneo { Id = 0, Nombre = "Torneo Test", Anio = 2026, TorneoAgrupadorId = agrupador.Id, EsVisibleEnApp = true, SeVenLosGolesEnTablaDePosiciones = true };
             context.Torneos.Add(torneo);
             context.SaveChanges();
         }

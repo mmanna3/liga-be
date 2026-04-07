@@ -35,6 +35,7 @@ public class TorneoIT : TestBase
             Anio = 2026,
             TorneoAgrupadorId = 1,
             EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true,
             PrimeraFase = new FaseDTO
             {
                 Nombre = "Fase de grupos",
@@ -59,6 +60,7 @@ public class TorneoIT : TestBase
         Assert.True(torneoCreado.Id > 0);
         Assert.Equal("Torneo con Fase y Categorías", torneoCreado.Nombre);
         Assert.Equal(2026, torneoCreado.Anio);
+        Assert.True(torneoCreado.SeVenLosGolesEnTablaDePosiciones);
 
         var torneoId = torneoCreado.Id;
 
@@ -90,7 +92,8 @@ public class TorneoIT : TestBase
             Nombre = "Torneo básico",
             Anio = 2026,
             TorneoAgrupadorId = 1,
-            EsVisibleEnApp = true
+            EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true
         };
 
         var response = await client.PostAsJsonAsync("/api/torneo", dto);
@@ -129,6 +132,7 @@ public class TorneoIT : TestBase
             Anio = 2026,
             TorneoAgrupadorId = 1,
             EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true,
             Categorias =
             [
                 new TorneoCategoriaDTO { Nombre = "Primera", AnioDesde = 2005, AnioHasta = 2010 }
@@ -168,6 +172,7 @@ public class TorneoIT : TestBase
             Anio = 2026,
             TorneoAgrupadorId = 1,
             EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true,
             Categorias =
             [
                 new TorneoCategoriaDTO { Nombre = "Sub-15", AnioDesde = 2015, AnioHasta = 2010 }
@@ -191,7 +196,8 @@ public class TorneoIT : TestBase
             Nombre = "Torneo Único",
             Anio = 2026,
             TorneoAgrupadorId = 1,
-            EsVisibleEnApp = true
+            EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true
         };
 
         var response1 = await client.PostAsJsonAsync("/api/torneo", dto);
@@ -232,7 +238,8 @@ public class TorneoIT : TestBase
             Nombre = "Torneo Compartido",
             Anio = 2026,
             TorneoAgrupadorId = 1,
-            EsVisibleEnApp = true
+            EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true
         };
 
         var response1 = await client.PostAsJsonAsync("/api/torneo", dto);
@@ -258,7 +265,7 @@ public class TorneoIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var torneo = new Torneo { Id = 0, Nombre = "Torneo Editable", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true };
+            var torneo = new Torneo { Id = 0, Nombre = "Torneo Editable", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true, SeVenLosGolesEnTablaDePosiciones = true };
             context.Torneos.Add(torneo);
             await context.SaveChangesAsync();
             torneoId = torneo.Id;
@@ -291,7 +298,7 @@ public class TorneoIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var torneo = new Torneo { Id = 0, Nombre = "Torneo No Editable", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true };
+            var torneo = new Torneo { Id = 0, Nombre = "Torneo No Editable", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true, SeVenLosGolesEnTablaDePosiciones = true };
             context.Torneos.Add(torneo);
             await context.SaveChangesAsync();
             torneoId = torneo.Id;
@@ -330,8 +337,8 @@ public class TorneoIT : TestBase
     {
         var client = await GetAuthenticatedClient();
 
-        var dto1 = new CrearTorneoDTO { Nombre = "Torneo A", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true };
-        var dto2 = new CrearTorneoDTO { Nombre = "Torneo B", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true };
+        var dto1 = new CrearTorneoDTO { Nombre = "Torneo A", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true, SeVenLosGolesEnTablaDePosiciones = true };
+        var dto2 = new CrearTorneoDTO { Nombre = "Torneo B", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true, SeVenLosGolesEnTablaDePosiciones = true };
 
         var response1 = await client.PostAsJsonAsync("/api/torneo", dto1);
         response1.EnsureSuccessStatusCode();
@@ -350,7 +357,8 @@ public class TorneoIT : TestBase
             Nombre = "Torneo A",
             Anio = 2026,
             TorneoAgrupadorId = 1,
-            EsVisibleEnApp = true
+            EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true
         };
 
         var responseModificar = await client.PutAsJsonAsync($"/api/torneo/{torneoB.Id}", dtoModificar);
@@ -373,6 +381,7 @@ public class TorneoIT : TestBase
             Anio = 2025,
             TorneoAgrupadorId = 1,
             EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true,
             PrimeraFase = new FaseDTO
             {
                 Nombre = "Fase grupos",
@@ -412,6 +421,7 @@ public class TorneoIT : TestBase
             Anio = 2024,
             TorneoAgrupadorId = 1,
             EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true,
             PrimeraFase = new FaseDTO
             {
                 Nombre = "Fase inicial",
@@ -452,6 +462,7 @@ public class TorneoIT : TestBase
             Anio = 2023,
             TorneoAgrupadorId = 1,
             EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true,
             PrimeraFase = new FaseDTO
             {
                 Nombre = "Fase",
@@ -474,6 +485,7 @@ public class TorneoIT : TestBase
             Anio = 2023,
             TorneoAgrupadorId = 1,
             EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true,
             Fases = [],
             Categorias = []
         };
@@ -500,6 +512,7 @@ public class TorneoIT : TestBase
             Anio = 2022,
             TorneoAgrupadorId = 1,
             EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true,
             PrimeraFase = new FaseDTO
             {
                 Nombre = "Fase vieja",
@@ -522,6 +535,7 @@ public class TorneoIT : TestBase
             Anio = 2022,
             TorneoAgrupadorId = 1,
             EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true,
             Fases =
             [
                 new FaseDTO
@@ -564,6 +578,7 @@ public class TorneoIT : TestBase
             Anio = 2021,
             TorneoAgrupadorId = 1,
             EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true,
             PrimeraFase = new FaseDTO
             {
                 Nombre = "Fase original",
@@ -585,7 +600,8 @@ public class TorneoIT : TestBase
             Nombre = "Torneo Sin Tocar Modificado",
             Anio = 2021,
             TorneoAgrupadorId = 1,
-            EsVisibleEnApp = true
+            EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true
         };
 
         var putResponse = await client.PutAsJsonAsync($"/api/torneo/{torneoCreado.Id}", modificarDto);
@@ -600,5 +616,43 @@ public class TorneoIT : TestBase
         Assert.Equal("Fase original", torneo.Fases![0].Nombre);
         Assert.Single(torneo.Categorias!);
         Assert.Equal("Cat original", torneo.Categorias![0].Nombre);
+    }
+
+    [Fact]
+    public async Task ModificarTorneo_SeVenLosGolesEnTablaDePosiciones_Persiste()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var crear = new CrearTorneoDTO
+        {
+            Nombre = "Torneo flag goles",
+            Anio = 2020,
+            TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true
+        };
+        var crearResp = await client.PostAsJsonAsync("/api/torneo", crear);
+        crearResp.EnsureSuccessStatusCode();
+        var creado = JsonConvert.DeserializeObject<TorneoDTO>(await crearResp.Content.ReadAsStringAsync());
+        Assert.NotNull(creado);
+        Assert.True(creado.SeVenLosGolesEnTablaDePosiciones);
+
+        var modificar = new TorneoDTO
+        {
+            Id = creado.Id,
+            Nombre = creado.Nombre,
+            Anio = creado.Anio,
+            TorneoAgrupadorId = creado.TorneoAgrupadorId,
+            EsVisibleEnApp = creado.EsVisibleEnApp,
+            SeVenLosGolesEnTablaDePosiciones = false
+        };
+        var putResp = await client.PutAsJsonAsync($"/api/torneo/{creado.Id}", modificar);
+        putResp.EnsureSuccessStatusCode();
+
+        var getResp = await client.GetAsync($"/api/torneo/{creado.Id}");
+        getResp.EnsureSuccessStatusCode();
+        var final = JsonConvert.DeserializeObject<TorneoDTO>(await getResp.Content.ReadAsStringAsync());
+        Assert.NotNull(final);
+        Assert.False(final.SeVenLosGolesEnTablaDePosiciones);
     }
 }

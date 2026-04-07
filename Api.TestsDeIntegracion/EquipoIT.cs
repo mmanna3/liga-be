@@ -82,7 +82,7 @@ public class EquipoIT : TestBase
         using (var scope = Factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var torneo = new Torneo { Id = 0, Nombre = "Torneo Elim", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true };
+            var torneo = new Torneo { Id = 0, Nombre = "Torneo Elim", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true, SeVenLosGolesEnTablaDePosiciones = true };
             context.Torneos.Add(torneo);
             context.SaveChanges();
             torneo = context.Torneos.First();

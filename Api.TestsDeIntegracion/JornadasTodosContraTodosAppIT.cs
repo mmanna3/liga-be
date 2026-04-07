@@ -32,7 +32,7 @@ public class JornadasTodosContraTodosAppIT : TestBase
     {
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var torneo = new Torneo { Id = 0, Nombre = "Torneo Jornadas App", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true };
+        var torneo = new Torneo { Id = 0, Nombre = "Torneo Jornadas App", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true, SeVenLosGolesEnTablaDePosiciones = true };
         context.Torneos.Add(torneo);
         await context.SaveChangesAsync();
 

@@ -8,6 +8,7 @@ public class Torneo : Entidad, IEsVisibleEnApp
     public required int Anio { get; set; }
 
     public required bool EsVisibleEnApp { get; set; }
+    public required bool SeVenLosGolesEnTablaDePosiciones { get; set; }
 
     public int TorneoAgrupadorId { get; set; }
     public virtual TorneoAgrupador TorneoAgrupador { get; set; } = null!;

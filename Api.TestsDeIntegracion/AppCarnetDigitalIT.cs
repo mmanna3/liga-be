@@ -53,6 +53,7 @@ public class AppCarnetDigitalIT : TestBase
             Nombre = "Torneo 2024",
             Anio = anioActual,
             EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true,
             TorneoAgrupadorId = 1
         };
         context.Torneos.Add(torneo);
