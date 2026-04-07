@@ -3,6 +3,8 @@ namespace Api.Core.DTOs.AppCarnetDigital;
 public class PosicionesDTO
 {
     public ICollection<CategoriasConPosicionesDTO> Posiciones { get; set; } = [];
+
+    public bool VerGoles { get; set; }
 }
 
 public class CategoriasConPosicionesDTO

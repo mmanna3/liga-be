@@ -243,11 +243,11 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             .OrderBy(e => e.Nombre, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
 
-        var seVenLosGolesEnTablaDePosiciones = fechas.Count > 0
+        var verGoles = fechas.Count > 0
             ? fechas[0].Zona.Fase.Torneo.SeVenLosGolesEnTablaDePosiciones
             : categorias.FirstOrDefault()?.Torneo?.SeVenLosGolesEnTablaDePosiciones ?? true;
 
-        var dto = new PosicionesDTO();
+        var dto = new PosicionesDTO { VerGoles = verGoles };
         var baseEscudo = _paths.ImagenesEscudosRelative.TrimEnd('/');
 
         foreach (var cat in categorias)
@@ -302,9 +302,9 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                     PartidosGanados = f.Stats.PartidosGanados.ToString(),
                     PartidosEmpatados = f.Stats.PartidosEmpatados.ToString(),
                     PartidosPerdidos = f.Stats.PartidosPerdidos.ToString(),
-                    GolesAFavor = seVenLosGolesEnTablaDePosiciones ? f.Stats.GolesAFavor.ToString() : string.Empty,
-                    GolesEnContra = seVenLosGolesEnTablaDePosiciones ? f.Stats.GolesEnContra.ToString() : string.Empty,
-                    GolesDiferencia = seVenLosGolesEnTablaDePosiciones ? diff.ToString() : string.Empty,
+                    GolesAFavor = f.Stats.GolesAFavor.ToString(),
+                    GolesEnContra = f.Stats.GolesEnContra.ToString(),
+                    GolesDiferencia = diff.ToString(),
                     PartidosNoPresento = f.Stats.PartidosNoPresento.ToString(),
                     PartidosGanoPuntos = f.Stats.PartidosGanoPuntos.ToString(),
                     PartidosPerdioPuntos = f.Stats.PartidosPerdioPuntos.ToString()
