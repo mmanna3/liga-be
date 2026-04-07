@@ -6,6 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
+using Api.Api.Authorization;
 
 namespace Api.Api.Controllers
 {
@@ -57,7 +58,6 @@ namespace Api.Api.Controllers
         }
 
         /// <summary>Planillas de juego por categoría del torneo (jugadores activos, suspendidos o inhabilitados).</summary>
-        [AllowAnonymous]
         [HttpGet("planillas-de-juego")]
         public async Task<ActionResult<PlanillaDeJuegoDTO>> PlanillasDeJuego([FromQuery] string codigoAlfanumerico,
             CancellationToken cancellationToken)
