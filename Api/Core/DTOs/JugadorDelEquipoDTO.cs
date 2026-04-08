@@ -11,6 +11,8 @@ public class JugadorDelEquipoDTO : DTO
 
     public string Apellido { get; set; } = string.Empty;
 
+    public int AnioNacimiento { get; set; }
+
     public EstadoJugadorEnum Estado { get; set; }
     public int JugadorEquipoId { get; set; }
     
