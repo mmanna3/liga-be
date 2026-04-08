@@ -12,4 +12,10 @@ public class ConfiguracionCore : ABMCore<IConfiguracionRepo, Configuracion, Conf
     public ConfiguracionCore(IBDVirtual bd, IConfiguracionRepo repo, IMapper mapper) : base(bd, repo, mapper)
     {
     }
+
+    public async Task<bool> FichajeEstaHabilitado()
+    {
+        var c = await Repo.ObtenerPorId(1);
+        return c?.FichajeEstaHabilitado ?? false;
+    }
 }
