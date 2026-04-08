@@ -344,6 +344,7 @@ public class AppCarnetDigitalIT : TestBase
         var fase = Assert.Single(torneo.Fases);
         Assert.Equal(1, fase.Id);
         Assert.Equal(string.Empty, fase.Nombre);
+        Assert.Equal("TodosContraTodos", fase.TipoDeFase);
 
         var zona = Assert.Single(fase.Zonas);
         Assert.True(zona.Id > 0);

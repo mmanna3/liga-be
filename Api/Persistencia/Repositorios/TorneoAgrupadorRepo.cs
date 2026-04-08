@@ -80,6 +80,12 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
                             {
                                 Id = f.Id,
                                 Nombre = f.Nombre,
+                                TipoDeFase = f switch
+                                {
+                                    FaseTodosContraTodos => nameof(TipoDeFaseEnum.TodosContraTodos),
+                                    FaseEliminacionDirecta => nameof(TipoDeFaseEnum.EliminacionDirecta),
+                                    _ => string.Empty
+                                },
                                 Zonas = zonasPorFaseId.GetValueOrDefault(f.Id) ?? []
                             })
                             .ToList()
