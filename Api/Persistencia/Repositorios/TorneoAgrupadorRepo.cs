@@ -35,12 +35,15 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
             .ThenInclude(t => t.Fases.Where(f => f.EsVisibleEnApp))
             .ToListAsync(cancellationToken);
 
-        var faseIds = agrupadores
-            .SelectMany(a => a.Torneos)
-            .SelectMany(t => t.Fases)
-            .Select(f => f.Id)
-            .Distinct()
-            .ToList();
+        var faseIds = new HashSet<int>(
+            agrupadores.SelectMany(a => a.Torneos).SelectMany(t => t.Fases).Select(f => f.Id));
+        foreach (var t in agrupadores.SelectMany(a => a.Torneos))
+        {
+            if (t.FaseAperturaId.HasValue)
+                faseIds.Add(t.FaseAperturaId.Value);
+            if (t.FaseClausuraId.HasValue)
+                faseIds.Add(t.FaseClausuraId.Value);
+        }
 
         Dictionary<int, List<InformacionInicialZonaDTO>> zonasPorFaseId = new();
         if (faseIds.Count > 0)
@@ -69,11 +72,9 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
                 Color = agr.Color != null ? agr.Color.Nombre : nameof(ColorEnum.Negro),
                 Torneos = agr.Torneos
                     .OrderBy(t => t.Nombre)
-                    .Select(t => new InformacionInicialTorneoDTO
+                    .Select(t =>
                     {
-                        Id = t.Id,
-                        Nombre = t.Nombre,
-                        Fases = t.Fases
+                        var fases = t.Fases
                             .OrderBy(f => f.Numero)
                             .ThenBy(f => f.Nombre)
                             .Select(f => new InformacionInicialFaseDTO
@@ -88,7 +89,27 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
                                 },
                                 Zonas = zonasPorFaseId.GetValueOrDefault(f.Id) ?? []
                             })
-                            .ToList()
+                            .ToList();
+
+                        if (t.FaseAperturaId is { } idApertura && t.FaseClausuraId is { } idClausura)
+                        {
+                            fases.Add(new InformacionInicialFaseDTO
+                            {
+                                Id = 0,
+                                Nombre = "Anual",
+                                TipoDeFase = "Anual",
+                                Zonas = ZonasAnualCombinadas(
+                                    zonasPorFaseId.GetValueOrDefault(idApertura),
+                                    zonasPorFaseId.GetValueOrDefault(idClausura))
+                            });
+                        }
+
+                        return new InformacionInicialTorneoDTO
+                        {
+                            Id = t.Id,
+                            Nombre = t.Nombre,
+                            Fases = fases
+                        };
                     })
                     .ToList()
             };
@@ -97,5 +118,19 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
         }
 
         return resultado;
+    }
+
+    private static List<InformacionInicialZonaDTO> ZonasAnualCombinadas(
+        List<InformacionInicialZonaDTO>? deApertura,
+        List<InformacionInicialZonaDTO>? deClausura)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var list = new List<InformacionInicialZonaDTO>();
+        foreach (var z in (deApertura ?? []).Concat(deClausura ?? []))
+        {
+            if (seen.Add(z.Nombre.Trim()))
+                list.Add(z);
+        }
+        return list;
     }
 }

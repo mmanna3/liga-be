@@ -352,6 +352,71 @@ public class AppCarnetDigitalIT : TestBase
     }
 
     [Fact]
+    public async Task InformacionInicialDeTorneos_ConAperturaYClausura_AgregaFaseAnualYZonasSinDuplicarNombre()
+    {
+        var anioActual = DateTime.Today.Year;
+        int torneoId;
+        await using (var scope = Factory.Services.CreateAsyncScope())
+        {
+            var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var torneo = new Torneo
+            {
+                Id = 0,
+                Nombre = "Torneo tabla anual app",
+                Anio = anioActual,
+                EsVisibleEnApp = true,
+                SeVenLosGolesEnTablaDePosiciones = true,
+                TorneoAgrupadorId = 1
+            };
+            ctx.Torneos.Add(torneo);
+            await ctx.SaveChangesAsync();
+
+            var fApertura = new FaseTodosContraTodos
+            {
+                Id = 0,
+                Nombre = "Apertura",
+                TorneoId = torneo.Id,
+                Numero = 1,
+                EstadoFaseId = 100,
+                EsVisibleEnApp = true
+            };
+            var fClausura = new FaseTodosContraTodos
+            {
+                Id = 0,
+                Nombre = "Clausura",
+                TorneoId = torneo.Id,
+                Numero = 2,
+                EstadoFaseId = 100,
+                EsVisibleEnApp = true
+            };
+            ctx.Fases.AddRange(fApertura, fClausura);
+            await ctx.SaveChangesAsync();
+
+            ctx.Zonas.Add(new ZonaTodosContraTodos { Id = 0, FaseId = fApertura.Id, Nombre = "Norte" });
+            ctx.Zonas.Add(new ZonaTodosContraTodos { Id = 0, FaseId = fClausura.Id, Nombre = "  Norte  " });
+            ctx.Zonas.Add(new ZonaTodosContraTodos { Id = 0, FaseId = fClausura.Id, Nombre = "Sur" });
+            torneo.FaseAperturaId = fApertura.Id;
+            torneo.FaseClausuraId = fClausura.Id;
+            await ctx.SaveChangesAsync();
+            torneoId = torneo.Id;
+        }
+
+        var client = await GetAuthenticatedClient();
+        var response = await client.GetAsync("/api/carnet-digital/info-inicial-de-torneos");
+        response.EnsureSuccessStatusCode();
+        var lista = await response.Content.ReadFromJsonAsync<List<InformacionInicialAgrupadorDTO>>();
+        Assert.NotNull(lista);
+        var agr = lista.First(a => a.Id == 1);
+        var torneoDto = agr.Torneos.First(t => t.Id == torneoId);
+
+        var anual = Assert.Single(torneoDto.Fases, f => f.TipoDeFase == "Anual" && f.Nombre == "Anual");
+        Assert.Equal(0, anual.Id);
+        Assert.Equal(2, anual.Zonas.Count);
+        Assert.Contains(anual.Zonas, z => z.Nombre == "Norte");
+        Assert.Contains(anual.Zonas, z => z.Nombre == "Sur");
+    }
+
+    [Fact]
     public async Task Clubes_ZonaConEquipos_DevuelveUnaFilaPorEquipo_ConDatosDelClub()
     {
         var client = Factory.CreateClient();
