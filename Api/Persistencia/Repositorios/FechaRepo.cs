@@ -120,6 +120,38 @@ public class FechaRepo : RepositorioABMAnidado<Fecha, int>, IFechaRepo
         return zona.Fase.Torneo.Categorias.OrderBy(c => c.Id).ToList();
     }
 
+    public async Task<(int ZonaAperturaId, int ZonaClausuraId)?> ObtenerIdsZonasAnualPorZonaReferenciaAsync(int zonaId,
+        CancellationToken cancellationToken = default)
+    {
+        var zonaRef = await Context.Set<ZonaTodosContraTodos>()
+            .AsNoTracking()
+            .Where(z => z.Id == zonaId)
+            .Include(z => z.Fase)
+            .ThenInclude(f => f.Torneo)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (zonaRef == null)
+            return null;
+
+        var torneo = zonaRef.Fase.Torneo;
+        if (torneo.FaseAperturaId is not { } idFa || torneo.FaseClausuraId is not { } idFc)
+            return null;
+
+        var nombreClave = zonaRef.Nombre.Trim();
+        var candidatos = await Context.Set<ZonaTodosContraTodos>()
+            .AsNoTracking()
+            .Where(z => z.FaseId == idFa || z.FaseId == idFc)
+            .Select(z => new { z.Id, z.FaseId, z.Nombre })
+            .ToListAsync(cancellationToken);
+
+        var za = candidatos.FirstOrDefault(z => z.FaseId == idFa && z.Nombre.Trim() == nombreClave);
+        var zc = candidatos.FirstOrDefault(z => z.FaseId == idFc && z.Nombre.Trim() == nombreClave);
+        if (za == null || zc == null)
+            return null;
+
+        return (za.Id, zc.Id);
+    }
+
     /// <summary>App carnet: incluir fechas aunque las jornadas aún no tengan fila <see cref="Partido"/>.</summary>
     public async Task<IReadOnlyList<FechaEliminacionDirecta>> ListarEliminacionDirectaPorZonaParaAppAsync(int zonaId,
         CancellationToken cancellationToken = default)

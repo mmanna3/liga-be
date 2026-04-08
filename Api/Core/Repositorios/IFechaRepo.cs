@@ -22,6 +22,13 @@ public interface IFechaRepo : IRepositorioABMAnidado<Fecha, int>
     Task<IReadOnlyList<TorneoCategoria>> ListarCategoriasTorneoPorZonaTodosContraTodosAsync(int zonaId,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Resuelve las zonas TCT homónimas (mismo nombre que la zona de referencia) en las fases de apertura y clausura del torneo.
+    /// Null si la zona no existe, el torneo no define ambas fases, o falta la zona en alguna de las dos.
+    /// </summary>
+    Task<(int ZonaAperturaId, int ZonaClausuraId)?> ObtenerIdsZonasAnualPorZonaReferenciaAsync(int zonaId,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Fechas de eliminación directa visibles en app, ordenadas por instancia (de llave mayor a final).</summary>
     Task<IReadOnlyList<FechaEliminacionDirecta>> ListarEliminacionDirectaPorZonaParaAppAsync(int zonaId,
         CancellationToken cancellationToken = default);

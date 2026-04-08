@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -642,5 +643,51 @@ public class PosicionesTodosContraTodosAppIT : TestBase
 
         Assert.Equal(2, int.Parse(catA.Renglones.Single(r => r.Equipo == "un equipo").Puntos));
         Assert.Equal(1, int.Parse(general.Renglones.Single(r => r.Equipo == "un equipo").Puntos));
+    }
+
+    [Fact]
+    public async Task PosicionesAnual_TorneoSinFasesAperturaClausura_400()
+    {
+        var zonaId = await CrearZonaDePrueba(Factory);
+        var client = Factory.CreateClient();
+        var response = await client.GetAsync($"/api/carnet-digital/posiciones-anual?zonaId={zonaId}");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PosicionesAnual_ConAperturaYClausuraHomonimas_200()
+    {
+        var zonaId = await CrearZonaDePrueba(Factory);
+        var torneoId = await ObtenerTorneoIdDeZona(Factory, zonaId);
+
+        await using (var scope = Factory.Services.CreateAsyncScope())
+        {
+            var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var faseA = await ctx.Fases.OfType<FaseTodosContraTodos>().FirstAsync(f => f.TorneoId == torneoId && f.Numero == 1);
+            var zona = await ctx.Zonas.OfType<ZonaTodosContraTodos>().FirstAsync(z => z.Id == zonaId);
+            var faseC = new FaseTodosContraTodos
+            {
+                Id = 0,
+                Nombre = "Clausura",
+                TorneoId = torneoId,
+                Numero = 2,
+                EstadoFaseId = 100,
+                EsVisibleEnApp = true
+            };
+            ctx.Fases.Add(faseC);
+            await ctx.SaveChangesAsync();
+            ctx.Zonas.Add(new ZonaTodosContraTodos { Id = 0, FaseId = faseC.Id, Nombre = zona.Nombre });
+            var torneo = await ctx.Torneos.FindAsync(torneoId);
+            Assert.NotNull(torneo);
+            torneo.FaseAperturaId = faseA.Id;
+            torneo.FaseClausuraId = faseC.Id;
+            await ctx.SaveChangesAsync();
+        }
+
+        var client = Factory.CreateClient();
+        var response = await client.GetAsync($"/api/carnet-digital/posiciones-anual?zonaId={zonaId}");
+        response.EnsureSuccessStatusCode();
+        var dto = await response.Content.ReadFromJsonAsync<PosicionesDTO>();
+        Assert.NotNull(dto?.Posiciones);
     }
 }

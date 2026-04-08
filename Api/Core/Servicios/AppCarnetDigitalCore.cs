@@ -314,6 +314,61 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
     public async Task<PosicionesDTO> PosicionesTodosContraTodosAsync(int zonaId,
         CancellationToken cancellationToken = default)
     {
+        var datos = await CalcularDatosPosicionesZonaAsync(zonaId, cancellationToken);
+        var baseEscudo = _paths.ImagenesEscudosRelative.TrimEnd('/');
+        var bloques = new List<CategoriasConPosicionesDTO>();
+
+        foreach (var (cat, filas) in datos.FilasPorCategoria)
+        {
+            var leyendaCat =
+                PosicionesLeyendasTablaHelper.ConcatenarTextos(datos.LeyendasZona.Where(l => l.CategoriaId == cat.Id));
+            bloques.Add(ConstruirBloquePosiciones(cat.Nombre, leyendaCat, filas, baseEscudo));
+        }
+
+        var leyendaGeneral =
+            PosicionesLeyendasTablaHelper.ConcatenarTextos(datos.LeyendasZona.Where(l => l.CategoriaId == null));
+        bloques.Add(ConstruirBloqueGeneralAcumulado(leyendaGeneral, datos.FilasPorCategoria, datos.SoloGeneralPorEquipo,
+            baseEscudo));
+
+        return new PosicionesDTO { VerGoles = datos.VerGoles, Posiciones = bloques };
+    }
+
+    public async Task<PosicionesDTO> PosicionesAnualAsync(int zonaId,
+        CancellationToken cancellationToken = default)
+    {
+        var par = await _fechaRepo.ObtenerIdsZonasAnualPorZonaReferenciaAsync(zonaId, cancellationToken);
+        if (par == null)
+            throw new ExcepcionControlada(
+                "No se puede calcular la tabla anual: el torneo debe tener fases de apertura y clausura y la zona debe existir en ambas.");
+
+        var datosA = await CalcularDatosPosicionesZonaAsync(par.Value.ZonaAperturaId, cancellationToken);
+        var datosC = await CalcularDatosPosicionesZonaAsync(par.Value.ZonaClausuraId, cancellationToken);
+
+        var filasFusion = FusionarFilasDosZonas(datosA.FilasPorCategoria, datosC.FilasPorCategoria);
+        var soloGeneralFusion = FusionarDiccionariosSuma(datosA.SoloGeneralPorEquipo, datosC.SoloGeneralPorEquipo);
+
+        var baseEscudo = _paths.ImagenesEscudosRelative.TrimEnd('/');
+        var bloques = new List<CategoriasConPosicionesDTO>();
+
+        foreach (var (cat, filas) in filasFusion)
+        {
+            var leyendaCat = PosicionesLeyendasTablaHelper.ConcatenarTextos(
+                datosA.LeyendasZona.Where(l => l.CategoriaId == cat.Id)
+                    .Concat(datosC.LeyendasZona.Where(l => l.CategoriaId == cat.Id)));
+            bloques.Add(ConstruirBloquePosiciones(cat.Nombre, leyendaCat, filas, baseEscudo));
+        }
+
+        var leyendaGeneral = PosicionesLeyendasTablaHelper.ConcatenarTextos(
+            datosA.LeyendasZona.Where(l => l.CategoriaId == null)
+                .Concat(datosC.LeyendasZona.Where(l => l.CategoriaId == null)));
+        bloques.Add(ConstruirBloqueGeneralAcumulado(leyendaGeneral, filasFusion, soloGeneralFusion, baseEscudo));
+
+        return new PosicionesDTO { VerGoles = datosA.VerGoles, Posiciones = bloques };
+    }
+
+    private async Task<DatosPosicionesZonaCalculados> CalcularDatosPosicionesZonaAsync(int zonaId,
+        CancellationToken cancellationToken)
+    {
         var categorias =
             await _fechaRepo.ListarCategoriasTorneoPorZonaTodosContraTodosAsync(zonaId, cancellationToken);
         var fechas = await _fechaRepo.ListarTodosContraTodosPorZonaParaAppConPartidosAsync(zonaId, cancellationToken);
@@ -324,9 +379,6 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         var verGoles = fechas.Count > 0
             ? fechas[0].Zona.Fase.Torneo.SeVenLosGolesEnTablaDePosiciones
             : categorias.FirstOrDefault()?.Torneo?.SeVenLosGolesEnTablaDePosiciones ?? true;
-
-        var dto = new PosicionesDTO { VerGoles = verGoles };
-        var baseEscudo = _paths.ImagenesEscudosRelative.TrimEnd('/');
 
         var leyendasZona = (await _leyendaTablaPosicionesRepo.ListarPorPadre(zonaId)).OrderBy(l => l.Id).ToList();
 
@@ -378,21 +430,60 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             filasPorCategoria.Add((cat, filas));
         }
 
-        var bloques = new List<CategoriasConPosicionesDTO>();
+        return new DatosPosicionesZonaCalculados(filasPorCategoria, leyendasZona, soloGeneralPorEquipo, verGoles);
+    }
 
-        foreach (var (cat, filas) in filasPorCategoria)
+    private static List<(TorneoCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)>
+        FusionarFilasDosZonas(
+            List<(TorneoCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)> a,
+            List<(TorneoCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)> b)
+    {
+        if (a.Count != b.Count)
+            throw new InvalidOperationException("Categorías distintas al fusionar posiciones anuales.");
+
+        var result = new List<(TorneoCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)>();
+        for (var i = 0; i < a.Count; i++)
         {
-            var leyendaCat = PosicionesLeyendasTablaHelper.ConcatenarTextos(leyendasZona.Where(l => l.CategoriaId == cat.Id));
-            bloques.Add(ConstruirBloquePosiciones(cat.Nombre, leyendaCat, filas, baseEscudo));
+            var (catA, filasA) = a[i];
+            var (catB, filasB) = b[i];
+            if (catA.Id != catB.Id)
+                throw new InvalidOperationException("Categorías distintas al fusionar posiciones anuales.");
+
+            var porEquipo = new Dictionary<int, (Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>();
+            foreach (var row in filasA)
+                porEquipo[row.Equipo.Id] = row;
+            foreach (var row in filasB)
+            {
+                if (porEquipo.TryGetValue(row.Equipo.Id, out var prev))
+                {
+                    porEquipo[row.Equipo.Id] = (
+                        row.Equipo,
+                        EstadisticasPosicionEquipo.Sumar(prev.Stats, row.Stats),
+                        prev.Puntos + row.Puntos);
+                }
+                else
+                    porEquipo[row.Equipo.Id] = row;
+            }
+
+            result.Add((catA, porEquipo.Values.ToList()));
         }
 
-        var leyendaGeneral = PosicionesLeyendasTablaHelper.ConcatenarTextos(leyendasZona.Where(l => l.CategoriaId == null));
-        bloques.Add(ConstruirBloqueGeneralAcumulado(leyendaGeneral, filasPorCategoria, soloGeneralPorEquipo, baseEscudo));
-
-        dto.Posiciones = bloques;
-
-        return dto;
+        return result;
     }
+
+    private static Dictionary<int, int> FusionarDiccionariosSuma(Dictionary<int, int> a, Dictionary<int, int> b)
+    {
+        var r = new Dictionary<int, int>(a);
+        foreach (var kv in b)
+            r[kv.Key] = r.GetValueOrDefault(kv.Key) + kv.Value;
+        return r;
+    }
+
+    private sealed record DatosPosicionesZonaCalculados(
+        List<(TorneoCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)> FilasPorCategoria,
+        List<LeyendaTablaPosiciones> LeyendasZona,
+        Dictionary<int, int> SoloGeneralPorEquipo,
+        bool VerGoles);
 
     private static CategoriasConPosicionesDTO ConstruirBloqueGeneralAcumulado(
         string? leyenda,

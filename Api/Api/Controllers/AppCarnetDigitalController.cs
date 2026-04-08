@@ -143,6 +143,18 @@ namespace Api.Api.Controllers
         }
 
         /// <summary>
+        /// Tabla anual: suma de estadísticas de las zonas homónimas en las fases de apertura y clausura del torneo (misma forma que posiciones todos contra todos).
+        /// </summary>
+        [AllowAnonymous]
+        [HttpGet("posiciones-anual")]
+        public async Task<ActionResult<PosicionesDTO>> PosicionesAnual([FromQuery] int zonaId,
+            CancellationToken cancellationToken)
+        {
+            var datos = await _core.PosicionesAnualAsync(zonaId, cancellationToken);
+            return Ok(datos);
+        }
+
+        /// <summary>
         /// Eliminatorias de la zona: una entrada por fecha (instancia) con día, y un partido por jornada (equipos, escudos y resultado).
         /// </summary>
         [AllowAnonymous]

@@ -105,7 +105,13 @@ public class AppDbContext : DbContext
             .IsUnique();
 
         builder.Entity<Configuracion>()
-            .ToTable("Configuracion");
+            .ToTable("Configuracion")
+            .HasData(
+                new Configuracion
+                {
+                    Id = 1,
+                    FichajeEstaHabilitado = true
+                });
 
         builder.Entity<TorneoAgrupador>()
             .ToTable("TorneoAgrupadores")
