@@ -15,4 +15,8 @@ public class JugadorEquipoDTO : DTO
 
     [MaxLength(250)]
     public string? MotivoDeRechazoFichaje { get; set; }
+
+    public int TarjetasAmarillas { get; set; }
+
+    public int TarjetasRojas { get; set; }
 }

@@ -17,4 +17,5 @@ public interface IJugadorCore : ICoreABM<JugadorDTO>
     Task<Jugador> FicharJugadorEnElEquipo(int equipoId, Jugador jugador);
     Task<int> DesvincularJugadorDelEquipo(DesvincularJugadorDelEquipoDTO dto);
     Task<int> EfectuarPases(List<EfectuarPaseDTO> dtos);
+    Task<int> ActualizarTarjetas(ActualizarTarjetasJugadorDTO dto);
 }

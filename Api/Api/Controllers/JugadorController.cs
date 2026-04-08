@@ -87,5 +87,14 @@ namespace Api.Api.Controllers
             var id = await Core.DesvincularJugadorDelEquipo(dto);
             return Ok(id);
         }
+
+        [HttpPost("actualizar-tarjetas")]
+        public async Task<ActionResult<int>> ActualizarTarjetas(ActualizarTarjetasJugadorDTO dto)
+        {
+            var id = await Core.ActualizarTarjetas(dto);
+            if (id < 0)
+                return NotFound();
+            return Ok(id);
+        }
     }
 }

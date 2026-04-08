@@ -140,4 +140,16 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
             .Where(je => je.JugadorId == jugadorId && je.EquipoId != equipoOrigenId)
             .AnyAsync(je => equipoIdsEnTorneo.Contains(je.EquipoId));
     }
+
+    public async Task<int> ActualizarTarjetas(int jugadorEquipoId, int tarjetasAmarillas, int tarjetasRojas)
+    {
+        var jugadorEquipo = await Context.JugadorEquipo.FindAsync(jugadorEquipoId);
+        if (jugadorEquipo == null)
+            return -1;
+
+        jugadorEquipo.TarjetasAmarillas = tarjetasAmarillas;
+        jugadorEquipo.TarjetasRojas = tarjetasRojas;
+        Context.Update(jugadorEquipo);
+        return jugadorEquipoId;
+    }
 }

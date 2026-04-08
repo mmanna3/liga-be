@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using Api.Core.DTOs;
 using Api.Core.Entidades;
@@ -522,5 +523,113 @@ public class JugadorIT : TestBase
         var jugadorSolo = content?.SingleOrDefault(j => j.DNI == "99998888");
         Assert.NotNull(jugadorSolo);
         Assert.Null(jugadorSolo.DelegadoId);
+    }
+
+    [Fact]
+    public async Task ActualizarTarjetas_PersisteYSeExponeEnJugadorYEquipo()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var jugador = new Jugador
+        {
+            Id = 91,
+            DNI = "91919191",
+            Nombre = "Tarjetas",
+            Apellido = "Test",
+            FechaNacimiento = new DateTime(2001, 1, 1)
+        };
+        context.Jugadores.Add(jugador);
+        context.SaveChanges();
+
+        context.JugadorEquipo.Add(new JugadorEquipo
+        {
+            Id = 9101,
+            JugadorId = 91,
+            EquipoId = 1,
+            FechaFichaje = DateTime.Now,
+            EstadoJugadorId = (int)EstadoJugadorEnum.Activo
+        });
+        context.SaveChanges();
+
+        var client = await GetAuthenticatedClient();
+
+        var getJugador = await client.GetAsync("/api/Jugador/91");
+        getJugador.EnsureSuccessStatusCode();
+        var jugadorDto = JsonConvert.DeserializeObject<JugadorDTO>(await getJugador.Content.ReadAsStringAsync());
+        Assert.NotNull(jugadorDto);
+        var eq = jugadorDto!.Equipos.Single(e => e.EquipoId == 1);
+        Assert.Equal(0, eq.TarjetasAmarillas);
+        Assert.Equal(0, eq.TarjetasRojas);
+
+        var post = await client.PostAsJsonAsync("/api/Jugador/actualizar-tarjetas", new ActualizarTarjetasJugadorDTO
+        {
+            JugadorEquipoId = 9101,
+            TarjetasAmarillas = 4,
+            TarjetasRojas = 2
+        });
+        post.EnsureSuccessStatusCode();
+
+        getJugador = await client.GetAsync("/api/Jugador/91");
+        getJugador.EnsureSuccessStatusCode();
+        jugadorDto = JsonConvert.DeserializeObject<JugadorDTO>(await getJugador.Content.ReadAsStringAsync());
+        eq = jugadorDto!.Equipos.Single(e => e.EquipoId == 1);
+        Assert.Equal(4, eq.TarjetasAmarillas);
+        Assert.Equal(2, eq.TarjetasRojas);
+
+        var getEquipo = await client.GetAsync("/api/Equipo/1");
+        getEquipo.EnsureSuccessStatusCode();
+        var equipoDto = JsonConvert.DeserializeObject<EquipoDTO>(await getEquipo.Content.ReadAsStringAsync());
+        var jugEnEquipo = equipoDto!.Jugadores!.Single(j => j.JugadorEquipoId == 9101);
+        Assert.Equal(4, jugEnEquipo.TarjetasAmarillas);
+        Assert.Equal(2, jugEnEquipo.TarjetasRojas);
+    }
+
+    [Fact]
+    public async Task ActualizarTarjetas_JugadorEquipoInexistente_Devuelve404()
+    {
+        var client = await GetAuthenticatedClient();
+        var response = await client.PostAsJsonAsync("/api/Jugador/actualizar-tarjetas", new ActualizarTarjetasJugadorDTO
+        {
+            JugadorEquipoId = 999999999,
+            TarjetasAmarillas = 1,
+            TarjetasRojas = 0
+        });
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ActualizarTarjetas_ValoresNegativos_Devuelve400()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var jugador = new Jugador
+        {
+            Id = 92,
+            DNI = "92929292",
+            Nombre = "Neg",
+            Apellido = "Test",
+            FechaNacimiento = new DateTime(2002, 2, 2)
+        };
+        context.Jugadores.Add(jugador);
+        context.SaveChanges();
+        context.JugadorEquipo.Add(new JugadorEquipo
+        {
+            Id = 9201,
+            JugadorId = 92,
+            EquipoId = 1,
+            FechaFichaje = DateTime.Now,
+            EstadoJugadorId = (int)EstadoJugadorEnum.Activo
+        });
+        context.SaveChanges();
+
+        var client = await GetAuthenticatedClient();
+        var response = await client.PostAsJsonAsync("/api/Jugador/actualizar-tarjetas", new ActualizarTarjetasJugadorDTO
+        {
+            JugadorEquipoId = 9201,
+            TarjetasAmarillas = -1,
+            TarjetasRojas = 0
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

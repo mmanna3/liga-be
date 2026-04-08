@@ -169,6 +169,8 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.AnioNacimiento, x => x.MapFrom(src => src.Jugador.FechaNacimiento.Year))
             .ForMember(dest => dest.Estado, x => x.MapFrom(src => src.EstadoJugador.Id))
             .ForMember(dest => dest.Motivo, x => x.MapFrom(src => src.Motivo))
+            .ForMember(dest => dest.TarjetasAmarillas, x => x.MapFrom(src => src.TarjetasAmarillas))
+            .ForMember(dest => dest.TarjetasRojas, x => x.MapFrom(src => src.TarjetasRojas))
             .PreserveReferences().ReverseMap();
 
         CreateMap<JugadorEquipo, EquipoDelJugadorDTO>()
@@ -179,6 +181,8 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Estado, x => x.MapFrom(src => src.EstadoJugador.Id))
             .ForMember(dest => dest.FechaPagoDeFichaje, opt => opt.MapFrom<FechaPagoResolver>())
             .ForMember(dest => dest.Motivo, x => x.MapFrom(src => src.Motivo))
+            .ForMember(dest => dest.TarjetasAmarillas, x => x.MapFrom(src => src.TarjetasAmarillas))
+            .ForMember(dest => dest.TarjetasRojas, x => x.MapFrom(src => src.TarjetasRojas))
             .PreserveReferences().ReverseMap();
 
         CreateMap<DelegadoClub, DelegadoClubDTO>()

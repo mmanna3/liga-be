@@ -311,4 +311,17 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
 
         return -1;
     }
+
+    public async Task<int> ActualizarTarjetas(ActualizarTarjetasJugadorDTO dto)
+    {
+        if (dto.TarjetasAmarillas < 0 || dto.TarjetasRojas < 0)
+            throw new ExcepcionControlada("Las tarjetas no pueden ser negativas.");
+
+        var id = await Repo.ActualizarTarjetas(dto.JugadorEquipoId, dto.TarjetasAmarillas, dto.TarjetasRojas);
+        if (id < 0)
+            return -1;
+
+        await BDVirtual.GuardarCambios();
+        return id;
+    }
 }

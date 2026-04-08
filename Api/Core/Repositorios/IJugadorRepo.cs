@@ -14,4 +14,5 @@ public interface IJugadorRepo : IRepositorioABM<Jugador>
     void EliminarJugadorEquipo(int jugadorEquipoId);
     Task<bool> JugadorYaJuegaEnTorneoDelEquipoDestino(int jugadorId, int equipoOrigenId, int equipoDestinoId);
     Task<int?> ObtenerDelegadoIdPorDNI(string dni);
+    Task<int> ActualizarTarjetas(int jugadorEquipoId, int tarjetasAmarillas, int tarjetasRojas);
 }

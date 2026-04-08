@@ -22,4 +22,8 @@ public class JugadorEquipo : Entidad
 
     [MaxLength(250)]
     public string? Motivo { get; set; }
+
+    public int TarjetasAmarillas { get; set; }
+
+    public int TarjetasRojas { get; set; }
 }

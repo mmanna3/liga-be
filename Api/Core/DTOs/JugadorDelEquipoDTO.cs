@@ -17,4 +17,8 @@ public class JugadorDelEquipoDTO : DTO
     public int JugadorEquipoId { get; set; }
     
     public string? Motivo { get; set; }
+
+    public int TarjetasAmarillas { get; set; }
+
+    public int TarjetasRojas { get; set; }
 }

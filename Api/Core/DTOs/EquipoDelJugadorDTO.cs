@@ -15,5 +15,8 @@ public class EquipoDelJugadorDTO : DTO
     
     public string? Motivo { get; set; } = string.Empty;
     public DateTime? FechaPagoDeFichaje { get; set; }
-    
+
+    public int TarjetasAmarillas { get; set; }
+
+    public int TarjetasRojas { get; set; }
 }
