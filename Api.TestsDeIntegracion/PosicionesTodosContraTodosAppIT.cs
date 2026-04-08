@@ -381,4 +381,266 @@ public class PosicionesTodosContraTodosAppIT : TestBase
         Assert.Equal("Alpha", gr[0].Equipo);
         Assert.Equal("un equipo", gr[1].Equipo);
     }
+
+    [Fact]
+    public async Task Posiciones_ConLeyendaPorEquipo_ConcatenaElTextoJuntoALasDemas()
+    {
+        var zonaId = await CrearZonaDePrueba(Factory);
+        var torneoId = await ObtenerTorneoIdDeZona(Factory, zonaId);
+        var (catId1, _) = await SeedDosCategorias(Factory, torneoId);
+
+        int equipoAlphaId;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Assert.NotNull(_club);
+            equipoAlphaId = context.Equipos.First(e => e.ClubId == _club!.Id).Id;
+            context.LeyendaTablaPosiciones.AddRange(
+                new LeyendaTablaPosiciones
+                {
+                    Id = 0,
+                    ZonaId = zonaId,
+                    CategoriaId = catId1,
+                    Leyenda = "General cat",
+                    QuitaDePuntos = 0
+                },
+                new LeyendaTablaPosiciones
+                {
+                    Id = 0,
+                    ZonaId = zonaId,
+                    CategoriaId = catId1,
+                    EquipoId = equipoAlphaId,
+                    Leyenda = "Específica equipo",
+                    QuitaDePuntos = 0
+                });
+            await context.SaveChangesAsync();
+        }
+
+        var client = Factory.CreateClient();
+        var dto = await client.GetFromJsonAsync<PosicionesDTO>(
+            $"/api/carnet-digital/posiciones-todos-contra-todos?zonaId={zonaId}");
+        Assert.NotNull(dto?.Posiciones);
+        var bloqueA = dto.Posiciones!.First(b => b.Categoria == "Cat A");
+        Assert.Equal("General cat\nEspecífica equipo", bloqueA.Leyenda);
+    }
+
+    private sealed record EscenarioPartidosDosCategorias(
+        int ZonaId,
+        int EquipoLocalId,
+        int EquipoAlphaId,
+        int CatIdPrimera);
+
+    /// <summary>Zona TCT, dos categorías, dos equipos en zona, una fecha con resultados (misma lógica que el test de desempate).</summary>
+    private async Task<EscenarioPartidosDosCategorias> DadoZonaConPartidosDosCategoriasDosEquipos()
+    {
+        Assert.NotNull(_club);
+        var zonaId = await CrearZonaDePrueba(Factory);
+        var torneoId = await ObtenerTorneoIdDeZona(Factory, zonaId);
+        var (catIdPrimera, _) = await SeedDosCategorias(Factory, torneoId);
+
+        int equipoLocalId;
+        int equipoAlphaId;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            equipoLocalId = context.Equipos.First(e => e.ClubId == _club!.Id).Id;
+            var eqAlpha = new Equipo
+            {
+                Id = 0,
+                Nombre = "Alpha",
+                ClubId = _club.Id,
+                Jugadores = []
+            };
+            context.Equipos.Add(eqAlpha);
+            context.SaveChanges();
+            equipoAlphaId = eqAlpha.Id;
+            context.EquipoZona.Add(new EquipoZona { Id = 0, EquipoId = equipoLocalId, ZonaId = zonaId });
+            context.EquipoZona.Add(new EquipoZona { Id = 0, EquipoId = equipoAlphaId, ZonaId = zonaId });
+            context.SaveChanges();
+        }
+
+        var client = await GetAuthenticatedClient();
+        var postFechas = await client.PostAsJsonAsync(
+            $"/api/Zona/{zonaId}/fechas/crear-fechas-todoscontratodos-masivamente",
+            new List<FechaTodosContraTodosDTO>
+            {
+                new()
+                {
+                    Dia = new DateOnly(2026, 9, 1),
+                    Numero = 1,
+                    EsVisibleEnApp = true,
+                    Jornadas =
+                    [
+                        new JornadaDTO
+                        {
+                            Tipo = "Normal",
+                            ResultadosVerificados = false,
+                            LocalId = equipoLocalId,
+                            VisitanteId = equipoAlphaId
+                        }
+                    ]
+                }
+            }, FechaJsonOptions);
+        postFechas.EnsureSuccessStatusCode();
+
+        int jornadaNormalId;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var jornadaNormal = await context.Jornadas.OfType<JornadaNormal>()
+                .FirstAsync(j => j.LocalEquipoId == equipoLocalId && j.VisitanteEquipoId == equipoAlphaId);
+            jornadaNormalId = jornadaNormal.Id;
+        }
+
+        List<PartidoDTO> partidosCargar;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var partidosDb = await context.Partidos
+                .Where(p => p.JornadaId == jornadaNormalId)
+                .OrderBy(p => p.CategoriaId)
+                .ToListAsync();
+            Assert.Equal(2, partidosDb.Count);
+            Assert.Equal(catIdPrimera, partidosDb[0].CategoriaId);
+            partidosCargar =
+            [
+                new PartidoDTO
+                {
+                    Id = partidosDb[0].Id,
+                    CategoriaId = partidosDb[0].CategoriaId,
+                    ResultadoLocal = "2",
+                    ResultadoVisitante = "1"
+                },
+                new PartidoDTO
+                {
+                    Id = partidosDb[1].Id,
+                    CategoriaId = partidosDb[1].CategoriaId,
+                    ResultadoLocal = "1",
+                    ResultadoVisitante = "2"
+                }
+            ];
+        }
+
+        var cargar = new CargarResultadosDTO
+        {
+            JornadaId = jornadaNormalId,
+            ResultadosVerificados = true,
+            Partidos = partidosCargar
+        };
+        var postRes = await client.PostAsJsonAsync(
+            $"/api/Zona/{zonaId}/fechas/cargar-resultados/{jornadaNormalId}", cargar, FechaJsonOptions);
+        postRes.EnsureSuccessStatusCode();
+
+        return new EscenarioPartidosDosCategorias(zonaId, equipoLocalId, equipoAlphaId, catIdPrimera);
+    }
+
+    [Fact]
+    public async Task Posiciones_QuitaPorCategoria_restaPuntosEnBloqueCategoriaYEnGeneral()
+    {
+        var s = await DadoZonaConPartidosDosCategoriasDosEquipos();
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            context.LeyendaTablaPosiciones.Add(new LeyendaTablaPosiciones
+            {
+                Id = 0,
+                ZonaId = s.ZonaId,
+                CategoriaId = s.CatIdPrimera,
+                EquipoId = s.EquipoLocalId,
+                Leyenda = "Quita",
+                QuitaDePuntos = 1
+            });
+            await context.SaveChangesAsync();
+        }
+
+        var carnetClient = Factory.CreateClient();
+        var dto = await carnetClient.GetFromJsonAsync<PosicionesDTO>(
+            $"/api/carnet-digital/posiciones-todos-contra-todos?zonaId={s.ZonaId}");
+        Assert.NotNull(dto?.Posiciones);
+        var bloques = dto.Posiciones!.ToList();
+        var catA = bloques[0];
+        var general = bloques[2];
+
+        Assert.Equal(2, int.Parse(catA.Renglones.Single(r => r.Equipo == "un equipo").Puntos));
+        Assert.Equal(1, int.Parse(catA.Renglones.Single(r => r.Equipo == "Alpha").Puntos));
+
+        Assert.Equal(3, int.Parse(general.Renglones.Single(r => r.Equipo == "un equipo").Puntos));
+        Assert.Equal(4, int.Parse(general.Renglones.Single(r => r.Equipo == "Alpha").Puntos));
+    }
+
+    [Fact]
+    public async Task Posiciones_QuitaSinCategoria_soloDescuentaEnGeneral()
+    {
+        var s = await DadoZonaConPartidosDosCategoriasDosEquipos();
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            context.LeyendaTablaPosiciones.Add(new LeyendaTablaPosiciones
+            {
+                Id = 0,
+                ZonaId = s.ZonaId,
+                CategoriaId = null,
+                EquipoId = s.EquipoLocalId,
+                Leyenda = "Sanción general",
+                QuitaDePuntos = 2
+            });
+            await context.SaveChangesAsync();
+        }
+
+        var carnetClient = Factory.CreateClient();
+        var dto = await carnetClient.GetFromJsonAsync<PosicionesDTO>(
+            $"/api/carnet-digital/posiciones-todos-contra-todos?zonaId={s.ZonaId}");
+        Assert.NotNull(dto?.Posiciones);
+        var bloques = dto.Posiciones!.ToList();
+        var catA = bloques[0];
+        var general = bloques[2];
+
+        Assert.Equal(3, int.Parse(catA.Renglones.Single(r => r.Equipo == "un equipo").Puntos));
+        Assert.Equal(2, int.Parse(general.Renglones.Single(r => r.Equipo == "un equipo").Puntos));
+        Assert.Equal(4, int.Parse(general.Renglones.Single(r => r.Equipo == "Alpha").Puntos));
+    }
+
+    [Fact]
+    public async Task Posiciones_QuitaCategoriaMasQuitaSoloGeneral_sumaAmbosDescuentosEnGeneral()
+    {
+        var s = await DadoZonaConPartidosDosCategoriasDosEquipos();
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            context.LeyendaTablaPosiciones.AddRange(
+                new LeyendaTablaPosiciones
+                {
+                    Id = 0,
+                    ZonaId = s.ZonaId,
+                    CategoriaId = s.CatIdPrimera,
+                    EquipoId = s.EquipoLocalId,
+                    Leyenda = "A",
+                    QuitaDePuntos = 1
+                },
+                new LeyendaTablaPosiciones
+                {
+                    Id = 0,
+                    ZonaId = s.ZonaId,
+                    CategoriaId = null,
+                    EquipoId = s.EquipoLocalId,
+                    Leyenda = "B",
+                    QuitaDePuntos = 2
+                });
+            await context.SaveChangesAsync();
+        }
+
+        var carnetClient = Factory.CreateClient();
+        var dto = await carnetClient.GetFromJsonAsync<PosicionesDTO>(
+            $"/api/carnet-digital/posiciones-todos-contra-todos?zonaId={s.ZonaId}");
+        Assert.NotNull(dto?.Posiciones);
+        var bloques = dto.Posiciones!.ToList();
+        var catA = bloques[0];
+        var general = bloques[2];
+
+        Assert.Equal(2, int.Parse(catA.Renglones.Single(r => r.Equipo == "un equipo").Puntos));
+        Assert.Equal(1, int.Parse(general.Renglones.Single(r => r.Equipo == "un equipo").Puntos));
+    }
 }

@@ -328,8 +328,22 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         var dto = new PosicionesDTO { VerGoles = verGoles };
         var baseEscudo = _paths.ImagenesEscudosRelative.TrimEnd('/');
 
-        var leyendasZona = (await _leyendaTablaPosicionesRepo.ListarPorPadre(zonaId)).ToList();
-        var leyendaSinCategoria = leyendasZona.FirstOrDefault(l => l.CategoriaId == null && l.EquipoId == null)?.Leyenda;
+        var leyendasZona = (await _leyendaTablaPosicionesRepo.ListarPorPadre(zonaId)).OrderBy(l => l.Id).ToList();
+
+        var quitaPorCatYEquipo = new Dictionary<(int CategoriaId, int EquipoId), int>();
+        var soloGeneralPorEquipo = new Dictionary<int, int>();
+        foreach (var l in leyendasZona)
+        {
+            if (l.QuitaDePuntos <= 0 || l.EquipoId is not { } eqId)
+                continue;
+            if (l.CategoriaId is { } cid)
+            {
+                var k = (cid, eqId);
+                quitaPorCatYEquipo[k] = quitaPorCatYEquipo.GetValueOrDefault(k) + l.QuitaDePuntos;
+            }
+            else
+                soloGeneralPorEquipo[eqId] = soloGeneralPorEquipo.GetValueOrDefault(eqId) + l.QuitaDePuntos;
+        }
 
         var filasPorCategoria = new List<(TorneoCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)>();
 
@@ -357,7 +371,8 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                     }
                 }
 
-                filas.Add((equipo, ac, puntos));
+                var quitaCat = quitaPorCatYEquipo.GetValueOrDefault((cat.Id, equipo.Id));
+                filas.Add((equipo, ac, puntos - quitaCat));
             }
 
             filasPorCategoria.Add((cat, filas));
@@ -367,14 +382,12 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
 
         foreach (var (cat, filas) in filasPorCategoria)
         {
-            bloques.Add(ConstruirBloquePosiciones(
-                cat.Nombre,
-                leyendasZona.FirstOrDefault(l => l.CategoriaId == cat.Id && l.EquipoId == null)?.Leyenda,
-                filas,
-                baseEscudo));
+            var leyendaCat = PosicionesLeyendasTablaHelper.ConcatenarTextos(leyendasZona.Where(l => l.CategoriaId == cat.Id));
+            bloques.Add(ConstruirBloquePosiciones(cat.Nombre, leyendaCat, filas, baseEscudo));
         }
 
-        bloques.Add(ConstruirBloqueGeneralAcumulado(leyendaSinCategoria, filasPorCategoria, baseEscudo));
+        var leyendaGeneral = PosicionesLeyendasTablaHelper.ConcatenarTextos(leyendasZona.Where(l => l.CategoriaId == null));
+        bloques.Add(ConstruirBloqueGeneralAcumulado(leyendaGeneral, filasPorCategoria, soloGeneralPorEquipo, baseEscudo));
 
         dto.Posiciones = bloques;
 
@@ -384,6 +397,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
     private static CategoriasConPosicionesDTO ConstruirBloqueGeneralAcumulado(
         string? leyenda,
         List<(TorneoCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)> filasPorCategoria,
+        Dictionary<int, int> soloGeneralPorEquipo,
         string baseEscudo)
     {
         var acumulado = new Dictionary<int, (Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>();
@@ -403,7 +417,11 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         }
 
         var filasAgg = acumulado.Values
-            .Select(x => (x.Equipo, x.Stats, x.Puntos))
+            .Select(x =>
+            {
+                var solo = soloGeneralPorEquipo.GetValueOrDefault(x.Equipo.Id);
+                return (x.Equipo, x.Stats, x.Puntos - solo);
+            })
             .ToList();
 
         return ConstruirBloquePosiciones("General", leyenda, filasAgg, baseEscudo);
