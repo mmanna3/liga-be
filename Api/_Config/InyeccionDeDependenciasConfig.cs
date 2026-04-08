@@ -33,6 +33,9 @@ public static class InyeccionDeDependenciasConfig
         builder.Services.AddScoped<ITorneoAgrupadorRepo, TorneoAgrupadorRepo>();
         builder.Services.AddScoped<ITorneoAgrupadorCore, TorneoAgrupadorCore>();
 
+        builder.Services.AddScoped<IDniExpulsadoDeLaLigaRepo, DniExpulsadoDeLaLigaRepo>();
+        builder.Services.AddScoped<IDniExpulsadoDeLaLigaCore, DniExpulsadoDeLaLigaCore>();
+
         builder.Services.AddScoped<ITorneoCategoriaRepo, TorneoCategoriaRepo>();
         builder.Services.AddScoped<ITorneoCategoriaCore, TorneoCategoriaCore>();
 

@@ -99,6 +99,11 @@ public class AppDbContext : DbContext
             new LocalVisitante { Id = 2, Estado = "Visitante" }
         );
 
+        builder.Entity<DniExpulsadoDeLaLiga>()
+            .ToTable("DnisExpulsadosDeLaLiga")
+            .HasIndex(e => e.DNI)
+            .IsUnique();
+
         builder.Entity<TorneoAgrupador>()
             .ToTable("TorneoAgrupadores")
             .HasData(
@@ -455,6 +460,7 @@ public class AppDbContext : DbContext
     public DbSet<Usuario> Usuarios { get; set; } = null!;
     public DbSet<Rol> Roles { get; set; } = null!;
     public DbSet<Torneo> Torneos { get; set; } = null!;
+    public DbSet<DniExpulsadoDeLaLiga> DnisExpulsadosDeLaLiga { get; set; } = null!;
     public DbSet<TorneoAgrupador> TorneoAgrupadores { get; set; } = null!;
     public DbSet<TorneoCategoria> TorneoCategorias { get; set; } = null!;
     public DbSet<Fase> Fases { get; set; } = null!;
