@@ -234,7 +234,9 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.DNI, opt => opt.MapFrom(src => src.DNI))
             .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombre))
             .ForMember(dest => dest.Apellido, opt => opt.MapFrom(src => src.Apellido))
-            .ForMember(dest => dest.FechaNacimiento, opt => opt.MapFrom(src => src.FechaNacimiento));
+            .ForMember(dest => dest.FechaNacimiento, opt => opt.MapFrom(src => src.FechaNacimiento))
+            .ForMember(dest => dest.TarjetasAmarillas, opt => opt.MapFrom(_ => 0))
+            .ForMember(dest => dest.TarjetasRojas, opt => opt.MapFrom(_ => 0));
 
         CreateMap<JugadorEquipo, CarnetDigitalDTO>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Jugador.Id))
@@ -243,7 +245,9 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Apellido, opt => opt.MapFrom(src => src.Jugador.Apellido))
             .ForMember(dest => dest.FechaNacimiento, opt => opt.MapFrom(src => src.Jugador.FechaNacimiento))
             .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.EstadoJugadorId))
-            .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => TorneoNombreDesdePrimeraZona(src.Equipo)));
+            .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => TorneoNombreDesdePrimeraZona(src.Equipo)))
+            .ForMember(dest => dest.TarjetasAmarillas, opt => opt.MapFrom(src => src.TarjetasAmarillas))
+            .ForMember(dest => dest.TarjetasRojas, opt => opt.MapFrom(src => src.TarjetasRojas));
 
         CreateMap<JugadorEquipo, CarnetDigitalPendienteDTO>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Jugador.Id))
@@ -253,7 +257,9 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.FechaNacimiento, opt => opt.MapFrom(src => src.Jugador.FechaNacimiento))
             .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.EstadoJugadorId))
             .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => TorneoNombreDesdePrimeraZona(src.Equipo)))
-            .ForMember(dest => dest.Motivo, opt => opt.MapFrom(src => src.Motivo));
+            .ForMember(dest => dest.Motivo, opt => opt.MapFrom(src => src.Motivo))
+            .ForMember(dest => dest.TarjetasAmarillas, opt => opt.MapFrom(src => src.TarjetasAmarillas))
+            .ForMember(dest => dest.TarjetasRojas, opt => opt.MapFrom(src => src.TarjetasRojas));
 
         // CreateMap<string, DateTime>().ConvertUsing(s => 
         //     DateTime.ParseExact(s, "dd-MM-yyyy", CultureInfo.InvariantCulture)

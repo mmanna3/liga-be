@@ -8,4 +8,8 @@ public class CarnetDigitalDTO : JugadorBaseDTO
     public int Estado { get; set; }
     
     public bool EsDelegado { get; set; }
+
+    public int TarjetasAmarillas { get; set; }
+
+    public int TarjetasRojas { get; set; }
 }
