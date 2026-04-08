@@ -39,9 +39,12 @@ public class MapperConfig : Profile
             .ReverseMap()
             .ForMember(dest => dest.Torneo, opt => opt.Ignore());
 
-        CreateMap<LeyendaTablaPosiciones, LeyendaTablaPosicionesDTO>().ReverseMap()
+        CreateMap<LeyendaTablaPosiciones, LeyendaTablaPosicionesDTO>()
+            .ForMember(dest => dest.Equipo, opt => opt.MapFrom(src => src.Equipo != null ? src.Equipo.Nombre : null))
+            .ReverseMap()
             .ForMember(dest => dest.Zona, opt => opt.Ignore())
-            .ForMember(dest => dest.Categoria, opt => opt.Ignore());
+            .ForMember(dest => dest.Categoria, opt => opt.Ignore())
+            .ForMember(dest => dest.Equipo, opt => opt.Ignore());
         CreateMap<Zona, ZonaDeFaseDTO>()
             .Include<ZonaTodosContraTodos, ZonaDeFaseDTO>()
             .Include<ZonaEliminacionDirecta, ZonaDeFaseDTO>();

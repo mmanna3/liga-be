@@ -118,6 +118,10 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
             .ToListAsync(cancellationToken);
     }
 
+    public Task<bool> EquipoPerteneceAZonaAsync(int equipoId, int zonaId,
+        CancellationToken cancellationToken = default) =>
+        Context.Set<EquipoZona>().AnyAsync(ez => ez.EquipoId == equipoId && ez.ZonaId == zonaId, cancellationToken);
+
     public async Task<IReadOnlyList<int>> ListarTorneoIdsDelEquipoEnAnioAsync(int equipoId, int anio,
         CancellationToken cancellationToken = default)
     {

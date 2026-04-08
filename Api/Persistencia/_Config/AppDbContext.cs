@@ -183,14 +183,20 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<LeyendaTablaPosiciones>()
-            .HasIndex(l => new { l.ZonaId, l.CategoriaId })
-            .IsUnique()
-            .HasFilter("[CategoriaId] IS NOT NULL");
+            .HasOne(l => l.Equipo)
+            .WithMany()
+            .HasForeignKey(l => l.EquipoId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<LeyendaTablaPosiciones>()
-            .HasIndex(l => l.ZonaId)
+            .HasIndex(l => new { l.ZonaId, l.CategoriaId })
             .IsUnique()
-            .HasFilter("[CategoriaId] IS NULL");
+            .HasFilter("[EquipoId] IS NULL");
+
+        builder.Entity<LeyendaTablaPosiciones>()
+            .HasIndex(l => new { l.ZonaId, l.CategoriaId, l.EquipoId })
+            .IsUnique()
+            .HasFilter("[EquipoId] IS NOT NULL");
 
         builder.Entity<Fecha>()
             .ToTable("Fechas")

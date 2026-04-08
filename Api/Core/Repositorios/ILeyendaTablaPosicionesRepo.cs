@@ -5,7 +5,7 @@ namespace Api.Core.Repositorios;
 public interface ILeyendaTablaPosicionesRepo : IRepositorioABMAnidado<LeyendaTablaPosiciones, int>
 {
     /// <summary>
-    /// Indica si ya existe otra fila con el mismo ZonaId y CategoriaId (ambos null en categoría = leyenda general).
+    /// Indica si ya existe otra fila con el mismo ZonaId, CategoriaId y EquipoId (null = leyenda sin equipo asociado).
     /// </summary>
-    Task<bool> ExisteOtraConMismaZonaYCategoria(int zonaId, int? categoriaId, int? excluirLeyendaId);
+    Task<bool> ExisteOtraConMismaZonaCategoriaYEquipo(int zonaId, int? categoriaId, int? equipoId, int? excluirLeyendaId);
 }

@@ -14,6 +14,8 @@ public interface IEquipoRepo : IRepositorioABM<Equipo>
     /// <summary>Equipos asignados a la zona, con club, ordenados por nombre de equipo.</summary>
     Task<IReadOnlyList<Equipo>> ListarPorZonaIdAsync(int zonaId, CancellationToken cancellationToken = default);
 
+    Task<bool> EquipoPerteneceAZonaAsync(int equipoId, int zonaId, CancellationToken cancellationToken = default);
+
     /// <summary>Ids de torneo distintos en los que el equipo está en alguna zona, filtrado por año del torneo.</summary>
     Task<IReadOnlyList<int>> ListarTorneoIdsDelEquipoEnAnioAsync(int equipoId, int anio,
         CancellationToken cancellationToken = default);

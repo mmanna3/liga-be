@@ -329,7 +329,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         var baseEscudo = _paths.ImagenesEscudosRelative.TrimEnd('/');
 
         var leyendasZona = (await _leyendaTablaPosicionesRepo.ListarPorPadre(zonaId)).ToList();
-        var leyendaSinCategoria = leyendasZona.FirstOrDefault(l => l.CategoriaId == null)?.Leyenda;
+        var leyendaSinCategoria = leyendasZona.FirstOrDefault(l => l.CategoriaId == null && l.EquipoId == null)?.Leyenda;
 
         var filasPorCategoria = new List<(TorneoCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)>();
 
@@ -369,7 +369,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         {
             bloques.Add(ConstruirBloquePosiciones(
                 cat.Nombre,
-                leyendasZona.FirstOrDefault(l => l.CategoriaId == cat.Id)?.Leyenda,
+                leyendasZona.FirstOrDefault(l => l.CategoriaId == cat.Id && l.EquipoId == null)?.Leyenda,
                 filas,
                 baseEscudo));
         }

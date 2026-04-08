@@ -13,26 +13,31 @@ public class LeyendaTablaPosicionesCore
 {
     private readonly IZonaRepo _zonaRepo;
     private readonly ITorneoCategoriaRepo _torneoCategoriaRepo;
+    private readonly IEquipoRepo _equipoRepo;
 
     public LeyendaTablaPosicionesCore(
         IBDVirtual bd,
         ILeyendaTablaPosicionesRepo repo,
         IZonaRepo zonaRepo,
         ITorneoCategoriaRepo torneoCategoriaRepo,
+        IEquipoRepo equipoRepo,
         IMapper mapper)
         : base(bd, repo, mapper)
     {
         _zonaRepo = zonaRepo;
         _torneoCategoriaRepo = torneoCategoriaRepo;
+        _equipoRepo = equipoRepo;
     }
 
     protected override async Task<LeyendaTablaPosiciones> AntesDeCrear(int padreId, LeyendaTablaPosicionesDTO dto,
         LeyendaTablaPosiciones entidad)
     {
         await ValidarZonaYCategoria(padreId, dto.CategoriaId);
-        if (await Repo.ExisteOtraConMismaZonaYCategoria(padreId, dto.CategoriaId, null))
+        await ValidarEquipoYQuita(padreId, dto.EquipoId, dto.QuitaDePuntos);
+
+        if (await Repo.ExisteOtraConMismaZonaCategoriaYEquipo(padreId, dto.CategoriaId, dto.EquipoId, null))
             throw new ExcepcionControlada(
-                "Ya existe una leyenda para esta zona y categoría (o ya hay una leyenda general sin categoría).");
+                "Ya existe una leyenda con la misma zona, categoría y equipo (o ya hay una leyenda general sin equipo para esa categoría).");
 
         entidad.ZonaId = padreId;
         return entidad;
@@ -42,11 +47,30 @@ public class LeyendaTablaPosicionesCore
         LeyendaTablaPosiciones entidadAnterior, LeyendaTablaPosiciones entidadNueva)
     {
         await ValidarZonaYCategoria(padreId, dto.CategoriaId);
-        if (await Repo.ExisteOtraConMismaZonaYCategoria(padreId, dto.CategoriaId, id))
+        await ValidarEquipoYQuita(padreId, dto.EquipoId, dto.QuitaDePuntos);
+
+        if (await Repo.ExisteOtraConMismaZonaCategoriaYEquipo(padreId, dto.CategoriaId, dto.EquipoId, id))
             throw new ExcepcionControlada(
-                "Ya existe una leyenda para esta zona y categoría (o ya hay una leyenda general sin categoría).");
+                "Ya existe una leyenda con la misma zona, categoría y equipo (o ya hay una leyenda general sin equipo para esa categoría).");
 
         entidadNueva.ZonaId = padreId;
+    }
+
+    private async Task ValidarEquipoYQuita(int zonaId, int? equipoId, int quitaDePuntos)
+    {
+        if (!equipoId.HasValue)
+        {
+            if (quitaDePuntos != 0)
+                throw new ExcepcionControlada(
+                    "Sin equipo asociado, la quita de puntos debe ser cero.");
+            return;
+        }
+
+        if (quitaDePuntos <= 0)
+            throw new ExcepcionControlada("Si se indica un equipo, la quita de puntos debe ser mayor que cero.");
+
+        if (!await _equipoRepo.EquipoPerteneceAZonaAsync(equipoId.Value, zonaId))
+            throw new ExcepcionControlada("El equipo no está asignado a esta zona.");
     }
 
     private async Task ValidarZonaYCategoria(int zonaId, int? categoriaId)
