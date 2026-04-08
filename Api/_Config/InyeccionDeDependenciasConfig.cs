@@ -42,6 +42,9 @@ public static class InyeccionDeDependenciasConfig
         builder.Services.AddScoped<IZonaRepo, ZonaRepo>();
         builder.Services.AddScoped<IZonaCore, ZonaCore>();
 
+        builder.Services.AddScoped<ILeyendaTablaPosicionesRepo, LeyendaTablaPosicionesRepo>();
+        builder.Services.AddScoped<ILeyendaTablaPosicionesCore, LeyendaTablaPosicionesCore>();
+
         builder.Services.AddScoped<IFechaRepo, FechaRepo>();
         builder.Services.AddScoped<IFechaCore, FechaCore>();
 

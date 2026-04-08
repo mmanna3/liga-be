@@ -169,6 +169,29 @@ public class AppDbContext : DbContext
             .HasForeignKey(z => z.CategoriaId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.Entity<LeyendaTablaPosiciones>()
+            .ToTable("LeyendaTablaPosiciones")
+            .HasOne(l => l.Zona)
+            .WithMany(z => z.LeyendasTablaPosiciones)
+            .HasForeignKey(l => l.ZonaId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<LeyendaTablaPosiciones>()
+            .HasOne(l => l.Categoria)
+            .WithMany(c => c.LeyendasTablaPosiciones)
+            .HasForeignKey(l => l.CategoriaId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<LeyendaTablaPosiciones>()
+            .HasIndex(l => new { l.ZonaId, l.CategoriaId })
+            .IsUnique()
+            .HasFilter("[CategoriaId] IS NOT NULL");
+
+        builder.Entity<LeyendaTablaPosiciones>()
+            .HasIndex(l => l.ZonaId)
+            .IsUnique()
+            .HasFilter("[CategoriaId] IS NULL");
+
         builder.Entity<Fecha>()
             .ToTable("Fechas")
             .HasDiscriminator<string>("TipoFecha")
@@ -430,6 +453,7 @@ public class AppDbContext : DbContext
     public DbSet<TorneoCategoria> TorneoCategorias { get; set; } = null!;
     public DbSet<Fase> Fases { get; set; } = null!;
     public DbSet<Zona> Zonas { get; set; } = null!;
+    public DbSet<LeyendaTablaPosiciones> LeyendaTablaPosiciones { get; set; } = null!;
     public DbSet<Fecha> Fechas { get; set; } = null!;
     public DbSet<EquipoZona> EquipoZona { get; set; } = null!;
     public DbSet<FixtureAlgoritmo> FixtureAlgoritmos { get; set; } = null!;

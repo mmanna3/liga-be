@@ -38,6 +38,10 @@ public class MapperConfig : Profile
             .PreserveReferences()
             .ReverseMap()
             .ForMember(dest => dest.Torneo, opt => opt.Ignore());
+
+        CreateMap<LeyendaTablaPosiciones, LeyendaTablaPosicionesDTO>().ReverseMap()
+            .ForMember(dest => dest.Zona, opt => opt.Ignore())
+            .ForMember(dest => dest.Categoria, opt => opt.Ignore());
         CreateMap<Zona, ZonaDeFaseDTO>()
             .Include<ZonaTodosContraTodos, ZonaDeFaseDTO>()
             .Include<ZonaEliminacionDirecta, ZonaDeFaseDTO>();
