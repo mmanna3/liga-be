@@ -120,6 +120,19 @@ public class AppDbContext : DbContext
             .HasIndex(t => new { t.Nombre, t.Anio, t.TorneoAgrupadorId })
             .IsUnique();
 
+        // Restrict: SQL Server no admite SetNull aquí (ciclos de cascada con Fase.TorneoId → Torneo).
+        builder.Entity<Torneo>()
+            .HasOne(t => t.FaseApertura)
+            .WithMany()
+            .HasForeignKey(t => t.FaseAperturaId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Torneo>()
+            .HasOne(t => t.FaseClausura)
+            .WithMany()
+            .HasForeignKey(t => t.FaseClausuraId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Entity<TorneoCategoria>()
             .ToTable("TorneoCategorias")
             .HasOne(tc => tc.Torneo)

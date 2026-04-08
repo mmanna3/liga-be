@@ -27,6 +27,8 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
     {
         if (await Repo.ExisteTorneoConNombreAnioYAgrupador(entidad.Nombre, entidad.Anio, entidad.TorneoAgrupadorId))
             throw new ExcepcionControlada("Ya existe un torneo con el mismo nombre, año y agrupador.");
+        entidad.FaseAperturaId = null;
+        entidad.FaseClausuraId = null;
         return entidad;
     }
 
@@ -34,7 +36,15 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
     {
         if (await Repo.ExisteTorneoConNombreAnioYAgrupador(entidadNueva.Nombre, entidadNueva.Anio, entidadNueva.TorneoAgrupadorId, id))
             throw new ExcepcionControlada("Ya existe un torneo con el mismo nombre, año y agrupador.");
+        entidadNueva.FaseAperturaId = entidadAnterior.FaseAperturaId;
+        entidadNueva.FaseClausuraId = entidadAnterior.FaseClausuraId;
         return entidadNueva;
+    }
+
+    public override async Task<int> Eliminar(int id)
+    {
+        await Repo.ActualizarFasesParaTablaAnual(id, null, null);
+        return await base.Eliminar(id);
     }
 
     public override async Task<int> Modificar(int id, TorneoDTO dto)
@@ -56,6 +66,8 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
 
     private async Task ReemplazarFases(int torneoId, List<FaseDTO> fasesDto)
     {
+        await Repo.ActualizarFasesParaTablaAnual(torneoId, null, null);
+
         var fasesExistentes = await _torneoFaseRepo.ListarPorPadre(torneoId);
         foreach (var fase in fasesExistentes)
         {
@@ -250,6 +262,35 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
     public async Task CambiarVisibilidadEnApp(int id, bool esVisibleEnApp)
     {
         var filas = await Repo.ActualizarEsVisibleEnApp(id, esVisibleEnApp);
+        if (filas == 0)
+            throw new ExcepcionControlada("No existe el torneo a modificar.");
+    }
+
+    public async Task EditarFasesParaTablaAnual(int id, EditarFasesParaTablaAnualDTO dto)
+    {
+        if (dto.FaseAperturaId.HasValue && dto.FaseClausuraId.HasValue &&
+            dto.FaseAperturaId.Value == dto.FaseClausuraId.Value)
+            throw new ExcepcionControlada("La fase de apertura y la de clausura deben ser distintas.");
+
+        if (dto.FaseAperturaId.HasValue)
+        {
+            var fase = await _torneoFaseRepo.ObtenerPorIdYPadre(id, dto.FaseAperturaId.Value);
+            if (fase == null)
+                throw new ExcepcionControlada("La fase de apertura no pertenece a este torneo.");
+            if (fase is not FaseTodosContraTodos)
+                throw new ExcepcionControlada("La fase de apertura debe ser todos contra todos.");
+        }
+
+        if (dto.FaseClausuraId.HasValue)
+        {
+            var fase = await _torneoFaseRepo.ObtenerPorIdYPadre(id, dto.FaseClausuraId.Value);
+            if (fase == null)
+                throw new ExcepcionControlada("La fase de clausura no pertenece a este torneo.");
+            if (fase is not FaseTodosContraTodos)
+                throw new ExcepcionControlada("La fase de clausura debe ser todos contra todos.");
+        }
+
+        var filas = await Repo.ActualizarFasesParaTablaAnual(id, dto.FaseAperturaId, dto.FaseClausuraId);
         if (filas == 0)
             throw new ExcepcionControlada("No existe el torneo a modificar.");
     }

@@ -31,4 +31,11 @@ public class TorneoController : ABMController<TorneoDTO, ITorneoCore, CrearTorne
         await Core.CambiarVisibilidadEnApp(id, dto.EsVisibleEnApp);
         return NoContent();
     }
+
+    [HttpPut("{id}/fases-para-tabla-anual", Name = "torneoEditarFasesParaTablaAnual")]
+    public async Task<IActionResult> EditarFasesParaTablaAnual(int id, [FromBody] EditarFasesParaTablaAnualDTO dto)
+    {
+        await Core.EditarFasesParaTablaAnual(id, dto);
+        return NoContent();
+    }
 }

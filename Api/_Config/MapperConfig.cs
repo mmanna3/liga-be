@@ -24,6 +24,8 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.DelegadoClubs, opt => opt.Ignore());
         CreateMap<Torneo, TorneoDTO>()
             .ForMember(dest => dest.TorneoAgrupadorNombre, opt => opt.MapFrom(src => src.TorneoAgrupador != null ? src.TorneoAgrupador.Nombre : string.Empty))
+            .ForMember(dest => dest.FaseAperturaNombre, opt => opt.MapFrom(src => src.FaseApertura != null ? src.FaseApertura.Nombre : null))
+            .ForMember(dest => dest.FaseClausuraNombre, opt => opt.MapFrom(src => src.FaseClausura != null ? src.FaseClausura.Nombre : null))
             .ForMember(dest => dest.SePuedeEditar, opt => opt.MapFrom<TorneoSePuedeEditarResolver>())
             .ForMember(dest => dest.Fases, opt => opt.MapFrom(src => src.Fases != null ? src.Fases : new List<Fase>()))
             .ForMember(dest => dest.Categorias, opt => opt.MapFrom(src => src.Categorias != null ? src.Categorias : new List<TorneoCategoria>()))
@@ -32,6 +34,10 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.TorneoAgrupador, opt => opt.Ignore())
             .ForMember(dest => dest.Fases, opt => opt.Ignore())
             .ForMember(dest => dest.Categorias, opt => opt.Ignore())
+            .ForMember(dest => dest.FaseApertura, opt => opt.Ignore())
+            .ForMember(dest => dest.FaseClausura, opt => opt.Ignore())
+            .ForMember(dest => dest.FaseAperturaId, opt => opt.Ignore())
+            .ForMember(dest => dest.FaseClausuraId, opt => opt.Ignore())
             .ForSourceMember(src => src.SePuedeEditar, opt => opt.DoNotValidate());
 
         CreateMap<TorneoCategoria, TorneoCategoriaDTO>()

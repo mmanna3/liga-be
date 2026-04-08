@@ -12,6 +12,10 @@ public class TorneoDTO : DTO, IEsVisibleEnApp
     public required bool EsVisibleEnApp { get; set; }
     public required bool SeVenLosGolesEnTablaDePosiciones { get; set; }
     public int TorneoAgrupadorId { get; set; }
+    public int? FaseAperturaId { get; set; }
+    public string? FaseAperturaNombre { get; set; }
+    public int? FaseClausuraId { get; set; }
+    public string? FaseClausuraNombre { get; set; }
     public string TorneoAgrupadorNombre { get; set; } = string.Empty;
     public bool SePuedeEditar { get; set; }
     /// <summary>

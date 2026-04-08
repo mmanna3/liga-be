@@ -70,6 +70,8 @@ public class FaseCore : ABMCoreAnidado<IFaseRepo, Fase, FaseDTO, int>, IFaseCore
         if (entidad == null)
             return -1;
 
+        await _torneoRepo.LimpiarReferenciasFaseTablaAnualSiCoinciden(padreId, id);
+
         Repo.Eliminar(entidad);
         await BDVirtual.GuardarCambios();
 

@@ -12,6 +12,12 @@ public interface ITorneoRepo : IRepositorioABM<Torneo>
     /// <summary>Filas afectadas (0 si no existe el torneo).</summary>
     Task<int> ActualizarEsVisibleEnApp(int id, bool esVisibleEnApp);
 
+    /// <summary>Filas afectadas (0 si no existe el torneo).</summary>
+    Task<int> ActualizarFasesParaTablaAnual(int torneoId, int? faseAperturaId, int? faseClausuraId);
+
+    /// <summary>Anula referencias de tabla anual que apuntan a la fase (necesario con FK Restrict al borrar la fase).</summary>
+    Task LimpiarReferenciasFaseTablaAnualSiCoinciden(int torneoId, int faseId);
+
     /// <summary>Torneo con categorías (sin fases/zonas), solo lectura.</summary>
     Task<Torneo?> ObtenerPorIdConCategoriasAsync(int id, CancellationToken cancellationToken = default);
 } 

@@ -16,6 +16,8 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
     {
         return Context.Set<Torneo>()
             .Include(x => x.TorneoAgrupador)
+            .Include(x => x.FaseApertura)
+            .Include(x => x.FaseClausura)
             .Include(x => x.Categorias)
             .Include("Fases.Zonas")
             .Include("Fases.Zonas.Categoria")
@@ -85,6 +87,25 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
         return await Context.Set<Torneo>()
             .Where(t => t.Id == id)
             .ExecuteUpdateAsync(s => s.SetProperty(t => t.EsVisibleEnApp, esVisibleEnApp));
+    }
+
+    public async Task<int> ActualizarFasesParaTablaAnual(int torneoId, int? faseAperturaId, int? faseClausuraId)
+    {
+        return await Context.Set<Torneo>()
+            .Where(t => t.Id == torneoId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(t => t.FaseAperturaId, faseAperturaId)
+                .SetProperty(t => t.FaseClausuraId, faseClausuraId));
+    }
+
+    public async Task LimpiarReferenciasFaseTablaAnualSiCoinciden(int torneoId, int faseId)
+    {
+        await Context.Set<Torneo>()
+            .Where(t => t.Id == torneoId && t.FaseAperturaId == faseId)
+            .ExecuteUpdateAsync(s => s.SetProperty(t => t.FaseAperturaId, (int?)null));
+        await Context.Set<Torneo>()
+            .Where(t => t.Id == torneoId && t.FaseClausuraId == faseId)
+            .ExecuteUpdateAsync(s => s.SetProperty(t => t.FaseClausuraId, (int?)null));
     }
 
     public async Task<Torneo?> ObtenerPorIdConCategoriasAsync(int id, CancellationToken cancellationToken = default)
