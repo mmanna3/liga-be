@@ -206,4 +206,18 @@ public struct EstadisticasPosicionEquipo
     public int GolesAFavor;
     public int GolesEnContra;
     public int PartidosNoPresento;
+
+    public static EstadisticasPosicionEquipo Sumar(EstadisticasPosicionEquipo a, EstadisticasPosicionEquipo b)
+    {
+        return new EstadisticasPosicionEquipo
+        {
+            PartidosJugados = a.PartidosJugados + b.PartidosJugados,
+            PartidosGanados = a.PartidosGanados + b.PartidosGanados,
+            PartidosEmpatados = a.PartidosEmpatados + b.PartidosEmpatados,
+            PartidosPerdidos = a.PartidosPerdidos + b.PartidosPerdidos,
+            GolesAFavor = a.GolesAFavor + b.GolesAFavor,
+            GolesEnContra = a.GolesEnContra + b.GolesEnContra,
+            PartidosNoPresento = a.PartidosNoPresento + b.PartidosNoPresento
+        };
+    }
 }

@@ -19,11 +19,13 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
     private readonly ITorneoAgrupadorRepo _torneoAgrupadorRepo;
     private readonly IFechaRepo _fechaRepo;
     private readonly ITorneoRepo _torneoRepo;
+    private readonly ILeyendaTablaPosicionesRepo _leyendaTablaPosicionesRepo;
     private readonly AppPaths _paths;
 
     public AppCarnetDigitalCore(IDelegadoRepo delegadoRepo, IEquipoRepo equipoRepo, IMapper mapper,
         IImagenJugadorRepo imagenJugadorRepo, IImagenDelegadoRepo imagenDelegadoRepo,
-        ITorneoAgrupadorRepo torneoAgrupadorRepo, IFechaRepo fechaRepo, ITorneoRepo torneoRepo, AppPaths paths)
+        ITorneoAgrupadorRepo torneoAgrupadorRepo, IFechaRepo fechaRepo, ITorneoRepo torneoRepo,
+        ILeyendaTablaPosicionesRepo leyendaTablaPosicionesRepo, AppPaths paths)
     {
         _delegadoRepo = delegadoRepo;
         _mapper = mapper;
@@ -33,6 +35,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         _torneoAgrupadorRepo = torneoAgrupadorRepo;
         _fechaRepo = fechaRepo;
         _torneoRepo = torneoRepo;
+        _leyendaTablaPosicionesRepo = leyendaTablaPosicionesRepo;
         _paths = paths;
     }
 
@@ -325,14 +328,13 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         var dto = new PosicionesDTO { VerGoles = verGoles };
         var baseEscudo = _paths.ImagenesEscudosRelative.TrimEnd('/');
 
+        var leyendasZona = (await _leyendaTablaPosicionesRepo.ListarPorPadre(zonaId)).ToList();
+        var leyendaSinCategoria = leyendasZona.FirstOrDefault(l => l.CategoriaId == null)?.Leyenda;
+
+        var filasPorCategoria = new List<(TorneoCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)>();
+
         foreach (var cat in categorias)
         {
-            var bloque = new CategoriasConPosicionesDTO
-            {
-                Categoria = cat.Nombre,
-                Renglones = []
-            };
-
             var filas = new List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>();
             foreach (var equipo in equipos)
             {
@@ -358,36 +360,95 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                 filas.Add((equipo, ac, puntos));
             }
 
-            var ordenadas = filas
-                .OrderByDescending(f => f.Puntos)
-                .ThenBy(f => f.Equipo.Nombre, StringComparer.CurrentCultureIgnoreCase)
-                .ToList();
-
-            var numeroPosicion = 1;
-            foreach (var f in ordenadas)
-            {
-                var diff = f.Stats.GolesAFavor - f.Stats.GolesEnContra;
-                bloque.Renglones.Add(new PosicionDelEquipoDTO
-                {
-                    Posicion = numeroPosicion++.ToString(),
-                    Puntos = f.Puntos.ToString(),
-                    Equipo = f.Equipo.Nombre,
-                    Escudo = $"{baseEscudo}/{f.Equipo.ClubId}.jpg",
-                    PartidosJugados = f.Stats.PartidosJugados.ToString(),
-                    PartidosGanados = f.Stats.PartidosGanados.ToString(),
-                    PartidosEmpatados = f.Stats.PartidosEmpatados.ToString(),
-                    PartidosPerdidos = f.Stats.PartidosPerdidos.ToString(),
-                    GolesAFavor = f.Stats.GolesAFavor.ToString(),
-                    GolesEnContra = f.Stats.GolesEnContra.ToString(),
-                    GolesDiferencia = diff.ToString(),
-                    PartidosNoPresento = f.Stats.PartidosNoPresento.ToString()
-                });
-            }
-
-            dto.Posiciones.Add(bloque);
+            filasPorCategoria.Add((cat, filas));
         }
 
+        var bloques = new List<CategoriasConPosicionesDTO>();
+
+        foreach (var (cat, filas) in filasPorCategoria)
+        {
+            bloques.Add(ConstruirBloquePosiciones(
+                cat.Nombre,
+                leyendasZona.FirstOrDefault(l => l.CategoriaId == cat.Id)?.Leyenda,
+                filas,
+                baseEscudo));
+        }
+
+        bloques.Add(ConstruirBloqueGeneralAcumulado(leyendaSinCategoria, filasPorCategoria, baseEscudo));
+
+        dto.Posiciones = bloques;
+
         return dto;
+    }
+
+    private static CategoriasConPosicionesDTO ConstruirBloqueGeneralAcumulado(
+        string? leyenda,
+        List<(TorneoCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)> filasPorCategoria,
+        string baseEscudo)
+    {
+        var acumulado = new Dictionary<int, (Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>();
+
+        foreach (var (_, filas) in filasPorCategoria)
+        {
+            foreach (var (equipo, stats, puntos) in filas)
+            {
+                if (acumulado.TryGetValue(equipo.Id, out var prev))
+                    acumulado[equipo.Id] = (
+                        equipo,
+                        EstadisticasPosicionEquipo.Sumar(prev.Stats, stats),
+                        prev.Puntos + puntos);
+                else
+                    acumulado[equipo.Id] = (equipo, stats, puntos);
+            }
+        }
+
+        var filasAgg = acumulado.Values
+            .Select(x => (x.Equipo, x.Stats, x.Puntos))
+            .ToList();
+
+        return ConstruirBloquePosiciones("General", leyenda, filasAgg, baseEscudo);
+    }
+
+    private static CategoriasConPosicionesDTO ConstruirBloquePosiciones(
+        string nombreCategoria,
+        string? leyenda,
+        List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)> filas,
+        string baseEscudo)
+    {
+        var bloque = new CategoriasConPosicionesDTO
+        {
+            Categoria = nombreCategoria,
+            Leyenda = leyenda,
+            Renglones = []
+        };
+
+        var ordenadas = filas
+            .OrderByDescending(f => f.Puntos)
+            .ThenBy(f => f.Equipo.Nombre, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+
+        var numeroPosicion = 1;
+        foreach (var f in ordenadas)
+        {
+            var diff = f.Stats.GolesAFavor - f.Stats.GolesEnContra;
+            bloque.Renglones.Add(new PosicionDelEquipoDTO
+            {
+                Posicion = numeroPosicion++.ToString(),
+                Puntos = f.Puntos.ToString(),
+                Equipo = f.Equipo.Nombre,
+                Escudo = $"{baseEscudo}/{f.Equipo.ClubId}.jpg",
+                PartidosJugados = f.Stats.PartidosJugados.ToString(),
+                PartidosGanados = f.Stats.PartidosGanados.ToString(),
+                PartidosEmpatados = f.Stats.PartidosEmpatados.ToString(),
+                PartidosPerdidos = f.Stats.PartidosPerdidos.ToString(),
+                GolesAFavor = f.Stats.GolesAFavor.ToString(),
+                GolesEnContra = f.Stats.GolesEnContra.ToString(),
+                GolesDiferencia = diff.ToString(),
+                PartidosNoPresento = f.Stats.PartidosNoPresento.ToString()
+            });
+        }
+
+        return bloque;
     }
 
     public async Task<EliminacionDirectaDTO> EliminacionDirectaAsync(int zonaId,

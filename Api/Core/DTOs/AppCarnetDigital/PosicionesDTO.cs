@@ -3,13 +3,13 @@ namespace Api.Core.DTOs.AppCarnetDigital;
 public class PosicionesDTO
 {
     public ICollection<CategoriasConPosicionesDTO> Posiciones { get; set; } = [];
-
     public bool VerGoles { get; set; }
 }
 
 public class CategoriasConPosicionesDTO
 {
     public string Categoria { get; set; } = string.Empty;
+    public string? Leyenda { get; set; } = string.Empty;
     public ICollection<PosicionDelEquipoDTO> Renglones { get; set; } = [];
 }
 
