@@ -104,6 +104,9 @@ public class AppDbContext : DbContext
             .HasIndex(e => e.DNI)
             .IsUnique();
 
+        builder.Entity<Configuracion>()
+            .ToTable("Configuracion");
+
         builder.Entity<TorneoAgrupador>()
             .ToTable("TorneoAgrupadores")
             .HasData(
@@ -474,6 +477,7 @@ public class AppDbContext : DbContext
     public DbSet<Rol> Roles { get; set; } = null!;
     public DbSet<Torneo> Torneos { get; set; } = null!;
     public DbSet<DniExpulsadoDeLaLiga> DnisExpulsadosDeLaLiga { get; set; } = null!;
+    public DbSet<Configuracion> Configuraciones { get; set; } = null!;
     public DbSet<TorneoAgrupador> TorneoAgrupadores { get; set; } = null!;
     public DbSet<TorneoCategoria> TorneoCategorias { get; set; } = null!;
     public DbSet<Fase> Fases { get; set; } = null!;

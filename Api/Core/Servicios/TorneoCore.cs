@@ -277,8 +277,7 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
             var fase = await _torneoFaseRepo.ObtenerPorIdYPadre(id, dto.FaseAperturaId.Value);
             if (fase == null)
                 throw new ExcepcionControlada("La fase de apertura no pertenece a este torneo.");
-            if (fase is not FaseTodosContraTodos)
-                throw new ExcepcionControlada("La fase de apertura debe ser todos contra todos.");
+            AsegurarFaseTodosContraTodosParaTablaAnual(fase, "apertura");
         }
 
         if (dto.FaseClausuraId.HasValue)
@@ -286,12 +285,19 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
             var fase = await _torneoFaseRepo.ObtenerPorIdYPadre(id, dto.FaseClausuraId.Value);
             if (fase == null)
                 throw new ExcepcionControlada("La fase de clausura no pertenece a este torneo.");
-            if (fase is not FaseTodosContraTodos)
-                throw new ExcepcionControlada("La fase de clausura debe ser todos contra todos.");
+            AsegurarFaseTodosContraTodosParaTablaAnual(fase, "clausura");
         }
 
         var filas = await Repo.ActualizarFasesParaTablaAnual(id, dto.FaseAperturaId, dto.FaseClausuraId);
         if (filas == 0)
             throw new ExcepcionControlada("No existe el torneo a modificar.");
+    }
+
+    private static void AsegurarFaseTodosContraTodosParaTablaAnual(Fase fase, string rol)
+    {
+        if (fase is FaseTodosContraTodos)
+            return;
+        throw new ExcepcionControlada(
+            $"La fase de {rol} solo puede ser «todos contra todos»; no se puede elegir eliminación directa.");
     }
 }

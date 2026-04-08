@@ -152,6 +152,7 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Partidos,
                 opt => opt.MapFrom(src => src.Partidos != null ? src.Partidos.ToList() : new List<Partido>()));
         CreateMap<DniExpulsadoDeLaLiga, DniExpulsadoDeLaLigaDTO>().ReverseMap();
+        CreateMap<Configuracion, ConfiguracionDTO>().ReverseMap();
 
         CreateMap<TorneoAgrupador, TorneoAgrupadorDTO>()
             .ForMember(dest => dest.Color, opt => opt.MapFrom(src => src.Color != null ? src.Color.Nombre : nameof(ColorEnum.Negro)))
