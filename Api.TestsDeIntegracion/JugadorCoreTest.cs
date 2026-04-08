@@ -18,6 +18,7 @@ namespace Api.TestsDeIntegracion
         private readonly Mock<IImagenJugadorRepo> _imagenJugadorRepoMock;
         private readonly Mock<IHistorialDePagosRepo> _historialDePagosRepoMock;
         private readonly Mock<IDelegadoRepo> _delegadoRepoMock;
+        private readonly Mock<IDniExpulsadoDeLaLigaRepo> _dniExpulsadoDeLaLigaRepoMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly AppPathsForTest _paths;
         private readonly JugadorCore _jugadorCore;
@@ -33,6 +34,10 @@ namespace Api.TestsDeIntegracion
             _imagenJugadorRepoMock = new Mock<IImagenJugadorRepo>();
             _historialDePagosRepoMock = new Mock<IHistorialDePagosRepo>();
             _delegadoRepoMock = new Mock<IDelegadoRepo>();
+            _dniExpulsadoDeLaLigaRepoMock = new Mock<IDniExpulsadoDeLaLigaRepo>();
+            _dniExpulsadoDeLaLigaRepoMock
+                .Setup(x => x.ExistePorDniAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(false);
             _mapperMock = new Mock<IMapper>();
 
             _jugadorCore = new JugadorCore(
@@ -43,7 +48,8 @@ namespace Api.TestsDeIntegracion
                 _imagenJugadorRepoMock.Object,
                 _paths,
                 _historialDePagosRepoMock.Object,
-                _delegadoRepoMock.Object
+                _delegadoRepoMock.Object,
+                _dniExpulsadoDeLaLigaRepoMock.Object
             );
         }
 

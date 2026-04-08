@@ -18,6 +18,7 @@ public class PublicoCoreTest
     private readonly Mock<IDelegadoRepo> _delegadoRepoMock;
     private readonly Mock<IImagenJugadorRepo> _imagenJugadorRepoMock;
     private readonly Mock<IBDVirtual> _bdVirtualMock;
+    private readonly Mock<IDniExpulsadoDeLaLigaRepo> _dniExpulsadoDeLaLigaRepoMock;
     private readonly PublicoCore _publicoCore;
 
     public PublicoCoreTest()
@@ -27,7 +28,11 @@ public class PublicoCoreTest
         _delegadoRepoMock = new Mock<IDelegadoRepo>();
         _imagenJugadorRepoMock = new Mock<IImagenJugadorRepo>();
         _bdVirtualMock = new Mock<IBDVirtual>();
-        _publicoCore = new PublicoCore(_jugadorRepoMock.Object, _jugadorCoreMock.Object, _delegadoRepoMock.Object, _imagenJugadorRepoMock.Object, _bdVirtualMock.Object);
+        _dniExpulsadoDeLaLigaRepoMock = new Mock<IDniExpulsadoDeLaLigaRepo>();
+        _dniExpulsadoDeLaLigaRepoMock
+            .Setup(x => x.ExistePorDniAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _publicoCore = new PublicoCore(_jugadorRepoMock.Object, _jugadorCoreMock.Object, _delegadoRepoMock.Object, _imagenJugadorRepoMock.Object, _bdVirtualMock.Object, _dniExpulsadoDeLaLigaRepoMock.Object);
     }
 
     [Fact]
@@ -205,6 +210,18 @@ public class PublicoCoreTest
 
         // Act & Assert
         await Assert.ThrowsAsync<ExcepcionControlada>(() => _publicoCore.FicharEnOtroEquipo(dto));
+    }
+
+    [Fact]
+    public async Task FicharEnOtroEquipo_DniExpulsado_LanzaMensajeNoHabilitado()
+    {
+        var dto = new FicharEnOtroEquipoDTO { DNI = "12345678", CodigoAlfanumerico = "ABC1234" };
+        _dniExpulsadoDeLaLigaRepoMock.Setup(x => x.ExistePorDniAsync(12345678, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+        var ex = await Assert.ThrowsAsync<ExcepcionControlada>(() => _publicoCore.FicharEnOtroEquipo(dto));
+
+        Assert.Equal(ValidacionDniExpulsado.MensajeNoHabilitadoParaFichaje, ex.Message);
+        _jugadorRepoMock.Verify(x => x.ObtenerPorDNI(It.IsAny<string>()), Times.Never);
     }
 
     [Fact]

@@ -15,14 +15,16 @@ public class PublicoCore : IPublicoCore
     private readonly IDelegadoRepo _delegadoRepo;
     private readonly IImagenJugadorRepo _imagenJugadorRepo;
     private readonly IBDVirtual _bdVirtual;
+    private readonly IDniExpulsadoDeLaLigaRepo _dniExpulsadoDeLaLigaRepo;
 
-    public PublicoCore(IJugadorRepo jugadorRepo, IJugadorCore jugadorCore, IDelegadoRepo delegadoRepo, IImagenJugadorRepo imagenJugadorRepo, IBDVirtual bdVirtual)
+    public PublicoCore(IJugadorRepo jugadorRepo, IJugadorCore jugadorCore, IDelegadoRepo delegadoRepo, IImagenJugadorRepo imagenJugadorRepo, IBDVirtual bdVirtual, IDniExpulsadoDeLaLigaRepo dniExpulsadoDeLaLigaRepo)
     {
         _jugadorRepo = jugadorRepo;
         _jugadorCore = jugadorCore;
         _delegadoRepo = delegadoRepo;
         _imagenJugadorRepo = imagenJugadorRepo;
         _bdVirtual = bdVirtual;
+        _dniExpulsadoDeLaLigaRepo = dniExpulsadoDeLaLigaRepo;
     }
 
     public async Task<bool> ElDniEstaFichado(string dni)
@@ -35,11 +37,15 @@ public class PublicoCore : IPublicoCore
 
     public async Task<int> FicharEnOtroEquipo(FicharEnOtroEquipoDTO dto)
     {
-        var jugador = await _jugadorRepo.ObtenerPorDNI(dto.DNI);
+        var dniLimpio = new string(dto.DNI.Where(char.IsDigit).ToArray());
+        await ValidacionDniExpulsado.LanzarSiEstaExpulsado(_dniExpulsadoDeLaLigaRepo, dniLimpio);
+
+        var dniParaBuscar = string.IsNullOrEmpty(dniLimpio) ? dto.DNI : dniLimpio;
+        var jugador = await _jugadorRepo.ObtenerPorDNI(dniParaBuscar);
         if (PersonaExisteHelper.JugadorEstaPendiente(jugador))
             throw new ExcepcionControlada("El DNI está pendiente de aprobación como jugador. La administración debe aprobarlo antes de poder fichar en otro equipo.");
 
-        var delegado = await _delegadoRepo.ObtenerPorDNI(dto.DNI);
+        var delegado = await _delegadoRepo.ObtenerPorDNI(dniParaBuscar);
         if (PersonaExisteHelper.DelegadoEstaPendiente(delegado))
             throw new ExcepcionControlada("El DNI está pendiente de aprobación como delegado. La administración debe aprobarlo antes de poder fichar en otro equipo.");
 

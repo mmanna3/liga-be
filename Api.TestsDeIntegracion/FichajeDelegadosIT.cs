@@ -6,6 +6,7 @@ using Api.Core.DTOs.CambiosDeEstadoJugador;
 using Api.Core.Entidades;
 using Api.Core.Enums;
 using Api.Core.Logica;
+using Api.Core.Otros;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
 using Api.TestsUtilidades;
@@ -585,5 +586,71 @@ public class FichajeDelegadosIT : TestBase
         Assert.Equal(2, clubs.Count);
         Assert.Contains(_club1.Id, clubs);
         Assert.Contains(_club2.Id, clubs);
+    }
+
+    /// <summary>
+    /// DNI en la lista de expulsados no puede ficharse como delegado (POST Delegado).
+    /// </summary>
+    [Fact]
+    public async Task Delegado_DniExpulsado_POST_Delegados_ArrojaError()
+    {
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            context.DnisExpulsadosDeLaLiga.Add(new DniExpulsadoDeLaLiga
+            {
+                Id = 0,
+                DNI = 16_666_666,
+                Explicacion = "Expulsión de prueba"
+            });
+            context.SaveChanges();
+        }
+
+        var client = Factory.CreateClient();
+        var delegadoDTO = new DelegadoDTO
+        {
+            DNI = "16666666",
+            Nombre = "Expulsado",
+            Apellido = "Delegado",
+            FechaNacimiento = new DateTime(1990, 5, 15),
+            ClubIds = new List<int> { _club1!.Id },
+            FotoCarnet = FotoBase64,
+            FotoDNIFrente = FotoBase64,
+            FotoDNIDorso = FotoBase64
+        };
+
+        var response = await client.PostAsJsonAsync("/api/delegado", delegadoDTO);
+
+        Assert.False(response.IsSuccessStatusCode);
+        var errorContent = await response.Content.ReadAsStringAsync();
+        Assert.Contains(ValidacionDniExpulsado.MensajeNoHabilitadoParaFichaje, errorContent);
+    }
+
+    /// <summary>
+    /// DNI en la lista de expulsados no puede usar fichar-delegado-solo-con-dni-y-club.
+    /// </summary>
+    [Fact]
+    public async Task Delegado_DniExpulsado_POST_FicharSoloConDniYClub_ArrojaError()
+    {
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            context.DnisExpulsadosDeLaLiga.Add(new DniExpulsadoDeLaLiga
+            {
+                Id = 0,
+                DNI = 15_555_555,
+                Explicacion = "Expulsión de prueba"
+            });
+            context.SaveChanges();
+        }
+
+        var client = await GetAuthenticatedClient();
+        var ficharDTO = new FicharDelegadoSoloConDniYClubDTO { DNI = "15555555", ClubId = _club1!.Id };
+
+        var response = await client.PostAsJsonAsync("/api/delegado/fichar-delegado-solo-con-dni-y-club", ficharDTO);
+
+        Assert.False(response.IsSuccessStatusCode);
+        var errorContent = await response.Content.ReadAsStringAsync();
+        Assert.Contains(ValidacionDniExpulsado.MensajeNoHabilitadoParaFichaje, errorContent);
     }
 }

@@ -19,14 +19,16 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
     private static AppPaths _paths = null!;
     private readonly IHistorialDePagosRepo _historialDePagosRepo;
     private readonly IDelegadoRepo _delegadoRepo;
+    private readonly IDniExpulsadoDeLaLigaRepo _dniExpulsadoDeLaLigaRepo;
 
-    public JugadorCore(IBDVirtual bd, IJugadorRepo repo, IMapper mapper, IEquipoRepo equipoRepo, IImagenJugadorRepo imagenJugadorRepo, AppPaths paths, IHistorialDePagosRepo historialDePagosRepo, IDelegadoRepo delegadoRepo) : base(bd, repo, mapper)
+    public JugadorCore(IBDVirtual bd, IJugadorRepo repo, IMapper mapper, IEquipoRepo equipoRepo, IImagenJugadorRepo imagenJugadorRepo, AppPaths paths, IHistorialDePagosRepo historialDePagosRepo, IDelegadoRepo delegadoRepo, IDniExpulsadoDeLaLigaRepo dniExpulsadoDeLaLigaRepo) : base(bd, repo, mapper)
     {
         _equipoRepo = equipoRepo;
         _imagenJugadorRepo = imagenJugadorRepo;
         _paths = paths;
         _historialDePagosRepo = historialDePagosRepo;
         _delegadoRepo = delegadoRepo;
+        _dniExpulsadoDeLaLigaRepo = dniExpulsadoDeLaLigaRepo;
     }
     
     protected override async Task<Jugador> AntesDeCrear(JugadorDTO dto, Jugador entidad)
@@ -36,6 +38,8 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
 
         dto.EquipoInicialId = GeneradorDeHash.ObtenerSemillaAPartirDeAlfanumerico7Digitos(dto.CodigoAlfanumerico);
         dto.DNI = QuitarCaracteresNoNumericos(dto.DNI);
+
+        await ValidacionDniExpulsado.LanzarSiEstaExpulsado(_dniExpulsadoDeLaLigaRepo, dto.DNI);
 
         var jugadorExistente = await Repo.ObtenerPorDNI(dto.DNI);
         if (jugadorExistente != null)

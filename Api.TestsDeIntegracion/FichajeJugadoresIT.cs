@@ -5,6 +5,7 @@ using Api.Core.DTOs.CambiosDeEstadoJugador;
 using Api.Core.Entidades;
 using Api.Core.Enums;
 using Api.Core.Logica;
+using Api.Core.Otros;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
 using Api.TestsUtilidades;
@@ -475,5 +476,73 @@ public class FichajeJugadoresIT : TestBase
         Assert.False(response.IsSuccessStatusCode);
         var errorContent = await response.Content.ReadAsStringAsync();
         Assert.Contains("No existe ni un jugador ni un delegado", errorContent);
+    }
+
+    /// <summary>
+    /// DNI en la lista de expulsados no puede ficharse como jugador (POST Jugador).
+    /// </summary>
+    [Fact]
+    public async Task Jugador_DniExpulsado_POST_Jugador_ArrojaError()
+    {
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            context.DnisExpulsadosDeLaLiga.Add(new DniExpulsadoDeLaLiga
+            {
+                Id = 0,
+                DNI = 18_888_888,
+                Explicacion = "Expulsión de prueba"
+            });
+            context.SaveChanges();
+        }
+
+        var client = Factory.CreateClient();
+        var codigo = GeneradorDeHash.GenerarAlfanumerico7Digitos(_equipo1!.Id);
+        var jugadorDTO = new JugadorDTO
+        {
+            DNI = "18888888",
+            Nombre = "Expulsado",
+            Apellido = "Test",
+            FechaNacimiento = new DateTime(2000, 1, 15),
+            CodigoAlfanumerico = codigo,
+            FotoCarnet = FotoBase64,
+            FotoDNIFrente = FotoBase64,
+            FotoDNIDorso = FotoBase64
+        };
+
+        var response = await client.PostAsJsonAsync("/api/jugador", jugadorDTO);
+
+        Assert.False(response.IsSuccessStatusCode);
+        var errorContent = await response.Content.ReadAsStringAsync();
+        Assert.Contains(ValidacionDniExpulsado.MensajeNoHabilitadoParaFichaje, errorContent);
+    }
+
+    /// <summary>
+    /// DNI en la lista de expulsados no puede usar fichar-en-otro-equipo (aunque no exista como jugador/delegado).
+    /// </summary>
+    [Fact]
+    public async Task Jugador_DniExpulsado_POST_FicharEnOtroEquipo_ArrojaError()
+    {
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            context.DnisExpulsadosDeLaLiga.Add(new DniExpulsadoDeLaLiga
+            {
+                Id = 0,
+                DNI = 17_777_777,
+                Explicacion = "Expulsión de prueba"
+            });
+            context.SaveChanges();
+        }
+
+        var client = Factory.CreateClient();
+        var codigo = GeneradorDeHash.GenerarAlfanumerico7Digitos(_equipo1!.Id);
+        var ficharDTO = new FicharEnOtroEquipoDTO { DNI = "17777777", CodigoAlfanumerico = codigo };
+
+        var response = await client.PostAsJsonAsync("/api/publico/fichar-en-otro-equipo", ficharDTO);
+
+        Assert.False(response.IsSuccessStatusCode);
+        var errorContent = await response.Content.ReadAsStringAsync();
+        Assert.Contains(ValidacionDniExpulsado.MensajeNoHabilitadoParaFichaje, errorContent);
     }
 }

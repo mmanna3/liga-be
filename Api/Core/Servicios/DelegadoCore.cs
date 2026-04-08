@@ -20,14 +20,16 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
     private readonly IJugadorRepo _jugadorRepo;
     private readonly IUsuarioRepo _usuarioRepo;
     private readonly AppPaths _paths;
+    private readonly IDniExpulsadoDeLaLigaRepo _dniExpulsadoDeLaLigaRepo;
 
-    public DelegadoCore(IBDVirtual bd, IDelegadoRepo repo, IMapper mapper, AppDbContext context, IImagenDelegadoRepo imagenDelegadoRepo, IJugadorRepo jugadorRepo, IUsuarioRepo usuarioRepo, AppPaths paths) : base(bd, repo, mapper)
+    public DelegadoCore(IBDVirtual bd, IDelegadoRepo repo, IMapper mapper, AppDbContext context, IImagenDelegadoRepo imagenDelegadoRepo, IJugadorRepo jugadorRepo, IUsuarioRepo usuarioRepo, AppPaths paths, IDniExpulsadoDeLaLigaRepo dniExpulsadoDeLaLigaRepo) : base(bd, repo, mapper)
     {
         _context = context;
         _imagenDelegadoRepo = imagenDelegadoRepo;
         _jugadorRepo = jugadorRepo;
         _usuarioRepo = usuarioRepo;
         _paths = paths;
+        _dniExpulsadoDeLaLigaRepo = dniExpulsadoDeLaLigaRepo;
     }
 
     private static string QuitarCaracteresNoNumericos(string dni) => new string(dni.Where(char.IsDigit).ToArray());
@@ -175,6 +177,8 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
 
         dto.DNI = QuitarCaracteresNoNumericos(dto.DNI);
 
+        await ValidacionDniExpulsado.LanzarSiEstaExpulsado(_dniExpulsadoDeLaLigaRepo, dto.DNI);
+
         var delegadoExistente = await Repo.ObtenerPorDNI(dto.DNI);
         if (delegadoExistente != null)
         {
@@ -265,6 +269,8 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
     public async Task<int> FicharDelegadoSoloConDniYClub(FicharDelegadoSoloConDniYClubDTO dto)
     {
         var dni = QuitarCaracteresNoNumericos(dto.DNI);
+
+        await ValidacionDniExpulsado.LanzarSiEstaExpulsado(_dniExpulsadoDeLaLigaRepo, dni);
 
         var delegadoExistente = await Repo.ObtenerPorDNI(dni);
         if (PersonaExisteHelper.DelegadoEstaPendiente(delegadoExistente))
