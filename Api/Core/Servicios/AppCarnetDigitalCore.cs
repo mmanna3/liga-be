@@ -134,10 +134,8 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         if (torneoIds.Count == 0)
             throw new ExcepcionControlada("El equipo no está inscripto en ningún torneo este año.");
 
-        if (torneoIds.Count > 1)
-            throw new ExcepcionControlada("El equipo juega más de un torneo este año.");
-
-        var torneo = await _torneoRepo.ObtenerPorIdConCategoriasAsync(torneoIds[0], cancellationToken);
+        var torneoId = torneoIds.OrderBy(id => id).First();
+        var torneo = await _torneoRepo.ObtenerPorIdConCategoriasAsync(torneoId, cancellationToken);
         if (torneo == null)
             throw new ExcepcionControlada("No existe el torneo.");
 
