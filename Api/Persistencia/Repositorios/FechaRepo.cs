@@ -120,6 +120,7 @@ public class FechaRepo : RepositorioABMAnidado<Fecha, int>, IFechaRepo
         return zona.Fase.Torneo.Categorias.OrderBy(c => c.Id).ToList();
     }
 
+    /// <summary>App carnet: incluir fechas aunque las jornadas aún no tengan fila <see cref="Partido"/>.</summary>
     public async Task<IReadOnlyList<FechaEliminacionDirecta>> ListarEliminacionDirectaPorZonaParaAppAsync(int zonaId,
         CancellationToken cancellationToken = default)
     {
