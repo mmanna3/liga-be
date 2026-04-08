@@ -382,9 +382,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                     GolesAFavor = f.Stats.GolesAFavor.ToString(),
                     GolesEnContra = f.Stats.GolesEnContra.ToString(),
                     GolesDiferencia = diff.ToString(),
-                    PartidosNoPresento = f.Stats.PartidosNoPresento.ToString(),
-                    PartidosGanoPuntos = f.Stats.PartidosGanoPuntos.ToString(),
-                    PartidosPerdioPuntos = f.Stats.PartidosPerdioPuntos.ToString()
+                    PartidosNoPresento = f.Stats.PartidosNoPresento.ToString()
                 });
             }
 

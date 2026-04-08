@@ -27,7 +27,5 @@ public class PosicionDelEquipoDTO
     public string GolesDiferencia { get; set; } = string.Empty;
     public string Puntos { get; set; } = string.Empty;
     public string PartidosNoPresento { get; set; } = string.Empty;
-    public string PartidosGanoPuntos { get; set; } = string.Empty;
-    public string PartidosPerdioPuntos { get; set; } = string.Empty;
 }
 

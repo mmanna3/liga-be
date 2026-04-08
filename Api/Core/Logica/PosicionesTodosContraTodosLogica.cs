@@ -48,14 +48,12 @@ public static class PosicionesTodosContraTodosLogica
 
         if (mi == "GP")
         {
-            ac.PartidosGanoPuntos++;
             ac.PartidosGanados++;
             return;
         }
 
         if (mi == "PP")
         {
-            ac.PartidosPerdioPuntos++;
             ac.PartidosPerdidos++;
             return;
         }
@@ -208,6 +206,4 @@ public struct EstadisticasPosicionEquipo
     public int GolesAFavor;
     public int GolesEnContra;
     public int PartidosNoPresento;
-    public int PartidosGanoPuntos;
-    public int PartidosPerdioPuntos;
 }
