@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Api._Config;
 using Api.Core.DTOs;
 using Api.Core.Entidades;
+using Api.Core.Enums;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
 using Api.TestsUtilidades;
@@ -670,6 +671,88 @@ public class FechasIT : TestBase
                 Assert.Equal("", p.ResultadoLocal);
                 Assert.Equal("", p.ResultadoVisitante);
             });
+        }
+    }
+
+    [Fact]
+    public async Task CrearFechasMasivamente_NormalAntesQueInterzonal_LosIdsDeJornadaSiguenElOrdenDelPayload()
+    {
+        Assert.NotNull(_club);
+        var zonaId = await CrearZonaDePrueba(Factory);
+        var torneoId = await ObtenerTorneoIdDeZona(Factory, zonaId);
+        await SeedTorneoCategorias(Factory, torneoId, 1);
+        var client = await GetAuthenticatedClient();
+
+        int e1, e2, e3;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var equipos = context.Equipos.Where(eq => eq.ClubId == _club.Id).OrderBy(eq => eq.Id).ToList();
+            while (equipos.Count < 3)
+            {
+                var nuevo = new Equipo
+                {
+                    Id = 0,
+                    Nombre = $"Eq orden jornada {equipos.Count}",
+                    ClubId = _club.Id,
+                    Jugadores = []
+                };
+                context.Equipos.Add(nuevo);
+                context.SaveChanges();
+                equipos.Add(nuevo);
+            }
+
+            e1 = equipos[0].Id;
+            e2 = equipos[1].Id;
+            e3 = equipos[2].Id;
+        }
+
+        var dtos = new List<FechaTodosContraTodosDTO>
+        {
+            new()
+            {
+                Dia = new DateOnly(2026, 4, 9),
+                Numero = 1,
+                EsVisibleEnApp = true,
+                Jornadas =
+                [
+                    new JornadaDTO
+                    {
+                        Tipo = "Normal",
+                        ResultadosVerificados = false,
+                        LocalId = e1,
+                        VisitanteId = e2
+                    },
+                    new JornadaDTO
+                    {
+                        Tipo = "Interzonal",
+                        ResultadosVerificados = false,
+                        EquipoId = e3,
+                        LocalOVisitante = LocalVisitanteEnum.Local
+                    }
+                ]
+            }
+        };
+
+        var response = await client.PostAsJsonAsync(
+            $"/api/Zona/{zonaId}/fechas/crear-fechas-todoscontratodos-masivamente", dtos, FechaJsonOptions);
+        response.EnsureSuccessStatusCode();
+
+        var creados = DeserializeFechaTctList(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(creados);
+        Assert.Single(creados);
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var jornadas = await context.Jornadas.Where(j => j.FechaId == creados[0].Id).ToListAsync();
+            Assert.Equal(2, jornadas.Count);
+            var normal = jornadas.OfType<JornadaNormal>().Single();
+            var interzonal = jornadas.OfType<JornadaInterzonal>().Single();
+            Assert.True(
+                normal.Id < interzonal.Id,
+                $"Se esperaba Id de jornada Normal ({normal.Id}) < Id de Interzonal ({interzonal.Id}), " +
+                "coincidiendo con el orden del array enviado (Normal primero, Interzonal segundo).");
         }
     }
 

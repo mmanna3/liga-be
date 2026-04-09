@@ -460,6 +460,9 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
                 var jornada = CrearJornadaDesdeDto(fechaId, dto);
                 jornada.FechaId = fechaId;
                 _context.Jornadas.Add(jornada);
+                // Un SaveChanges por jornada nueva: si se agrupan varias inserciones en un solo guardado,
+                // EF puede ordenar filas por tipo (TPH) y los IDs identity dejan de seguir el orden del payload.
+                await BDVirtual.GuardarCambios();
             }
             else
             {
