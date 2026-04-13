@@ -31,7 +31,7 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
             .Where(a => a.EsVisibleEnApp)
             .OrderBy(a => a.Nombre)
             .Include(a => a.Color)
-            .Include(a => a.Torneos.Where(t => t.EsVisibleEnApp && t.Anio == anioActual))
+            .Include(a => a.Torneos.Where(t => t.EsVisibleEnApp))
             .ThenInclude(t => t.Fases.Where(f => f.EsVisibleEnApp))
             .ToListAsync(cancellationToken);
 
@@ -71,7 +71,10 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
                 Nombre = agr.Nombre,
                 Color = agr.Color != null ? agr.Color.Nombre : nameof(ColorEnum.Negro),
                 Torneos = agr.Torneos
-                    .OrderBy(t => t.Nombre)
+                    // Año calendario actual primero (A-Z); luego años futuros (por año); luego pasados (más reciente primero).
+                    .OrderBy(t => t.Anio == anioActual ? 0 : t.Anio > anioActual ? 1 : 2)
+                    .ThenBy(t => t.Anio == anioActual ? 0 : t.Anio > anioActual ? t.Anio : -t.Anio)
+                    .ThenBy(t => t.Nombre, StringComparer.CurrentCultureIgnoreCase)
                     .Select(t =>
                     {
                         var fases = t.Fases
@@ -107,7 +110,7 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
                         return new InformacionInicialTorneoDTO
                         {
                             Id = t.Id,
-                            Nombre = t.Nombre,
+                            Nombre = t.Anio == anioActual ? t.Nombre : $"{t.Nombre} {t.Anio}",
                             Fases = fases
                         };
                     })

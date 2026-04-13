@@ -78,7 +78,9 @@ namespace Api.Api.Controllers
         }
 
         /// <summary>
-        /// Lista agrupadores visibles en app con sus torneos (solo año calendario actual y visibles en app).
+        /// Lista agrupadores visibles en app con sus torneos visibles en app (cualquier año).
+        /// En torneos cuyo año no es el calendario actual, el nombre incluye el año al final (ej. "Mayores 2024").
+        /// Orden de torneos: año calendario actual (A-Z), luego años futuros por año, luego años pasados (más reciente primero).
         /// Los agrupadores sin ningún torneo en ese conjunto no se incluyen en la respuesta.
         /// </summary>
         /// <remarks>

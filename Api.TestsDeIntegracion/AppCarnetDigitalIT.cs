@@ -45,7 +45,7 @@ public class AppCarnetDigitalIT : TestBase
         };
         context.Clubs.Add(club);
 
-        // Crear un torneo (año = calendario actual: info-inicial-de-torneos solo lista torneos de este año)
+        // Crear un torneo (año = calendario actual: info-inicial-de-torneos lista todos los visibles en app)
         var anioActual = DateTime.Today.Year;
         var torneo = new Torneo
         {
@@ -349,6 +349,48 @@ public class AppCarnetDigitalIT : TestBase
         var zona = Assert.Single(fase.Zonas);
         Assert.True(zona.Id > 0);
         Assert.Equal("Zona única", zona.Nombre);
+    }
+
+    [Fact]
+    public async Task InformacionInicialDeTorneos_TorneoDeOtroAnio_ConcatenaAnioAlNombre()
+    {
+        var anioActual = DateTime.Today.Year;
+        int torneoId;
+        await using (var scope = Factory.Services.CreateAsyncScope())
+        {
+            var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var torneo = new Torneo
+            {
+                Id = 0,
+                Nombre = "Futsal Mayores",
+                Anio = anioActual - 1,
+                EsVisibleEnApp = true,
+                SeVenLosGolesEnTablaDePosiciones = true,
+                TorneoAgrupadorId = 1
+            };
+            ctx.Torneos.Add(torneo);
+            await ctx.SaveChangesAsync();
+            ctx.Fases.Add(new FaseTodosContraTodos
+            {
+                Id = 0,
+                Nombre = "",
+                TorneoId = torneo.Id,
+                Numero = 1,
+                EstadoFaseId = 100,
+                EsVisibleEnApp = true
+            });
+            await ctx.SaveChangesAsync();
+            torneoId = torneo.Id;
+        }
+
+        var client = await GetAuthenticatedClient();
+        var response = await client.GetAsync("/api/carnet-digital/info-inicial-de-torneos");
+        response.EnsureSuccessStatusCode();
+        var lista = await response.Content.ReadFromJsonAsync<List<InformacionInicialAgrupadorDTO>>();
+        Assert.NotNull(lista);
+        var agrupador = Assert.Single(lista, a => a.Id == 1);
+        var torneoDto = Assert.Single(agrupador.Torneos, t => t.Id == torneoId);
+        Assert.Equal($"Futsal Mayores {anioActual - 1}", torneoDto.Nombre);
     }
 
     [Fact]
