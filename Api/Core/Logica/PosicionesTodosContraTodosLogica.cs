@@ -29,6 +29,7 @@ public static class PosicionesTodosContraTodosLogica
     /// Acumula un partido desde la perspectiva del equipo (mi = nuestro casillero, rival = el otro).
     /// Debe invocarse solo si <see cref="PartidoTieneResultadosCargados"/> ya es true para ese <see cref="Partido"/>.
     /// <see cref="EstadisticasPosicionEquipo.PartidosJugados"/> cuenta solo partidos cargados donde el resultado propio no es S ni P.
+    /// Victoria por GP: suma 2 goles a favor además del partido ganado.
     /// </summary>
     public static void AcumularPartido(ref EstadisticasPosicionEquipo ac, string mi, string rival)
     {
@@ -49,6 +50,7 @@ public static class PosicionesTodosContraTodosLogica
         if (mi == "GP")
         {
             ac.PartidosGanados++;
+            ac.GolesAFavor += 2;
             return;
         }
 

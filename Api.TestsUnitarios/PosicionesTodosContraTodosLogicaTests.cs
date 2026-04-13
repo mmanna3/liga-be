@@ -9,8 +9,8 @@ namespace Api.TestsUnitarios;
 /// <summary>
 /// Reglas de negocio de <see cref="Api.Core.Logica.PosicionesTodosContraTodosLogica.AcumularPartido"/>:
 /// - Partidos jugados: solo si el resultado propio (mi) no es S ni P (partido suspendido/postergado sin tabla).
-/// - GP / PP: GP cuenta como partido ganado (y 3 puntos en <see cref="PosicionesTodosContraTodosLogica.AcumularPuntos"/>); PP como partido perdido (y 1 punto).
-/// - Goles: solo cuando el valor es numérico (dígitos).
+/// - GP / PP: GP cuenta como partido ganado (y 3 puntos en <see cref="PosicionesTodosContraTodosLogica.AcumularPuntos"/>), más 2 goles a favor; PP como partido perdido (y 1 punto).
+/// - Goles: dígitos en mi/rival; además +2 a favor si mi es GP.
 /// - Victoria numérica: ambos goles numéricos y mi &gt; rival.
 /// - Empate: ambos numéricos e iguales.
 /// - Derrota numérica: ambos numéricos y mi &lt; rival.
@@ -64,12 +64,12 @@ public class PosicionesTodosContraTodosLogicaTests
     }
 
     [Fact]
-    public void AcumularPartido_CuandoMiEsGP_CuentaComoPartidoGanado()
+    public void AcumularPartido_CuandoMiEsGP_CuentaComoPartidoGanado_YDosGolesAFavor()
     {
         var s = Acum("GP", "0");
         Assert.Equal(1, s.PartidosJugados);
         Assert.Equal(1, s.PartidosGanados);
-        Assert.Equal(0, s.GolesAFavor);
+        Assert.Equal(2, s.GolesAFavor);
     }
 
     [Fact]
