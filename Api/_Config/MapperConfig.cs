@@ -19,8 +19,11 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Delegados, opt => opt.MapFrom(src => src.DelegadoClubs.Select(dc => dc.Delegado).ToList()))
             .ForMember(dest => dest.Direccion, opt => opt.MapFrom(src => src.Direccion))
             .ForMember(dest => dest.EsTechado, opt => opt.MapFrom(src => src.EsTechado))
+            .ForMember(dest => dest.CanchaTipo,
+                opt => opt.MapFrom(src => src.CanchaTipo != null ? src.CanchaTipo.Tipo : nameof(CanchaTipoEnum.Consultar)))
             .ForMember(dest => dest.Localidad, opt => opt.MapFrom(src => src.Localidad))
             .PreserveReferences().ReverseMap()
+            .ForMember(dest => dest.CanchaTipo, opt => opt.Ignore())
             .ForMember(dest => dest.DelegadoClubs, opt => opt.Ignore());
         CreateMap<Torneo, TorneoDTO>()
             .ForMember(dest => dest.TorneoAgrupadorNombre, opt => opt.MapFrom(src => src.TorneoAgrupador != null ? src.TorneoAgrupador.Nombre : string.Empty))

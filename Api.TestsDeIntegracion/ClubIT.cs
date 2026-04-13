@@ -51,6 +51,42 @@ public class ClubIT : TestBase
     }
 
     [Fact]
+    public async Task ObtenerClub_PorId_DevuelveCanchaTipo()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var response = await client.GetAsync($"/api/club/{_club!.Id}");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<ClubDTO>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+        Assert.Equal((int)CanchaTipoEnum.Consultar, content.CanchaTipoId);
+        Assert.Equal(nameof(CanchaTipoEnum.Consultar), content.CanchaTipo);
+    }
+
+    [Fact]
+    public async Task ModificarClub_ActualizaCanchaTipo()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var getResponse = await client.GetAsync($"/api/club/{_club!.Id}");
+        getResponse.EnsureSuccessStatusCode();
+        var dto = JsonConvert.DeserializeObject<ClubDTO>(await getResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(dto);
+
+        dto.CanchaTipoId = (int)CanchaTipoEnum.Cubierta;
+        var putResponse = await client.PutAsJsonAsync($"/api/club/{_club.Id}", dto);
+        putResponse.EnsureSuccessStatusCode();
+
+        var verifyResponse = await client.GetAsync($"/api/club/{_club.Id}");
+        verifyResponse.EnsureSuccessStatusCode();
+        var actualizado = JsonConvert.DeserializeObject<ClubDTO>(await verifyResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(actualizado);
+        Assert.Equal((int)CanchaTipoEnum.Cubierta, actualizado.CanchaTipoId);
+        Assert.Equal(nameof(CanchaTipoEnum.Cubierta), actualizado.CanchaTipo);
+    }
+
+    [Fact]
     public async Task ObtenerClub_PorIds_DevuelveClubesSolicitados()
     {
         var client = await GetAuthenticatedClient();

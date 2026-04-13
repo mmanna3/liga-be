@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Api.Core.Enums;
 
 namespace Api.Core.DTOs;
 
@@ -16,6 +17,17 @@ public class ClubDTO : DTO
     public string? Direccion { get; set; }
 
     public bool? EsTechado { get; set; }
+
+    /// <summary>
+    /// Id en la tabla lookup <c>_CanchaTipo</c>. Usar este valor al crear o modificar un club.
+    /// </summary>
+    public int CanchaTipoId { get; set; } = (int)CanchaTipoEnum.Consultar;
+
+    /// <summary>
+    /// Nombre del tipo de cancha (desde la lookup), útil para mostrar en listados y consultas.
+    /// No se usa para persistir: enviar <see cref="CanchaTipoId"/> en crear/modificar.
+    /// </summary>
+    public string CanchaTipo { get; set; } = nameof(CanchaTipoEnum.Consultar);
 
     [MaxLength(100)]
     public string? Localidad { get; set; }

@@ -44,6 +44,24 @@ public class AppDbContext : DbContext
             new Color { Id = (int)ColorEnum.Violeta, Nombre = nameof(ColorEnum.Violeta) }
         );
 
+        builder.Entity<CanchaTipo>()
+            .ToTable("_CanchaTipo")
+            .Property(c => c.Id)
+            .ValueGeneratedNever();
+
+        builder.Entity<CanchaTipo>().HasData(
+            new CanchaTipo { Id = (int)CanchaTipoEnum.Cubierta, Tipo = nameof(CanchaTipoEnum.Cubierta) },
+            new CanchaTipo { Id = (int)CanchaTipoEnum.Descubierta, Tipo = nameof(CanchaTipoEnum.Descubierta) },
+            new CanchaTipo { Id = (int)CanchaTipoEnum.Semidescubierta, Tipo = nameof(CanchaTipoEnum.Semidescubierta) },
+            new CanchaTipo { Id = (int)CanchaTipoEnum.Consultar, Tipo = nameof(CanchaTipoEnum.Consultar) }
+        );
+
+        builder.Entity<Club>()
+            .HasOne(c => c.CanchaTipo)
+            .WithMany(ct => ct.Clubes)
+            .HasForeignKey(c => c.CanchaTipoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Entity<TorneoAgrupador>()
             .HasOne(t => t.Color)
             .WithMany(c => c.Agrupadores)
@@ -479,6 +497,7 @@ public class AppDbContext : DbContext
     public DbSet<EstadoFase> EstadoFase { get; set; } = null!;
     public DbSet<LocalVisitante> LocalVisitante { get; set; } = null!;
     public DbSet<Color> Colores { get; set; } = null!;
+    public DbSet<CanchaTipo> CanchaTipos { get; set; } = null!;
     public DbSet<Usuario> Usuarios { get; set; } = null!;
     public DbSet<Rol> Roles { get; set; } = null!;
     public DbSet<Torneo> Torneos { get; set; } = null!;
