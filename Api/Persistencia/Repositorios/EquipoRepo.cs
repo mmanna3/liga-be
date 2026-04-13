@@ -114,6 +114,7 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
             .AsNoTracking()
             .Where(e => e.Zonas.Any(z => z.ZonaId == zonaId))
             .Include(e => e.Club)
+                .ThenInclude(c => c.CanchaTipo)
             .OrderBy(e => e.Nombre)
             .ToListAsync(cancellationToken);
     }

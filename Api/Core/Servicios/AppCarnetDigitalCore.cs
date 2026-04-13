@@ -223,7 +223,8 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                     true => "Sí",
                     false => "No",
                     null => string.Empty
-                }
+                },
+                TipoCancha = club.CanchaTipo?.Tipo ?? nameof(CanchaTipoEnum.Consultar)
             };
         }).ToList();
     }

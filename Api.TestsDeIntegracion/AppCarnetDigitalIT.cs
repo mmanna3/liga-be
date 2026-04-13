@@ -435,6 +435,7 @@ public class AppCarnetDigitalIT : TestBase
         Assert.Equal("Rosario", dto.Localidad);
         Assert.Equal("Calle Falsa 123", dto.Direccion);
         Assert.Equal("Sí", dto.EsTechado);
+        Assert.Equal(nameof(CanchaTipoEnum.Consultar), dto.TipoCancha);
     }
 
     [Fact]
