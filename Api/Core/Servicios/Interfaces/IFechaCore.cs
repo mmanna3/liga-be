@@ -18,5 +18,10 @@ public interface IFechaCore : ICoreABMAnidado<int, FechaDTO>
     /// </summary>
     Task BorrarFechasEliminacionDirectaMasivamente(int padreId);
 
+    /// <summary>
+    /// Elimina todas las fechas de una zona todos contra todos, con sus jornadas y partidos.
+    /// </summary>
+    Task BorrarFechasTodosContraTodosMasivamente(int padreId);
+
     Task CambiarVisibilidadEnApp(int zonaId, int fechaId, bool esVisibleEnApp);
 }

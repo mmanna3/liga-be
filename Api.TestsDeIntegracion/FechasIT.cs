@@ -1374,4 +1374,77 @@ public class FechasIT : TestBase
         var response = await client.DeleteAsync($"/api/Zona/{zonaId}/fechas/borrar-fechas-eliminaciondirecta-masivamente");
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    [Fact]
+    public async Task BorrarFechasTodosContraTodosMasivamente_ZonaTct_EliminaFechasJornadasPartidos()
+    {
+        Assert.NotNull(_club);
+        var zonaId = await CrearZonaDePrueba(Factory);
+        var torneoId = await ObtenerTorneoIdDeZona(Factory, zonaId);
+        await SeedTorneoCategorias(Factory, torneoId, 3);
+        var client = await GetAuthenticatedClient();
+
+        int equipo1Id;
+        int equipo2Id;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var equipos = context.Equipos.Where(e => e.ClubId == _club.Id).ToList();
+            equipo1Id = equipos[0].Id;
+            if (equipos.Count < 2)
+            {
+                var eq2 = new Equipo { Id = 0, Nombre = "Equipo 2 Borrar TCT", ClubId = _club.Id, Jugadores = [] };
+                context.Equipos.Add(eq2);
+                context.SaveChanges();
+                equipo2Id = eq2.Id;
+            }
+            else
+            {
+                equipo2Id = equipos[1].Id;
+            }
+        }
+
+        var dtos = new List<FechaTodosContraTodosDTO>
+        {
+            new()
+            {
+                Dia = new DateOnly(2026, 3, 1),
+                Numero = 1,
+                EsVisibleEnApp = true,
+                Jornadas =
+                [
+                    new JornadaDTO
+                    {
+                        Tipo = "Normal",
+                        ResultadosVerificados = false,
+                        LocalId = equipo1Id,
+                        VisitanteId = equipo2Id
+                    }
+                ]
+            }
+        };
+
+        var post = await client.PostAsJsonAsync(
+            $"/api/Zona/{zonaId}/fechas/crear-fechas-todoscontratodos-masivamente", dtos, FechaJsonOptions);
+        post.EnsureSuccessStatusCode();
+
+        var delete = await client.DeleteAsync($"/api/Zona/{zonaId}/fechas/borrar-fechas-todoscontratodos-masivamente");
+        delete.EnsureSuccessStatusCode();
+        Assert.Equal(System.Net.HttpStatusCode.NoContent, delete.StatusCode);
+
+        using var scope2 = Factory.Services.CreateScope();
+        var context2 = scope2.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.Equal(0, await context2.Fechas.CountAsync(f => f.ZonaId == zonaId));
+        Assert.Equal(0, await context2.Jornadas.CountAsync());
+        Assert.Equal(0, await context2.Partidos.CountAsync());
+    }
+
+    [Fact]
+    public async Task BorrarFechasTodosContraTodosMasivamente_ZonaEliminacionDirecta_400()
+    {
+        var zonaId = await CrearZonaEliminacionDirectaDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+        var response = await client.DeleteAsync($"/api/Zona/{zonaId}/fechas/borrar-fechas-todoscontratodos-masivamente");
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }

@@ -245,6 +245,19 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
             await Eliminar(padreId, id);
     }
 
+    public async Task BorrarFechasTodosContraTodosMasivamente(int padreId)
+    {
+        var zona = await _torneoZonaRepo.ObtenerPorId(padreId);
+        if (zona == null)
+            throw new ExcepcionControlada("La zona indicada no existe.");
+        if (zona is not ZonaTodosContraTodos)
+            throw new ExcepcionControlada("Solo las zonas todos contra todos admiten esta operación.");
+
+        var ids = (await Repo.ListarIdsPorPadre(padreId)).ToList();
+        foreach (var id in ids)
+            await Eliminar(padreId, id);
+    }
+
     public override async Task<int> Eliminar(int padreId, int id)
     {
         var entidad = await Repo.ObtenerPorIdYPadreParaEliminar(padreId, id);

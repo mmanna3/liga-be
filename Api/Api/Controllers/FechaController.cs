@@ -43,6 +43,16 @@ public class FechaController : ABMControllerAnidado<FechaDTO, IFechaCore>
         return NoContent();
     }
 
+    /// <summary>
+    /// Elimina todas las fechas de la zona (solo todos contra todos), con sus jornadas y partidos.
+    /// </summary>
+    [HttpDelete("borrar-fechas-todoscontratodos-masivamente")]
+    public async Task<IActionResult> BorrarFechasTodosContraTodosMasivamente(int padreId)
+    {
+        await Core.BorrarFechasTodosContraTodosMasivamente(padreId);
+        return NoContent();
+    }
+
     [HttpPut("modificar-fechas-masivamente")]
     public async Task<IActionResult> ModificarMasivamente(int padreId, [FromBody] List<FechaDTO> dtos)
     {
