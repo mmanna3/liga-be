@@ -1,5 +1,6 @@
 using Api.Core.DTOs;
 using Api.Core.Entidades;
+using Api.Core.Enums;
 using Api.Core.Repositorios;
 using Api.Core.Servicios.Interfaces;
 using AutoMapper;
@@ -16,6 +17,6 @@ public class ConfiguracionCore : ABMCore<IConfiguracionRepo, Configuracion, Conf
     public async Task<bool> FichajeEstaHabilitado()
     {
         var c = await Repo.ObtenerPorId(1);
-        return c?.FichajeEstaHabilitado ?? false;
+        return c?.HabilitacionFichajeId == (int)HabilitacionFichajeEnum.Habilitado;
     }
 }

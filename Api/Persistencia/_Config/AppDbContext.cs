@@ -56,6 +56,28 @@ public class AppDbContext : DbContext
             new CanchaTipo { Id = (int)CanchaTipoEnum.Consultar, Tipo = nameof(CanchaTipoEnum.Consultar) }
         );
 
+        builder.Entity<HabilitacionFichaje>()
+            .ToTable("_HabilitacionFichaje")
+            .Property(h => h.Id)
+            .ValueGeneratedNever();
+
+        builder.Entity<HabilitacionFichaje>().HasData(
+            new HabilitacionFichaje
+            {
+                Id = (int)HabilitacionFichajeEnum.Habilitado,
+                TipoHabilitacion = nameof(HabilitacionFichajeEnum.Habilitado)
+            },
+            new HabilitacionFichaje
+            {
+                Id = (int)HabilitacionFichajeEnum.Deshabilitado,
+                TipoHabilitacion = nameof(HabilitacionFichajeEnum.Deshabilitado)
+            },
+            new HabilitacionFichaje
+            {
+                Id = (int)HabilitacionFichajeEnum.Programado,
+                TipoHabilitacion = nameof(HabilitacionFichajeEnum.Programado)
+            });
+
         builder.Entity<Club>()
             .HasOne(c => c.CanchaTipo)
             .WithMany(ct => ct.Clubes)
@@ -123,12 +145,18 @@ public class AppDbContext : DbContext
             .IsUnique();
 
         builder.Entity<Configuracion>()
+            .HasOne(c => c.HabilitacionFichaje)
+            .WithMany()
+            .HasForeignKey(c => c.HabilitacionFichajeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Configuracion>()
             .ToTable("Configuracion")
             .HasData(
                 new Configuracion
                 {
                     Id = 1,
-                    FichajeEstaHabilitado = true
+                    HabilitacionFichajeId = (int)HabilitacionFichajeEnum.Habilitado
                 });
 
         builder.Entity<TorneoAgrupador>()
@@ -498,6 +526,7 @@ public class AppDbContext : DbContext
     public DbSet<LocalVisitante> LocalVisitante { get; set; } = null!;
     public DbSet<Color> Colores { get; set; } = null!;
     public DbSet<CanchaTipo> CanchaTipos { get; set; } = null!;
+    public DbSet<HabilitacionFichaje> HabilitacionFichajes { get; set; } = null!;
     public DbSet<Usuario> Usuarios { get; set; } = null!;
     public DbSet<Rol> Roles { get; set; } = null!;
     public DbSet<Torneo> Torneos { get; set; } = null!;
