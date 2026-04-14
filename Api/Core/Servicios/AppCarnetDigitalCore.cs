@@ -169,16 +169,18 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                 continue;
 
             var anioNac = jugador.FechaNacimiento.Year;
-            var cat = categoriasOrdenadas.FirstOrDefault(c => anioNac >= c.AnioDesde && anioNac <= c.AnioHasta);
-            if (cat == null)
-                continue;
+            var nombreCompleto = $"{jugador.Nombre} {jugador.Apellido}".Trim();
+            var estadoTexto = ((EstadoJugadorEnum)je.EstadoJugadorId).ToString();
 
-            jugadoresPorCategoria[cat.Id].Add(new JugadorDatosPlanillaDTO
+            foreach (var cat in categoriasOrdenadas.Where(c => anioNac >= c.AnioDesde && anioNac <= c.AnioHasta))
             {
-                DNI = jugador.DNI,
-                Nombre = $"{jugador.Nombre} {jugador.Apellido}".Trim(),
-                Estado = ((EstadoJugadorEnum)je.EstadoJugadorId).ToString()
-            });
+                jugadoresPorCategoria[cat.Id].Add(new JugadorDatosPlanillaDTO
+                {
+                    DNI = jugador.DNI,
+                    Nombre = nombreCompleto,
+                    Estado = estadoTexto
+                });
+            }
         }
 
         var planillas = new List<JugadoresPorCategoriaDTO>();
