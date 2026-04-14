@@ -10,13 +10,30 @@ namespace Api.Core.Servicios;
 public class ConfiguracionCore : ABMCore<IConfiguracionRepo, Configuracion, ConfiguracionDTO>,
     IConfiguracionCore
 {
-    public ConfiguracionCore(IBDVirtual bd, IConfiguracionRepo repo, IMapper mapper) : base(bd, repo, mapper)
+    private readonly IRelojZonaHorariaArgentina _relojArgentina;
+
+    public ConfiguracionCore(
+        IBDVirtual bd,
+        IConfiguracionRepo repo,
+        IMapper mapper,
+        IRelojZonaHorariaArgentina relojArgentina) : base(bd, repo, mapper)
     {
+        _relojArgentina = relojArgentina;
     }
 
     public async Task<bool> FichajeEstaHabilitado()
     {
         var c = await Repo.ObtenerPorId(1);
-        return c?.HabilitacionFichajeId == (int)HabilitacionFichajeEnum.Habilitado;
+        if (c is null)
+            return false;
+
+        return c.HabilitacionFichajeId switch
+        {
+            (int)HabilitacionFichajeEnum.Habilitado => true,
+            (int)HabilitacionFichajeEnum.Deshabilitado => false,
+            (int)HabilitacionFichajeEnum.Programado => FranjaHorariaFichajeProgramado.EstaActiva(
+                _relojArgentina.AhoraLocal),
+            _ => false,
+        };
     }
 }

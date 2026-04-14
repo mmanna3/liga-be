@@ -45,6 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Api.TestsUnitarios" />
     <InternalsVisibleTo Include="Api.TestsDeIntegracion" />
     <Folder Include="Api\" />
   </ItemGroup>
