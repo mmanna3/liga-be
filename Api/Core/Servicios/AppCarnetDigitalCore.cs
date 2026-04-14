@@ -21,11 +21,13 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
     private readonly ITorneoRepo _torneoRepo;
     private readonly ILeyendaTablaPosicionesRepo _leyendaTablaPosicionesRepo;
     private readonly AppPaths _paths;
+    private readonly IImagenEscudoRepo _imagenEscudoRepo;
 
     public AppCarnetDigitalCore(IDelegadoRepo delegadoRepo, IEquipoRepo equipoRepo, IMapper mapper,
         IImagenJugadorRepo imagenJugadorRepo, IImagenDelegadoRepo imagenDelegadoRepo,
         ITorneoAgrupadorRepo torneoAgrupadorRepo, IFechaRepo fechaRepo, ITorneoRepo torneoRepo,
-        ILeyendaTablaPosicionesRepo leyendaTablaPosicionesRepo, AppPaths paths)
+        ILeyendaTablaPosicionesRepo leyendaTablaPosicionesRepo, AppPaths paths,
+        IImagenEscudoRepo imagenEscudoRepo)
     {
         _delegadoRepo = delegadoRepo;
         _mapper = mapper;
@@ -37,6 +39,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         _torneoRepo = torneoRepo;
         _leyendaTablaPosicionesRepo = leyendaTablaPosicionesRepo;
         _paths = paths;
+        _imagenEscudoRepo = imagenEscudoRepo;
     }
 
     public async Task<EquiposDelDelegadoDTO> ObtenerEquiposPorUsuarioDeDelegado(string usuario)
@@ -206,7 +209,6 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         CancellationToken cancellationToken = default)
     {
         var equipos = await _equipoRepo.ListarPorZonaIdAsync(zonaId, cancellationToken);
-        var baseEscudo = _paths.ImagenesEscudosRelative.TrimEnd('/');
         return equipos
             .OrderBy(e => e.Nombre, StringComparer.CurrentCultureIgnoreCase)
             .Select(e =>
@@ -215,7 +217,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             return new ClubesDTO
             {
                 Equipo = e.Nombre,
-                Escudo = $"{baseEscudo}/{club.Id}.jpg",
+                Escudo = _imagenEscudoRepo.GetRutaRelativaEscudo(club.Id),
                 Localidad = club.Localidad ?? string.Empty,
                 Direccion = club.Direccion ?? string.Empty,
                 EsTechado = club.EsTechado switch
@@ -250,8 +252,9 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         return dto;
     }
 
-    private string EscudoRelativo(int clubId) =>
-        $"{_paths.ImagenesEscudosRelative.TrimEnd('/')}/{clubId}.jpg";
+    private string EscudoRelativo(int clubId) => _imagenEscudoRepo.GetRutaRelativaEscudo(clubId);
+
+    private string EscudoPorDefectoRelativo() => _paths.EscudoDefaultRelative;
 
     private FixturePartidoDTO MapJornadaAFixturePartido(Jornada j) => j switch
     {
@@ -266,21 +269,21 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         {
             Local = l.EquipoLocal.Nombre,
             Visitante = "LIBRE",
-            LocalEscudo = string.Empty,
-            VisitanteEscudo = string.Empty
+            LocalEscudo = EscudoRelativo(l.EquipoLocal.ClubId),
+            VisitanteEscudo = EscudoPorDefectoRelativo()
         },
         JornadaInterzonal i when i.LocalOVisitanteId == (int)LocalVisitanteEnum.Local => new FixturePartidoDTO
         {
             Local = i.Equipo.Nombre,
             Visitante = "INTERZONAL",
             LocalEscudo = EscudoRelativo(i.Equipo.ClubId),
-            VisitanteEscudo = string.Empty
+            VisitanteEscudo = EscudoPorDefectoRelativo()
         },
         JornadaInterzonal i => new FixturePartidoDTO
         {
             Local = "INTERZONAL",
             Visitante = i.Equipo.Nombre,
-            LocalEscudo = string.Empty,
+            LocalEscudo = EscudoPorDefectoRelativo(),
             VisitanteEscudo = EscudoRelativo(i.Equipo.ClubId)
         },
         JornadaSinEquipos => new FixturePartidoDTO(),
@@ -316,20 +319,20 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         CancellationToken cancellationToken = default)
     {
         var datos = await CalcularDatosPosicionesZonaAsync(zonaId, cancellationToken);
-        var baseEscudo = _paths.ImagenesEscudosRelative.TrimEnd('/');
+        string EscudoDeClub(int clubId) => _imagenEscudoRepo.GetRutaRelativaEscudo(clubId);
         var bloques = new List<CategoriasConPosicionesDTO>();
 
         foreach (var (cat, filas) in datos.FilasPorCategoria)
         {
             var leyendaCat =
                 PosicionesLeyendasTablaHelper.ConcatenarTextos(datos.LeyendasZona.Where(l => l.CategoriaId == cat.Id));
-            bloques.Add(ConstruirBloquePosiciones(cat.Nombre, leyendaCat, filas, baseEscudo));
+            bloques.Add(ConstruirBloquePosiciones(cat.Nombre, leyendaCat, filas, EscudoDeClub));
         }
 
         var leyendaGeneral =
             PosicionesLeyendasTablaHelper.ConcatenarTextos(datos.LeyendasZona.Where(l => l.CategoriaId == null));
         bloques.Add(ConstruirBloqueGeneralAcumulado(leyendaGeneral, datos.FilasPorCategoria, datos.SoloGeneralPorEquipo,
-            baseEscudo));
+            EscudoDeClub));
 
         return new PosicionesDTO { VerGoles = datos.VerGoles, Posiciones = bloques };
     }
@@ -348,7 +351,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         var filasFusion = FusionarFilasDosZonas(datosA.FilasPorCategoria, datosC.FilasPorCategoria);
         var soloGeneralFusion = FusionarDiccionariosSuma(datosA.SoloGeneralPorEquipo, datosC.SoloGeneralPorEquipo);
 
-        var baseEscudo = _paths.ImagenesEscudosRelative.TrimEnd('/');
+        string EscudoDeClub(int clubId) => _imagenEscudoRepo.GetRutaRelativaEscudo(clubId);
         var bloques = new List<CategoriasConPosicionesDTO>();
 
         foreach (var (cat, filas) in filasFusion)
@@ -356,13 +359,13 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             var leyendaCat = PosicionesLeyendasTablaHelper.ConcatenarTextos(
                 datosA.LeyendasZona.Where(l => l.CategoriaId == cat.Id)
                     .Concat(datosC.LeyendasZona.Where(l => l.CategoriaId == cat.Id)));
-            bloques.Add(ConstruirBloquePosiciones(cat.Nombre, leyendaCat, filas, baseEscudo));
+            bloques.Add(ConstruirBloquePosiciones(cat.Nombre, leyendaCat, filas, EscudoDeClub));
         }
 
         var leyendaGeneral = PosicionesLeyendasTablaHelper.ConcatenarTextos(
             datosA.LeyendasZona.Where(l => l.CategoriaId == null)
                 .Concat(datosC.LeyendasZona.Where(l => l.CategoriaId == null)));
-        bloques.Add(ConstruirBloqueGeneralAcumulado(leyendaGeneral, filasFusion, soloGeneralFusion, baseEscudo));
+        bloques.Add(ConstruirBloqueGeneralAcumulado(leyendaGeneral, filasFusion, soloGeneralFusion, EscudoDeClub));
 
         return new PosicionesDTO { VerGoles = datosA.VerGoles, Posiciones = bloques };
     }
@@ -490,7 +493,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         string? leyenda,
         List<(TorneoCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)> filasPorCategoria,
         Dictionary<int, int> soloGeneralPorEquipo,
-        string baseEscudo)
+        Func<int, string> escudoRelativoPorClubId)
     {
         var acumulado = new Dictionary<int, (Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>();
 
@@ -516,14 +519,14 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             })
             .ToList();
 
-        return ConstruirBloquePosiciones("General", leyenda, filasAgg, baseEscudo);
+        return ConstruirBloquePosiciones("General", leyenda, filasAgg, escudoRelativoPorClubId);
     }
 
     private static CategoriasConPosicionesDTO ConstruirBloquePosiciones(
         string nombreCategoria,
         string? leyenda,
         List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)> filas,
-        string baseEscudo)
+        Func<int, string> escudoRelativoPorClubId)
     {
         var bloque = new CategoriasConPosicionesDTO
         {
@@ -546,7 +549,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                 Posicion = numeroPosicion++.ToString(),
                 Puntos = f.Puntos.ToString(),
                 Equipo = f.Equipo.Nombre,
-                Escudo = $"{baseEscudo}/{f.Equipo.ClubId}.jpg",
+                Escudo = escudoRelativoPorClubId(f.Equipo.ClubId),
                 PartidosJugados = f.Stats.PartidosJugados.ToString(),
                 PartidosGanados = f.Stats.PartidosGanados.ToString(),
                 PartidosEmpatados = f.Stats.PartidosEmpatados.ToString(),
@@ -607,7 +610,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                 Local = l.EquipoLocal.Nombre,
                 Visitante = "LIBRE",
                 EscudoLocal = EscudoRelativo(l.EquipoLocal.ClubId),
-                EscudoVisitante = string.Empty,
+                EscudoVisitante = EscudoPorDefectoRelativo(),
                 ResultadoLocal = TrimResultado(p?.ResultadoLocal),
                 ResultadoVisitante = TrimResultado(p?.ResultadoVisitante),
                 PenalesLocal = TrimResultado(p?.PenalesLocal),
@@ -618,7 +621,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                 Local = i.Equipo.Nombre,
                 Visitante = "INTERZONAL",
                 EscudoLocal = EscudoRelativo(i.Equipo.ClubId),
-                EscudoVisitante = string.Empty,
+                EscudoVisitante = EscudoPorDefectoRelativo(),
                 ResultadoLocal = TrimResultado(p?.ResultadoLocal),
                 ResultadoVisitante = TrimResultado(p?.ResultadoVisitante),
                 PenalesLocal = TrimResultado(p?.PenalesLocal),
@@ -628,7 +631,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             {
                 Local = "INTERZONAL",
                 Visitante = i.Equipo.Nombre,
-                EscudoLocal = string.Empty,
+                EscudoLocal = EscudoPorDefectoRelativo(),
                 EscudoVisitante = EscudoRelativo(i.Equipo.ClubId),
                 ResultadoLocal = TrimResultado(p?.ResultadoLocal),
                 ResultadoVisitante = TrimResultado(p?.ResultadoVisitante),
@@ -711,7 +714,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                 },
                 Visitante = new JornadaPorEquipoDTO
                 {
-                    Escudo = string.Empty,
+                    Escudo = EscudoPorDefectoRelativo(),
                     Equipo = "LIBRE",
                     Categorias = categorias
                 }
@@ -726,7 +729,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                 },
                 Visitante = new JornadaPorEquipoDTO
                 {
-                    Escudo = string.Empty,
+                    Escudo = EscudoPorDefectoRelativo(),
                     Equipo = "INTERZONAL",
                     Categorias = categorias
                 }
@@ -735,7 +738,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             {
                 Local = new JornadaPorEquipoDTO
                 {
-                    Escudo = string.Empty,
+                    Escudo = EscudoPorDefectoRelativo(),
                     Equipo = "INTERZONAL",
                     Categorias = categorias
                 },

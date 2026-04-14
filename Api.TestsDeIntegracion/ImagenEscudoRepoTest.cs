@@ -34,6 +34,26 @@ public class ImagenEscudoRepoTest
     }
 
     [Fact]
+    public void GetRutaRelativaEscudo_ConArchivoPropio_DevuelveRutaDelClub()
+    {
+        const int clubId = 42;
+        _repo.Guardar(clubId, PuntoRojoBase64);
+
+        var ruta = _repo.GetRutaRelativaEscudo(clubId);
+
+        Assert.Equal($"{_paths.ImagenesEscudosRelative.TrimEnd('/')}/{clubId}.jpg", ruta);
+    }
+
+    [Fact]
+    public void GetRutaRelativaEscudo_SinArchivoPropio_DevuelvePorDefecto()
+    {
+        const int clubId = 424242;
+        var ruta = _repo.GetRutaRelativaEscudo(clubId);
+
+        Assert.Equal(_paths.EscudoDefaultRelative, ruta);
+    }
+
+    [Fact]
     public void GetEscudoEnBase64_SinEscudoPropio_RetornaDefault()
     {
         Directory.CreateDirectory(_paths.ImagenesEscudosAbsolute);

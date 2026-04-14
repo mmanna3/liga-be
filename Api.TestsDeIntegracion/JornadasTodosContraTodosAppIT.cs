@@ -6,6 +6,7 @@ using Api.Core.DTOs;
 using Api.Core.DTOs.AppCarnetDigital;
 using Api.Core.Entidades;
 using Api.Persistencia._Config;
+using Api.Core.Logica;
 using Api.TestsDeIntegracion._Config;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -93,6 +94,10 @@ public class JornadasTodosContraTodosAppIT : TestBase
         _club = util.DadoQueExisteElClub();
         util.DadoQueExisteElEquipo(_club);
         context.SaveChanges();
+
+        var paths = scope.ServiceProvider.GetRequiredService<AppPaths>();
+        Directory.CreateDirectory(paths.ImagenesEscudosAbsolute);
+        File.WriteAllBytes(Path.Combine(paths.ImagenesEscudosAbsolute, $"{_club!.Id}.jpg"), [0xFF, 0xD8, 0xFF]);
     }
 
     [Fact]
@@ -238,7 +243,7 @@ public class JornadasTodosContraTodosAppIT : TestBase
         Assert.Contains("1 - 0", resLocal);
         Assert.Equal("un equipo", libre.Local.Equipo);
         Assert.Equal("LIBRE", libre.Visitante.Equipo);
-        Assert.Empty(libre.Visitante.Escudo);
+        Assert.Equal("/Imagenes/Escudos/_pordefecto.jpg", libre.Visitante.Escudo);
         Assert.Equal(2, libre.Local.Categorias.Count);
     }
 

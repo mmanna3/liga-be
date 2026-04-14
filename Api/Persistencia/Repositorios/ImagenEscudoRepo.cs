@@ -27,6 +27,15 @@ namespace Api.Persistencia.Repositorios
 			return ImagenUtility.ImageToBase64(img);
 		}
 
+		public string GetRutaRelativaEscudo(int clubId)
+		{
+			var pathCustom = $"{_paths.ImagenesEscudosAbsolute}/{clubId}.jpg";
+			var baseRel = _paths.ImagenesEscudosRelative.TrimEnd('/');
+			if (File.Exists(pathCustom))
+				return $"{baseRel}/{clubId}.jpg";
+			return _paths.EscudoDefaultRelative;
+		}
+
 		public void Guardar(int clubId, string imagenBase64)
 		{
 			Directory.CreateDirectory(_paths.ImagenesEscudosAbsolute);

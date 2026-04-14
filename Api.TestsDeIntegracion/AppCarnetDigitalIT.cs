@@ -179,6 +179,7 @@ public class AppCarnetDigitalIT : TestBase
         // Crear directorio de imágenes y agregar una imagen de prueba
         Directory.CreateDirectory(paths.ImagenesJugadoresAbsolute);
         Directory.CreateDirectory(paths.ImagenesDelegadosAbsolute);
+        Directory.CreateDirectory(paths.ImagenesEscudosAbsolute);
 
         // Crear una imagen de prueba de 240x240 píxeles
         using var bitmap = new SKBitmap(240, 240);
@@ -209,6 +210,14 @@ public class AppCarnetDigitalIT : TestBase
             using var imageDelegado = SKImage.FromBitmap(bitmap);
             using var dataDelegado = imageDelegado.Encode(SKEncodedImageFormat.Jpeg, 75);
             dataDelegado.SaveTo(streamDelegado);
+        }
+
+        // Escudo del club 1 (endpoint clubes: ruta con archivo propio)
+        using (var streamEscudo = new FileStream($"{paths.ImagenesEscudosAbsolute}/1.jpg", FileMode.Create))
+        {
+            using var imageEscudo = SKImage.FromBitmap(bitmap);
+            using var dataEscudo = imageEscudo.Encode(SKEncodedImageFormat.Jpeg, 75);
+            dataEscudo.SaveTo(streamEscudo);
         }
     }
     

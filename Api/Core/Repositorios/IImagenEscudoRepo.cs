@@ -8,6 +8,11 @@ namespace Api.Core.Repositorios
 		string GetEscudoEnBase64(int clubId);
 
 		/// <summary>
+		/// Ruta relativa HTTP del escudo (p. ej. <c>/Imagenes/Escudos/1.jpg</c> o <c>/Imagenes/Escudos/_pordefecto.jpg</c> si no hay archivo propio).
+		/// </summary>
+		string GetRutaRelativaEscudo(int clubId);
+
+		/// <summary>
 		/// Guarda o reemplaza el escudo del club con la imagen en base64.
 		/// </summary>
 		void Guardar(int clubId, string imagenBase64);
