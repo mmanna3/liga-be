@@ -27,7 +27,7 @@ public class ImagenEscudoRepoTest
         {
             foreach (var archivo in Directory.GetFiles(_paths.ImagenesEscudosAbsolute))
             {
-                if (!Path.GetFileName(archivo).Equals("default.jpg", StringComparison.OrdinalIgnoreCase))
+                if (!Path.GetFileName(archivo).Equals("_pordefecto.jpg", StringComparison.OrdinalIgnoreCase))
                     File.Delete(archivo);
             }
         }
@@ -66,6 +66,22 @@ public class ImagenEscudoRepoTest
 
         var pathAbsoluto = $"{_paths.ImagenesEscudosAbsolute}/{clubId}.jpg";
         Assert.True(File.Exists(pathAbsoluto));
+    }
+
+    [Fact]
+    public void GuardarEscudoPorDefecto_CreaJpegEnRutaPorDefecto()
+    {
+        const string dataUriJpeg =
+            "data:image/jpeg;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
+
+        _repo.GuardarEscudoPorDefecto(dataUriJpeg);
+
+        Assert.True(File.Exists(_paths.EscudoDefaultFileAbsolute));
+        var bytes = File.ReadAllBytes(_paths.EscudoDefaultFileAbsolute);
+        Assert.True(bytes.Length >= 3);
+        Assert.Equal(0xFF, bytes[0]);
+        Assert.Equal(0xD8, bytes[1]);
+        Assert.Equal(0xFF, bytes[2]);
     }
 
     [Fact]

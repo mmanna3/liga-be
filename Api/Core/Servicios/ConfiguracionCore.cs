@@ -11,14 +11,23 @@ public class ConfiguracionCore : ABMCore<IConfiguracionRepo, Configuracion, Conf
     IConfiguracionCore
 {
     private readonly IRelojZonaHorariaArgentina _relojArgentina;
+    private readonly IImagenEscudoRepo _imagenEscudoRepo;
 
     public ConfiguracionCore(
         IBDVirtual bd,
         IConfiguracionRepo repo,
         IMapper mapper,
-        IRelojZonaHorariaArgentina relojArgentina) : base(bd, repo, mapper)
+        IRelojZonaHorariaArgentina relojArgentina,
+        IImagenEscudoRepo imagenEscudoRepo) : base(bd, repo, mapper)
     {
         _relojArgentina = relojArgentina;
+        _imagenEscudoRepo = imagenEscudoRepo;
+    }
+
+    public Task<bool> CambiarEscudoPorDefecto(CambiarEscudoPorDefectoDTO dto)
+    {
+        _imagenEscudoRepo.GuardarEscudoPorDefecto(dto.Escudo);
+        return Task.FromResult(true);
     }
 
     public async Task<bool> FichajeEstaHabilitado()

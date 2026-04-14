@@ -17,10 +17,11 @@ public class ConfiguracionCoreFichajeEstaHabilitadoTests
         var repoMock = new Mock<IConfiguracionRepo>();
         var mapperMock = new Mock<IMapper>();
         var relojMock = new Mock<IRelojZonaHorariaArgentina>();
+        var imagenEscudoMock = new Mock<IImagenEscudoRepo>();
 
         repoMock.Setup(r => r.ObtenerPorId(1)).ReturnsAsync((Configuracion?)null);
 
-        var core = new ConfiguracionCore(bdMock.Object, repoMock.Object, mapperMock.Object, relojMock.Object);
+        var core = new ConfiguracionCore(bdMock.Object, repoMock.Object, mapperMock.Object, relojMock.Object, imagenEscudoMock.Object);
 
         Assert.False(await core.FichajeEstaHabilitado());
     }
@@ -32,6 +33,7 @@ public class ConfiguracionCoreFichajeEstaHabilitadoTests
         var repoMock = new Mock<IConfiguracionRepo>();
         var mapperMock = new Mock<IMapper>();
         var relojMock = new Mock<IRelojZonaHorariaArgentina>();
+        var imagenEscudoMock = new Mock<IImagenEscudoRepo>();
 
         repoMock.Setup(r => r.ObtenerPorId(1)).ReturnsAsync(new Configuracion
         {
@@ -41,7 +43,7 @@ public class ConfiguracionCoreFichajeEstaHabilitadoTests
 
         relojMock.Setup(r => r.AhoraLocal).Returns(new DateTime(2026, 4, 11, 10, 0, 0));
 
-        var core = new ConfiguracionCore(bdMock.Object, repoMock.Object, mapperMock.Object, relojMock.Object);
+        var core = new ConfiguracionCore(bdMock.Object, repoMock.Object, mapperMock.Object, relojMock.Object, imagenEscudoMock.Object);
 
         Assert.True(await core.FichajeEstaHabilitado());
     }
@@ -53,6 +55,7 @@ public class ConfiguracionCoreFichajeEstaHabilitadoTests
         var repoMock = new Mock<IConfiguracionRepo>();
         var mapperMock = new Mock<IMapper>();
         var relojMock = new Mock<IRelojZonaHorariaArgentina>();
+        var imagenEscudoMock = new Mock<IImagenEscudoRepo>();
 
         repoMock.Setup(r => r.ObtenerPorId(1)).ReturnsAsync(new Configuracion
         {
@@ -62,7 +65,7 @@ public class ConfiguracionCoreFichajeEstaHabilitadoTests
 
         relojMock.Setup(r => r.AhoraLocal).Returns(new DateTime(2026, 4, 14, 12, 0, 0));
 
-        var core = new ConfiguracionCore(bdMock.Object, repoMock.Object, mapperMock.Object, relojMock.Object);
+        var core = new ConfiguracionCore(bdMock.Object, repoMock.Object, mapperMock.Object, relojMock.Object, imagenEscudoMock.Object);
 
         Assert.False(await core.FichajeEstaHabilitado());
     }
@@ -74,6 +77,7 @@ public class ConfiguracionCoreFichajeEstaHabilitadoTests
         var repoMock = new Mock<IConfiguracionRepo>();
         var mapperMock = new Mock<IMapper>();
         var relojMock = new Mock<IRelojZonaHorariaArgentina>();
+        var imagenEscudoMock = new Mock<IImagenEscudoRepo>();
 
         repoMock.Setup(r => r.ObtenerPorId(1)).ReturnsAsync(new Configuracion
         {
@@ -83,7 +87,7 @@ public class ConfiguracionCoreFichajeEstaHabilitadoTests
 
         relojMock.Setup(r => r.AhoraLocal).Returns(new DateTime(2026, 4, 14, 12, 0, 0));
 
-        var core = new ConfiguracionCore(bdMock.Object, repoMock.Object, mapperMock.Object, relojMock.Object);
+        var core = new ConfiguracionCore(bdMock.Object, repoMock.Object, mapperMock.Object, relojMock.Object, imagenEscudoMock.Object);
 
         Assert.True(await core.FichajeEstaHabilitado());
     }
@@ -95,6 +99,7 @@ public class ConfiguracionCoreFichajeEstaHabilitadoTests
         var repoMock = new Mock<IConfiguracionRepo>();
         var mapperMock = new Mock<IMapper>();
         var relojMock = new Mock<IRelojZonaHorariaArgentina>();
+        var imagenEscudoMock = new Mock<IImagenEscudoRepo>();
 
         repoMock.Setup(r => r.ObtenerPorId(1)).ReturnsAsync(new Configuracion
         {
@@ -104,7 +109,7 @@ public class ConfiguracionCoreFichajeEstaHabilitadoTests
 
         relojMock.Setup(r => r.AhoraLocal).Returns(new DateTime(2026, 4, 17, 9, 0, 0));
 
-        var core = new ConfiguracionCore(bdMock.Object, repoMock.Object, mapperMock.Object, relojMock.Object);
+        var core = new ConfiguracionCore(bdMock.Object, repoMock.Object, mapperMock.Object, relojMock.Object, imagenEscudoMock.Object);
 
         Assert.False(await core.FichajeEstaHabilitado());
     }
@@ -116,6 +121,7 @@ public class ConfiguracionCoreFichajeEstaHabilitadoTests
         var repoMock = new Mock<IConfiguracionRepo>();
         var mapperMock = new Mock<IMapper>();
         var relojMock = new Mock<IRelojZonaHorariaArgentina>();
+        var imagenEscudoMock = new Mock<IImagenEscudoRepo>();
 
         repoMock.Setup(r => r.ObtenerPorId(1)).ReturnsAsync(new Configuracion
         {
@@ -123,7 +129,7 @@ public class ConfiguracionCoreFichajeEstaHabilitadoTests
             HabilitacionFichajeId = 999
         });
 
-        var core = new ConfiguracionCore(bdMock.Object, repoMock.Object, mapperMock.Object, relojMock.Object);
+        var core = new ConfiguracionCore(bdMock.Object, repoMock.Object, mapperMock.Object, relojMock.Object, imagenEscudoMock.Object);
 
         Assert.False(await core.FichajeEstaHabilitado());
     }

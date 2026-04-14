@@ -9,7 +9,7 @@ namespace Api.Core.Logica
 		public string ImagenesDelegadosRelative { get; } = "/Imagenes/Delegados";
 		public string ImagenesEscudosRelative { get; } = "/Imagenes/Escudos";
 		public string ImagenesPublicidadesRelative { get; } = "/Imagenes/Publicidades";
-		public string EscudoDefaultRelative { get; } = "/Imagenes/Escudos/default.jpg";
+		public string EscudoDefaultRelative { get; } = "/Imagenes/Escudos/_pordefecto.jpg";
 		public string ImagenesTemporalesCarnetRelative { get; } = "/Imagenes/Temporales/Carnet";
 		public string ImagenesTemporalesDNIFrenteRelative { get; } = "/Imagenes/Temporales/DNIFrente";
 		public string ImagenesTemporalesDNIDorsoRelative { get; } = "/Imagenes/Temporales/DNIDorso";

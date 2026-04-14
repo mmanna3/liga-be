@@ -1,4 +1,5 @@
 using Api.Core.DTOs;
+using Api.Core.Otros;
 using Api.Core.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +10,19 @@ public class ConfiguracionController : ABMController<ConfiguracionDTO, IConfigur
 {
     public ConfiguracionController(IConfiguracionCore core) : base(core)
     {
+    }
+
+    [HttpPut("cambiar-escudo-por-defecto")]
+    public async Task<ActionResult<bool>> CambiarEscudoPorDefecto([FromBody] CambiarEscudoPorDefectoDTO dto)
+    {
+        try
+        {
+            return Ok(await Core.CambiarEscudoPorDefecto(dto));
+        }
+        catch (ExcepcionControlada ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpGet("fichaje-esta-habilitado", Name = "fichajeEstaHabilitado")]

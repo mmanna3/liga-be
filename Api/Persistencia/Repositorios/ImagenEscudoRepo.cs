@@ -42,6 +42,13 @@ namespace Api.Persistencia.Repositorios
 				File.Delete(path);
 		}
 
+		public void GuardarEscudoPorDefecto(string imagenBase64)
+		{
+			Directory.CreateDirectory(_paths.ImagenesEscudosAbsolute);
+			var imagen = ImagenUtility.ConvertirABitMapYATamanio240X240(imagenBase64);
+			GuardarImagenEnDisco(_paths.EscudoDefaultFileAbsolute, imagen);
+		}
+
 		private static void GuardarImagenEnDisco(string path, SKBitmap imagen)
 		{
 			using var stream = new FileStream(path, FileMode.Create);

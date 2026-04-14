@@ -16,5 +16,10 @@ namespace Api.Core.Repositorios
 		/// Elimina el archivo del escudo del club (si existe).
 		/// </summary>
 		void Eliminar(int clubId);
+
+		/// <summary>
+		/// Guarda o reemplaza el escudo por defecto (<c>Imagenes/Escudos/_pordefecto.jpg</c>), con el mismo tratamiento que <see cref="Guardar"/>.
+		/// </summary>
+		void GuardarEscudoPorDefecto(string imagenBase64);
 	}
 }
