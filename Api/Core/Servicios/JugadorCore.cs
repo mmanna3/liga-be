@@ -229,11 +229,8 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
             FechaNacimiento = dto.FechaNacimiento
         };
 
-        if (jugadorNuevo.DNI != dto.DNI)
-        {
-            jugadorNuevo.DNI = dto.DNI;
+        if (jugadorAnterior.DNI != dto.DNI)
             _imagenJugadorRepo.RenombrarFotosTemporalesPorCambioDeDNI(jugadorAnterior.DNI, dto.DNI);
-        }
 
         Repo.Modificar(jugadorAnterior, jugadorNuevo);
     }

@@ -114,6 +114,21 @@ public class ImagenJugadorRepoTest : ImagenPersonaFichadaBaseTest
     }
 
     [Fact]
+    public void FicharJugadorTemporal_ConArchivoJpg_MueveFotoYBorraFotosDNI()
+    {
+        // El flujo normal: GuardarFotosTemporalesDePersonaFichada siempre guarda .jpg
+        var fotos = CrearFotosDto(DNI);
+        Repo.GuardarFotosTemporalesDePersonaFichada(DNI, fotos);
+
+        _imagenJugadorRepo.FicharJugadorTemporal(DNI);
+
+        Assert.True(File.Exists($"{Paths.ImagenesJugadoresAbsolute}/{DNI}.jpg"));
+        Assert.False(File.Exists($"{Paths.ImagenesTemporalesCarnetAbsolute}/{DNI}.jpg"));
+        Assert.False(File.Exists($"{Paths.ImagenesTemporalesDNIFrenteAbsolute}/{DNI}.jpg"));
+        Assert.False(File.Exists($"{Paths.ImagenesTemporalesDNIDorsoAbsolute}/{DNI}.jpg"));
+    }
+
+    [Fact]
     public void EliminarFotosDelJugador_EliminaTodasLasFotos()
     {
         var fotos = CrearFotosDto(DNI);
