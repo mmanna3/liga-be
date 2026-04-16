@@ -6,4 +6,5 @@ public interface IPublicoCore
 {
     Task<bool> ElDniEstaFichado(string dni);
     Task<int> FicharEnOtroEquipo(FicharEnOtroEquipoDTO dto);
+    Task<List<JugadorSinFotoDTO>> ListarJugadoresSinFoto();
 }

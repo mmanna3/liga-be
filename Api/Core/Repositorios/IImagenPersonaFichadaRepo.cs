@@ -4,6 +4,7 @@ namespace Api.Core.Repositorios
 {
 	public interface IImagenPersonaFichadaRepo
 	{
+		bool TieneFoto(string dni);
 		string GetFotoCarnetEnBase64(string dni);
 		string GetFotoEnBase64ConPathAbsoluto(string pathAbsoluto);
 		void Eliminar(string dni);

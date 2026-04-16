@@ -57,7 +57,11 @@ namespace Api.Api.Controllers
         {
             return await _core.FicharEnOtroEquipo(dto);
         }
-        
-        
+
+        [HttpGet("jugadores-sin-foto")]
+        public async Task<List<JugadorSinFotoDTO>> JugadoresSinFoto()
+        {
+            return await _core.ListarJugadoresSinFoto();
+        }
     }
 }

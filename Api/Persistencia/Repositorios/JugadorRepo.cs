@@ -141,6 +141,20 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
             .AnyAsync(je => equipoIdsEnTorneo.Contains(je.EquipoId));
     }
 
+    public async Task<List<Jugador>> ListarConDelegadosExcluyendoPendientes()
+    {
+        return await Context.Set<Jugador>()
+            .Include(j => j.JugadorEquipos)
+            .Include(j => j.JugadorEquipos)
+                .ThenInclude(je => je.Equipo)
+                    .ThenInclude(e => e.Club)
+                        .ThenInclude(c => c.DelegadoClubs)
+                            .ThenInclude(dc => dc.Delegado)
+            .Where(j => j.JugadorEquipos.Any(je => je.EstadoJugadorId != (int)EstadoJugadorEnum.FichajePendienteDeAprobacion))
+            .AsSplitQuery()
+            .ToListAsync();
+    }
+
     public async Task<int> ActualizarTarjetas(int jugadorEquipoId, int tarjetasAmarillas, int tarjetasRojas)
     {
         var jugadorEquipo = await Context.JugadorEquipo.FindAsync(jugadorEquipoId);

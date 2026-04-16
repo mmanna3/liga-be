@@ -65,6 +65,35 @@ public class PublicoCore : IPublicoCore
         throw new ExcepcionControlada("No existe ni un jugador ni un delegado con el DNI indicado.");
     }
 
+    public async Task<List<JugadorSinFotoDTO>> ListarJugadoresSinFoto()
+    {
+        var jugadores = await _jugadorRepo.ListarConDelegadosExcluyendoPendientes();
+
+        return jugadores
+            .Where(j => !_imagenJugadorRepo.TieneFoto(j.DNI))
+            .Select(j => new JugadorSinFotoDTO
+            {
+                DNI = j.DNI,
+                Nombre = j.Nombre,
+                Apellido = j.Apellido,
+                Delegados = j.JugadorEquipos
+                    .Select(je => je.Equipo.Club)
+                    .DistinctBy(c => c.Id)
+                    .SelectMany(c => c.DelegadoClubs.Select(dc => new DelegadoDeClubDTO
+                    {
+                        DNI = dc.Delegado.DNI,
+                        Nombre = dc.Delegado.Nombre,
+                        Apellido = dc.Delegado.Apellido,
+                        TelefonoCelular = dc.Delegado.TelefonoCelular,
+                        Email = dc.Delegado.Email,
+                        NombreClub = c.Nombre
+                    }))
+                    .DistinctBy(d => d.DNI)
+                    .ToList()
+            })
+            .ToList();
+    }
+
     private async Task<int> FicharJugadorDesdeDelegado(Delegado delegado, string codigoAlfanumerico)
     {
         _imagenJugadorRepo.CopiarFotosDeDelegadoATemporales(delegado.DNI);

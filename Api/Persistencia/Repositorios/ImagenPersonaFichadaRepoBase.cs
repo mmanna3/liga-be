@@ -81,6 +81,9 @@ namespace Api.Persistencia.Repositorios
 			GuardarFotoDNIDorsoTemporal(dni, fotos);
 		}
 
+		public bool TieneFoto(string dni) =>
+			File.Exists($"{ImagenesDefinitivasAbsolute}/{dni}.jpg");
+
 		public string GetFotoCarnetEnBase64(string dni)
 		{
 			var imagePath = $"{ImagenesDefinitivasAbsolute}/{dni}.jpg";
