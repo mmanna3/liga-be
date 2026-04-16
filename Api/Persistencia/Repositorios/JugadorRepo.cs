@@ -149,7 +149,8 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
                 .ThenInclude(e => e.Club)
                     .ThenInclude(c => c.DelegadoClubs)
                         .ThenInclude(dc => dc.Delegado)
-            .Where(je => je.EstadoJugadorId != (int)EstadoJugadorEnum.FichajePendienteDeAprobacion)
+            .Where(je => je.EstadoJugadorId != (int)EstadoJugadorEnum.FichajePendienteDeAprobacion
+                      && je.EstadoJugadorId != (int)EstadoJugadorEnum.FichajeRechazado)
             .AsSplitQuery()
             .ToListAsync();
     }
