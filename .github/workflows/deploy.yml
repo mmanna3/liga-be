@@ -9,7 +9,28 @@ env:
   DOTNET_VERSION: "8.0.x"
 
 jobs:
-  build-and-deploy:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --configuration Release --no-build
+
+  deploy:
+    needs: build
     runs-on: windows-latest
     strategy:
       fail-fast: false
@@ -44,14 +65,8 @@ jobs:
       - name: Restore
         run: dotnet restore
 
-      - name: Build
-        run: dotnet build --configuration Release --no-restore
-
-      - name: Test
-        run: dotnet test --configuration Release --no-build
-
       - name: Publish
-        run: dotnet publish Api/Api.csproj --configuration Release --framework net8.0 --self-contained true -r win-x64 -p:EnvironmentName=Production -o dist
+        run: dotnet publish Api/Api.csproj --configuration Release --framework net8.0 --self-contained true -r win-x64 -p:EnvironmentName=Production -o dist --no-restore
 
       - name: Aplicar web.config con Shadow Copy
         run: cp .github/web.config dist/web.config
