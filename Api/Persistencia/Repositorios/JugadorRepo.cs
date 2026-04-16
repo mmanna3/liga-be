@@ -141,16 +141,15 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
             .AnyAsync(je => equipoIdsEnTorneo.Contains(je.EquipoId));
     }
 
-    public async Task<List<Jugador>> ListarConDelegadosExcluyendoPendientes()
+    public async Task<List<JugadorEquipo>> ListarJugadorEquiposNoPendientesConRelaciones()
     {
-        return await Context.Set<Jugador>()
-            .Include(j => j.JugadorEquipos)
-            .Include(j => j.JugadorEquipos)
-                .ThenInclude(je => je.Equipo)
-                    .ThenInclude(e => e.Club)
-                        .ThenInclude(c => c.DelegadoClubs)
-                            .ThenInclude(dc => dc.Delegado)
-            .Where(j => j.JugadorEquipos.Any(je => je.EstadoJugadorId != (int)EstadoJugadorEnum.FichajePendienteDeAprobacion))
+        return await Context.JugadorEquipo
+            .Include(je => je.Jugador)
+            .Include(je => je.Equipo)
+                .ThenInclude(e => e.Club)
+                    .ThenInclude(c => c.DelegadoClubs)
+                        .ThenInclude(dc => dc.Delegado)
+            .Where(je => je.EstadoJugadorId != (int)EstadoJugadorEnum.FichajePendienteDeAprobacion)
             .AsSplitQuery()
             .ToListAsync();
     }

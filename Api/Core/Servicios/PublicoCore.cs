@@ -65,33 +65,52 @@ public class PublicoCore : IPublicoCore
         throw new ExcepcionControlada("No existe ni un jugador ni un delegado con el DNI indicado.");
     }
 
-    public async Task<List<JugadorSinFotoDTO>> ListarJugadoresSinFoto()
+    public async Task<string> ListarJugadoresSinFoto()
     {
-        var jugadores = await _jugadorRepo.ListarConDelegadosExcluyendoPendientes();
+        var todos = await _jugadorRepo.ListarJugadorEquiposNoPendientesConRelaciones();
+        var sinFoto = todos.Where(je => !_imagenJugadorRepo.TieneFoto(je.Jugador.DNI)).ToList();
 
-        return jugadores
-            .Where(j => !_imagenJugadorRepo.TieneFoto(j.DNI))
-            .Select(j => new JugadorSinFotoDTO
-            {
-                DNI = j.DNI,
-                Nombre = j.Nombre,
-                Apellido = j.Apellido,
-                Delegados = j.JugadorEquipos
-                    .Select(je => je.Equipo.Club)
-                    .DistinctBy(c => c.Id)
-                    .SelectMany(c => c.DelegadoClubs.Select(dc => new DelegadoDeClubDTO
-                    {
-                        DNI = dc.Delegado.DNI,
-                        Nombre = dc.Delegado.Nombre,
-                        Apellido = dc.Delegado.Apellido,
-                        TelefonoCelular = dc.Delegado.TelefonoCelular,
-                        Email = dc.Delegado.Email,
-                        NombreClub = c.Nombre
-                    }))
-                    .DistinctBy(d => d.DNI)
-                    .ToList()
-            })
-            .ToList();
+        var anoActual = DateTime.Now.Year;
+        var deEsteAno = sinFoto.Where(je => je.FechaFichaje.Year == anoActual).ToList();
+
+        var sb = new System.Text.StringBuilder();
+
+        var totalJugadores = sinFoto.Select(je => je.Jugador.DNI).Distinct().Count();
+        var totalEquipos = sinFoto.Select(je => je.EquipoId).Distinct().Count();
+        var jugadoresAno = deEsteAno.Select(je => je.Jugador.DNI).Distinct().Count();
+        var equiposAno = deEsteAno.Select(je => je.EquipoId).Distinct().Count();
+
+        sb.AppendLine($"De todos los años, hay {totalJugadores} jugadores sin foto en {totalEquipos} equipos");
+        sb.AppendLine($"Fichados en {anoActual}, hay {jugadoresAno} jugadores sin foto en {equiposAno} equipos");
+
+        AppendSeccion(sb, $"Fichados en {anoActual}", deEsteAno);
+        AppendSeccion(sb, $"Fichados antes de {anoActual}", sinFoto.Where(je => je.FechaFichaje.Year < anoActual).ToList());
+
+        return sb.ToString();
+    }
+
+    private static void AppendSeccion(System.Text.StringBuilder sb, string titulo, List<JugadorEquipo> items)
+    {
+        sb.AppendLine();
+        sb.AppendLine(titulo);
+
+        var porEquipo = items
+            .GroupBy(je => je.EquipoId)
+            .OrderBy(g => g.First().Equipo.Nombre);
+
+        foreach (var grupo in porEquipo)
+        {
+            var equipo = grupo.First().Equipo;
+            var delegados = equipo.Club.DelegadoClubs
+                .Select(dc => $"{dc.Delegado.Nombre} {dc.Delegado.Apellido} {dc.Delegado.TelefonoCelular}".Trim())
+                .ToList();
+            var delegadosStr = delegados.Count > 0 ? string.Join(" | ", delegados) : "(sin delegados)";
+
+            sb.AppendLine($"{equipo.Nombre} - {delegadosStr}");
+
+            foreach (var je in grupo.OrderBy(je => je.FechaFichaje))
+                sb.AppendLine($"  {je.Jugador.DNI} {je.Jugador.Nombre} {je.Jugador.Apellido} - {je.FechaFichaje:dd/MM/yyyy}");
+        }
     }
 
     private async Task<int> FicharJugadorDesdeDelegado(Delegado delegado, string codigoAlfanumerico)

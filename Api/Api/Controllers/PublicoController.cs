@@ -59,9 +59,11 @@ namespace Api.Api.Controllers
         }
 
         [HttpGet("jugadores-sin-foto")]
-        public async Task<List<JugadorSinFotoDTO>> JugadoresSinFoto()
+        [Produces("text/plain")]
+        public async Task<ContentResult> JugadoresSinFoto()
         {
-            return await _core.ListarJugadoresSinFoto();
+            var texto = await _core.ListarJugadoresSinFoto();
+            return Content(texto, "text/plain");
         }
     }
 }
