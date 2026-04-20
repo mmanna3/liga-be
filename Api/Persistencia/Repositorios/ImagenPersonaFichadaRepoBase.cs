@@ -86,28 +86,56 @@ namespace Api.Persistencia.Repositorios
 
 		public string GetFotoCarnetEnBase64(string dni)
 		{
-			var imagePath = $"{ImagenesDefinitivasAbsolute}/{dni}.jpg";
-
-			if (!File.Exists(imagePath))
+			try
 			{
-				imagePath = $"{Paths.ImagenesTemporalesCarnetAbsolute}/{dni}.jpg";
-				if (!File.Exists(imagePath))
-					return string.Empty;
-			}
+				var imagePath = System.IO.Path.Combine(ImagenesDefinitivasAbsolute, $"{dni}.jpg");
 
-			using var stream = new FileStream(imagePath, FileMode.Open);
-			using var img = SKImage.FromEncodedData(stream);
-			return ImagenUtility.ImageToBase64(img);
+				if (!File.Exists(imagePath))
+				{
+					imagePath = System.IO.Path.Combine(Paths.ImagenesTemporalesCarnetAbsolute, $"{dni}.jpg");
+					if (!File.Exists(imagePath))
+						return string.Empty;
+				}
+
+				using var stream = new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+				using var img = SKImage.FromEncodedData(stream);
+				if (img is null)
+					return string.Empty;
+
+				return ImagenUtility.ImageToBase64(img);
+			}
+			catch (IOException)
+			{
+				return string.Empty;
+			}
+			catch (UnauthorizedAccessException)
+			{
+				return string.Empty;
+			}
 		}
 
 		public string GetFotoEnBase64ConPathAbsoluto(string pathAbsoluto)
 		{
-			if (!File.Exists(pathAbsoluto))
-				return string.Empty;
+			try
+			{
+				if (!File.Exists(pathAbsoluto))
+					return string.Empty;
 
-			using var stream = new FileStream(pathAbsoluto, FileMode.Open);
-			using var img = SKImage.FromEncodedData(stream);
-			return ImagenUtility.ImageToBase64(img);
+				using var stream = new FileStream(pathAbsoluto, FileMode.Open, FileAccess.Read, FileShare.Read);
+				using var img = SKImage.FromEncodedData(stream);
+				if (img is null)
+					return string.Empty;
+
+				return ImagenUtility.ImageToBase64(img);
+			}
+			catch (IOException)
+			{
+				return string.Empty;
+			}
+			catch (UnauthorizedAccessException)
+			{
+				return string.Empty;
+			}
 		}
 
 		public string Path(string dni) => $"{ImagenesDefinitivasRelative}/{dni}.jpg";
