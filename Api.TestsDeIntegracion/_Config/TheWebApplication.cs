@@ -31,6 +31,11 @@ public class CustomWebApplicationFactory<TProgram>
             if (dbConnectionDescriptor != null) 
                 services.Remove(dbConnectionDescriptor);
 
+            // Program registra AppPathsWebApp; si no se quita, pueden coexistir dos
+            // implementaciones y en CI resolverse la incorrecta (rutas fuera del ensamblado de tests).
+            foreach (var d in services.Where(x => x.ServiceType == typeof(AppPaths)).ToList())
+                services.Remove(d);
+
             // Create open SqliteConnection so EF won't automatically close it.
             services.AddSingleton<DbConnection>(container =>
             {

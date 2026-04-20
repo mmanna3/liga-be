@@ -16,15 +16,29 @@ namespace Api.Persistencia.Repositorios
 
 		public string GetEscudoEnBase64(int clubId)
 		{
-			var pathCustom = $"{_paths.ImagenesEscudosAbsolute}/{clubId}.jpg";
-			var pathUsar = File.Exists(pathCustom) ? pathCustom : _paths.EscudoDefaultFileAbsolute;
+			try
+			{
+				var pathCustom = Path.Combine(_paths.ImagenesEscudosAbsolute, $"{clubId}.jpg");
+				var pathUsar = File.Exists(pathCustom) ? pathCustom : _paths.EscudoDefaultFileAbsolute;
 
-			if (!File.Exists(pathUsar))
+				if (!File.Exists(pathUsar))
+					return string.Empty;
+
+				using var stream = new FileStream(pathUsar, FileMode.Open, FileAccess.Read, FileShare.Read);
+				using var img = SKImage.FromEncodedData(stream);
+				if (img is null)
+					return string.Empty;
+
+				return ImagenUtility.ImageToBase64(img);
+			}
+			catch (IOException)
+			{
 				return string.Empty;
-
-			using var stream = new FileStream(pathUsar, FileMode.Open);
-			using var img = SKImage.FromEncodedData(stream);
-			return ImagenUtility.ImageToBase64(img);
+			}
+			catch (UnauthorizedAccessException)
+			{
+				return string.Empty;
+			}
 		}
 
 		public string GetRutaRelativaEscudo(int clubId)
