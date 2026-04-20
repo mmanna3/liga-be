@@ -24,6 +24,7 @@ public class JornadaDTO : DTO
     public string? EquipoLocal { get; set; }
 
     // JornadaInterzonal
+    public int? Numero { get; set; }
     public int? EquipoId { get; set; }
     public string? Equipo { get; set; }
     public LocalVisitanteEnum? LocalOVisitante { get; set; }

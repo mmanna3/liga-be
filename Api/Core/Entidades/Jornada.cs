@@ -29,6 +29,11 @@ public class JornadaLibre : Jornada
 
 public class JornadaInterzonal : Jornada
 {
+    /// <summary>
+    /// Orden dentro de la misma fecha (1..n). Único por <see cref="Jornada.FechaId"/> entre jornadas interzonales.
+    /// </summary>
+    public required int Numero { get; set; }
+
     public virtual Equipo Equipo { get; set; } = null!;
     public required int EquipoId { get; set; }
 

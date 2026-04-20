@@ -470,7 +470,24 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
         {
             if (dto.Id <= 0)
             {
-                var jornada = CrearJornadaDesdeDto(fechaId, dto);
+                var tipo = (dto.Tipo ?? "").Trim();
+                int? numeroInterzonal = null;
+                if (tipo == "Interzonal")
+                {
+                    if (dto.Numero is >= 1)
+                    {
+                        var ocupado = await _context.Jornadas.OfType<JornadaInterzonal>()
+                            .AnyAsync(j => j.FechaId == fechaId && j.Numero == dto.Numero.Value);
+                        if (ocupado)
+                            throw new ExcepcionControlada(
+                                "Ya existe una jornada interzonal con ese número en la misma fecha.");
+                        numeroInterzonal = dto.Numero.Value;
+                    }
+                    else
+                        numeroInterzonal = await SiguienteNumeroInterzonalAsync(fechaId);
+                }
+
+                var jornada = CrearJornadaDesdeDto(fechaId, dto, numeroInterzonal);
                 jornada.FechaId = fechaId;
                 _context.Jornadas.Add(jornada);
                 // Un SaveChanges por jornada nueva: si se agrupan varias inserciones en un solo guardado,
@@ -481,14 +498,20 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
             {
                 var existente = jornadasExistentes.FirstOrDefault(j => j.Id == dto.Id);
                 if (existente != null)
-                {
-                    ActualizarJornadaDesdeDto(existente, dto);
-                }
+                    await ActualizarJornadaDesdeDtoAsync(existente, dto);
             }
         }
     }
 
-    private static Jornada CrearJornadaDesdeDto(int fechaId, JornadaDTO dto)
+    private async Task<int> SiguienteNumeroInterzonalAsync(int fechaId)
+    {
+        var max = await _context.Jornadas.OfType<JornadaInterzonal>()
+            .Where(j => j.FechaId == fechaId)
+            .MaxAsync(j => (int?)j.Numero);
+        return (max ?? 0) + 1;
+    }
+
+    private static Jornada CrearJornadaDesdeDto(int fechaId, JornadaDTO dto, int? numeroInterzonalParaInterzonal)
     {
         var tipo = (dto.Tipo ?? "").Trim();
         return tipo switch
@@ -513,6 +536,8 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
                 Id = 0,
                 FechaId = fechaId,
                 ResultadosVerificados = dto.ResultadosVerificados,
+                Numero = numeroInterzonalParaInterzonal
+                         ?? throw new ExcepcionControlada("No se pudo asignar el número de jornada interzonal."),
                 EquipoId = dto.EquipoId ?? 0,
                 LocalOVisitanteId = (int)(dto.LocalOVisitante ?? LocalVisitanteEnum.Local)
             },
@@ -526,7 +551,7 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
         };
     }
 
-    private static void ActualizarJornadaDesdeDto(Jornada existente, JornadaDTO dto)
+    private async Task ActualizarJornadaDesdeDtoAsync(Jornada existente, JornadaDTO dto)
     {
         existente.ResultadosVerificados = dto.ResultadosVerificados;
 
@@ -542,6 +567,19 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
             case JornadaInterzonal interzonal:
                 if (dto.EquipoId.HasValue) interzonal.EquipoId = dto.EquipoId.Value;
                 if (dto.LocalOVisitante.HasValue) interzonal.LocalOVisitanteId = (int)dto.LocalOVisitante.Value;
+                if (dto.Numero.HasValue)
+                {
+                    if (dto.Numero.Value < 1)
+                        throw new ExcepcionControlada("El número de jornada interzonal debe ser mayor a cero.");
+                    var conflicto = await _context.Jornadas.OfType<JornadaInterzonal>()
+                        .AnyAsync(j =>
+                            j.FechaId == interzonal.FechaId && j.Numero == dto.Numero.Value && j.Id != interzonal.Id);
+                    if (conflicto)
+                        throw new ExcepcionControlada(
+                            "Ya existe una jornada interzonal con ese número en la misma fecha.");
+                    interzonal.Numero = dto.Numero.Value;
+                }
+
                 break;
             case JornadaSinEquipos:
                 break;

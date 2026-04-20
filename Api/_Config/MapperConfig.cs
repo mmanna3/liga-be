@@ -151,6 +151,7 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.EquipoLocal, opt => opt.MapFrom<JornadaEquipoLocalNombreResolver>())
             .ForMember(dest => dest.EquipoId, opt => opt.MapFrom<JornadaEquipoResolver>())
             .ForMember(dest => dest.Equipo, opt => opt.MapFrom<JornadaEquipoNombreResolver>())
+            .ForMember(dest => dest.Numero, opt => opt.MapFrom<JornadaNumeroResolver>())
             .ForMember(dest => dest.LocalOVisitante, opt => opt.MapFrom<JornadaLocalOVisitanteResolver>())
             .ForMember(dest => dest.Partidos,
                 opt => opt.MapFrom(src => src.Partidos != null ? src.Partidos.ToList() : new List<Partido>()));
@@ -392,6 +393,12 @@ public class JornadaEquipoLocalNombreResolver : IValueResolver<Jornada, JornadaD
 {
     public string? Resolve(Jornada source, JornadaDTO destination, string? destMember, ResolutionContext context)
         => source is JornadaLibre l ? l.EquipoLocal?.Nombre : null;
+}
+
+public class JornadaNumeroResolver : IValueResolver<Jornada, JornadaDTO, int?>
+{
+    public int? Resolve(Jornada source, JornadaDTO destination, int? destMember, ResolutionContext context)
+        => source is JornadaInterzonal i ? i.Numero : null;
 }
 
 public class JornadaEquipoResolver : IValueResolver<Jornada, JornadaDTO, int?>

@@ -357,6 +357,13 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(j => j.LocalOVisitanteId)
             .OnDelete(DeleteBehavior.Restrict);
+        {
+            var ixInterzonalNumero = builder.Entity<JornadaInterzonal>()
+                .HasIndex(j => new { j.FechaId, j.Numero })
+                .IsUnique();
+            if (!Database.IsSqlite())
+                ixInterzonalNumero.HasFilter("[Tipo] = N'Interzonal'");
+        }
 
         // Mismo criterio que Partido.ResultadoValidoRegex / Partido.EsResultadoValido (SQL no admite regex en CHECK).
         const string sqlCkPartidoResultado =
