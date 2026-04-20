@@ -8,8 +8,12 @@ namespace Api.TestsDeIntegracion
 	{
 		protected override string GetAbsolutePath(string relativePath)
 		{
-			var asemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-			return $"{asemblyPath}{relativePath}";
+			// No concatenar con string: en Windows Path.Combine("D:\\...\\bin", "/Imagenes/...")
+			// ignora el directorio base si el segundo segmento es "absoluto" y termina en una ruta inválida.
+			var assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
+				?? throw new InvalidOperationException("No se pudo resolver el directorio del ensamblado de tests.");
+			var segmentos = relativePath.TrimStart('/', '\\');
+			return Path.Combine(assemblyDir, segmentos);
 		}
 
 		public override string BackupAbsoluteOf(string fileNameWithExtension)
