@@ -26,6 +26,8 @@ public class JornadaPorEquipoDTO
     public string Escudo { get; set; } = string.Empty;
     public string Equipo { get; set; } = string.Empty;
     public ICollection<ResultadoCategoriaDTO> Categorias { get; set; } = [];
+    public int PuntosTotales { get; set; }
+    public int PartidosJugados { get; set; }
 }
 
 public class ResultadoCategoriaDTO

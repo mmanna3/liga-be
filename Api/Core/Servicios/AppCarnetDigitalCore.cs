@@ -672,6 +672,50 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         return s;
     }
 
+    private static (int puntosTotales, int partidosJugados) CalcularTotalesEquipoEnJornada(
+        Jornada jornada,
+        int equipoId)
+    {
+        var puntosTotales = 0;
+        var partidosJugados = 0;
+
+        foreach (var partido in jornada.Partidos ?? [])
+        {
+            if (!PosicionesTodosContraTodosLogica.PartidoTieneResultadosCargados(partido))
+                continue;
+
+            if (!PosicionesTodosContraTodosLogica.IntentarObtenerMiResultadoYRival(partido, jornada, equipoId, out var mi,
+                    out var rival))
+                continue;
+
+            PosicionesTodosContraTodosLogica.AcumularPuntos(ref puntosTotales, mi, rival);
+
+            var miNormalizado = mi.Trim();
+            if (miNormalizado is not "S" and not "P" and not "NP")
+                partidosJugados++;
+        }
+
+        return (puntosTotales, partidosJugados);
+    }
+
+    private JornadaPorEquipoDTO CrearJornadaPorEquipo(
+        Jornada jornada,
+        int equipoId,
+        string escudo,
+        string equipo,
+        ICollection<ResultadoCategoriaDTO> categorias)
+    {
+        var (puntosTotales, partidosJugados) = CalcularTotalesEquipoEnJornada(jornada, equipoId);
+        return new JornadaPorEquipoDTO
+        {
+            Escudo = escudo,
+            Equipo = equipo,
+            Categorias = categorias,
+            PuntosTotales = puntosTotales,
+            PartidosJugados = partidosJugados
+        };
+    }
+
     private JornadasPorFechaDTO MapJornadaAJornadasPorFecha(Jornada j,
         IReadOnlyList<TorneoCategoria> categoriasOrdenadas)
     {
@@ -693,27 +737,15 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         {
             JornadaNormal n => new JornadasPorFechaDTO
             {
-                Local = new JornadaPorEquipoDTO
-                {
-                    Escudo = EscudoRelativo(n.LocalEquipo.ClubId),
-                    Equipo = n.LocalEquipo.Nombre,
-                    Categorias = categorias
-                },
-                Visitante = new JornadaPorEquipoDTO
-                {
-                    Escudo = EscudoRelativo(n.VisitanteEquipo.ClubId),
-                    Equipo = n.VisitanteEquipo.Nombre,
-                    Categorias = categorias
-                }
+                Local = CrearJornadaPorEquipo(j, n.LocalEquipoId, EscudoRelativo(n.LocalEquipo.ClubId), n.LocalEquipo.Nombre,
+                    categorias),
+                Visitante = CrearJornadaPorEquipo(j, n.VisitanteEquipoId, EscudoRelativo(n.VisitanteEquipo.ClubId),
+                    n.VisitanteEquipo.Nombre, categorias)
             },
             JornadaLibre l => new JornadasPorFechaDTO
             {
-                Local = new JornadaPorEquipoDTO
-                {
-                    Escudo = EscudoRelativo(l.EquipoLocal.ClubId),
-                    Equipo = l.EquipoLocal.Nombre,
-                    Categorias = categorias
-                },
+                Local = CrearJornadaPorEquipo(j, l.EquipoLocalId, EscudoRelativo(l.EquipoLocal.ClubId), l.EquipoLocal.Nombre,
+                    categorias),
                 Visitante = new JornadaPorEquipoDTO
                 {
                     Escudo = EscudoPorDefectoRelativo(),
@@ -723,12 +755,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             },
             JornadaInterzonal i when i.LocalOVisitanteId == (int)LocalVisitanteEnum.Local => new JornadasPorFechaDTO
             {
-                Local = new JornadaPorEquipoDTO
-                {
-                    Escudo = EscudoRelativo(i.Equipo.ClubId),
-                    Equipo = i.Equipo.Nombre,
-                    Categorias = categorias
-                },
+                Local = CrearJornadaPorEquipo(j, i.EquipoId, EscudoRelativo(i.Equipo.ClubId), i.Equipo.Nombre, categorias),
                 Visitante = new JornadaPorEquipoDTO
                 {
                     Escudo = EscudoPorDefectoRelativo(),
@@ -744,12 +771,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                     Equipo = InterzonalAppEtiqueta.Equipo(i.Numero),
                     Categorias = categorias
                 },
-                Visitante = new JornadaPorEquipoDTO
-                {
-                    Escudo = EscudoRelativo(i.Equipo.ClubId),
-                    Equipo = i.Equipo.Nombre,
-                    Categorias = categorias
-                }
+                Visitante = CrearJornadaPorEquipo(j, i.EquipoId, EscudoRelativo(i.Equipo.ClubId), i.Equipo.Nombre, categorias)
             },
             JornadaSinEquipos => new JornadasPorFechaDTO
             {
