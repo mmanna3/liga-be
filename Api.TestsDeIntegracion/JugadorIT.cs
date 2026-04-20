@@ -753,6 +753,65 @@ public class JugadorIT : TestBase
     }
 
     [Fact]
+    public async Task DesvincularJugadorDelEquipo_DelegadoYInhabilitado_Devuelve200YDesvincula()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var equipo = new Equipo
+        {
+            Id = 5,
+            Nombre = "Equipo Quinto",
+            ClubId = 1,
+            Jugadores = new List<JugadorEquipo>()
+        };
+        context.Equipos.Add(equipo);
+
+        var jugador = new Jugador
+        {
+            Id = 804,
+            DNI = "80480480",
+            Nombre = "Delegado",
+            Apellido = "Inhabilitado",
+            FechaNacimiento = new DateTime(2000, 4, 4)
+        };
+        context.Jugadores.Add(jugador);
+        context.JugadorEquipo.AddRange(
+            new JugadorEquipo
+            {
+                Id = 8041,
+                JugadorId = 804,
+                EquipoId = 1,
+                FechaFichaje = DateTime.Now,
+                EstadoJugadorId = (int)EstadoJugadorEnum.Inhabilitado
+            },
+            new JugadorEquipo
+            {
+                Id = 8042,
+                JugadorId = 804,
+                EquipoId = 5,
+                FechaFichaje = DateTime.Now,
+                EstadoJugadorId = (int)EstadoJugadorEnum.Activo
+            }
+        );
+        context.SaveChanges();
+
+        var client = await GetAuthenticatedClientConRol("delegado_test_inh", "test123", "Delegado");
+        var response = await client.PostAsJsonAsync("/api/Jugador/desvincular-jugador-del-equipo", new DesvincularJugadorDelEquipoDTO
+        {
+            JugadorId = 804,
+            EquipoId = 1
+        });
+
+        response.EnsureSuccessStatusCode();
+
+        using var verifyScope = Factory.Services.CreateScope();
+        var verifyContext = verifyScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.False(verifyContext.JugadorEquipo.Any(je => je.Id == 8041));
+        Assert.True(verifyContext.JugadorEquipo.Any(je => je.Id == 8042));
+    }
+
+    [Fact]
     public async Task DesvincularJugadorDelEquipo_AdminYEstadoActivo_Devuelve200YDesvincula()
     {
         using var scope = Factory.Services.CreateScope();

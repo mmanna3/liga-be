@@ -137,7 +137,7 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
 
         var jugadorEquipo = jugador.JugadorEquipos.Single(x => x.EquipoId == dto.EquipoId);
         if (esDelegado && !EsEstadoPermitidoParaDesvinculacionDeDelegado((EstadoJugadorEnum)jugadorEquipo.EstadoJugadorId))
-            throw new ExcepcionControlada("Como delegado solo podés desvincular jugadores en estado FichajePendienteDeAprobacion, FichajeRechazado o AprobadoPendienteDePago.");
+            throw new ExcepcionControlada("Como delegado solo podés desvincular jugadores en estado FichajePendienteDeAprobacion, FichajeRechazado, AprobadoPendienteDePago o Inhabilitado.");
 
         if (jugador.JugadorEquipos.Count == 1)
             return await Eliminar(dto.JugadorId);
@@ -151,7 +151,8 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
     {
         return estado == EstadoJugadorEnum.FichajePendienteDeAprobacion
                || estado == EstadoJugadorEnum.FichajeRechazado
-               || estado == EstadoJugadorEnum.AprobadoPendienteDePago;
+               || estado == EstadoJugadorEnum.AprobadoPendienteDePago
+               || estado == EstadoJugadorEnum.Inhabilitado;
     }
 
     public async Task<IEnumerable<JugadorDTO>> ListarConFiltro(IList<EstadoJugadorEnum> estados)
