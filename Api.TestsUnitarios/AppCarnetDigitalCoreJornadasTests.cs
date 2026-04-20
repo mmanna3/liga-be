@@ -84,8 +84,10 @@ public class AppCarnetDigitalCoreJornadasTests
             Id = 101,
             FechaId = 1,
             ResultadosVerificados = true,
-            EquipoLocalId = local.Id,
-            EquipoLocal = local,
+            EquipoId = local.Id,
+            Equipo = local,
+            LocalOVisitanteId = (int)LocalVisitanteEnum.Local,
+            LocalVisitante = null!,
             Partidos =
             [
                 new Partido

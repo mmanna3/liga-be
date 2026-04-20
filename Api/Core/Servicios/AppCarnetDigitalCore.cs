@@ -267,12 +267,19 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             LocalEscudo = EscudoRelativo(n.LocalEquipo.ClubId),
             VisitanteEscudo = EscudoRelativo(n.VisitanteEquipo.ClubId)
         },
+        JornadaLibre l when l.LocalOVisitanteId == (int)LocalVisitanteEnum.Local => new FixturePartidoDTO
+        {
+            Local = l.Equipo.Nombre,
+            Visitante = "LIBRE",
+            LocalEscudo = EscudoRelativo(l.Equipo.ClubId),
+            VisitanteEscudo = EscudoPorDefectoRelativo()
+        },
         JornadaLibre l => new FixturePartidoDTO
         {
-            Local = l.EquipoLocal.Nombre,
-            Visitante = "LIBRE",
-            LocalEscudo = EscudoRelativo(l.EquipoLocal.ClubId),
-            VisitanteEscudo = EscudoPorDefectoRelativo()
+            Local = "LIBRE",
+            Visitante = l.Equipo.Nombre,
+            LocalEscudo = EscudoPorDefectoRelativo(),
+            VisitanteEscudo = EscudoRelativo(l.Equipo.ClubId)
         },
         JornadaInterzonal i when i.LocalOVisitanteId == (int)LocalVisitanteEnum.Local => new FixturePartidoDTO
         {
@@ -607,12 +614,23 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                 PenalesLocal = TrimResultado(p?.PenalesLocal),
                 PenalesVisitante = TrimResultado(p?.PenalesVisitante)
             },
+            JornadaLibre l when l.LocalOVisitanteId == (int)LocalVisitanteEnum.Local => new PartidoEliminacionDirectaDTO
+            {
+                Local = l.Equipo.Nombre,
+                Visitante = "LIBRE",
+                EscudoLocal = EscudoRelativo(l.Equipo.ClubId),
+                EscudoVisitante = EscudoPorDefectoRelativo(),
+                ResultadoLocal = TrimResultado(p?.ResultadoLocal),
+                ResultadoVisitante = TrimResultado(p?.ResultadoVisitante),
+                PenalesLocal = TrimResultado(p?.PenalesLocal),
+                PenalesVisitante = TrimResultado(p?.PenalesVisitante)
+            },
             JornadaLibre l => new PartidoEliminacionDirectaDTO
             {
-                Local = l.EquipoLocal.Nombre,
-                Visitante = "LIBRE",
-                EscudoLocal = EscudoRelativo(l.EquipoLocal.ClubId),
-                EscudoVisitante = EscudoPorDefectoRelativo(),
+                Local = "LIBRE",
+                Visitante = l.Equipo.Nombre,
+                EscudoLocal = EscudoPorDefectoRelativo(),
+                EscudoVisitante = EscudoRelativo(l.Equipo.ClubId),
                 ResultadoLocal = TrimResultado(p?.ResultadoLocal),
                 ResultadoVisitante = TrimResultado(p?.ResultadoVisitante),
                 PenalesLocal = TrimResultado(p?.PenalesLocal),
@@ -742,9 +760,9 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                 Visitante = CrearJornadaPorEquipo(j, n.VisitanteEquipoId, EscudoRelativo(n.VisitanteEquipo.ClubId),
                     n.VisitanteEquipo.Nombre, categorias)
             },
-            JornadaLibre l => new JornadasPorFechaDTO
+            JornadaLibre l when l.LocalOVisitanteId == (int)LocalVisitanteEnum.Local => new JornadasPorFechaDTO
             {
-                Local = CrearJornadaPorEquipo(j, l.EquipoLocalId, EscudoRelativo(l.EquipoLocal.ClubId), l.EquipoLocal.Nombre,
+                Local = CrearJornadaPorEquipo(j, l.EquipoId, EscudoRelativo(l.Equipo.ClubId), l.Equipo.Nombre,
                     categorias),
                 Visitante = new JornadaPorEquipoDTO
                 {
@@ -752,6 +770,17 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                     Equipo = "LIBRE",
                     Categorias = categorias
                 }
+            },
+            JornadaLibre l => new JornadasPorFechaDTO
+            {
+                Local = new JornadaPorEquipoDTO
+                {
+                    Escudo = EscudoPorDefectoRelativo(),
+                    Equipo = "LIBRE",
+                    Categorias = categorias
+                },
+                Visitante = CrearJornadaPorEquipo(j, l.EquipoId, EscudoRelativo(l.Equipo.ClubId), l.Equipo.Nombre,
+                    categorias)
             },
             JornadaInterzonal i when i.LocalOVisitanteId == (int)LocalVisitanteEnum.Local => new JornadasPorFechaDTO
             {

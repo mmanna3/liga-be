@@ -6,6 +6,7 @@ using Api.Core.DTOs;
 using Api.Core.DTOs.AppCarnetDigital;
 using Api.Core.Entidades;
 using Api.Persistencia._Config;
+using Api.Core.Enums;
 using Api.Core.Logica;
 using Api.TestsDeIntegracion._Config;
 using Microsoft.EntityFrameworkCore;
@@ -161,7 +162,8 @@ public class JornadasTodosContraTodosAppIT : TestBase
                         {
                             Tipo = "Libre",
                             ResultadosVerificados = false,
-                            EquipoLocalId = equipo1Id
+                            EquipoId = equipo1Id,
+                            LocalOVisitante = LocalVisitanteEnum.Local
                         }
                     ]
                 }

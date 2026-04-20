@@ -131,11 +131,13 @@ public class MapperConfig : Profile
             .Include<FechaTodosContraTodos, FechaTodosContraTodosDTO>()
             .Include<FechaEliminacionDirecta, FechaEliminacionDirectaDTO>();
         CreateMap<FechaTodosContraTodos, FechaTodosContraTodosDTO>()
-            .ForMember(dest => dest.Jornadas, opt => opt.MapFrom(src => src.Jornadas != null ? src.Jornadas : new List<Jornada>()))
+            .ForMember(dest => dest.Jornadas, opt => opt.MapFrom(src =>
+                src.Jornadas != null ? src.Jornadas.OrderBy(j => j.Id).ToList() : new List<Jornada>()))
             .PreserveReferences();
         CreateMap<FechaEliminacionDirecta, FechaEliminacionDirectaDTO>()
             .ForMember(dest => dest.InstanciaNombre, opt => opt.MapFrom(src => src.Instancia != null ? src.Instancia.Nombre : null))
-            .ForMember(dest => dest.Jornadas, opt => opt.MapFrom(src => src.Jornadas != null ? src.Jornadas : new List<Jornada>()))
+            .ForMember(dest => dest.Jornadas, opt => opt.MapFrom(src =>
+                src.Jornadas != null ? src.Jornadas.OrderBy(j => j.Id).ToList() : new List<Jornada>()))
             .PreserveReferences();
 
         CreateMap<Partido, PartidoDTO>()
@@ -147,8 +149,6 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.VisitanteId, opt => opt.MapFrom<JornadaVisitanteIdResolver>())
             .ForMember(dest => dest.Local, opt => opt.MapFrom<JornadaLocalNombreResolver>())
             .ForMember(dest => dest.Visitante, opt => opt.MapFrom<JornadaVisitanteNombreResolver>())
-            .ForMember(dest => dest.EquipoLocalId, opt => opt.MapFrom<JornadaEquipoLocalIdResolver>())
-            .ForMember(dest => dest.EquipoLocal, opt => opt.MapFrom<JornadaEquipoLocalNombreResolver>())
             .ForMember(dest => dest.EquipoId, opt => opt.MapFrom<JornadaEquipoResolver>())
             .ForMember(dest => dest.Equipo, opt => opt.MapFrom<JornadaEquipoNombreResolver>())
             .ForMember(dest => dest.Numero, opt => opt.MapFrom<JornadaNumeroResolver>())
@@ -383,18 +383,6 @@ public class TorneoSePuedeEditarResolver : IValueResolver<Torneo, TorneoDTO, boo
     }
 }
 
-public class JornadaEquipoLocalIdResolver : IValueResolver<Jornada, JornadaDTO, int?>
-{
-    public int? Resolve(Jornada source, JornadaDTO destination, int? destMember, ResolutionContext context)
-        => source is JornadaLibre l ? l.EquipoLocalId : null;
-}
-
-public class JornadaEquipoLocalNombreResolver : IValueResolver<Jornada, JornadaDTO, string?>
-{
-    public string? Resolve(Jornada source, JornadaDTO destination, string? destMember, ResolutionContext context)
-        => source is JornadaLibre l ? l.EquipoLocal?.Nombre : null;
-}
-
 public class JornadaNumeroResolver : IValueResolver<Jornada, JornadaDTO, int?>
 {
     public int? Resolve(Jornada source, JornadaDTO destination, int? destMember, ResolutionContext context)
@@ -404,17 +392,32 @@ public class JornadaNumeroResolver : IValueResolver<Jornada, JornadaDTO, int?>
 public class JornadaEquipoResolver : IValueResolver<Jornada, JornadaDTO, int?>
 {
     public int? Resolve(Jornada source, JornadaDTO destination, int? destMember, ResolutionContext context)
-        => source is JornadaInterzonal i ? i.EquipoId : null;
+        => source switch
+        {
+            JornadaLibre l => l.EquipoId,
+            JornadaInterzonal i => i.EquipoId,
+            _ => null
+        };
 }
 
 public class JornadaEquipoNombreResolver : IValueResolver<Jornada, JornadaDTO, string?>
 {
     public string? Resolve(Jornada source, JornadaDTO destination, string? destMember, ResolutionContext context)
-        => source is JornadaInterzonal i ? i.Equipo?.Nombre : null;
+        => source switch
+        {
+            JornadaLibre l => l.Equipo?.Nombre,
+            JornadaInterzonal i => i.Equipo?.Nombre,
+            _ => null
+        };
 }
 
 public class JornadaLocalOVisitanteResolver : IValueResolver<Jornada, JornadaDTO, LocalVisitanteEnum?>
 {
     public LocalVisitanteEnum? Resolve(Jornada source, JornadaDTO destination, LocalVisitanteEnum? destMember, ResolutionContext context)
-        => source is JornadaInterzonal i ? (LocalVisitanteEnum)i.LocalOVisitanteId : null;
+        => source switch
+        {
+            JornadaLibre l => (LocalVisitanteEnum)l.LocalOVisitanteId,
+            JornadaInterzonal i => (LocalVisitanteEnum)i.LocalOVisitanteId,
+            _ => null
+        };
 }

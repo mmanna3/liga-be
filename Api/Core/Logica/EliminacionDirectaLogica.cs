@@ -28,7 +28,7 @@ public static class EliminacionDirectaLogica
         string? PenalesVisitante,
         int? LocalEquipoId,
         int? VisitanteEquipoId,
-        int? JornadaLibreEquipoLocalId,
+        int? JornadaLibreEquipoId,
         int? InterzonalEquipoId,
         LocalVisitanteEnum? InterzonalEquipoEsLocalOVisitante);
 
@@ -63,7 +63,7 @@ public static class EliminacionDirectaLogica
                 partido.PenalesVisitante,
                 null,
                 null,
-                l.EquipoLocalId,
+                l.EquipoId,
                 null,
                 null),
             JornadaInterzonal i => new EntradaDecisionEliminacionDirecta(
@@ -94,7 +94,7 @@ public static class EliminacionDirectaLogica
 
     /// <summary>
     /// Devuelve el id del equipo que pasa de jornada, o null si no corresponde pasar a nadie.
-    /// Jornada libre: siempre avanza el equipo local (<see cref="EntradaDecisionEliminacionDirecta.JornadaLibreEquipoLocalId"/>), sin mirar resultados.
+    /// Jornada libre: siempre avanza el equipo asignado (<see cref="EntradaDecisionEliminacionDirecta.JornadaLibreEquipoId"/>), sin mirar resultados.
     /// </summary>
     public static int? DecidirQueEquipoPasaALaSiguienteInstancia(EntradaDecisionEliminacionDirecta e)
     {
@@ -102,7 +102,7 @@ public static class EliminacionDirectaLogica
             return null;
 
         if (e.Tipo == TipoJornadaEliminacion.Libre)
-            return e.JornadaLibreEquipoLocalId;
+            return e.JornadaLibreEquipoId;
 
         var lado = DecidirLadoGanador(e.ResultadoLocal, e.ResultadoVisitante, e.PenalesLocal, e.PenalesVisitante);
 

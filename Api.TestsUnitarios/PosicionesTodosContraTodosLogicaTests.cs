@@ -233,15 +233,17 @@ public class PosicionesTodosContraTodosLogicaTests
     }
 
     [Fact]
-    public void IntentarObtenerMiResultadoYRival_JornadaLibre_SoloEquipoLocalTienePerspectiva()
+    public void IntentarObtenerMiResultadoYRival_JornadaLibre_ComoLocal_UsaResultadoLocal()
     {
         var j = new JornadaLibre
         {
             Id = 2,
             FechaId = 1,
             ResultadosVerificados = false,
-            EquipoLocalId = 7,
-            EquipoLocal = null!,
+            EquipoId = 7,
+            Equipo = null!,
+            LocalOVisitanteId = (int)LocalVisitanteEnum.Local,
+            LocalVisitante = null!,
             Partidos = []
         };
         var p = new Partido
@@ -257,6 +259,36 @@ public class PosicionesTodosContraTodosLogicaTests
 
         Assert.True(IntentarObtenerMiResultadoYRival(p, j, 7, out _, out _));
         Assert.False(IntentarObtenerMiResultadoYRival(p, j, 99, out _, out _));
+    }
+
+    [Fact]
+    public void IntentarObtenerMiResultadoYRival_JornadaLibre_ComoVisitante_UsaResultadoVisitante()
+    {
+        var j = new JornadaLibre
+        {
+            Id = 2,
+            FechaId = 1,
+            ResultadosVerificados = false,
+            EquipoId = 7,
+            Equipo = null!,
+            LocalOVisitanteId = (int)LocalVisitanteEnum.Visitante,
+            LocalVisitante = null!,
+            Partidos = []
+        };
+        var p = new Partido
+        {
+            Id = 1,
+            CategoriaId = 1,
+            JornadaId = 1,
+            Jornada = j,
+            Categoria = null!,
+            ResultadoLocal = "1",
+            ResultadoVisitante = "NP"
+        };
+
+        Assert.True(IntentarObtenerMiResultadoYRival(p, j, 7, out var mi, out var rival));
+        Assert.Equal("NP", mi);
+        Assert.Equal("1", rival);
     }
 
     [Fact]

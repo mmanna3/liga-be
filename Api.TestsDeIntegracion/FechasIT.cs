@@ -643,7 +643,8 @@ public class FechasIT : TestBase
                     {
                         Tipo = "Libre",
                         ResultadosVerificados = false,
-                        EquipoLocalId = equipo1Id
+                        EquipoId = equipo1Id,
+                        LocalOVisitante = LocalVisitanteEnum.Local
                     }
                 ]
             }
@@ -757,6 +758,190 @@ public class FechasIT : TestBase
     }
 
     [Fact]
+    public async Task CrearFechasMasivamente_NormalYLuegoLibre_JornadasEnRespuestaYGetSiguenOrdenDelPayload()
+    {
+        Assert.NotNull(_club);
+        var zonaId = await CrearZonaDePrueba(Factory);
+        var torneoId = await ObtenerTorneoIdDeZona(Factory, zonaId);
+        await SeedTorneoCategorias(Factory, torneoId, 1);
+        var client = await GetAuthenticatedClient();
+
+        int e1, e2;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var equipos = context.Equipos.Where(eq => eq.ClubId == _club.Id).OrderBy(eq => eq.Id).ToList();
+            e1 = equipos[0].Id;
+            if (equipos.Count < 2)
+            {
+                var eq2 = new Equipo { Id = 0, Nombre = "Eq2 orden Normal Libre", ClubId = _club.Id, Jugadores = [] };
+                context.Equipos.Add(eq2);
+                context.SaveChanges();
+                e2 = eq2.Id;
+            }
+            else
+            {
+                e2 = equipos[1].Id;
+            }
+        }
+
+        var dtos = new List<FechaTodosContraTodosDTO>
+        {
+            new()
+            {
+                Dia = new DateOnly(2026, 6, 1),
+                Numero = 1,
+                EsVisibleEnApp = true,
+                Jornadas =
+                [
+                    new JornadaDTO
+                    {
+                        Tipo = "Normal",
+                        ResultadosVerificados = false,
+                        LocalId = e1,
+                        VisitanteId = e2
+                    },
+                    new JornadaDTO
+                    {
+                        Tipo = "Libre",
+                        ResultadosVerificados = false,
+                        EquipoId = e1,
+                        LocalOVisitante = LocalVisitanteEnum.Local
+                    }
+                ]
+            }
+        };
+
+        var response = await client.PostAsJsonAsync(
+            $"/api/Zona/{zonaId}/fechas/crear-fechas-todoscontratodos-masivamente", dtos, FechaJsonOptions);
+        response.EnsureSuccessStatusCode();
+
+        var creados = DeserializeFechaTctList(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(creados);
+        Assert.Single(creados);
+        var fechaId = creados[0].Id;
+        Assert.NotNull(creados[0].Jornadas);
+        var j0 = creados[0].Jornadas![0];
+        var j1 = creados[0].Jornadas[1];
+        Assert.Equal(new[] { "Normal", "Libre" }, new[] { j0.Tipo, j1.Tipo });
+        Assert.Equal(e1, j0.LocalId);
+        Assert.Equal(e2, j0.VisitanteId);
+        Assert.Null(j0.EquipoId);
+        Assert.Equal(e1, j1.EquipoId);
+        Assert.Equal(LocalVisitanteEnum.Local, j1.LocalOVisitante);
+
+        var getResponse = await client.GetAsync($"/api/Zona/{zonaId}/fechas/{fechaId}");
+        getResponse.EnsureSuccessStatusCode();
+        var fechaGet = DeserializeFechaTct(await getResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(fechaGet.Jornadas);
+        var g0 = fechaGet.Jornadas![0];
+        var g1 = fechaGet.Jornadas[1];
+        Assert.Equal(new[] { "Normal", "Libre" }, new[] { g0.Tipo, g1.Tipo });
+        Assert.Equal(e1, g0.LocalId);
+        Assert.Equal(e1, g1.EquipoId);
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var tiposPorId = await context.Jornadas
+                .Where(j => j.FechaId == fechaId)
+                .OrderBy(j => j.Id)
+                .Select(j => j is JornadaNormal ? "Normal" : j is JornadaLibre ? "Libre" : j.GetType().Name)
+                .ToListAsync();
+            Assert.Equal(new[] { "Normal", "Libre" }, tiposPorId);
+        }
+    }
+
+    [Fact]
+    public async Task CrearFechasMasivamente_LibreYLuegoNormal_JornadasEnRespuestaYGetSiguenOrdenDelPayload()
+    {
+        Assert.NotNull(_club);
+        var zonaId = await CrearZonaDePrueba(Factory);
+        var torneoId = await ObtenerTorneoIdDeZona(Factory, zonaId);
+        await SeedTorneoCategorias(Factory, torneoId, 1);
+        var client = await GetAuthenticatedClient();
+
+        int e1, e2;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var equipos = context.Equipos.Where(eq => eq.ClubId == _club.Id).OrderBy(eq => eq.Id).ToList();
+            e1 = equipos[0].Id;
+            if (equipos.Count < 2)
+            {
+                var eq2 = new Equipo { Id = 0, Nombre = "Eq2 orden Libre Normal", ClubId = _club.Id, Jugadores = [] };
+                context.Equipos.Add(eq2);
+                context.SaveChanges();
+                e2 = eq2.Id;
+            }
+            else
+            {
+                e2 = equipos[1].Id;
+            }
+        }
+
+        var dtos = new List<FechaTodosContraTodosDTO>
+        {
+            new()
+            {
+                Dia = new DateOnly(2026, 6, 2),
+                Numero = 1,
+                EsVisibleEnApp = true,
+                Jornadas =
+                [
+                    new JornadaDTO
+                    {
+                        Tipo = "Libre",
+                        ResultadosVerificados = false,
+                        EquipoId = e1,
+                        LocalOVisitante = LocalVisitanteEnum.Visitante
+                    },
+                    new JornadaDTO
+                    {
+                        Tipo = "Normal",
+                        ResultadosVerificados = false,
+                        LocalId = e1,
+                        VisitanteId = e2
+                    }
+                ]
+            }
+        };
+
+        var response = await client.PostAsJsonAsync(
+            $"/api/Zona/{zonaId}/fechas/crear-fechas-todoscontratodos-masivamente", dtos, FechaJsonOptions);
+        response.EnsureSuccessStatusCode();
+
+        var creados = DeserializeFechaTctList(await response.Content.ReadAsStringAsync());
+        Assert.Single(creados);
+        var fechaId = creados[0].Id;
+        var a = creados[0].Jornadas![0];
+        var b = creados[0].Jornadas[1];
+        Assert.Equal(new[] { "Libre", "Normal" }, new[] { a.Tipo, b.Tipo });
+        Assert.Equal(e1, a.EquipoId);
+        Assert.Equal(LocalVisitanteEnum.Visitante, a.LocalOVisitante);
+        Assert.Equal(e1, b.LocalId);
+        Assert.Equal(e2, b.VisitanteId);
+
+        var getResponse = await client.GetAsync($"/api/Zona/{zonaId}/fechas/{fechaId}");
+        getResponse.EnsureSuccessStatusCode();
+        var fechaGet = DeserializeFechaTct(await getResponse.Content.ReadAsStringAsync());
+        var ga = fechaGet.Jornadas![0];
+        var gb = fechaGet.Jornadas[1];
+        Assert.Equal(new[] { "Libre", "Normal" }, new[] { ga.Tipo, gb.Tipo });
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var tiposPorId = await context.Jornadas
+                .Where(j => j.FechaId == fechaId)
+                .OrderBy(j => j.Id)
+                .Select(j => j is JornadaNormal ? "Normal" : j is JornadaLibre ? "Libre" : j.GetType().Name)
+                .ToListAsync();
+            Assert.Equal(new[] { "Libre", "Normal" }, tiposPorId);
+        }
+    }
+
+    [Fact]
     public async Task CrearFechasMasivamente_CincoCategoriasYTresJornadas_CreaQuincePartidos()
     {
         Assert.NotNull(_club);
@@ -794,7 +979,7 @@ public class FechasIT : TestBase
                 Jornadas =
                 [
                     new JornadaDTO { Tipo = "Normal", ResultadosVerificados = false, LocalId = e1, VisitanteId = e2 },
-                    new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoLocalId = e1 },
+                    new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoId = e1, LocalOVisitante = LocalVisitanteEnum.Local },
                     new JornadaDTO { Tipo = "Normal", ResultadosVerificados = false, LocalId = e2, VisitanteId = e1 }
                 ]
             }
@@ -856,7 +1041,7 @@ public class FechasIT : TestBase
                     Jornadas =
                     [
                         new JornadaDTO { Tipo = "Normal", ResultadosVerificados = false, LocalId = equipo1Id, VisitanteId = equipo2Id },
-                        new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoLocalId = equipo1Id }
+                        new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoId = equipo1Id, LocalOVisitante = LocalVisitanteEnum.Local }
                     ]
                 }
             }, FechaJsonOptions);
@@ -877,7 +1062,7 @@ public class FechasIT : TestBase
                 Jornadas =
                 [
                     new JornadaDTO { Id = jornadaNormalId, Tipo = "Normal", ResultadosVerificados = true, LocalId = equipo1Id, VisitanteId = equipo2Id },
-                    new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoLocalId = equipo2Id }
+                    new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoId = equipo2Id, LocalOVisitante = LocalVisitanteEnum.Local }
                 ]
             }
         };
@@ -898,7 +1083,8 @@ public class FechasIT : TestBase
 
         var jornadaLibre = fecha.Jornadas.FirstOrDefault(j => j.Tipo == "Libre");
         Assert.NotNull(jornadaLibre);
-        Assert.Equal(equipo2Id, jornadaLibre.EquipoLocalId);
+        Assert.Equal(equipo2Id, jornadaLibre.EquipoId);
+        Assert.Equal(LocalVisitanteEnum.Local, jornadaLibre.LocalOVisitante);
 
         using (var scope = Factory.Services.CreateScope())
         {
@@ -909,6 +1095,194 @@ public class FechasIT : TestBase
             var partidos = context.Partidos.Where(p => jornadaIds.Contains(p.JornadaId)).ToList();
             Assert.Equal(4, partidos.Count); // 2 categorías × 2 jornadas
         }
+    }
+
+    [Fact]
+    public async Task CrearFechasMasivamente_JornadaLibreEquipoComoLocalYComoVisitante_PersisteYGetCoincidenConBd()
+    {
+        Assert.NotNull(_club);
+        var zonaId = await CrearZonaDePrueba(Factory);
+        var torneoId = await ObtenerTorneoIdDeZona(Factory, zonaId);
+        await SeedTorneoCategorias(Factory, torneoId, 1);
+        var client = await GetAuthenticatedClient();
+
+        int equipoContraLibreComoLocalId;
+        int equipoContraLibreComoVisitanteId;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var equipos = context.Equipos.Where(e => e.ClubId == _club.Id).ToList();
+            equipoContraLibreComoLocalId = equipos[0].Id;
+            var eqVisit = new Equipo { Id = 0, Nombre = "Eq Libre lado visitante", ClubId = _club.Id, Jugadores = [] };
+            context.Equipos.Add(eqVisit);
+            context.SaveChanges();
+            equipoContraLibreComoVisitanteId = eqVisit.Id;
+        }
+
+        var payload = new List<FechaTodosContraTodosDTO>
+        {
+            new()
+            {
+                Dia = new DateOnly(2026, 5, 10),
+                Numero = 1,
+                EsVisibleEnApp = true,
+                Jornadas =
+                [
+                    new JornadaDTO
+                    {
+                        Tipo = "Libre",
+                        ResultadosVerificados = false,
+                        EquipoId = equipoContraLibreComoLocalId,
+                        LocalOVisitante = LocalVisitanteEnum.Local
+                    },
+                    new JornadaDTO
+                    {
+                        Tipo = "Libre",
+                        ResultadosVerificados = false,
+                        EquipoId = equipoContraLibreComoVisitanteId,
+                        LocalOVisitante = LocalVisitanteEnum.Visitante
+                    }
+                ]
+            }
+        };
+
+        var postResponse = await client.PostAsJsonAsync(
+            $"/api/Zona/{zonaId}/fechas/crear-fechas-todoscontratodos-masivamente", payload, FechaJsonOptions);
+        postResponse.EnsureSuccessStatusCode();
+
+        var creados = DeserializeFechaTctList(await postResponse.Content.ReadAsStringAsync());
+        Assert.Single(creados);
+        var fechaId = creados[0].Id;
+        Assert.NotNull(creados[0].Jornadas);
+        Assert.Equal(2, creados[0].Jornadas!.Count);
+
+        static void AssertLibreDto(JornadaDTO j, int equipoId, LocalVisitanteEnum lado)
+        {
+            Assert.Equal("Libre", j.Tipo);
+            Assert.Equal(equipoId, j.EquipoId);
+            Assert.Equal(lado, j.LocalOVisitante);
+        }
+
+        var dtoRespLocal = creados[0].Jornadas.Single(j => j.EquipoId == equipoContraLibreComoLocalId);
+        var dtoRespVisit = creados[0].Jornadas.Single(j => j.EquipoId == equipoContraLibreComoVisitanteId);
+        AssertLibreDto(dtoRespLocal, equipoContraLibreComoLocalId, LocalVisitanteEnum.Local);
+        AssertLibreDto(dtoRespVisit, equipoContraLibreComoVisitanteId, LocalVisitanteEnum.Visitante);
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var libres = await context.Jornadas.OfType<JornadaLibre>().Where(j => j.FechaId == fechaId).ToListAsync();
+            Assert.Equal(2, libres.Count);
+            var entLocal = libres.Single(j => j.EquipoId == equipoContraLibreComoLocalId);
+            Assert.Equal((int)LocalVisitanteEnum.Local, entLocal.LocalOVisitanteId);
+            var entVisit = libres.Single(j => j.EquipoId == equipoContraLibreComoVisitanteId);
+            Assert.Equal((int)LocalVisitanteEnum.Visitante, entVisit.LocalOVisitanteId);
+        }
+
+        var getResponse = await client.GetAsync($"/api/Zona/{zonaId}/fechas/{fechaId}");
+        getResponse.EnsureSuccessStatusCode();
+        var fechaGet = DeserializeFechaTct(await getResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(fechaGet.Jornadas);
+        Assert.Equal(2, fechaGet.Jornadas!.Count);
+        var dtoGetLocal = fechaGet.Jornadas.Single(j => j.EquipoId == equipoContraLibreComoLocalId);
+        var dtoGetVisit = fechaGet.Jornadas.Single(j => j.EquipoId == equipoContraLibreComoVisitanteId);
+        AssertLibreDto(dtoGetLocal, equipoContraLibreComoLocalId, LocalVisitanteEnum.Local);
+        AssertLibreDto(dtoGetVisit, equipoContraLibreComoVisitanteId, LocalVisitanteEnum.Visitante);
+    }
+
+    [Fact]
+    public async Task ModificarFechasMasivamente_JornadaLibreCambiaLadoLocalAVisitante_PersisteYGetCoincidenConBd()
+    {
+        Assert.NotNull(_club);
+        var zonaId = await CrearZonaDePrueba(Factory);
+        var torneoId = await ObtenerTorneoIdDeZona(Factory, zonaId);
+        await SeedTorneoCategorias(Factory, torneoId, 1);
+        var client = await GetAuthenticatedClient();
+
+        int equipoLibreId;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            equipoLibreId = context.Equipos.First(e => e.ClubId == _club.Id).Id;
+        }
+
+        var postResponse = await client.PostAsJsonAsync(
+            $"/api/Zona/{zonaId}/fechas/crear-fechas-todoscontratodos-masivamente",
+            new List<FechaTodosContraTodosDTO>
+            {
+                new()
+                {
+                    Dia = new DateOnly(2026, 5, 11),
+                    Numero = 1,
+                    EsVisibleEnApp = true,
+                    Jornadas =
+                    [
+                        new JornadaDTO
+                        {
+                            Tipo = "Libre",
+                            ResultadosVerificados = false,
+                            EquipoId = equipoLibreId,
+                            LocalOVisitante = LocalVisitanteEnum.Local
+                        }
+                    ]
+                }
+            }, FechaJsonOptions);
+        postResponse.EnsureSuccessStatusCode();
+        var creados = DeserializeFechaTctList(await postResponse.Content.ReadAsStringAsync())!;
+        var fechaId = creados[0].Id;
+        var jornadaLibreId = creados[0].Jornadas!.Single(j => j.Tipo == "Libre").Id;
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var libre = await context.Jornadas.OfType<JornadaLibre>().SingleAsync(j => j.Id == jornadaLibreId);
+            Assert.Equal(equipoLibreId, libre.EquipoId);
+            Assert.Equal((int)LocalVisitanteEnum.Local, libre.LocalOVisitanteId);
+        }
+
+        var putResponse = await client.PutAsJsonAsync(
+            $"/api/Zona/{zonaId}/fechas/modificar-fechas-masivamente",
+            new List<FechaDTO>
+            {
+                new FechaTodosContraTodosDTO
+                {
+                    Id = fechaId,
+                    Dia = new DateOnly(2026, 5, 11),
+                    Numero = 1,
+                    ZonaId = zonaId,
+                    EsVisibleEnApp = true,
+                    Jornadas =
+                    [
+                        new JornadaDTO
+                        {
+                            Id = jornadaLibreId,
+                            Tipo = "Libre",
+                            ResultadosVerificados = true,
+                            EquipoId = equipoLibreId,
+                            LocalOVisitante = LocalVisitanteEnum.Visitante
+                        }
+                    ]
+                }
+            }, FechaJsonOptions);
+        Assert.Equal(System.Net.HttpStatusCode.NoContent, putResponse.StatusCode);
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var libre = await context.Jornadas.OfType<JornadaLibre>().SingleAsync(j => j.Id == jornadaLibreId);
+            Assert.Equal(equipoLibreId, libre.EquipoId);
+            Assert.Equal((int)LocalVisitanteEnum.Visitante, libre.LocalOVisitanteId);
+            Assert.True(libre.ResultadosVerificados);
+        }
+
+        var getResponse = await client.GetAsync($"/api/Zona/{zonaId}/fechas/{fechaId}");
+        getResponse.EnsureSuccessStatusCode();
+        var fechaGet = DeserializeFechaTct(await getResponse.Content.ReadAsStringAsync());
+        var dtoLibre = fechaGet.Jornadas!.Single(j => j.Id == jornadaLibreId);
+        Assert.Equal("Libre", dtoLibre.Tipo);
+        Assert.Equal(equipoLibreId, dtoLibre.EquipoId);
+        Assert.Equal(LocalVisitanteEnum.Visitante, dtoLibre.LocalOVisitante);
+        Assert.True(dtoLibre.ResultadosVerificados);
     }
 
     [Fact]
@@ -951,7 +1325,7 @@ public class FechasIT : TestBase
                     Jornadas =
                     [
                         new JornadaDTO { Tipo = "Normal", ResultadosVerificados = false, LocalId = equipo1Id, VisitanteId = equipo2Id },
-                        new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoLocalId = equipo1Id }
+                        new JornadaDTO { Tipo = "Libre", ResultadosVerificados = false, EquipoId = equipo1Id, LocalOVisitante = LocalVisitanteEnum.Local }
                     ]
                 }
             }, FechaJsonOptions);
@@ -1034,7 +1408,7 @@ public class FechasIT : TestBase
                     "esVisibleEnApp": false,
                     "jornadas": [
                         { "tipo": "Normal", "resultadosVerificados": false, "localId": "{{equipo1Id}}", "visitanteId": "{{equipo2Id}}" },
-                        { "tipo": "Libre", "resultadosVerificados": false, "equipoLocalId": "{{equipo3Id}}" }
+                        { "tipo": "Libre", "resultadosVerificados": false, "equipoId": "{{equipo3Id}}", "localOVisitante": 1 }
                     ]
                 },
                 {
@@ -1043,7 +1417,7 @@ public class FechasIT : TestBase
                     "esVisibleEnApp": false,
                     "jornadas": [
                         { "tipo": "Normal", "resultadosVerificados": false, "localId": "{{equipo1Id}}", "visitanteId": "{{equipo3Id}}" },
-                        { "tipo": "Libre", "resultadosVerificados": false, "equipoLocalId": "{{equipo2Id}}" }
+                        { "tipo": "Libre", "resultadosVerificados": false, "equipoId": "{{equipo2Id}}", "localOVisitante": 1 }
                     ]
                 }
             ]

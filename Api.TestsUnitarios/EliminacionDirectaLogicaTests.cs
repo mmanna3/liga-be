@@ -22,7 +22,7 @@ public class EliminacionDirectaLogicaTests
             null);
 
     private static EntradaDecisionEliminacionDirecta Libre(
-        string rl, string rv, string? pl, string? pv, int equipoLocalId) =>
+        string rl, string rv, string? pl, string? pv, int equipoId) =>
         new(
             TipoJornadaEliminacion.Libre,
             rl,
@@ -31,7 +31,7 @@ public class EliminacionDirectaLogicaTests
             pv,
             null,
             null,
-            equipoLocalId,
+            equipoId,
             null,
             null);
 
@@ -106,7 +106,7 @@ public class EliminacionDirectaLogicaTests
     }
 
     [Fact]
-    public void Libre_SiempreDevuelveEquipoLocalId_InclusoSiEnResultadoGanaVisitante()
+    public void Libre_SiempreDevuelveEquipoId_InclusoSiEnResultadoGanaVisitante()
     {
         var e = Libre("0", "3", null, null, 99);
         Assert.Equal(99, DecidirQueEquipoPasaALaSiguienteInstancia(e));

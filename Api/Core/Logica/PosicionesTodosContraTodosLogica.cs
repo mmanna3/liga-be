@@ -172,10 +172,19 @@ public static class PosicionesTodosContraTodosLogica
 
                 return false;
             case JornadaLibre l:
-                if (l.EquipoLocalId != equipoId)
+                if (l.EquipoId != equipoId)
                     return false;
-                mi = partido.ResultadoLocal;
-                rival = partido.ResultadoVisitante;
+                if (l.LocalOVisitanteId == (int)LocalVisitanteEnum.Local)
+                {
+                    mi = partido.ResultadoLocal;
+                    rival = partido.ResultadoVisitante;
+                }
+                else
+                {
+                    mi = partido.ResultadoVisitante;
+                    rival = partido.ResultadoLocal;
+                }
+
                 return true;
             case JornadaInterzonal i:
                 if (i.EquipoId != equipoId)

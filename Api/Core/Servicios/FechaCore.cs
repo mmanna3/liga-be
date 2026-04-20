@@ -522,7 +522,8 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
                 Id = 0,
                 FechaId = fechaId,
                 ResultadosVerificados = dto.ResultadosVerificados,
-                EquipoLocalId = dto.EquipoLocalId ?? 0
+                EquipoId = dto.EquipoId ?? 0,
+                LocalOVisitanteId = (int)(dto.LocalOVisitante ?? LocalVisitanteEnum.Local)
             },
             "Interzonal" => new JornadaInterzonal
             {
@@ -555,7 +556,8 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
                 if (dto.VisitanteId.HasValue) normal.VisitanteEquipoId = dto.VisitanteId.Value;
                 break;
             case JornadaLibre libre:
-                if (dto.EquipoLocalId.HasValue) libre.EquipoLocalId = dto.EquipoLocalId.Value;
+                if (dto.EquipoId.HasValue) libre.EquipoId = dto.EquipoId.Value;
+                if (dto.LocalOVisitante.HasValue) libre.LocalOVisitanteId = (int)dto.LocalOVisitante.Value;
                 break;
             case JornadaInterzonal interzonal:
                 if (dto.EquipoId.HasValue) interzonal.EquipoId = dto.EquipoId.Value;

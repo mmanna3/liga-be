@@ -310,13 +310,13 @@ public class AppDbContext : DbContext
                 {
                     t.HasCheckConstraint(
                         "CK_Jornada_Tipo_Valido",
-                        @"([Tipo] = N'Normal' AND [LocalEquipoId] IS NOT NULL AND [VisitanteEquipoId] IS NOT NULL AND [LocalEquipoId] <> [VisitanteEquipoId] AND [EquipoId] IS NULL AND [EquipoLocalId] IS NULL AND [LocalOVisitanteId] IS NULL)
+                        @"([Tipo] = N'Normal' AND [LocalEquipoId] IS NOT NULL AND [VisitanteEquipoId] IS NOT NULL AND [LocalEquipoId] <> [VisitanteEquipoId] AND [EquipoId] IS NULL AND [LocalOVisitanteId] IS NULL)
     OR
-    ([Tipo] = N'Libre' AND [EquipoLocalId] IS NOT NULL AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL AND [EquipoId] IS NULL AND [LocalOVisitanteId] IS NULL)
+    ([Tipo] = N'Libre' AND [EquipoId] IS NOT NULL AND [LocalOVisitanteId] IS NOT NULL AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL)
     OR
-    ([Tipo] = N'Interzonal' AND [EquipoId] IS NOT NULL AND [LocalOVisitanteId] IS NOT NULL AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL AND [EquipoLocalId] IS NULL)
+    ([Tipo] = N'Interzonal' AND [EquipoId] IS NOT NULL AND [LocalOVisitanteId] IS NOT NULL AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL)
     OR
-    ([Tipo] = N'SinEquipos' AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL AND [EquipoId] IS NULL AND [EquipoLocalId] IS NULL AND [LocalOVisitanteId] IS NULL)");
+    ([Tipo] = N'SinEquipos' AND [LocalEquipoId] IS NULL AND [VisitanteEquipoId] IS NULL AND [EquipoId] IS NULL AND [LocalOVisitanteId] IS NULL)");
                 }
             });
         builder.Entity<Jornada>()
@@ -343,10 +343,22 @@ public class AppDbContext : DbContext
             .HasForeignKey(j => j.VisitanteEquipoId)
             .OnDelete(DeleteBehavior.Restrict);
         builder.Entity<JornadaLibre>()
-            .HasOne(j => j.EquipoLocal)
+            .HasOne(j => j.Equipo)
             .WithMany()
-            .HasForeignKey(j => j.EquipoLocalId)
+            .HasForeignKey(j => j.EquipoId)
             .OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<JornadaLibre>()
+            .HasOne(j => j.LocalVisitante)
+            .WithMany()
+            .HasForeignKey(j => j.LocalOVisitanteId)
+            .OnDelete(DeleteBehavior.Restrict);
+        // Misma columna TPH que JornadaInterzonal (evita sufijos JornadaLibre_EquipoId / JornadaLibre_LocalOVisitanteId).
+        builder.Entity<JornadaLibre>()
+            .Property(j => j.EquipoId)
+            .HasColumnName("EquipoId");
+        builder.Entity<JornadaLibre>()
+            .Property(j => j.LocalOVisitanteId)
+            .HasColumnName("LocalOVisitanteId");
         builder.Entity<JornadaInterzonal>()
             .HasOne(j => j.Equipo)
             .WithMany()
@@ -357,6 +369,12 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(j => j.LocalOVisitanteId)
             .OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<JornadaInterzonal>()
+            .Property(j => j.EquipoId)
+            .HasColumnName("EquipoId");
+        builder.Entity<JornadaInterzonal>()
+            .Property(j => j.LocalOVisitanteId)
+            .HasColumnName("LocalOVisitanteId");
         {
             var ixInterzonalNumero = builder.Entity<JornadaInterzonal>()
                 .HasIndex(j => new { j.FechaId, j.Numero });
