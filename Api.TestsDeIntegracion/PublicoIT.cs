@@ -166,4 +166,139 @@ public class PublicoIT : TestBase
 
         Assert.False(response.IsSuccessStatusCode);
     }
+
+    [Fact]
+    public async Task FicharEnOtroEquipo_JugadorYaJuegaEnEquipoDelMismoTorneo_LanzaError()
+    {
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var torneo = new Torneo
+            {
+                Id = 0,
+                Nombre = "Torneo Unico",
+                Anio = DateTime.Today.Year,
+                EsVisibleEnApp = true,
+                SeVenLosGolesEnTablaDePosiciones = true,
+                TorneoAgrupadorId = 1
+            };
+            context.Torneos.Add(torneo);
+            context.SaveChanges();
+
+            var fase = new FaseTodosContraTodos
+            {
+                Id = 0,
+                Nombre = "Fase",
+                TorneoId = torneo.Id,
+                Numero = 1,
+                EstadoFaseId = 100,
+                EsVisibleEnApp = true
+            };
+            context.Fases.Add(fase);
+            context.SaveChanges();
+
+            var zona = new ZonaTodosContraTodos
+            {
+                Id = 0,
+                FaseId = fase.Id,
+                Nombre = "Zona A"
+            };
+            context.Zonas.Add(zona);
+            context.SaveChanges();
+
+            context.EquipoZona.Add(new EquipoZona { Id = 0, EquipoId = 1, ZonaId = zona.Id });
+            context.EquipoZona.Add(new EquipoZona { Id = 0, EquipoId = 2, ZonaId = zona.Id });
+            context.SaveChanges();
+        }
+
+        var client = Factory.CreateClient();
+        var codigo = GeneradorDeHash.GenerarAlfanumerico7Digitos(2);
+        var dto = new FicharEnOtroEquipoDTO { DNI = "22222222", CodigoAlfanumerico = codigo };
+
+        var response = await client.PostAsJsonAsync("/api/publico/fichar-en-otro-equipo", dto);
+
+        Assert.False(response.IsSuccessStatusCode);
+        var errorContent = await response.Content.ReadAsStringAsync();
+        Assert.Contains("mismo torneo", errorContent);
+    }
+
+    [Fact]
+    public async Task FicharEnOtroEquipo_JugadorJuegaEnEquipoDeOtroTorneo_PermiteFichaje()
+    {
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var torneo1 = new Torneo
+            {
+                Id = 0,
+                Nombre = "Torneo 1",
+                Anio = DateTime.Today.Year,
+                EsVisibleEnApp = true,
+                SeVenLosGolesEnTablaDePosiciones = true,
+                TorneoAgrupadorId = 1
+            };
+            var torneo2 = new Torneo
+            {
+                Id = 0,
+                Nombre = "Torneo 2",
+                Anio = DateTime.Today.Year,
+                EsVisibleEnApp = true,
+                SeVenLosGolesEnTablaDePosiciones = true,
+                TorneoAgrupadorId = 1
+            };
+            context.Torneos.AddRange(torneo1, torneo2);
+            context.SaveChanges();
+
+            var fase1 = new FaseTodosContraTodos
+            {
+                Id = 0,
+                Nombre = "Fase 1",
+                TorneoId = torneo1.Id,
+                Numero = 1,
+                EstadoFaseId = 100,
+                EsVisibleEnApp = true
+            };
+            var fase2 = new FaseTodosContraTodos
+            {
+                Id = 0,
+                Nombre = "Fase 2",
+                TorneoId = torneo2.Id,
+                Numero = 1,
+                EstadoFaseId = 100,
+                EsVisibleEnApp = true
+            };
+            context.Fases.AddRange(fase1, fase2);
+            context.SaveChanges();
+
+            var zona1 = new ZonaTodosContraTodos
+            {
+                Id = 0,
+                FaseId = fase1.Id,
+                Nombre = "Zona Torneo 1"
+            };
+            var zona2 = new ZonaTodosContraTodos
+            {
+                Id = 0,
+                FaseId = fase2.Id,
+                Nombre = "Zona Torneo 2"
+            };
+            context.Zonas.AddRange(zona1, zona2);
+            context.SaveChanges();
+
+            context.EquipoZona.Add(new EquipoZona { Id = 0, EquipoId = 1, ZonaId = zona1.Id });
+            context.EquipoZona.Add(new EquipoZona { Id = 0, EquipoId = 2, ZonaId = zona2.Id });
+            context.SaveChanges();
+        }
+
+        var client = Factory.CreateClient();
+        var codigo = GeneradorDeHash.GenerarAlfanumerico7Digitos(2);
+        var dto = new FicharEnOtroEquipoDTO { DNI = "22222222", CodigoAlfanumerico = codigo };
+
+        var response = await client.PostAsJsonAsync("/api/publico/fichar-en-otro-equipo", dto);
+
+        response.EnsureSuccessStatusCode();
+        var jugadorId = JsonConvert.DeserializeObject<int>(await response.Content.ReadAsStringAsync());
+        Assert.Equal(2, jugadorId);
+    }
 }

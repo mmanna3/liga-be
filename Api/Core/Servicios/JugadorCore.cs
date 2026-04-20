@@ -114,6 +114,9 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         if (equipo == null)
             throw new ExcepcionControlada("El equipo no existe");
 
+        if (jugador.Id > 0 && await Repo.JugadorYaJuegaEnTorneoDelEquipoDestino(jugador.Id, equipoId))
+            throw new ExcepcionControlada("El jugador ya juega en otro equipo del mismo torneo.");
+
         var jugadorEquipo = new JugadorEquipo
         {
             Id = 0,
@@ -252,7 +255,7 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
             if (jugador.JugadorEquipos.Any(je => je.EquipoId == dto.EquipoDestinoId))
                 throw new ExcepcionControlada("El jugador ya juega en el equipo destino.");
 
-            if (await Repo.JugadorYaJuegaEnTorneoDelEquipoDestino(dto.JugadorId, dto.EquipoOrigenId, dto.EquipoDestinoId))
+            if (await Repo.JugadorYaJuegaEnTorneoDelEquipoDestino(dto.JugadorId, dto.EquipoDestinoId, dto.EquipoOrigenId))
                 throw new ExcepcionControlada("El jugador ya juega en otro equipo del mismo torneo.");
 
             var jugadorEquipoOrigen = jugador.JugadorEquipos.Single(x => x.EquipoId == dto.EquipoOrigenId);

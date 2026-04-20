@@ -115,7 +115,7 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
             .FirstOrDefaultAsync();
     }
 
-    public async Task<bool> JugadorYaJuegaEnTorneoDelEquipoDestino(int jugadorId, int equipoOrigenId, int equipoDestinoId)
+    public async Task<bool> JugadorYaJuegaEnTorneoDelEquipoDestino(int jugadorId, int equipoDestinoId, int? equipoOrigenId = null)
     {
         var torneoDestinoIds = await (
             from ez in Context.Set<EquipoZona>()
@@ -136,9 +136,13 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
             select ez.EquipoId
         ).Distinct().ToListAsync();
 
-        return await Context.JugadorEquipo
-            .Where(je => je.JugadorId == jugadorId && je.EquipoId != equipoOrigenId)
-            .AnyAsync(je => equipoIdsEnTorneo.Contains(je.EquipoId));
+        var query = Context.JugadorEquipo
+            .Where(je => je.JugadorId == jugadorId);
+
+        if (equipoOrigenId.HasValue)
+            query = query.Where(je => je.EquipoId != equipoOrigenId.Value);
+
+        return await query.AnyAsync(je => equipoIdsEnTorneo.Contains(je.EquipoId));
     }
 
     public async Task<List<JugadorEquipo>> ListarJugadorEquiposNoPendientesConRelaciones()

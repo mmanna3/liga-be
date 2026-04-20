@@ -5,21 +5,22 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers
 {
+    // TODO: Esto tendría que llamarse FichajeController
     [Route("api/publico")]
     [ApiController]
     [AllowAnonymous]
     public class PublicoController : ControllerBase
     {
-    private readonly IPublicoCore _core;
-    private readonly IEquipoCore _equipoCore;
-    private readonly IDelegadoCore _delegadoCore;
+        private readonly IPublicoCore _core;
+        private readonly IEquipoCore _equipoCore;
+        private readonly IDelegadoCore _delegadoCore;
 
-    public PublicoController(IPublicoCore publicoCore, IEquipoCore equipoCore, IDelegadoCore delegadoCore)
-    {
-        _core = publicoCore;
-        _equipoCore = equipoCore;
-        _delegadoCore = delegadoCore;
-    }
+        public PublicoController(IPublicoCore publicoCore, IEquipoCore equipoCore, IDelegadoCore delegadoCore)
+        {
+            _core = publicoCore;
+            _equipoCore = equipoCore;
+            _delegadoCore = delegadoCore;
+        }
 
         [HttpGet("el-dni-esta-fichado")]
         public async Task<bool> ElDniEstaFichado([FromQuery] string dni)
@@ -58,6 +59,7 @@ namespace Api.Api.Controllers
             return await _core.FicharEnOtroEquipo(dto);
         }
 
+        // Helper para mí (no usado por usuarios)
         [HttpGet("jugadores-sin-foto")]
         [Produces("text/plain")]
         public async Task<ContentResult> JugadoresSinFoto()
