@@ -84,7 +84,8 @@ namespace Api.Api.Controllers
         [HttpPost("desvincular-jugador-del-equipo")]
         public async Task<ActionResult<int>> DesvincularJugadorDelEquipo(DesvincularJugadorDelEquipoDTO dto)
         {
-            var id = await Core.DesvincularJugadorDelEquipo(dto);
+            var esDelegado = User.IsInRole("Delegado");
+            var id = await Core.DesvincularJugadorDelEquipo(dto, esDelegado);
             return Ok(id);
         }
 

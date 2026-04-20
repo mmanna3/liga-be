@@ -4,6 +4,7 @@ using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Core.Enums;
 using Api.Core.Logica;
+using Api.Core.Servicios;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
 using Microsoft.Extensions.DependencyInjection;
@@ -631,5 +632,207 @@ public class JugadorIT : TestBase
             TarjetasRojas = 0
         });
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DesvincularJugadorDelEquipo_DelegadoYEstadoActivo_Devuelve400YNoDesvincula()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var equipo = new Equipo
+        {
+            Id = 2,
+            Nombre = "Equipo Secundario",
+            ClubId = 1,
+            Jugadores = new List<JugadorEquipo>()
+        };
+        context.Equipos.Add(equipo);
+
+        var jugador = new Jugador
+        {
+            Id = 801,
+            DNI = "80180180",
+            Nombre = "Delegado",
+            Apellido = "Activo",
+            FechaNacimiento = new DateTime(2000, 1, 1)
+        };
+        context.Jugadores.Add(jugador);
+        context.JugadorEquipo.AddRange(
+            new JugadorEquipo
+            {
+                Id = 8011,
+                JugadorId = 801,
+                EquipoId = 1,
+                FechaFichaje = DateTime.Now,
+                EstadoJugadorId = (int)EstadoJugadorEnum.Activo
+            },
+            new JugadorEquipo
+            {
+                Id = 8012,
+                JugadorId = 801,
+                EquipoId = 2,
+                FechaFichaje = DateTime.Now,
+                EstadoJugadorId = (int)EstadoJugadorEnum.Activo
+            }
+        );
+        context.SaveChanges();
+
+        var client = await GetAuthenticatedClientConRol("delegado_test", "test123", "Delegado");
+        var response = await client.PostAsJsonAsync("/api/Jugador/desvincular-jugador-del-equipo", new DesvincularJugadorDelEquipoDTO
+        {
+            JugadorId = 801,
+            EquipoId = 1
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        using var verifyScope = Factory.Services.CreateScope();
+        var verifyContext = verifyScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.True(verifyContext.JugadorEquipo.Any(je => je.Id == 8011));
+        Assert.True(verifyContext.JugadorEquipo.Any(je => je.Id == 8012));
+    }
+
+    [Fact]
+    public async Task DesvincularJugadorDelEquipo_DelegadoYAprobadoPendienteDePago_Devuelve200YDesvincula()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var equipo = new Equipo
+        {
+            Id = 3,
+            Nombre = "Equipo Tercero",
+            ClubId = 1,
+            Jugadores = new List<JugadorEquipo>()
+        };
+        context.Equipos.Add(equipo);
+
+        var jugador = new Jugador
+        {
+            Id = 802,
+            DNI = "80280280",
+            Nombre = "Delegado",
+            Apellido = "Permitido",
+            FechaNacimiento = new DateTime(2000, 2, 2)
+        };
+        context.Jugadores.Add(jugador);
+        context.JugadorEquipo.AddRange(
+            new JugadorEquipo
+            {
+                Id = 8021,
+                JugadorId = 802,
+                EquipoId = 1,
+                FechaFichaje = DateTime.Now,
+                EstadoJugadorId = (int)EstadoJugadorEnum.AprobadoPendienteDePago
+            },
+            new JugadorEquipo
+            {
+                Id = 8022,
+                JugadorId = 802,
+                EquipoId = 3,
+                FechaFichaje = DateTime.Now,
+                EstadoJugadorId = (int)EstadoJugadorEnum.Activo
+            }
+        );
+        context.SaveChanges();
+
+        var client = await GetAuthenticatedClientConRol("delegado_test_2", "test123", "Delegado");
+        var response = await client.PostAsJsonAsync("/api/Jugador/desvincular-jugador-del-equipo", new DesvincularJugadorDelEquipoDTO
+        {
+            JugadorId = 802,
+            EquipoId = 1
+        });
+
+        response.EnsureSuccessStatusCode();
+
+        using var verifyScope = Factory.Services.CreateScope();
+        var verifyContext = verifyScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.False(verifyContext.JugadorEquipo.Any(je => je.Id == 8021));
+        Assert.True(verifyContext.JugadorEquipo.Any(je => je.Id == 8022));
+    }
+
+    [Fact]
+    public async Task DesvincularJugadorDelEquipo_AdminYEstadoActivo_Devuelve200YDesvincula()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var equipo = new Equipo
+        {
+            Id = 4,
+            Nombre = "Equipo Cuarto",
+            ClubId = 1,
+            Jugadores = new List<JugadorEquipo>()
+        };
+        context.Equipos.Add(equipo);
+
+        var jugador = new Jugador
+        {
+            Id = 803,
+            DNI = "80380380",
+            Nombre = "Admin",
+            Apellido = "Activo",
+            FechaNacimiento = new DateTime(2000, 3, 3)
+        };
+        context.Jugadores.Add(jugador);
+        context.JugadorEquipo.AddRange(
+            new JugadorEquipo
+            {
+                Id = 8031,
+                JugadorId = 803,
+                EquipoId = 1,
+                FechaFichaje = DateTime.Now,
+                EstadoJugadorId = (int)EstadoJugadorEnum.Activo
+            },
+            new JugadorEquipo
+            {
+                Id = 8032,
+                JugadorId = 803,
+                EquipoId = 4,
+                FechaFichaje = DateTime.Now,
+                EstadoJugadorId = (int)EstadoJugadorEnum.Activo
+            }
+        );
+        context.SaveChanges();
+
+        var client = await GetAuthenticatedClient();
+        var response = await client.PostAsJsonAsync("/api/Jugador/desvincular-jugador-del-equipo", new DesvincularJugadorDelEquipoDTO
+        {
+            JugadorId = 803,
+            EquipoId = 1
+        });
+
+        response.EnsureSuccessStatusCode();
+
+        using var verifyScope = Factory.Services.CreateScope();
+        var verifyContext = verifyScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.False(verifyContext.JugadorEquipo.Any(je => je.Id == 8031));
+        Assert.True(verifyContext.JugadorEquipo.Any(je => je.Id == 8032));
+    }
+
+    private async Task<HttpClient> GetAuthenticatedClientConRol(string usuario, string password, string rolNombre)
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var existentes = context.Usuarios.Where(u => u.NombreUsuario == usuario).ToList();
+        if (existentes.Any())
+        {
+            context.Usuarios.RemoveRange(existentes);
+            context.SaveChanges();
+        }
+
+        var rol = context.Roles.First(r => r.Nombre == rolNombre);
+        context.Usuarios.Add(new Usuario
+        {
+            Id = 990001,
+            NombreUsuario = usuario,
+            Password = AuthCore.HashPassword(password),
+            RolId = rol.Id
+        });
+        context.SaveChanges();
+
+        return await AuthTestHelper.GetAuthenticatedClient(Factory.CreateClient(), usuario, password);
     }
 }

@@ -129,19 +129,29 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         return jugador;
     }
 
-    public async Task<int> DesvincularJugadorDelEquipo(DesvincularJugadorDelEquipoDTO dto)
+    public async Task<int> DesvincularJugadorDelEquipo(DesvincularJugadorDelEquipoDTO dto, bool esDelegado)
     {
         var jugador = await Repo.ObtenerPorIdParaEliminar(dto.JugadorId);
         if (jugador == null)
             return -1;
 
+        var jugadorEquipo = jugador.JugadorEquipos.Single(x => x.EquipoId == dto.EquipoId);
+        if (esDelegado && !EsEstadoPermitidoParaDesvinculacionDeDelegado((EstadoJugadorEnum)jugadorEquipo.EstadoJugadorId))
+            throw new ExcepcionControlada("Como delegado solo podés desvincular jugadores en estado FichajePendienteDeAprobacion, FichajeRechazado o AprobadoPendienteDePago.");
+
         if (jugador.JugadorEquipos.Count == 1)
             return await Eliminar(dto.JugadorId);
 
-        var jugadorEquipoId = jugador.JugadorEquipos.Single(x => x.EquipoId == dto.EquipoId).Id;
-        Repo.EliminarJugadorEquipo(jugadorEquipoId);
+        Repo.EliminarJugadorEquipo(jugadorEquipo.Id);
         await BDVirtual.GuardarCambios();
         return dto.JugadorId;
+    }
+
+    private static bool EsEstadoPermitidoParaDesvinculacionDeDelegado(EstadoJugadorEnum estado)
+    {
+        return estado == EstadoJugadorEnum.FichajePendienteDeAprobacion
+               || estado == EstadoJugadorEnum.FichajeRechazado
+               || estado == EstadoJugadorEnum.AprobadoPendienteDePago;
     }
 
     public async Task<IEnumerable<JugadorDTO>> ListarConFiltro(IList<EstadoJugadorEnum> estados)
