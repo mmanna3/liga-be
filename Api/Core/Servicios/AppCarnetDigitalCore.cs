@@ -277,13 +277,13 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         JornadaInterzonal i when i.LocalOVisitanteId == (int)LocalVisitanteEnum.Local => new FixturePartidoDTO
         {
             Local = i.Equipo.Nombre,
-            Visitante = "INTERZONAL",
+            Visitante = InterzonalAppEtiqueta.Equipo(i.Numero),
             LocalEscudo = EscudoRelativo(i.Equipo.ClubId),
             VisitanteEscudo = EscudoPorDefectoRelativo()
         },
         JornadaInterzonal i => new FixturePartidoDTO
         {
-            Local = "INTERZONAL",
+            Local = InterzonalAppEtiqueta.Equipo(i.Numero),
             Visitante = i.Equipo.Nombre,
             LocalEscudo = EscudoPorDefectoRelativo(),
             VisitanteEscudo = EscudoRelativo(i.Equipo.ClubId)
@@ -621,7 +621,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             JornadaInterzonal i when i.LocalOVisitanteId == (int)LocalVisitanteEnum.Local => new PartidoEliminacionDirectaDTO
             {
                 Local = i.Equipo.Nombre,
-                Visitante = "INTERZONAL",
+                Visitante = InterzonalAppEtiqueta.Equipo(i.Numero),
                 EscudoLocal = EscudoRelativo(i.Equipo.ClubId),
                 EscudoVisitante = EscudoPorDefectoRelativo(),
                 ResultadoLocal = TrimResultado(p?.ResultadoLocal),
@@ -631,7 +631,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             },
             JornadaInterzonal i => new PartidoEliminacionDirectaDTO
             {
-                Local = "INTERZONAL",
+                Local = InterzonalAppEtiqueta.Equipo(i.Numero),
                 Visitante = i.Equipo.Nombre,
                 EscudoLocal = EscudoPorDefectoRelativo(),
                 EscudoVisitante = EscudoRelativo(i.Equipo.ClubId),
@@ -732,7 +732,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                 Visitante = new JornadaPorEquipoDTO
                 {
                     Escudo = EscudoPorDefectoRelativo(),
-                    Equipo = "INTERZONAL",
+                    Equipo = InterzonalAppEtiqueta.Equipo(i.Numero),
                     Categorias = categorias
                 }
             },
@@ -741,7 +741,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                 Local = new JornadaPorEquipoDTO
                 {
                     Escudo = EscudoPorDefectoRelativo(),
-                    Equipo = "INTERZONAL",
+                    Equipo = InterzonalAppEtiqueta.Equipo(i.Numero),
                     Categorias = categorias
                 },
                 Visitante = new JornadaPorEquipoDTO

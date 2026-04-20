@@ -264,6 +264,7 @@ public class PosicionesTodosContraTodosLogicaTests
     {
         var j = new JornadaInterzonal
         {
+            Numero = 1,
             Id = 3,
             FechaId = 1,
             ResultadosVerificados = false,
@@ -294,6 +295,7 @@ public class PosicionesTodosContraTodosLogicaTests
     {
         var j = new JornadaInterzonal
         {
+            Numero = 1,
             Id = 4,
             FechaId = 1,
             ResultadosVerificados = false,

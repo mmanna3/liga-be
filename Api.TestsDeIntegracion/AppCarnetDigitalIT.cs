@@ -518,6 +518,67 @@ public class AppCarnetDigitalIT : TestBase
         Assert.Empty(dto.Fechas);
     }
 
+    [Fact]
+    public async Task FixtureYJornadasTodosContraTodos_JornadasInterzonales_Numero1SinSufijo_NumeroMayorConcatenado()
+    {
+        await using (var scope = Factory.Services.CreateAsyncScope())
+        {
+            var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var fecha = new FechaTodosContraTodos
+            {
+                Id = 0,
+                ZonaId = _zonaIdDePrueba,
+                Numero = 1,
+                Dia = new DateOnly(2026, 6, 1),
+                EsVisibleEnApp = true
+            };
+            ctx.Fechas.Add(fecha);
+            await ctx.SaveChangesAsync();
+
+            ctx.Jornadas.Add(new JornadaInterzonal
+            {
+                Id = 0,
+                FechaId = fecha.Id,
+                ResultadosVerificados = false,
+                Numero = 1,
+                EquipoId = 1,
+                LocalOVisitanteId = (int)LocalVisitanteEnum.Local
+            });
+            ctx.Jornadas.Add(new JornadaInterzonal
+            {
+                Id = 0,
+                FechaId = fecha.Id,
+                ResultadosVerificados = false,
+                Numero = 3,
+                EquipoId = 1,
+                LocalOVisitanteId = (int)LocalVisitanteEnum.Local
+            });
+            await ctx.SaveChangesAsync();
+        }
+
+        var client = Factory.CreateClient();
+
+        var resFixture = await client.GetAsync(
+            $"/api/carnet-digital/fixture-todos-contra-todos?zonaId={_zonaIdDePrueba}");
+        resFixture.EnsureSuccessStatusCode();
+        var fixture = await resFixture.Content.ReadFromJsonAsync<FixtureDTO>();
+        Assert.NotNull(fixture);
+        var partidos = Assert.Single(fixture.Fechas).Partidos.ToList();
+        Assert.Equal(2, partidos.Count);
+        Assert.Contains(partidos, p => p.Visitante == "INTERZONAL");
+        Assert.Contains(partidos, p => p.Visitante == "INTERZONAL 3");
+
+        var resJornadas = await client.GetAsync(
+            $"/api/carnet-digital/jornadas-todos-contra-todos?zonaId={_zonaIdDePrueba}");
+        resJornadas.EnsureSuccessStatusCode();
+        var jornadasDto = await resJornadas.Content.ReadFromJsonAsync<JornadasDTO>();
+        Assert.NotNull(jornadasDto);
+        var filas = Assert.Single(jornadasDto.Fechas).Jornadas.ToList();
+        Assert.Equal(2, filas.Count);
+        Assert.Contains(filas, j => j.Visitante.Equipo == "INTERZONAL");
+        Assert.Contains(filas, j => j.Visitante.Equipo == "INTERZONAL 3");
+    }
+
     // [Fact]
     // public async Task CarnetsPorCodigoAlfanumerico_EquipoExistente_DevuelveCarnets()
     // {
