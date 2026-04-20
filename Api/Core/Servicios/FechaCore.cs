@@ -475,14 +475,7 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
                 if (tipo == "Interzonal")
                 {
                     if (dto.Numero is >= 1)
-                    {
-                        var ocupado = await _context.Jornadas.OfType<JornadaInterzonal>()
-                            .AnyAsync(j => j.FechaId == fechaId && j.Numero == dto.Numero.Value);
-                        if (ocupado)
-                            throw new ExcepcionControlada(
-                                "Ya existe una jornada interzonal con ese número en la misma fecha.");
                         numeroInterzonal = dto.Numero.Value;
-                    }
                     else
                         numeroInterzonal = await SiguienteNumeroInterzonalAsync(fechaId);
                 }
@@ -498,7 +491,7 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
             {
                 var existente = jornadasExistentes.FirstOrDefault(j => j.Id == dto.Id);
                 if (existente != null)
-                    await ActualizarJornadaDesdeDtoAsync(existente, dto);
+                    ActualizarJornadaDesdeDto(existente, dto);
             }
         }
     }
@@ -551,7 +544,7 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
         };
     }
 
-    private async Task ActualizarJornadaDesdeDtoAsync(Jornada existente, JornadaDTO dto)
+    private static void ActualizarJornadaDesdeDto(Jornada existente, JornadaDTO dto)
     {
         existente.ResultadosVerificados = dto.ResultadosVerificados;
 
@@ -571,12 +564,6 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
                 {
                     if (dto.Numero.Value < 1)
                         throw new ExcepcionControlada("El número de jornada interzonal debe ser mayor a cero.");
-                    var conflicto = await _context.Jornadas.OfType<JornadaInterzonal>()
-                        .AnyAsync(j =>
-                            j.FechaId == interzonal.FechaId && j.Numero == dto.Numero.Value && j.Id != interzonal.Id);
-                    if (conflicto)
-                        throw new ExcepcionControlada(
-                            "Ya existe una jornada interzonal con ese número en la misma fecha.");
                     interzonal.Numero = dto.Numero.Value;
                 }
 

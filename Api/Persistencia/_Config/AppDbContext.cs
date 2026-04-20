@@ -359,8 +359,7 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
         {
             var ixInterzonalNumero = builder.Entity<JornadaInterzonal>()
-                .HasIndex(j => new { j.FechaId, j.Numero })
-                .IsUnique();
+                .HasIndex(j => new { j.FechaId, j.Numero });
             if (!Database.IsSqlite())
                 ixInterzonalNumero.HasFilter("[Tipo] = N'Interzonal'");
         }
