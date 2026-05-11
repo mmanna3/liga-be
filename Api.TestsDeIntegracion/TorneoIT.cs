@@ -704,8 +704,7 @@ public class TorneoIT : TestBase
                 Id = 0,
                 Nombre = "Club seed partido cat",
                 Localidad = "X",
-                Direccion = "Y",
-                EsTechado = false
+                Direccion = "Y"
             };
             context.Clubs.Add(club);
             await context.SaveChangesAsync();

@@ -6,9 +6,7 @@ public class ClubesDTO
     public string Escudo { get; set; } = string.Empty;
     public string Localidad { get; set; } = string.Empty;
     public string Direccion { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Texto del tipo de cancha (mismo nombre que <c>CanchaTipoEnum</c>, ej. Cubierta, Descubierta).
-    /// </summary>
     public string TipoCancha { get; set; } = string.Empty;
+
+    public string SuperficieCancha { get; set; } = string.Empty;
 }

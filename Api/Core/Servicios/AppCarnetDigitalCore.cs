@@ -222,10 +222,18 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                 Escudo = _imagenEscudoRepo.GetRutaRelativaEscudo(club.Id),
                 Localidad = club.Localidad ?? string.Empty,
                 Direccion = club.Direccion ?? string.Empty,
-                TipoCancha = club.CanchaTipo?.Tipo ?? nameof(CanchaTipoEnum.Consultar)
+                TipoCancha = club.CanchaTipo?.Tipo ?? nameof(CanchaTipoEnum.Consultar),
+                SuperficieCancha = FormatearSuperficie(club.CanchaSuperficie?.Superficie ?? nameof(CanchaSuperficieEnum.Consultar))
             };
         }).ToList();
     }
+
+    private static string FormatearSuperficie(string superficie) => superficie switch
+    {
+        nameof(CanchaSuperficieEnum.PastoNatural) => "Pasto Natural",
+        nameof(CanchaSuperficieEnum.PastoSintetico) => "Sintético",
+        _ => superficie
+    };
 
     public async Task<FixtureDTO> FixtureTodosContraTodosAsync(int zonaId,
         CancellationToken cancellationToken = default)

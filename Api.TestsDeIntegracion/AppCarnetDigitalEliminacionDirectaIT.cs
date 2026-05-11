@@ -73,8 +73,7 @@ public class AppCarnetDigitalEliminacionDirectaIT : TestBase
             Id = 0,
             Nombre = "Club ED",
             Localidad = "Rosario",
-            Direccion = "Calle 1",
-            EsTechado = true
+            Direccion = "Calle 1"
         };
         context.Clubs.Add(club);
         await context.SaveChangesAsync();
@@ -206,8 +205,7 @@ public class AppCarnetDigitalEliminacionDirectaIT : TestBase
             Id = 0,
             Nombre = "Club ED SR",
             Localidad = "Rosario",
-            Direccion = "Calle 1",
-            EsTechado = true
+            Direccion = "Calle 1"
         };
         context.Clubs.Add(club);
         await context.SaveChangesAsync();

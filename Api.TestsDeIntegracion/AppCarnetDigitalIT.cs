@@ -40,8 +40,7 @@ public class AppCarnetDigitalIT : TestBase
             Id = 1,
             Nombre = "Club de Prueba",
             Localidad = "Rosario",
-            Direccion = "Calle Falsa 123",
-            EsTechado = true
+            Direccion = "Calle Falsa 123"
         };
         context.Clubs.Add(club);
 
@@ -485,8 +484,8 @@ public class AppCarnetDigitalIT : TestBase
         Assert.Equal("/Imagenes/Escudos/1.jpg", dto.Escudo);
         Assert.Equal("Rosario", dto.Localidad);
         Assert.Equal("Calle Falsa 123", dto.Direccion);
-        Assert.Equal("Sí", dto.EsTechado);
         Assert.Equal(nameof(CanchaTipoEnum.Consultar), dto.TipoCancha);
+        Assert.Equal("Consultar", dto.SuperficieCancha);
     }
 
     [Fact]

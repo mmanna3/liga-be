@@ -16,16 +16,11 @@ public class ClubDTO : DTO
     [MaxLength(150)]
     public string? Direccion { get; set; }
 
-    /// <summary>
-    /// Id en la tabla lookup <c>_CanchaTipo</c>. Usar este valor al crear o modificar un club.
-    /// </summary>
     public int CanchaTipoId { get; set; } = (int)CanchaTipoEnum.Consultar;
-
-    /// <summary>
-    /// Nombre del tipo de cancha (desde la lookup), útil para mostrar en listados y consultas.
-    /// No se usa para persistir: enviar <see cref="CanchaTipoId"/> en crear/modificar.
-    /// </summary>
     public string CanchaTipo { get; set; } = nameof(CanchaTipoEnum.Consultar);
+
+    public int CanchaSuperficieId { get; set; } = (int)CanchaSuperficieEnum.Consultar;
+    public string CanchaSuperficie { get; set; } = nameof(CanchaSuperficieEnum.Consultar);
 
     [MaxLength(100)]
     public string? Localidad { get; set; }
