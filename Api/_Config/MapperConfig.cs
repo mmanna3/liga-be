@@ -18,7 +18,6 @@ public class MapperConfig : Profile
         CreateMap<Club, ClubDTOAdmin>()
             .ForMember(dest => dest.Delegados, opt => opt.MapFrom(src => src.DelegadoClubs.Select(dc => dc.Delegado).ToList()))
             .ForMember(dest => dest.Direccion, opt => opt.MapFrom(src => src.Direccion))
-            .ForMember(dest => dest.EsTechado, opt => opt.MapFrom(src => src.EsTechado))
             .ForMember(dest => dest.CanchaTipo,
                 opt => opt.MapFrom(src => src.CanchaTipo != null ? src.CanchaTipo.Tipo : nameof(CanchaTipoEnum.Consultar)))
             .ForMember(dest => dest.Localidad, opt => opt.MapFrom(src => src.Localidad))

@@ -16,8 +16,6 @@ public class ClubDTO : DTO
     [MaxLength(150)]
     public string? Direccion { get; set; }
 
-    public bool? EsTechado { get; set; }
-
     /// <summary>
     /// Id en la tabla lookup <c>_CanchaTipo</c>. Usar este valor al crear o modificar un club.
     /// </summary>

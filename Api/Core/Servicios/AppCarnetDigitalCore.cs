@@ -222,12 +222,6 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                 Escudo = _imagenEscudoRepo.GetRutaRelativaEscudo(club.Id),
                 Localidad = club.Localidad ?? string.Empty,
                 Direccion = club.Direccion ?? string.Empty,
-                EsTechado = club.EsTechado switch
-                {
-                    true => "Sí",
-                    false => "No",
-                    null => string.Empty
-                },
                 TipoCancha = club.CanchaTipo?.Tipo ?? nameof(CanchaTipoEnum.Consultar)
             };
         }).ToList();

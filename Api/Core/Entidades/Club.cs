@@ -15,8 +15,6 @@ public class Club : Entidad
     [MaxLength(150)]
     public string? Direccion { get; set; }
 
-    public bool? EsTechado { get; set; }
-
     public int CanchaTipoId { get; set; } = (int)CanchaTipoEnum.Consultar;
 
     public virtual CanchaTipo CanchaTipo { get; set; } = null!;
