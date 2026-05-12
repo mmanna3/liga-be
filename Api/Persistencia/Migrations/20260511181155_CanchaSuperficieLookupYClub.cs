@@ -23,7 +23,7 @@ namespace Api.Migrations
                 table: "Clubs",
                 type: "int",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: 3);
 
             migrationBuilder.CreateTable(
                 name: "_CanchaSuperficie",
