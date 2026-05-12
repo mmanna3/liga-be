@@ -109,7 +109,7 @@ public class ZonaIT : TestBase
         var faseId = await CrearFaseDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
-        var dto = new ZonaDTO { Nombre = "Zona A" };
+        var dto = new ZonaDTO { Nombre = "Zona A", Orden = 1 };
 
         var response = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas", dto);
 
@@ -127,7 +127,7 @@ public class ZonaIT : TestBase
     {
         var client = await GetAuthenticatedClient();
 
-        var dto = new ZonaDTO { Nombre = "Zona A" };
+        var dto = new ZonaDTO { Nombre = "Zona A", Orden = 1 };
 
         var response = await client.PostAsJsonAsync("/api/Fase/99999/zonas", dto);
 
@@ -149,7 +149,8 @@ public class ZonaIT : TestBase
             {
                 Id = 0,
                 Nombre = "Zona B",
-                FaseId = faseId
+                FaseId = faseId,
+                Orden = 1
             };
             context.Zonas.Add(zona);
             await context.SaveChangesAsync();
@@ -196,7 +197,8 @@ public class ZonaIT : TestBase
             {
                 Id = 0,
                 Nombre = "Zona B",
-                FaseId = fase2Id
+                FaseId = fase2Id,
+                Orden = 1
             };
             context.Zonas.Add(zona);
             await context.SaveChangesAsync();
@@ -221,7 +223,8 @@ public class ZonaIT : TestBase
             {
                 Id = 0,
                 Nombre = "Para Modificar",
-                FaseId = faseId
+                FaseId = faseId,
+                Orden = 1
             };
             context.Zonas.Add(zona);
             await context.SaveChangesAsync();
@@ -232,7 +235,8 @@ public class ZonaIT : TestBase
         {
             Id = zona.Id,
             Nombre = "Zona Modificada",
-            FaseId = faseId
+            FaseId = faseId,
+            Orden = 1
         };
 
         var response = await client.PutAsJsonAsync($"/api/Fase/{faseId}/zonas/{zona.Id}", dto);
@@ -261,7 +265,8 @@ public class ZonaIT : TestBase
             {
                 Id = 0,
                 Nombre = "Para Eliminar",
-                FaseId = faseId
+                FaseId = faseId,
+                Orden = 1
             };
             context.Zonas.Add(zona);
             await context.SaveChangesAsync();
@@ -309,7 +314,8 @@ public class ZonaIT : TestBase
             {
                 Id = 0,
                 Nombre = "Zona B",
-                FaseId = fase2Id
+                FaseId = fase2Id,
+                Orden = 1
             };
             context.Zonas.Add(zona);
             await context.SaveChangesAsync();
@@ -334,8 +340,8 @@ public class ZonaIT : TestBase
         var faseId = await CrearFaseDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
-        await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas", new ZonaDTO { Nombre = "Zona A" });
-        await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas", new ZonaDTO { Nombre = "Zona B" });
+        await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas", new ZonaDTO { Nombre = "Zona A", Orden = 1 });
+        await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas", new ZonaDTO { Nombre = "Zona B", Orden = 2 });
 
         var response = await client.GetAsync($"/api/Fase/{faseId}/zonas");
         response.EnsureSuccessStatusCode();
@@ -363,6 +369,7 @@ public class ZonaIT : TestBase
         var dto = new ZonaDTO
         {
             Nombre = "Zona con Equipos",
+            Orden = 1,
             Equipos =
             [
                 new EquipoDeLaZonaDTO { Id = equipoId.ToString(), Nombre = "ignorado", Club = "ignorado", Codigo = "ignorado" }
@@ -408,6 +415,7 @@ public class ZonaIT : TestBase
         var dtoCrear = new ZonaDTO
         {
             Nombre = "Zona para GET",
+            Orden = 1,
             Equipos = [new EquipoDeLaZonaDTO { Id = equipoId.ToString() }]
         };
         var postResponse = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas", dtoCrear);
@@ -446,6 +454,7 @@ public class ZonaIT : TestBase
         var dtoCrear = new ZonaDTO
         {
             Nombre = "Zona Norte",
+            Orden = 1,
             Equipos = [new EquipoDeLaZonaDTO { Id = equipoId.ToString() }]
         };
         var postResponse = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas", dtoCrear);
@@ -476,6 +485,7 @@ public class ZonaIT : TestBase
         var dtoCrear = new ZonaDTO
         {
             Nombre = "Zona para Listar",
+            Orden = 1,
             Equipos = [new EquipoDeLaZonaDTO { Id = equipoId.ToString() }]
         };
         await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas", dtoCrear);
@@ -511,6 +521,7 @@ public class ZonaIT : TestBase
         var dtoCrear = new ZonaDTO
         {
             Nombre = "Zona Original",
+            Orden = 1,
             Equipos = [new EquipoDeLaZonaDTO { Id = equipoId.ToString() }]
         };
         var postResponse = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas", dtoCrear);
@@ -521,7 +532,8 @@ public class ZonaIT : TestBase
         {
             Id = creado.Id,
             Nombre = "Zona Renombrada",
-            FaseId = faseId
+            FaseId = faseId,
+            Orden = 1
             // Equipos = null (no enviar, no modificar)
         };
 
@@ -553,6 +565,7 @@ public class ZonaIT : TestBase
         var dtoCrear = new ZonaDTO
         {
             Nombre = "Zona para Vaciar",
+            Orden = 1,
             Equipos = [new EquipoDeLaZonaDTO { Id = equipoId.ToString() }]
         };
         var postResponse = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas", dtoCrear);
@@ -564,6 +577,7 @@ public class ZonaIT : TestBase
             Id = creado.Id,
             Nombre = creado.Nombre,
             FaseId = faseId,
+            Orden = creado.Orden,
             Equipos = []
         };
 
@@ -608,6 +622,7 @@ public class ZonaIT : TestBase
         var dtoCrear = new ZonaDTO
         {
             Nombre = "Zona para Reemplazar",
+            Orden = 1,
             Equipos = [new EquipoDeLaZonaDTO { Id = equipo1Id.ToString() }]
         };
         var postResponse = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas", dtoCrear);
@@ -619,6 +634,7 @@ public class ZonaIT : TestBase
             Id = creado.Id,
             Nombre = creado.Nombre,
             FaseId = faseId,
+            Orden = creado.Orden,
             Equipos = [new EquipoDeLaZonaDTO { Id = equipo2Id.ToString() }]
         };
 
@@ -670,9 +686,9 @@ public class ZonaIT : TestBase
 
         var dtos = new List<ZonaDTO>
         {
-            new() { Nombre = "Zona A", Equipos = [new EquipoDeLaZonaDTO { Id = equipo1Id.ToString() }] },
-            new() { Nombre = "Zona B" },
-            new() { Nombre = "Zona C", Equipos = [new EquipoDeLaZonaDTO { Id = equipo2Id.ToString() }] }
+            new() { Nombre = "Zona A", Orden = 1, Equipos = [new EquipoDeLaZonaDTO { Id = equipo1Id.ToString() }] },
+            new() { Nombre = "Zona B", Orden = 2 },
+            new() { Nombre = "Zona C", Orden = 3, Equipos = [new EquipoDeLaZonaDTO { Id = equipo2Id.ToString() }] }
         };
 
         var response = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas/crear-zonas-masivamente", dtos);
@@ -714,8 +730,8 @@ public class ZonaIT : TestBase
 
         var dtos = new List<ZonaDTO>
         {
-            new() { Nombre = "Zona Cat A", CategoriaId = cat1Id },
-            new() { Nombre = "Zona Cat B", CategoriaId = cat2Id }
+            new() { Nombre = "Zona Cat A", Orden = 1, CategoriaId = cat1Id },
+            new() { Nombre = "Zona Cat B", Orden = 2, CategoriaId = cat2Id }
         };
 
         var response = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas/crear-zonas-masivamente", dtos);
@@ -758,6 +774,7 @@ public class ZonaIT : TestBase
         var dtoCrear = new ZonaDTO
         {
             Nombre = "Zona Con Un Equipo",
+            Orden = 1,
             Equipos = [new EquipoDeLaZonaDTO { Id = equipo1Id.ToString() }]
         };
         var postResponse = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas", dtoCrear);
@@ -769,6 +786,7 @@ public class ZonaIT : TestBase
             Id = creado.Id,
             Nombre = creado.Nombre,
             FaseId = faseId,
+            Orden = creado.Orden,
             Equipos =
             [
                 new EquipoDeLaZonaDTO { Id = equipo1Id.ToString() },
@@ -826,8 +844,8 @@ public class ZonaIT : TestBase
         var postResponse = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas/crear-zonas-masivamente",
             new List<ZonaDTO>
             {
-                new() { Nombre = "Zona 1" },
-                new() { Nombre = "Zona 2" }
+                new() { Nombre = "Zona 1", Orden = 1 },
+                new() { Nombre = "Zona 2", Orden = 2 }
             });
         postResponse.EnsureSuccessStatusCode();
         var creados = JsonConvert.DeserializeObject<List<ZonaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
@@ -839,6 +857,7 @@ public class ZonaIT : TestBase
                 Id = creados[0].Id,
                 Nombre = "Zona Uno",
                 FaseId = faseId,
+                Orden = 1,
                 Equipos = [new EquipoDeLaZonaDTO { Id = equipo1Id.ToString() }]
             },
             new()
@@ -846,6 +865,7 @@ public class ZonaIT : TestBase
                 Id = creados[1].Id,
                 Nombre = "Zona Dos",
                 FaseId = faseId,
+                Orden = 2,
                 Equipos = [new EquipoDeLaZonaDTO { Id = equipo2Id.ToString() }]
             }
         };
@@ -887,8 +907,8 @@ public class ZonaIT : TestBase
         await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas/crear-zonas-masivamente",
             new List<ZonaDTO>
             {
-                new() { Nombre = "Zona A" },
-                new() { Nombre = "Zona B" }
+                new() { Nombre = "Zona A", Orden = 1 },
+                new() { Nombre = "Zona B", Orden = 2 }
             });
 
         var putResponse = await client.PutAsJsonAsync($"/api/Fase/{faseId}/zonas/modificar-zonas-masivamente", new List<ZonaDTO>());
@@ -931,7 +951,7 @@ public class ZonaIT : TestBase
         var postResponse = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas/crear-zonas-masivamente",
             new List<ZonaDTO>
             {
-                new() { Nombre = "Zona única", Equipos = [new EquipoDeLaZonaDTO { Id = equipo1Id.ToString() }] }
+                new() { Nombre = "Zona única", Orden = 1, Equipos = [new EquipoDeLaZonaDTO { Id = equipo1Id.ToString() }] }
             });
         postResponse.EnsureSuccessStatusCode();
         var creados = JsonConvert.DeserializeObject<List<ZonaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
@@ -949,6 +969,7 @@ public class ZonaIT : TestBase
                 Id = zonaId,
                 Nombre = "Zona única",
                 FaseId = faseId,
+                Orden = 1,
                 Equipos =
                 [
                     new EquipoDeLaZonaDTO { Id = equipo2Id.ToString(), Nombre = "River", Club = "River Plate", Codigo = "X" },
@@ -980,17 +1001,17 @@ public class ZonaIT : TestBase
         var postResponse = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas/crear-zonas-masivamente",
             new List<ZonaDTO>
             {
-                new() { Nombre = "Zona A" },
-                new() { Nombre = "Zona B" },
-                new() { Nombre = "Zona C" }
+                new() { Nombre = "Zona A", Orden = 1 },
+                new() { Nombre = "Zona B", Orden = 2 },
+                new() { Nombre = "Zona C", Orden = 3 }
             });
         postResponse.EnsureSuccessStatusCode();
         var creados = JsonConvert.DeserializeObject<List<ZonaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
 
         var dtosModificar = new List<ZonaDTO>
         {
-            new() { Id = creados[0].Id, Nombre = "Zona A Modificada", FaseId = faseId },
-            new() { Id = creados[2].Id, Nombre = "Zona C Modificada", FaseId = faseId }
+            new() { Id = creados[0].Id, Nombre = "Zona A Modificada", FaseId = faseId, Orden = 1 },
+            new() { Id = creados[2].Id, Nombre = "Zona C Modificada", FaseId = faseId, Orden = 3 }
         };
 
         var putResponse = await client.PutAsJsonAsync($"/api/Fase/{faseId}/zonas/modificar-zonas-masivamente", dtosModificar);
@@ -1036,7 +1057,7 @@ public class ZonaIT : TestBase
         var postResponse = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas/crear-zonas-masivamente",
             new List<ZonaDTO>
             {
-                new() { Nombre = "Zona existente", Equipos = [new EquipoDeLaZonaDTO { Id = equipo1Id.ToString() }] }
+                new() { Nombre = "Zona existente", Orden = 1, Equipos = [new EquipoDeLaZonaDTO { Id = equipo1Id.ToString() }] }
             });
         postResponse.EnsureSuccessStatusCode();
         var creados = JsonConvert.DeserializeObject<List<ZonaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
@@ -1049,12 +1070,14 @@ public class ZonaIT : TestBase
                 Id = zonaExistenteId,
                 Nombre = "Zona existente modificada",
                 FaseId = faseId,
+                Orden = 1,
                 Equipos = [new EquipoDeLaZonaDTO { Id = equipo1Id.ToString() }]
             },
             new()
             {
                 Nombre = "Nueva Zona",
                 FaseId = faseId,
+                Orden = 2,
                 Equipos = [new EquipoDeLaZonaDTO { Id = equipo2Id.ToString() }]
             }
         };
@@ -1092,7 +1115,7 @@ public class ZonaIT : TestBase
         var postResponse = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas/crear-zonas-masivamente",
             new List<ZonaDTO>
             {
-                new() { Nombre = "Zona A" }
+                new() { Nombre = "Zona A", Orden = 1 }
             });
         postResponse.EnsureSuccessStatusCode();
         var creados = JsonConvert.DeserializeObject<List<ZonaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
@@ -1103,12 +1126,14 @@ public class ZonaIT : TestBase
             {
                 Id = creados[0].Id,
                 Nombre = "Zona A Modificada",
-                FaseId = faseId
+                FaseId = faseId,
+                Orden = 1
             },
             new()
             {
                 Nombre = "Zona B Nueva",
-                FaseId = faseId
+                FaseId = faseId,
+                Orden = 2
             }
         };
 
@@ -1131,5 +1156,104 @@ public class ZonaIT : TestBase
         Assert.True(zonaB.Id > 0);
         Assert.NotNull(zonaB.Equipos);
         Assert.Empty(zonaB.Equipos);
+    }
+
+    [Fact]
+    public async Task CrearZonasMasivamente_RecibeOrdenYListarLoDevuelveOrdenado()
+    {
+        var faseId = await CrearFaseDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        // Mando los Orden desordenados para verificar que se respeta lo que mandó el consumidor
+        // y que la respuesta del listado los devuelve ordenados por Orden ascendente.
+        var dtos = new List<ZonaDTO>
+        {
+            new() { Nombre = "Charlie", Orden = 3 },
+            new() { Nombre = "Alfa", Orden = 1 },
+            new() { Nombre = "Bravo", Orden = 2 }
+        };
+
+        var postResponse = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas/crear-zonas-masivamente", dtos);
+        postResponse.EnsureSuccessStatusCode();
+
+        var creados = JsonConvert.DeserializeObject<List<ZonaDTO>>(await postResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(creados);
+        Assert.Equal(3, creados.Count);
+        Assert.Equal(1, creados.Single(z => z.Nombre == "Alfa").Orden);
+        Assert.Equal(2, creados.Single(z => z.Nombre == "Bravo").Orden);
+        Assert.Equal(3, creados.Single(z => z.Nombre == "Charlie").Orden);
+
+        var getResponse = await client.GetAsync($"/api/Fase/{faseId}/zonas");
+        getResponse.EnsureSuccessStatusCode();
+        var zonas = JsonConvert.DeserializeObject<List<ZonaDTO>>(await getResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(zonas);
+        Assert.Equal(3, zonas.Count);
+        Assert.Equal(new[] { "Alfa", "Bravo", "Charlie" }, zonas.Select(z => z.Nombre).ToArray());
+        Assert.Equal(new[] { 1, 2, 3 }, zonas.Select(z => z.Orden).ToArray());
+    }
+
+    [Fact]
+    public async Task ModificarZonasMasivamente_RotaOrdenEntreZonasExistentes_204()
+    {
+        // Reproduce el bug del índice único (FaseId, Orden):
+        // 4 zonas existentes con Orden 1..4 que se reasignan al revés/desordenadas.
+        // Sin "liberar" los Orden previos, el primer UPDATE chocaría con el índice único.
+        var faseId = await CrearFaseDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var postResponse = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas/crear-zonas-masivamente",
+            new List<ZonaDTO>
+            {
+                new() { Nombre = "2013", Orden = 1 },
+                new() { Nombre = "2014", Orden = 2 },
+                new() { Nombre = "2015", Orden = 3 },
+                new() { Nombre = "2016", Orden = 4 }
+            });
+        postResponse.EnsureSuccessStatusCode();
+        var creados = JsonConvert.DeserializeObject<List<ZonaDTO>>(await postResponse.Content.ReadAsStringAsync())!;
+
+        var z2013 = creados.Single(z => z.Nombre == "2013");
+        var z2014 = creados.Single(z => z.Nombre == "2014");
+        var z2015 = creados.Single(z => z.Nombre == "2015");
+        var z2016 = creados.Single(z => z.Nombre == "2016");
+
+        // Asigno Orden nuevos a las 4 zonas existentes; cada zona "viene desde" un Orden ya ocupado
+        // por otra, así que ningún UPDATE individual puede aplicarse sin liberar primero.
+        var dtosModificar = new List<ZonaDTO>
+        {
+            new() { Id = z2014.Id, Nombre = "2014", FaseId = faseId, Orden = 1, Equipos = [] },
+            new() { Id = z2016.Id, Nombre = "2016", FaseId = faseId, Orden = 2, Equipos = [] },
+            new() { Id = z2015.Id, Nombre = "2015", FaseId = faseId, Orden = 3, Equipos = [] },
+            new() { Id = z2013.Id, Nombre = "2013", FaseId = faseId, Orden = 4, Equipos = [] }
+        };
+
+        var putResponse = await client.PutAsJsonAsync($"/api/Fase/{faseId}/zonas/modificar-zonas-masivamente", dtosModificar);
+        Assert.Equal(System.Net.HttpStatusCode.NoContent, putResponse.StatusCode);
+
+        var getResponse = await client.GetAsync($"/api/Fase/{faseId}/zonas");
+        getResponse.EnsureSuccessStatusCode();
+        var zonas = JsonConvert.DeserializeObject<List<ZonaDTO>>(await getResponse.Content.ReadAsStringAsync())!;
+        Assert.Equal(4, zonas.Count);
+        // El listado viene ordenado por Orden ascendente.
+        Assert.Equal(new[] { "2014", "2016", "2015", "2013" }, zonas.Select(z => z.Nombre).ToArray());
+        Assert.Equal(new[] { 1, 2, 3, 4 }, zonas.Select(z => z.Orden).ToArray());
+    }
+
+    [Fact]
+    public async Task CrearZonasMasivamente_SinOrden_RetornaBadRequest()
+    {
+        var faseId = await CrearFaseDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        // Payload sin la propiedad "orden", para validar que es requerida.
+        // Uso un objeto anónimo para esquivar el `required` del DTO en C# y construir el JSON crudo.
+        var dtosSinOrden = new[]
+        {
+            new { nombre = "Zona Sin Orden" }
+        };
+
+        var response = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas/crear-zonas-masivamente", dtosSinOrden);
+
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

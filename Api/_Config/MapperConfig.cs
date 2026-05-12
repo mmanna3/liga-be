@@ -62,12 +62,14 @@ public class MapperConfig : Profile
         CreateMap<ZonaTodosContraTodos, ZonaDeFaseDTO>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombre))
+            .ForMember(dest => dest.Orden, opt => opt.MapFrom(src => src.Orden))
             .ForMember(dest => dest.CantidadDeEquipos, opt => opt.MapFrom<CantidadEquiposDeZonaResolver>())
             .ForMember(dest => dest.CategoriaId, opt => opt.MapFrom(_ => (int?)null))
             .ForMember(dest => dest.CategoriaNombre, opt => opt.MapFrom(_ => (string?)null));
         CreateMap<ZonaEliminacionDirecta, ZonaDeFaseDTO>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombre))
+            .ForMember(dest => dest.Orden, opt => opt.MapFrom(src => src.Orden))
             .ForMember(dest => dest.CantidadDeEquipos, opt => opt.MapFrom<CantidadEquiposDeZonaResolver>())
             .ForMember(dest => dest.CategoriaId, opt => opt.MapFrom(src => src.CategoriaId))
             .ForMember(dest => dest.CategoriaNombre, opt => opt.MapFrom(src => src.Categoria != null ? src.Categoria.Nombre : null));

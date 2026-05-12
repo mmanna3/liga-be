@@ -94,7 +94,7 @@ public class E2ESeedController : ControllerBase
         _context.Fases.Add(fase);
         _context.SaveChanges();
 
-        var zona = new ZonaTodosContraTodos { Id = 0, FaseId = fase.Id, Nombre = "Zona única" };
+        var zona = new ZonaTodosContraTodos { Id = 0, FaseId = fase.Id, Nombre = "Zona única", Orden = 1 };
         _context.Zonas.Add(zona);
         _context.SaveChanges();
 

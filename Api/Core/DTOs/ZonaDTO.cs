@@ -18,6 +18,12 @@ public class ZonaDTO : DTO
     public int FaseId { get; set; }
 
     /// <summary>
+    /// Posición ordinal de la zona dentro de la fase (1..N, único por FaseId).
+    /// </summary>
+    [Required]
+    public required int Orden { get; set; }
+
+    /// <summary>
     /// Solo aplica a zonas de eliminación directa; debe ser una categoría del mismo torneo que la fase.
     /// </summary>
     public int? CategoriaId { get; set; }

@@ -55,7 +55,7 @@ public class PlanillasDeJuegoAppIT : TestBase
         context.Fases.Add(fase);
         context.SaveChanges();
 
-        var zona = new ZonaTodosContraTodos { Id = 0, FaseId = fase.Id, Nombre = "Zona planillas" };
+        var zona = new ZonaTodosContraTodos { Id = 0, FaseId = fase.Id, Nombre = "Zona planillas", Orden = 1 };
         context.Zonas.Add(zona);
         context.SaveChanges();
 

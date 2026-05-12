@@ -58,7 +58,7 @@ public class LeyendaTablaPosicionesIT : TestBase
         context.Fases.Add(fase);
         await context.SaveChangesAsync();
 
-        var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona leyendas", FaseId = fase.Id };
+        var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona leyendas", FaseId = fase.Id, Orden = 1 };
         context.Zonas.Add(zona);
         await context.SaveChangesAsync();
 

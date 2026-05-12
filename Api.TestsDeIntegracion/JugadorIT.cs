@@ -226,8 +226,8 @@ public class JugadorIT : TestBase
         var fasePlata = new FaseTodosContraTodos { Id = 0, Nombre = "", TorneoId = torneoPlata.Id, Numero = 1, EstadoFaseId = 100, EsVisibleEnApp = true };
         context.Fases.AddRange(faseOro, fasePlata);
         context.SaveChanges();
-        var zonaOro = new ZonaTodosContraTodos { Id = 0, FaseId = faseOro.Id, Nombre = "Zona única" };
-        var zonaPlata = new ZonaTodosContraTodos { Id = 0, FaseId = fasePlata.Id, Nombre = "Zona única" };
+        var zonaOro = new ZonaTodosContraTodos { Id = 0, FaseId = faseOro.Id, Nombre = "Zona única", Orden = 1 };
+        var zonaPlata = new ZonaTodosContraTodos { Id = 0, FaseId = fasePlata.Id, Nombre = "Zona única", Orden = 1 };
         context.Zonas.AddRange(zonaOro, zonaPlata);
         context.SaveChanges();
 

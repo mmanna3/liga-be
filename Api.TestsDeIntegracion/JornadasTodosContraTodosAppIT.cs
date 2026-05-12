@@ -50,7 +50,7 @@ public class JornadasTodosContraTodosAppIT : TestBase
         context.Fases.Add(fase);
         await context.SaveChangesAsync();
 
-        var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona jornadas app", FaseId = fase.Id };
+        var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona jornadas app", FaseId = fase.Id, Orden = 1 };
         context.Zonas.Add(zona);
         await context.SaveChangesAsync();
         return zona.Id;

@@ -62,6 +62,7 @@ public class AppCarnetDigitalEliminacionDirectaIT : TestBase
             Id = 0,
             Nombre = "Zona ED",
             FaseId = fase.Id,
+            Orden = 1,
             CategoriaId = cat.Id
         };
         context.Zonas.Add(zona);
@@ -194,6 +195,7 @@ public class AppCarnetDigitalEliminacionDirectaIT : TestBase
             Id = 0,
             Nombre = "Zona ED SR",
             FaseId = fase.Id,
+            Orden = 1,
             CategoriaId = cat.Id
         };
         context.Zonas.Add(zona);

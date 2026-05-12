@@ -62,7 +62,7 @@ public class AppCarnetDigitalIT : TestBase
         var fase = new FaseTodosContraTodos { Id = 0, Nombre = "", TorneoId = torneo.Id, Numero = 1, EstadoFaseId = 100, EsVisibleEnApp = true };
         context.Fases.Add(fase);
         context.SaveChanges();
-        var zona = new ZonaTodosContraTodos { Id = 0, FaseId = fase.Id, Nombre = "Zona única" };
+        var zona = new ZonaTodosContraTodos { Id = 0, FaseId = fase.Id, Nombre = "Zona única", Orden = 1 };
         context.Zonas.Add(zona);
         context.SaveChanges();
         _zonaIdDePrueba = zona.Id;
@@ -442,9 +442,9 @@ public class AppCarnetDigitalIT : TestBase
             ctx.Fases.AddRange(fApertura, fClausura);
             await ctx.SaveChangesAsync();
 
-            ctx.Zonas.Add(new ZonaTodosContraTodos { Id = 0, FaseId = fApertura.Id, Nombre = "Norte" });
-            ctx.Zonas.Add(new ZonaTodosContraTodos { Id = 0, FaseId = fClausura.Id, Nombre = "  Norte  " });
-            ctx.Zonas.Add(new ZonaTodosContraTodos { Id = 0, FaseId = fClausura.Id, Nombre = "Sur" });
+            ctx.Zonas.Add(new ZonaTodosContraTodos { Id = 0, FaseId = fApertura.Id, Nombre = "Norte", Orden = 1 });
+            ctx.Zonas.Add(new ZonaTodosContraTodos { Id = 0, FaseId = fClausura.Id, Nombre = "  Norte  ", Orden = 1 });
+            ctx.Zonas.Add(new ZonaTodosContraTodos { Id = 0, FaseId = fClausura.Id, Nombre = "Sur", Orden = 2 });
             torneo.FaseAperturaId = fApertura.Id;
             torneo.FaseClausuraId = fClausura.Id;
             await ctx.SaveChangesAsync();

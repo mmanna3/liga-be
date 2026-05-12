@@ -30,6 +30,14 @@ public class ZonaRepo : RepositorioABMAnidado<Zona, int>, IZonaRepo
         return x => x.FaseId == padreId;
     }
 
+    public override async Task<IEnumerable<Zona>> ListarPorPadre(int padreId)
+    {
+        return await Set()
+            .Where(FiltroPorPadre(padreId))
+            .OrderBy(z => z.Orden)
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<int>> ListarIdsPorPadre(int padreId)
     {
         return await Context.Set<Zona>()
@@ -43,5 +51,16 @@ public class ZonaRepo : RepositorioABMAnidado<Zona, int>, IZonaRepo
         return await Context.Set<Zona>()
             .Where(x => x.FaseId == padreId && x.Id == id)
             .FirstOrDefaultAsync();
+    }
+
+    public async Task AsignarOrdenTemporal(int padreId, IEnumerable<int> ids)
+    {
+        var idsArray = ids.ToArray();
+        if (idsArray.Length == 0)
+            return;
+
+        await Context.Set<Zona>()
+            .Where(z => z.FaseId == padreId && idsArray.Contains(z.Id))
+            .ExecuteUpdateAsync(s => s.SetProperty(z => z.Orden, z => -z.Id));
     }
 }

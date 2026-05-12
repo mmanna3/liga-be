@@ -49,13 +49,15 @@ public class ZonaCore : ABMCoreAnidado<IZonaRepo, Zona, ZonaDTO, int>, IZonaCore
             {
                 Id = 0,
                 Nombre = dto.Nombre ?? string.Empty,
-                FaseId = padreId
+                FaseId = padreId,
+                Orden = dto.Orden
             },
             FaseEliminacionDirecta => new ZonaEliminacionDirecta
             {
                 Id = 0,
                 Nombre = dto.Nombre ?? string.Empty,
                 FaseId = padreId,
+                Orden = dto.Orden,
                 CategoriaId = dto.CategoriaId
                     ?? throw new ExcepcionControlada("La categoría es obligatoria para zonas de eliminación directa.")
             },
@@ -95,13 +97,15 @@ public class ZonaCore : ABMCoreAnidado<IZonaRepo, Zona, ZonaDTO, int>, IZonaCore
             {
                 Id = id,
                 Nombre = dto.Nombre ?? string.Empty,
-                FaseId = padreId
+                FaseId = padreId,
+                Orden = dto.Orden
             },
             ZonaEliminacionDirecta ed => new ZonaEliminacionDirecta
             {
                 Id = id,
                 Nombre = dto.Nombre ?? string.Empty,
                 FaseId = padreId,
+                Orden = dto.Orden,
                 CategoriaId = dto.CategoriaId ?? ed.CategoriaId
             },
             _ => throw new ExcepcionControlada("Tipo de zona no soportado para modificar.")
@@ -161,6 +165,15 @@ public class ZonaCore : ABMCoreAnidado<IZonaRepo, Zona, ZonaDTO, int>, IZonaCore
         foreach (var id in idsAEliminar)
         {
             await Eliminar(padreId, id);
+        }
+
+        // Liberamos los Orden actuales de las zonas a modificar antes de aplicar los nuevos.
+        // Sin esto, modificar zona por zona puede violar el índice único (FaseId, Orden)
+        // de forma temporal cuando se intercambian/rotan Orden entre zonas existentes.
+        var idsAModificar = list.Where(d => d.Id > 0).Select(d => d.Id).ToList();
+        if (idsAModificar.Count > 0)
+        {
+            await Repo.AsignarOrdenTemporal(padreId, idsAModificar);
         }
 
         foreach (var dto in list)

@@ -69,7 +69,7 @@ public class PosicionesTodosContraTodosAppIT : TestBase
         context.Fases.Add(fase);
         await context.SaveChangesAsync();
 
-        var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona posiciones app", FaseId = fase.Id };
+        var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona posiciones app", FaseId = fase.Id, Orden = 1 };
         context.Zonas.Add(zona);
         await context.SaveChangesAsync();
         return zona.Id;
@@ -676,7 +676,7 @@ public class PosicionesTodosContraTodosAppIT : TestBase
             };
             ctx.Fases.Add(faseC);
             await ctx.SaveChangesAsync();
-            ctx.Zonas.Add(new ZonaTodosContraTodos { Id = 0, FaseId = faseC.Id, Nombre = zona.Nombre });
+            ctx.Zonas.Add(new ZonaTodosContraTodos { Id = 0, FaseId = faseC.Id, Nombre = zona.Nombre, Orden = 1 });
             var torneo = await ctx.Torneos.FindAsync(torneoId);
             Assert.NotNull(torneo);
             torneo.FaseAperturaId = faseA.Id;

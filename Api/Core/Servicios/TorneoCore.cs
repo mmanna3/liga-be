@@ -108,7 +108,8 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
                 {
                     Id = 0,
                     FaseId = fase.Id,
-                    Nombre = "Zona única"
+                    Nombre = "Zona única",
+                    Orden = 1
                 };
                 _torneoZonaRepo.Crear(zona);
                 await BDVirtual.GuardarCambios();
@@ -232,7 +233,8 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
             {
                 Id = 0,
                 FaseId = fase.Id,
-                Nombre = "Zona única"
+                Nombre = "Zona única",
+                Orden = 1
             };
             _torneoZonaRepo.Crear(zona);
             await BDVirtual.GuardarCambios();

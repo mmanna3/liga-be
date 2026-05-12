@@ -74,7 +74,7 @@ public class FechasIT : TestBase
         context.Fases.Add(fase);
         await context.SaveChangesAsync();
 
-        var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona única", FaseId = fase.Id };
+        var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona única", FaseId = fase.Id, Orden = 1 };
         context.Zonas.Add(zona);
         await context.SaveChangesAsync();
         return zona.Id;
@@ -116,6 +116,7 @@ public class FechasIT : TestBase
             Id = 0,
             Nombre = "Zona ED",
             FaseId = fase.Id,
+            Orden = 1,
             CategoriaId = cat.Id
         };
         context.Zonas.Add(zona);
@@ -269,7 +270,7 @@ public class FechasIT : TestBase
             context.Fases.Add(fase2);
             await context.SaveChangesAsync();
 
-            var zona2 = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona B", FaseId = fase2.Id };
+            var zona2 = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona B", FaseId = fase2.Id, Orden = 1 };
             context.Zonas.Add(zona2);
             await context.SaveChangesAsync();
             zona2Id = zona2.Id;
@@ -395,7 +396,7 @@ public class FechasIT : TestBase
             context.Fases.Add(fase2);
             await context.SaveChangesAsync();
 
-            var zona2 = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona B", FaseId = fase2.Id };
+            var zona2 = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona B", FaseId = fase2.Id, Orden = 1 };
             context.Zonas.Add(zona2);
             await context.SaveChangesAsync();
             zona2Id = zona2.Id;

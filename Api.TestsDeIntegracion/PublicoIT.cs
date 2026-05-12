@@ -201,7 +201,8 @@ public class PublicoIT : TestBase
             {
                 Id = 0,
                 FaseId = fase.Id,
-                Nombre = "Zona A"
+                Nombre = "Zona A",
+                Orden = 1
             };
             context.Zonas.Add(zona);
             context.SaveChanges();
@@ -275,13 +276,15 @@ public class PublicoIT : TestBase
             {
                 Id = 0,
                 FaseId = fase1.Id,
-                Nombre = "Zona Torneo 1"
+                Nombre = "Zona Torneo 1",
+                Orden = 1
             };
             var zona2 = new ZonaTodosContraTodos
             {
                 Id = 0,
                 FaseId = fase2.Id,
-                Nombre = "Zona Torneo 2"
+                Nombre = "Zona Torneo 2",
+                Orden = 1
             };
             context.Zonas.AddRange(zona1, zona2);
             context.SaveChanges();

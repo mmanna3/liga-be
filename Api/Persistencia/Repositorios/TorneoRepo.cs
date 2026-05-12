@@ -56,7 +56,8 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
         {
             Id = 0,
             FaseId = fase.Id,
-            Nombre = "Zona única"
+            Nombre = "Zona única",
+            Orden = 1
         };
         Context.Zonas.Add(zona);
         await Context.SaveChangesAsync();

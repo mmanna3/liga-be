@@ -313,7 +313,7 @@ public class TorneoIT : TestBase
             context.Fases.Add(fase);
             await context.SaveChangesAsync();
 
-            var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona A", FaseId = fase.Id };
+            var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona A", FaseId = fase.Id, Orden = 1 };
             context.Zonas.Add(zona);
             await context.SaveChangesAsync();
 

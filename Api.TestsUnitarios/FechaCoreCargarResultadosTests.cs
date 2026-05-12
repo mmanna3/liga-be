@@ -83,7 +83,7 @@ public class FechaCoreCargarResultadosTests
         ctx.Fases.Add(fase);
         await ctx.SaveChangesAsync();
 
-        var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Z", FaseId = fase.Id };
+        var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Z", FaseId = fase.Id, Orden = 1 };
         ctx.Zonas.Add(zona);
         await ctx.SaveChangesAsync();
 
@@ -176,7 +176,7 @@ public class FechaCoreCargarResultadosTests
         ctx.Fases.Add(fase);
         await ctx.SaveChangesAsync();
 
-        var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Z2", FaseId = fase.Id };
+        var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Z2", FaseId = fase.Id, Orden = 1 };
         ctx.Zonas.Add(zona);
         await ctx.SaveChangesAsync();
 

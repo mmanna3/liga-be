@@ -206,6 +206,7 @@ public class AppCarnetDigitalCoreJornadasTests
             Id = 77,
             Nombre = "Zona A",
             FaseId = fase.Id,
+            Orden = 1,
             Fase = fase,
             EquiposZona = [],
             Fechas = [],
