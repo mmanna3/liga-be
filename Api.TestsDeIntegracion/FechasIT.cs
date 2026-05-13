@@ -106,7 +106,8 @@ public class FechasIT : TestBase
             Nombre = "Cat ED",
             AnioDesde = 2010,
             AnioHasta = 2020,
-            TorneoId = torneo.Id
+            TorneoId = torneo.Id,
+            Orden = 1
         };
         context.TorneoCategorias.Add(cat);
         await context.SaveChangesAsync();
@@ -138,6 +139,11 @@ public class FechasIT : TestBase
     {
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var maxOrden = await context.TorneoCategorias
+            .Where(c => c.TorneoId == torneoId)
+            .Select(c => (int?)c.Orden)
+            .MaxAsync();
+        var baseOrden = maxOrden ?? 0;
         for (var i = 0; i < cantidad; i++)
         {
             context.TorneoCategorias.Add(new TorneoCategoria
@@ -146,7 +152,8 @@ public class FechasIT : TestBase
                 Nombre = $"Cat Test {i}",
                 AnioDesde = 2010,
                 AnioHasta = 2020,
-                TorneoId = torneoId
+                TorneoId = torneoId,
+                Orden = baseOrden + i + 1
             });
         }
         await context.SaveChangesAsync();

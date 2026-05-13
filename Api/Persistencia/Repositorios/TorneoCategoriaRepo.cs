@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Linq.Expressions;
 using Api.Core.Entidades;
 using Api.Core.Repositorios;
@@ -15,6 +16,25 @@ public class TorneoCategoriaRepo : RepositorioABMAnidado<TorneoCategoria, int>, 
     protected override Expression<Func<TorneoCategoria, bool>> FiltroPorPadre(int padreId)
     {
         return x => x.TorneoId == padreId;
+    }
+
+    public override async Task<IEnumerable<TorneoCategoria>> ListarPorPadre(int padreId)
+    {
+        return await Set()
+            .AsNoTracking()
+            .Where(FiltroPorPadre(padreId))
+            .OrderBy(x => x.Orden)
+            .ThenBy(x => x.Id)
+            .ToListAsync();
+    }
+
+    public async Task<List<TorneoCategoria>> ListarPorPadreOrdenadasParaEditar(int padreId)
+    {
+        return await Set()
+            .Where(FiltroPorPadre(padreId))
+            .OrderBy(x => x.Orden)
+            .ThenBy(x => x.Id)
+            .ToListAsync();
     }
 
     public async Task<bool> AlgunaTienePartidosOZonas(IEnumerable<int> categoriaIds)

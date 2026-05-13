@@ -611,8 +611,8 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
             return;
         }
 
-        if (partidosDb.Count != partidos.Count)
-            throw new ExcepcionControlada("Debe enviar exactamente un partido por cada categoría de la jornada.");
+        // Actualización parcial: se pueden enviar solo algunos partidos (con resultados válidos)
+        // o una lista vacía para persistir únicamente ResultadosVerificados de la jornada.
 
         var zonaEsEliminacionDirecta = await _context.Zonas
             .OfType<ZonaEliminacionDirecta>()
@@ -635,16 +635,30 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
             if (entidad.CategoriaId != partidoDto.CategoriaId)
                 throw new ExcepcionControlada("La categoría de un partido no coincide con el registro existente.");
 
-            PartidoResultadoValidador.ValidarParResultados(partidoDto.ResultadoLocal, partidoDto.ResultadoVisitante);
+            var localTrim = partidoDto.ResultadoLocal?.Trim() ?? "";
+            var visitTrim = partidoDto.ResultadoVisitante?.Trim() ?? "";
+
+            if (string.IsNullOrEmpty(localTrim) && string.IsNullOrEmpty(visitTrim))
+            {
+                entidad.ResultadoLocal = "";
+                entidad.ResultadoVisitante = "";
+                entidad.PenalesLocal = null;
+                entidad.PenalesVisitante = null;
+                continue;
+            }
+
+            PartidoResultadoValidador.ValidarParResultados(
+                partidoDto.ResultadoLocal ?? string.Empty,
+                partidoDto.ResultadoVisitante ?? string.Empty);
             PartidoResultadoValidador.ValidarPenalesSegunZonaYResultado(
                 zonaEsEliminacionDirecta,
-                partidoDto.ResultadoLocal,
-                partidoDto.ResultadoVisitante,
+                partidoDto.ResultadoLocal ?? string.Empty,
+                partidoDto.ResultadoVisitante ?? string.Empty,
                 partidoDto.PenalesLocal,
                 partidoDto.PenalesVisitante);
 
-            entidad.ResultadoLocal = partidoDto.ResultadoLocal.Trim();
-            entidad.ResultadoVisitante = partidoDto.ResultadoVisitante.Trim();
+            entidad.ResultadoLocal = localTrim;
+            entidad.ResultadoVisitante = visitTrim;
             entidad.PenalesLocal = string.IsNullOrWhiteSpace(partidoDto.PenalesLocal)
                 ? null
                 : partidoDto.PenalesLocal.Trim();
@@ -652,9 +666,6 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
                 ? null
                 : partidoDto.PenalesVisitante.Trim();
         }
-
-        if (idsEnRequest.Count != partidosDb.Count)
-            throw new ExcepcionControlada("Debe enviar exactamente un partido por cada categoría de la jornada.");
 
         await BDVirtual.GuardarCambios();
 

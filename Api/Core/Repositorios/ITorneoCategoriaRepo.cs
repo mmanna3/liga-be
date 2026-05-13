@@ -4,6 +4,8 @@ namespace Api.Core.Repositorios;
 
 public interface ITorneoCategoriaRepo : IRepositorioABMAnidado<TorneoCategoria, int>
 {
+    Task<List<TorneoCategoria>> ListarPorPadreOrdenadasParaEditar(int padreId);
+
     /// <summary>
     /// Indica si alguna de las categorías tiene partidos o zonas de eliminación directa asociadas.
     /// </summary>

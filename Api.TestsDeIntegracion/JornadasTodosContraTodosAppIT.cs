@@ -70,6 +70,11 @@ public class JornadasTodosContraTodosAppIT : TestBase
     {
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var maxOrden = await context.TorneoCategorias
+            .Where(c => c.TorneoId == torneoId)
+            .Select(c => (int?)c.Orden)
+            .MaxAsync();
+        var baseOrden = maxOrden ?? 0;
         for (var i = 0; i < cantidad; i++)
         {
             context.TorneoCategorias.Add(new TorneoCategoria
@@ -78,7 +83,8 @@ public class JornadasTodosContraTodosAppIT : TestBase
                 Nombre = $"Cat Jornadas {i}",
                 AnioDesde = 2010,
                 AnioHasta = 2020,
-                TorneoId = torneoId
+                TorneoId = torneoId,
+                Orden = baseOrden + i + 1
             });
         }
 

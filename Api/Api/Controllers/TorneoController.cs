@@ -5,12 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers;
 
-public class TorneoController : ABMController<TorneoDTO, ITorneoCore, CrearTorneoDTO>
+public class TorneoController(ITorneoCore core) : ABMController<TorneoDTO, ITorneoCore, CrearTorneoDTO>(core)
 {
-    public TorneoController(ITorneoCore core) : base(core)
-    {
-    }
-
     [HttpGet("por-ids", Name = "torneosPorIds")]
     public async Task<ActionResult<IEnumerable<TorneoDTO>>> ObtenerPorIds([FromQuery] IEnumerable<int> ids) =>
         await ObtenerPorIdsCore(ids);

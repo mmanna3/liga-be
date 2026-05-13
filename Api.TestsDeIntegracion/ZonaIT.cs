@@ -67,9 +67,9 @@ public class ZonaIT : TestBase
         await context.SaveChangesAsync();
 
         var cat1 = new TorneoCategoria
-            { Id = 0, TorneoId = torneo.Id, Nombre = "Cat A", AnioDesde = 2010, AnioHasta = 2020 };
+            { Id = 0, TorneoId = torneo.Id, Nombre = "Cat A", AnioDesde = 2010, AnioHasta = 2020, Orden = 1 };
         var cat2 = new TorneoCategoria
-            { Id = 0, TorneoId = torneo.Id, Nombre = "Cat B", AnioDesde = 2010, AnioHasta = 2020 };
+            { Id = 0, TorneoId = torneo.Id, Nombre = "Cat B", AnioDesde = 2010, AnioHasta = 2020, Orden = 2 };
         context.TorneoCategorias.AddRange(cat1, cat2);
         await context.SaveChangesAsync();
 

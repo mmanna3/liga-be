@@ -41,7 +41,8 @@ public class LeyendaTablaPosicionesIT : TestBase
             TorneoId = torneo.Id,
             Nombre = "Cat Leyenda",
             AnioDesde = 2010,
-            AnioHasta = 2020
+            AnioHasta = 2020,
+            Orden = 1
         };
         context.TorneoCategorias.Add(cat);
         await context.SaveChangesAsync();

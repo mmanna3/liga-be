@@ -48,8 +48,8 @@ public class TorneoIT : TestBase
             },
             Categorias =
             [
-                new TorneoCategoriaDTO { Nombre = "Sub-15", AnioDesde = 2010, AnioHasta = 2015 },
-                new TorneoCategoriaDTO { Nombre = "Sub-18", AnioDesde = 2007, AnioHasta = 2009 }
+                new TorneoCategoriaDTO { Nombre = "Sub-15", AnioDesde = 2010, AnioHasta = 2015, Orden = 1 },
+                new TorneoCategoriaDTO { Nombre = "Sub-18", AnioDesde = 2007, AnioHasta = 2009, Orden = 2 }
             ]
         };
 
@@ -137,7 +137,7 @@ public class TorneoIT : TestBase
             SeVenLosGolesEnTablaDePosiciones = true,
             Categorias =
             [
-                new TorneoCategoriaDTO { Nombre = "Primera", AnioDesde = 2005, AnioHasta = 2010 }
+                new TorneoCategoriaDTO { Nombre = "Primera", AnioDesde = 2005, AnioHasta = 2010, Orden = 1 }
             ]
         };
 
@@ -177,7 +177,7 @@ public class TorneoIT : TestBase
             SeVenLosGolesEnTablaDePosiciones = true,
             Categorias =
             [
-                new TorneoCategoriaDTO { Nombre = "Sub-15", AnioDesde = 2015, AnioHasta = 2010 }
+                new TorneoCategoriaDTO { Nombre = "Sub-15", AnioDesde = 2015, AnioHasta = 2010, Orden = 1 }
             ]
         };
 
@@ -434,7 +434,7 @@ public class TorneoIT : TestBase
             },
             Categorias =
             [
-                new TorneoCategoriaDTO { Nombre = "Sub-15", AnioDesde = 2010, AnioHasta = 2015 }
+                new TorneoCategoriaDTO { Nombre = "Sub-15", AnioDesde = 2010, AnioHasta = 2015, Orden = 1 }
             ]
         };
         var crearResponse = await client.PostAsJsonAsync("/api/torneo", dto);
@@ -473,7 +473,7 @@ public class TorneoIT : TestBase
                 EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
                 EsVisibleEnApp = true
             },
-            Categorias = [new TorneoCategoriaDTO { Nombre = "Cat", AnioDesde = 2010, AnioHasta = 2015 }]
+            Categorias = [new TorneoCategoriaDTO { Nombre = "Cat", AnioDesde = 2010, AnioHasta = 2015, Orden = 1 }]
         };
         var crearResponse = await client.PostAsJsonAsync("/api/torneo", crearDto);
         crearResponse.EnsureSuccessStatusCode();
@@ -523,7 +523,7 @@ public class TorneoIT : TestBase
                 EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
                 EsVisibleEnApp = true
             },
-            Categorias = [new TorneoCategoriaDTO { Nombre = "Cat vieja", AnioDesde = 2010, AnioHasta = 2015 }]
+            Categorias = [new TorneoCategoriaDTO { Nombre = "Cat vieja", AnioDesde = 2010, AnioHasta = 2015, Orden = 1 }]
         };
         var crearResponse = await client.PostAsJsonAsync("/api/torneo", crearDto);
         crearResponse.EnsureSuccessStatusCode();
@@ -551,7 +551,7 @@ public class TorneoIT : TestBase
             ],
             Categorias =
             [
-                new TorneoCategoriaDTO { Nombre = "Sub-18", AnioDesde = 2007, AnioHasta = 2009 }
+                new TorneoCategoriaDTO { Nombre = "Sub-18", AnioDesde = 2007, AnioHasta = 2009, Orden = 1 }
             ]
         };
 
@@ -589,7 +589,7 @@ public class TorneoIT : TestBase
                 EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
                 EsVisibleEnApp = true
             },
-            Categorias = [new TorneoCategoriaDTO { Nombre = "Cat original", AnioDesde = 2010, AnioHasta = 2015 }]
+            Categorias = [new TorneoCategoriaDTO { Nombre = "Cat original", AnioDesde = 2010, AnioHasta = 2015, Orden = 1 }]
         };
         var crearResponse = await client.PostAsJsonAsync("/api/torneo", crearDto);
         crearResponse.EnsureSuccessStatusCode();
@@ -684,8 +684,8 @@ public class TorneoIT : TestBase
             },
             Categorias =
             [
-                new TorneoCategoriaDTO { Nombre = "Cat uno", AnioDesde = 2010, AnioHasta = 2015 },
-                new TorneoCategoriaDTO { Nombre = "Cat dos", AnioDesde = 2010, AnioHasta = 2015 }
+                new TorneoCategoriaDTO { Nombre = "Cat uno", AnioDesde = 2010, AnioHasta = 2015, Orden = 1 },
+                new TorneoCategoriaDTO { Nombre = "Cat dos", AnioDesde = 2010, AnioHasta = 2015, Orden = 2 }
             ]
         };
         var crearResponse = await client.PostAsJsonAsync("/api/torneo", crearDto);
@@ -777,6 +777,7 @@ public class TorneoIT : TestBase
                 Nombre = c.Nombre,
                 AnioDesde = c.AnioDesde,
                 AnioHasta = c.AnioHasta,
+                Orden = c.Orden,
                 TorneoId = torneoId
             }).ToList()
         };

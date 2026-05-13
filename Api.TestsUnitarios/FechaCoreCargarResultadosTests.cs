@@ -54,7 +54,8 @@ public class FechaCoreCargarResultadosTests
             Nombre = "CatA",
             AnioDesde = 2010,
             AnioHasta = 2020,
-            TorneoId = torneo.Id
+            TorneoId = torneo.Id,
+            Orden = 1
         };
         var cat2 = new TorneoCategoria
         {
@@ -62,7 +63,8 @@ public class FechaCoreCargarResultadosTests
             Nombre = "CatB",
             AnioDesde = 2010,
             AnioHasta = 2020,
-            TorneoId = torneo.Id
+            TorneoId = torneo.Id,
+            Orden = 2
         };
         ctx.TorneoCategorias.AddRange(cat1, cat2);
         await ctx.SaveChangesAsync();
@@ -284,16 +286,16 @@ public class FechaCoreCargarResultadosTests
     }
 
     [Fact]
-    public async Task CargarResultados_CantidadPartidosDistinta_Lanza()
+    public async Task CargarResultados_Parcial_UnSoloPartido_ActualizaSoloEse()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
         await using var ctx = new AppDbContext(options);
         var core = CrearCore(ctx);
-        var (zonaId, jornadaId, p1Id, _, cat1Id, _) = await SeedJornadaConDosPartidos(ctx);
+        var (zonaId, jornadaId, p1Id, p2Id, cat1Id, cat2Id) = await SeedJornadaConDosPartidos(ctx);
 
-        var ex = await Assert.ThrowsAsync<ExcepcionControlada>(() => core.CargarResultados(zonaId, jornadaId,
+        await core.CargarResultados(zonaId, jornadaId,
             new CargarResultadosDTO
             {
                 JornadaId = jornadaId,
@@ -308,9 +310,94 @@ public class FechaCoreCargarResultadosTests
                         ResultadoVisitante = "0"
                     }
                 ]
-            }));
+            });
 
-        Assert.Contains("exactamente un partido", ex.Message, StringComparison.OrdinalIgnoreCase);
+        var db1 = await ctx.Partidos.FirstAsync(p => p.Id == p1Id);
+        Assert.Equal("1", db1.ResultadoLocal);
+        Assert.Equal("0", db1.ResultadoVisitante);
+
+        var db2 = await ctx.Partidos.FirstAsync(p => p.Id == p2Id);
+        Assert.Equal("", db2.ResultadoLocal);
+        Assert.Equal("", db2.ResultadoVisitante);
+        Assert.Equal(cat2Id, db2.CategoriaId);
+    }
+
+    [Fact]
+    public async Task CargarResultados_LimpiaResultado_EnviandoParVacios()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        await using var ctx = new AppDbContext(options);
+        var core = CrearCore(ctx);
+        var (zonaId, jornadaId, p1Id, _, cat1Id, _) = await SeedJornadaConDosPartidos(ctx);
+
+        await core.CargarResultados(zonaId, jornadaId,
+            new CargarResultadosDTO
+            {
+                JornadaId = jornadaId,
+                ResultadosVerificados = false,
+                Partidos =
+                [
+                    new PartidoDTO
+                    {
+                        Id = p1Id,
+                        CategoriaId = cat1Id,
+                        ResultadoLocal = "1",
+                        ResultadoVisitante = "0"
+                    }
+                ]
+            });
+
+        await core.CargarResultados(zonaId, jornadaId,
+            new CargarResultadosDTO
+            {
+                JornadaId = jornadaId,
+                ResultadosVerificados = false,
+                Partidos =
+                [
+                    new PartidoDTO
+                    {
+                        Id = p1Id,
+                        CategoriaId = cat1Id,
+                        ResultadoLocal = "",
+                        ResultadoVisitante = ""
+                    }
+                ]
+            });
+
+        var db1 = await ctx.Partidos.FirstAsync(p => p.Id == p1Id);
+        Assert.Equal("", db1.ResultadoLocal);
+        Assert.Equal("", db1.ResultadoVisitante);
+    }
+
+    [Fact]
+    public async Task CargarResultados_SoloFlag_ConPartidosEnBd_NoTocaResultados()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        await using var ctx = new AppDbContext(options);
+        var core = CrearCore(ctx);
+        var (zonaId, jornadaId, p1Id, p2Id, _, _) = await SeedJornadaConDosPartidos(ctx);
+
+        await core.CargarResultados(zonaId, jornadaId,
+            new CargarResultadosDTO
+            {
+                JornadaId = jornadaId,
+                ResultadosVerificados = true,
+                Partidos = []
+            });
+
+        var j = await ctx.Jornadas.FirstAsync(x => x.Id == jornadaId);
+        Assert.True(j.ResultadosVerificados);
+
+        var db1 = await ctx.Partidos.FirstAsync(p => p.Id == p1Id);
+        var db2 = await ctx.Partidos.FirstAsync(p => p.Id == p2Id);
+        Assert.Equal("", db1.ResultadoLocal);
+        Assert.Equal("", db1.ResultadoVisitante);
+        Assert.Equal("", db2.ResultadoLocal);
+        Assert.Equal("", db2.ResultadoVisitante);
     }
 
     [Fact]

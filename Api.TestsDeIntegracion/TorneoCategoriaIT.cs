@@ -58,7 +58,8 @@ public class TorneoCategoriaIT : TestBase
         {
             Nombre = "Sub-15",
             AnioDesde = 2010,
-            AnioHasta = 2015
+            AnioHasta = 2015,
+            Orden = 1
         };
 
         var response = await client.PostAsJsonAsync($"/api/Torneo/{torneoId}/categorias", dto);
@@ -72,6 +73,7 @@ public class TorneoCategoriaIT : TestBase
         Assert.Equal(2010, content.AnioDesde);
         Assert.Equal(2015, content.AnioHasta);
         Assert.Equal(torneoId, content.TorneoId);
+        Assert.Equal(1, content.Orden);
     }
 
     [Fact]
@@ -83,7 +85,8 @@ public class TorneoCategoriaIT : TestBase
         {
             Nombre = "Sub-15",
             AnioDesde = 2010,
-            AnioHasta = 2015
+            AnioHasta = 2015,
+            Orden = 1
         };
 
         var response = await client.PostAsJsonAsync("/api/Torneo/99999/categorias", dto);
@@ -104,7 +107,8 @@ public class TorneoCategoriaIT : TestBase
         {
             Nombre = "Sub-15",
             AnioDesde = 2015,
-            AnioHasta = 2010
+            AnioHasta = 2010,
+            Orden = 1
         };
 
         var response = await client.PostAsJsonAsync($"/api/Torneo/{torneoId}/categorias", dto);
@@ -129,7 +133,8 @@ public class TorneoCategoriaIT : TestBase
                 Nombre = "Sub-18",
                 AnioDesde = 2007,
                 AnioHasta = 2009,
-                TorneoId = torneoId
+                TorneoId = torneoId,
+                Orden = 1
             };
             context.TorneoCategorias.Add(categoria);
             await context.SaveChangesAsync();
@@ -168,7 +173,8 @@ public class TorneoCategoriaIT : TestBase
                 Nombre = "Sub-18",
                 AnioDesde = 2007,
                 AnioHasta = 2009,
-                TorneoId = torneo2Id
+                TorneoId = torneo2Id,
+                Orden = 1
             };
             context.TorneoCategorias.Add(categoria);
             await context.SaveChangesAsync();
@@ -195,7 +201,8 @@ public class TorneoCategoriaIT : TestBase
                 Nombre = "Para Modificar",
                 AnioDesde = 2010,
                 AnioHasta = 2012,
-                TorneoId = torneoId
+                TorneoId = torneoId,
+                Orden = 1
             };
             context.TorneoCategorias.Add(categoria);
             await context.SaveChangesAsync();
@@ -208,6 +215,7 @@ public class TorneoCategoriaIT : TestBase
             Nombre = "Modificado",
             AnioDesde = 2011,
             AnioHasta = 2013,
+            Orden = 1,
             TorneoId = torneoId
         };
 
@@ -241,7 +249,8 @@ public class TorneoCategoriaIT : TestBase
                 Nombre = "Para Modificar",
                 AnioDesde = 2010,
                 AnioHasta = 2012,
-                TorneoId = torneoId
+                TorneoId = torneoId,
+                Orden = 1
             };
             context.TorneoCategorias.Add(categoria);
             await context.SaveChangesAsync();
@@ -254,6 +263,7 @@ public class TorneoCategoriaIT : TestBase
             Nombre = "Modificado",
             AnioDesde = 2015,
             AnioHasta = 2010,
+            Orden = 1,
             TorneoId = torneoId
         };
 
@@ -276,7 +286,8 @@ public class TorneoCategoriaIT : TestBase
                 Nombre = "Para Eliminar",
                 AnioDesde = 2010,
                 AnioHasta = 2012,
-                TorneoId = torneoId
+                TorneoId = torneoId,
+                Orden = 1
             };
             context.TorneoCategorias.Add(categoria);
             await context.SaveChangesAsync();
@@ -314,7 +325,8 @@ public class TorneoCategoriaIT : TestBase
                 Nombre = "Sub-18",
                 AnioDesde = 2007,
                 AnioHasta = 2009,
-                TorneoId = torneo2Id
+                TorneoId = torneo2Id,
+                Orden = 1
             };
             context.TorneoCategorias.Add(categoria);
             await context.SaveChangesAsync();
@@ -339,8 +351,8 @@ public class TorneoCategoriaIT : TestBase
         var torneoId = await CrearTorneoDePrueba(Factory);
         var client = await GetAuthenticatedClient();
 
-        var dto1 = new TorneoCategoriaDTO { Nombre = "Sub-15", AnioDesde = 2010, AnioHasta = 2015 };
-        var dto2 = new TorneoCategoriaDTO { Nombre = "Sub-18", AnioDesde = 2007, AnioHasta = 2009 };
+        var dto1 = new TorneoCategoriaDTO { Nombre = "Sub-15", AnioDesde = 2010, AnioHasta = 2015, Orden = 1 };
+        var dto2 = new TorneoCategoriaDTO { Nombre = "Sub-18", AnioDesde = 2007, AnioHasta = 2009, Orden = 2 };
 
         await client.PostAsJsonAsync($"/api/Torneo/{torneoId}/categorias", dto1);
         await client.PostAsJsonAsync($"/api/Torneo/{torneoId}/categorias", dto2);

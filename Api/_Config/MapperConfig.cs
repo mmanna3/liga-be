@@ -33,7 +33,9 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.FaseClausuraNombre, opt => opt.MapFrom(src => src.FaseClausura != null ? src.FaseClausura.Nombre : null))
             .ForMember(dest => dest.SePuedeEditar, opt => opt.MapFrom<TorneoSePuedeEditarResolver>())
             .ForMember(dest => dest.Fases, opt => opt.MapFrom(src => src.Fases != null ? src.Fases : new List<Fase>()))
-            .ForMember(dest => dest.Categorias, opt => opt.MapFrom(src => src.Categorias != null ? src.Categorias : new List<TorneoCategoria>()))
+            .ForMember(dest => dest.Categorias, opt => opt.MapFrom(src => src.Categorias != null
+                ? src.Categorias.OrderBy(c => c.Orden).ThenBy(c => c.Id).ToList()
+                : new List<TorneoCategoria>()))
             .PreserveReferences()
             .ReverseMap()
             .ForMember(dest => dest.TorneoAgrupador, opt => opt.Ignore())

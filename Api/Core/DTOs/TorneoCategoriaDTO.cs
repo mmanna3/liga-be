@@ -10,5 +10,8 @@ public class TorneoCategoriaDTO : DTO
     public required int AnioDesde { get; set; }
     public required int AnioHasta { get; set; }
 
+    [Required]
+    public required int Orden { get; set; }
+
     public int TorneoId { get; set; }
 }

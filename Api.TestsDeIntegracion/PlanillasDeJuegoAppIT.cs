@@ -67,7 +67,8 @@ public class PlanillasDeJuegoAppIT : TestBase
                 Nombre = "Cat 1991-1993",
                 AnioDesde = 1991,
                 AnioHasta = 1993,
-                TorneoId = torneo.Id
+                TorneoId = torneo.Id,
+                Orden = 1
             },
             new TorneoCategoria
             {
@@ -75,7 +76,8 @@ public class PlanillasDeJuegoAppIT : TestBase
                 Nombre = "Cat 1990-1994",
                 AnioDesde = 1990,
                 AnioHasta = 1994,
-                TorneoId = torneo.Id
+                TorneoId = torneo.Id,
+                Orden = 2
             },
             new TorneoCategoria
             {
@@ -83,7 +85,8 @@ public class PlanillasDeJuegoAppIT : TestBase
                 Nombre = "Cat 1992",
                 AnioDesde = 1992,
                 AnioHasta = 1992,
-                TorneoId = torneo.Id
+                TorneoId = torneo.Id,
+                Orden = 3
             });
         context.SaveChanges();
 

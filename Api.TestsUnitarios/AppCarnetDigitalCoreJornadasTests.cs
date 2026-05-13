@@ -14,8 +14,8 @@ public class AppCarnetDigitalCoreJornadasTests
     [Fact]
     public async Task JornadasTodosContraTodosAsync_JornadaNormal_CalculaPuntosTotalesYPartidosJugados_ExcluyendoNP()
     {
-        var catA = new TorneoCategoria { Id = 1, Nombre = "Sub 15", AnioDesde = 2009, AnioHasta = 2010, TorneoId = 1 };
-        var catB = new TorneoCategoria { Id = 2, Nombre = "Sub 17", AnioDesde = 2007, AnioHasta = 2008, TorneoId = 1 };
+        var catA = new TorneoCategoria { Id = 1, Nombre = "Sub 15", AnioDesde = 2009, AnioHasta = 2010, TorneoId = 1, Orden = 1 };
+        var catB = new TorneoCategoria { Id = 2, Nombre = "Sub 17", AnioDesde = 2007, AnioHasta = 2008, TorneoId = 1, Orden = 2 };
 
         var local = CrearEquipo(10, "Local FC", 1);
         var visitante = CrearEquipo(20, "Visitante FC", 2);
@@ -75,8 +75,8 @@ public class AppCarnetDigitalCoreJornadasTests
     [Fact]
     public async Task JornadasTodosContraTodosAsync_JornadaLibre_GP_PP_YCategoriaSinResultados_RespetaTotalesYFormato()
     {
-        var catA = new TorneoCategoria { Id = 1, Nombre = "Primera", AnioDesde = 2000, AnioHasta = 2005, TorneoId = 1 };
-        var catB = new TorneoCategoria { Id = 2, Nombre = "Reserva", AnioDesde = 2006, AnioHasta = 2010, TorneoId = 1 };
+        var catA = new TorneoCategoria { Id = 1, Nombre = "Primera", AnioDesde = 2000, AnioHasta = 2005, TorneoId = 1, Orden = 1 };
+        var catB = new TorneoCategoria { Id = 2, Nombre = "Reserva", AnioDesde = 2006, AnioHasta = 2010, TorneoId = 1, Orden = 2 };
         var local = CrearEquipo(10, "Local FC", 1);
 
         var jornada = new JornadaLibre

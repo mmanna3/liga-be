@@ -96,7 +96,8 @@ public class PosicionesTodosContraTodosAppIT : TestBase
             Nombre = "Cat A",
             AnioDesde = 2010,
             AnioHasta = 2020,
-            TorneoId = torneoId
+            TorneoId = torneoId,
+            Orden = 1
         };
         var c2 = new TorneoCategoria
         {
@@ -104,7 +105,8 @@ public class PosicionesTodosContraTodosAppIT : TestBase
             Nombre = "Cat B",
             AnioDesde = 2010,
             AnioHasta = 2020,
-            TorneoId = torneoId
+            TorneoId = torneoId,
+            Orden = 2
         };
         context.TorneoCategorias.AddRange(c1, c2);
         await context.SaveChangesAsync();
@@ -121,7 +123,8 @@ public class PosicionesTodosContraTodosAppIT : TestBase
             Nombre = "Única",
             AnioDesde = 2010,
             AnioHasta = 2020,
-            TorneoId = torneoId
+            TorneoId = torneoId,
+            Orden = 1
         };
         context.TorneoCategorias.Add(c);
         await context.SaveChangesAsync();

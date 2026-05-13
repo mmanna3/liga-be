@@ -119,7 +119,9 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
 
     private async Task ReemplazarCategorias(int torneoId, List<TorneoCategoriaDTO> categoriasDto)
     {
-        var categoriasExistentes = (await _torneoCategoriaRepo.ListarPorPadre(torneoId)).ToList();
+        ValidarOrdenesCategoriasPayload(categoriasDto);
+
+        var categoriasExistentes = await _torneoCategoriaRepo.ListarPorPadreOrdenadasParaEditar(torneoId);
         var porId = categoriasExistentes.ToDictionary(c => c.Id);
 
         var idsEnPayload = categoriasDto.Where(d => d.Id > 0).Select(d => d.Id).ToHashSet();
@@ -137,6 +139,15 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
 
         await BDVirtual.GuardarCambios();
 
+        foreach (var dto in categoriasDto.Where(d => d.Id > 0))
+        {
+            if (!porId.TryGetValue(dto.Id, out var existente))
+                throw new ExcepcionControlada("Categoría no encontrada para este torneo.");
+            existente.Orden = -existente.Id;
+        }
+
+        await BDVirtual.GuardarCambios();
+
         foreach (var dto in categoriasDto)
         {
             if (dto.AnioDesde > dto.AnioHasta)
@@ -150,6 +161,7 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
                 existente.Nombre = dto.Nombre;
                 existente.AnioDesde = dto.AnioDesde;
                 existente.AnioHasta = dto.AnioHasta;
+                existente.Orden = dto.Orden;
             }
             else
             {
@@ -159,12 +171,26 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
                     TorneoId = torneoId,
                     Nombre = dto.Nombre,
                     AnioDesde = dto.AnioDesde,
-                    AnioHasta = dto.AnioHasta
+                    AnioHasta = dto.AnioHasta,
+                    Orden = dto.Orden
                 });
             }
         }
 
         await BDVirtual.GuardarCambios();
+    }
+
+    private static void ValidarOrdenesCategoriasPayload(IReadOnlyList<TorneoCategoriaDTO> categoriasDto)
+    {
+        foreach (var dto in categoriasDto)
+        {
+            if (dto.Orden < 1)
+                throw new ExcepcionControlada("El orden de cada categoría debe ser mayor o igual a 1.");
+        }
+
+        var duplicados = categoriasDto.GroupBy(d => d.Orden).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+        if (duplicados.Count > 0)
+            throw new ExcepcionControlada("No puede haber dos categorías con el mismo orden.");
     }
 
     public override async Task<int> Crear(TorneoDTO dto)
@@ -184,6 +210,7 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
 
             if (crearDto.Categorias is { Count: > 0 })
             {
+                ValidarOrdenesCategoriasPayload(crearDto.Categorias);
                 foreach (var cat in crearDto.Categorias)
                 {
                     if (cat.AnioDesde > cat.AnioHasta)
@@ -243,13 +270,21 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
 
     private async Task CrearCategoria(int torneoId, TorneoCategoriaDTO dto)
     {
+        if (dto.Orden < 1)
+            throw new ExcepcionControlada("El orden de cada categoría debe ser mayor o igual a 1.");
+
+        var existentes = (await _torneoCategoriaRepo.ListarPorPadre(torneoId)).ToList();
+        if (existentes.Any(c => c.Orden == dto.Orden))
+            throw new ExcepcionControlada("Ya existe una categoría con ese orden en el torneo.");
+
         var categoria = new TorneoCategoria
         {
             Id = 0,
             TorneoId = torneoId,
             Nombre = dto.Nombre,
             AnioDesde = dto.AnioDesde,
-            AnioHasta = dto.AnioHasta
+            AnioHasta = dto.AnioHasta,
+            Orden = dto.Orden
         };
         _torneoCategoriaRepo.Crear(categoria);
         await BDVirtual.GuardarCambios();

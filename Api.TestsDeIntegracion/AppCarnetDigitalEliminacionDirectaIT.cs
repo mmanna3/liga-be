@@ -52,7 +52,8 @@ public class AppCarnetDigitalEliminacionDirectaIT : TestBase
             Nombre = "Cat ED",
             AnioDesde = 2010,
             AnioHasta = 2020,
-            TorneoId = torneo.Id
+            TorneoId = torneo.Id,
+            Orden = 1
         };
         context.TorneoCategorias.Add(cat);
         await context.SaveChangesAsync();
@@ -185,7 +186,8 @@ public class AppCarnetDigitalEliminacionDirectaIT : TestBase
             Nombre = "Cat ED SR",
             AnioDesde = 2010,
             AnioHasta = 2020,
-            TorneoId = torneo.Id
+            TorneoId = torneo.Id,
+            Orden = 1
         };
         context.TorneoCategorias.Add(cat);
         await context.SaveChangesAsync();
