@@ -53,7 +53,7 @@ jobs:
       - name: Publish
         run: dotnet publish Api/Api.csproj --configuration Release --framework net8.0 --self-contained true -r win-x64 -p:EnvironmentName=Production -o dist
 
-      - name: Aplicar web.config con Shadow Copy
+      - name: Aplicar web.config de producción
         run: cp .github/web.config dist/web.config
 
       - name: Aplicar migraciones
@@ -69,15 +69,46 @@ jobs:
         run: |
           # Forzar TLS 1.2 para evitar "connection was forcibly closed" (handshake SSL fallido)
           [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-          $msdeploy = "C:\Program Files (x86)\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          $msdeploy = 'C:\Program Files (x86)\IIS\Microsoft Web Deploy V3\msdeploy.exe'
           $baseUrl = $env:DEPLOY_PUBLISH_URL.TrimEnd('/')
           $server = "$baseUrl/MsDeploy.axd?site=$env:MS_DEPLOY_SITE"
-          $sourcePath = Join-Path $env:GITHUB_WORKSPACE "dist"
-          $dest = "contentPath=$env:MS_DEPLOY_SITE,computerName=$server,username=$env:DEPLOY_USERNAME,password=$env:DEPLOY_PASSWORD,AuthType='Basic'"
-          $skipDirs = @("App_Data", "Imagenes", "logs", "aspnet_client", "wwwroot", ".well-known")
+          $sourcePath = Join-Path $env:GITHUB_WORKSPACE 'dist'
+          $siteName = $env:MS_DEPLOY_SITE
+          $destBase = "contentPath=$siteName,computerName=$server,username=$env:DEPLOY_USERNAME,password=$env:DEPLOY_PASSWORD,AuthType='Basic'"
+          $destOffline = "contentPath=$siteName/app_offline.htm,computerName=$server,username=$env:DEPLOY_USERNAME,password=$env:DEPLOY_PASSWORD,AuthType='Basic',IncludeAcls=False"
+          $skipDirs = @('App_Data', 'Imagenes', 'logs', 'aspnet_client', 'wwwroot', '.well-known')
           $skipArgs = $skipDirs | ForEach-Object { "-skip:Directory=$_" }
-          # Retry en caso de fallos transitorios (archivos aún bloqueados)
-          & $msdeploy -verb:sync -allowUntrusted "-source:contentPath=$sourcePath" "-dest:$dest" -enableRule:AppOffline -retryAttempts:2 -retryInterval:5000 -verbose @skipArgs
+
+          function Remove-AppOffline {
+            & $msdeploy -verb:delete -allowUntrusted "-dest:$destOffline"
+          }
+
+          # Paso 1: subir SOLO app_offline.htm (patrón Microsoft/IIS, no sync de carpeta).
+          # -enableRule:AppOffline en un solo paso no alcanza: el lock persiste hasta que la app se apaga.
+          $offlineFile = Join-Path $env:GITHUB_WORKSPACE 'app_offline.htm'
+          '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Maintenance</title></head><body><h1>Actualizando...</h1></body></html>' | Set-Content -Path $offlineFile -Encoding utf8NoBOM
+
+          Write-Host 'Paso 1/3: app_offline.htm (apagar app)...'
+          & $msdeploy -verb:sync -allowUntrusted "-source:contentPath=$offlineFile" "-dest:$destOffline"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+          Write-Host 'Esperando 30s a que IIS libere Api.dll...'
+          Start-Sleep -Seconds 30
+
+          $deployExit = 0
+          try {
+            # Paso 2: sync completo (igual que el deploy original que ya funcionaba, con más reintentos).
+            Write-Host 'Paso 2/3: deploy completo...'
+            & $msdeploy -verb:sync -allowUntrusted "-source:contentPath=$sourcePath" "-dest:$destBase" -enableRule:AppOffline -retryAttempts:20 -retryInterval:10000 -verbose @skipArgs
+            $deployExit = $LASTEXITCODE
+          }
+          finally {
+            # Paso 3: siempre quitar app_offline.htm (incluso si el paso 2 falla, para no dejar el sitio caído).
+            Write-Host 'Paso 3/3: quitando app_offline.htm...'
+            Remove-AppOffline | Out-Null
+          }
+
+          if ($deployExit -ne 0) { exit $deployExit }
         env:
           DEPLOY_PUBLISH_URL: ${{ secrets.DEPLOY_PUBLISH_URL }}
           MS_DEPLOY_SITE: ${{ secrets.MS_DEPLOY_SITE }}
