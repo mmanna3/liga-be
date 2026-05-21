@@ -17,6 +17,8 @@ public class PublicoCoreTest
     private readonly Mock<IJugadorCore> _jugadorCoreMock;
     private readonly Mock<IDelegadoRepo> _delegadoRepoMock;
     private readonly Mock<IImagenJugadorRepo> _imagenJugadorRepoMock;
+    private readonly Mock<IClubRepo> _clubRepoMock;
+    private readonly Mock<IImagenEscudoRepo> _imagenEscudoRepoMock;
     private readonly Mock<IBDVirtual> _bdVirtualMock;
     private readonly Mock<IDniExpulsadoDeLaLigaRepo> _dniExpulsadoDeLaLigaRepoMock;
     private readonly PublicoCore _publicoCore;
@@ -27,12 +29,22 @@ public class PublicoCoreTest
         _jugadorCoreMock = new Mock<IJugadorCore>();
         _delegadoRepoMock = new Mock<IDelegadoRepo>();
         _imagenJugadorRepoMock = new Mock<IImagenJugadorRepo>();
+        _clubRepoMock = new Mock<IClubRepo>();
+        _imagenEscudoRepoMock = new Mock<IImagenEscudoRepo>();
         _bdVirtualMock = new Mock<IBDVirtual>();
         _dniExpulsadoDeLaLigaRepoMock = new Mock<IDniExpulsadoDeLaLigaRepo>();
         _dniExpulsadoDeLaLigaRepoMock
             .Setup(x => x.ExistePorDniAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
-        _publicoCore = new PublicoCore(_jugadorRepoMock.Object, _jugadorCoreMock.Object, _delegadoRepoMock.Object, _imagenJugadorRepoMock.Object, _bdVirtualMock.Object, _dniExpulsadoDeLaLigaRepoMock.Object);
+        _publicoCore = new PublicoCore(
+            _jugadorRepoMock.Object,
+            _jugadorCoreMock.Object,
+            _delegadoRepoMock.Object,
+            _imagenJugadorRepoMock.Object,
+            _clubRepoMock.Object,
+            _imagenEscudoRepoMock.Object,
+            _bdVirtualMock.Object,
+            _dniExpulsadoDeLaLigaRepoMock.Object);
     }
 
     [Fact]

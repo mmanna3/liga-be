@@ -14,15 +14,27 @@ public class PublicoCore : IPublicoCore
     private readonly IJugadorCore _jugadorCore;
     private readonly IDelegadoRepo _delegadoRepo;
     private readonly IImagenJugadorRepo _imagenJugadorRepo;
+    private readonly IClubRepo _clubRepo;
+    private readonly IImagenEscudoRepo _imagenEscudoRepo;
     private readonly IBDVirtual _bdVirtual;
     private readonly IDniExpulsadoDeLaLigaRepo _dniExpulsadoDeLaLigaRepo;
 
-    public PublicoCore(IJugadorRepo jugadorRepo, IJugadorCore jugadorCore, IDelegadoRepo delegadoRepo, IImagenJugadorRepo imagenJugadorRepo, IBDVirtual bdVirtual, IDniExpulsadoDeLaLigaRepo dniExpulsadoDeLaLigaRepo)
+    public PublicoCore(
+        IJugadorRepo jugadorRepo,
+        IJugadorCore jugadorCore,
+        IDelegadoRepo delegadoRepo,
+        IImagenJugadorRepo imagenJugadorRepo,
+        IClubRepo clubRepo,
+        IImagenEscudoRepo imagenEscudoRepo,
+        IBDVirtual bdVirtual,
+        IDniExpulsadoDeLaLigaRepo dniExpulsadoDeLaLigaRepo)
     {
         _jugadorRepo = jugadorRepo;
         _jugadorCore = jugadorCore;
         _delegadoRepo = delegadoRepo;
         _imagenJugadorRepo = imagenJugadorRepo;
+        _clubRepo = clubRepo;
+        _imagenEscudoRepo = imagenEscudoRepo;
         _bdVirtual = bdVirtual;
         _dniExpulsadoDeLaLigaRepo = dniExpulsadoDeLaLigaRepo;
     }
@@ -87,6 +99,20 @@ public class PublicoCore : IPublicoCore
         AppendSeccion(sb, $"Fichados antes de {anoActual}", sinFoto.Where(je => je.FechaFichaje.Year < anoActual).ToList());
 
         return sb.ToString();
+    }
+
+    public async Task<IReadOnlyList<EscudoClubDTO>> ListarEscudosDeClubes()
+    {
+        var clubes = await _clubRepo.Listar();
+        return clubes
+            .OrderBy(c => c.Nombre, StringComparer.CurrentCultureIgnoreCase)
+            .Select(c => new EscudoClubDTO
+            {
+                ClubId = c.Id,
+                Nombre = c.Nombre,
+                Escudo = _imagenEscudoRepo.GetRutaRelativaEscudo(c.Id)
+            })
+            .ToList();
     }
 
     private static void AppendSeccion(System.Text.StringBuilder sb, string titulo, List<JugadorEquipo> items)

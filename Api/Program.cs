@@ -50,7 +50,8 @@ try
             policy.WithOrigins(
                     "https://web.edefi.com.ar",
                     "https://web2.edefi.com.ar",
-                    "https://torneos.edefi.com.ar")
+                    "https://torneos.edefi.com.ar",
+                    "https://mmanna3.github.io")
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });

@@ -67,5 +67,12 @@ namespace Api.Api.Controllers
             var texto = await _core.ListarJugadoresSinFoto();
             return Content(texto, "text/plain");
         }
+
+        [HttpGet("escudos-clubes")]
+        public async Task<ActionResult<IReadOnlyList<EscudoClubDTO>>> EscudosClubes()
+        {
+            var escudos = await _core.ListarEscudosDeClubes();
+            return Ok(escudos);
+        }
     }
 }
