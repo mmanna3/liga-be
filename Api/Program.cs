@@ -48,6 +48,7 @@ try
         options.AddPolicy("EdefiWeb", policy =>
         {
             policy.WithOrigins(
+                    "http://localhost:4321",
                     "https://web.edefi.com.ar",
                     "https://web2.edefi.com.ar",
                     "https://torneos.edefi.com.ar",
