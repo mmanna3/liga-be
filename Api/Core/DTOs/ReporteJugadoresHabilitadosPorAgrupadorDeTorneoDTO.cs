@@ -1,6 +1,6 @@
 namespace Api.Core.DTOs;
 
-public class ReporteJugadoresHabilitadosPorTorneoDTO
+public class ReporteJugadoresHabilitadosFilaDTO
 {
     public string NombreTorneo { get; set; } = string.Empty;
     public int Enero { get; set; }
@@ -16,4 +16,10 @@ public class ReporteJugadoresHabilitadosPorTorneoDTO
     public int Noviembre { get; set; }
     public int Diciembre { get; set; }
     public int TotalEnElAnio { get; set; }
+}
+
+public class ReporteJugadoresHabilitadosPorAgrupadorDeTorneoDTO
+{
+    public string NombreAgrupador { get; set; } = string.Empty;
+    public List<ReporteJugadoresHabilitadosFilaDTO> Torneos { get; set; } = [];
 }

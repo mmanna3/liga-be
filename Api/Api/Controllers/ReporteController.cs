@@ -23,7 +23,7 @@ namespace Api.Api.Controllers
         }
 
         [HttpGet("obtener-reporte-jugadores-habilitados-por-torneo")]
-        public async Task<ActionResult<IEnumerable<ReporteJugadoresHabilitadosPorTorneoDTO>>> ObtenerReporteJugadoresHabilitadosPorTorneo([FromQuery] int anio)
+        public async Task<ActionResult<IEnumerable<ReporteJugadoresHabilitadosPorAgrupadorDeTorneoDTO>>> ObtenerReporteJugadoresHabilitadosPorTorneo([FromQuery] int anio)
         {
             var reporte = await _reporteCore.ObtenerReporteJugadoresHabilitadosPorTorneo(anio);
             return Ok(reporte);

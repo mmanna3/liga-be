@@ -18,8 +18,8 @@ public class ReporteCore : IReporteCore
         return await _historialDePagosRepo.ObtenerPagosPorMesYEquipo(mes, anio);
     }
 
-    public async Task<IEnumerable<ReporteJugadoresHabilitadosPorTorneoDTO>> ObtenerReporteJugadoresHabilitadosPorTorneo(int anio)
+    public async Task<IEnumerable<ReporteJugadoresHabilitadosPorAgrupadorDeTorneoDTO>> ObtenerReporteJugadoresHabilitadosPorTorneo(int anio)
     {
-        return await _historialDePagosRepo.ObtenerJugadoresHabilitadosPorTorneo(anio);
+        return await _historialDePagosRepo.ObtenerJugadoresHabilitadosPorAgrupadorDeTorneo(anio);
     }
 } 
