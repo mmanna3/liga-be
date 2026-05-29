@@ -99,7 +99,8 @@ namespace Api.Api.Controllers
             if (path is null)
                 return NotFound();
 
-            return PhysicalFile(path, "image/jpeg");
+            var contentType = _imagenSponsorWebPublicaRepo.GetContentTypeLogo(id) ?? "application/octet-stream";
+            return PhysicalFile(path, contentType);
         }
     }
 }

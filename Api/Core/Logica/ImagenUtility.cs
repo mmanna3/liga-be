@@ -181,5 +181,102 @@ namespace Api.Core.Logica
             return $"data:image/jpeg;base64,{base64String}";
         }
 
+        public static string AgregarMimeType(string base64String, string mimeType)
+        {
+            if (string.IsNullOrEmpty(base64String))
+                return string.Empty;
+
+            if (base64String.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+                return base64String;
+
+            return $"data:{mimeType};base64,{base64String}";
+        }
+
+        public static string ObtenerMimeTypeDesdeExtension(string extension)
+        {
+            return extension.ToLowerInvariant() switch
+            {
+                ".svg" => "image/svg+xml",
+                ".png" => "image/png",
+                ".jpg" or ".jpeg" => "image/jpeg",
+                _ => "application/octet-stream"
+            };
+        }
+
+        public static SponsorImagenFormato DetectarFormatoSponsor(string imagenBase64)
+        {
+            if (string.IsNullOrWhiteSpace(imagenBase64))
+                throw new ExcepcionControlada("La imagen está vacía. Verificá que hayas seleccionado una foto válida.");
+
+            if (imagenBase64.Contains("data:image/svg+xml", StringComparison.OrdinalIgnoreCase))
+                return SponsorImagenFormato.Svg;
+            if (imagenBase64.Contains("data:image/png", StringComparison.OrdinalIgnoreCase))
+                return SponsorImagenFormato.Png;
+            if (imagenBase64.Contains("data:image/jpeg", StringComparison.OrdinalIgnoreCase)
+                || imagenBase64.Contains("data:image/jpg", StringComparison.OrdinalIgnoreCase))
+                return SponsorImagenFormato.Jpeg;
+
+            byte[] bytes;
+            try
+            {
+                bytes = Convert.FromBase64String(QuitarMimeType(imagenBase64));
+            }
+            catch (FormatException)
+            {
+                throw new ExcepcionControlada("La imagen tiene un formato inválido. Probá seleccionar la foto de nuevo.");
+            }
+
+            if (bytes.Length == 0)
+                throw new ExcepcionControlada("La imagen está vacía. Verificá que hayas seleccionado una foto válida.");
+
+            if (bytes.Length >= 4 && bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47)
+                return SponsorImagenFormato.Png;
+            if (bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xD8)
+                return SponsorImagenFormato.Jpeg;
+
+            var texto = System.Text.Encoding.UTF8.GetString(bytes).TrimStart('\uFEFF', ' ', '\t', '\r', '\n');
+            if (texto.StartsWith("<svg", StringComparison.OrdinalIgnoreCase)
+                || texto.Contains("<svg", StringComparison.OrdinalIgnoreCase))
+                return SponsorImagenFormato.Svg;
+
+            throw new ExcepcionControlada("Formato no soportado. Usá JPG, PNG o SVG.");
+        }
+
+        public static SKBitmap RedimensionarPng(string imagenBase64, int anchoMaximo = 500)
+        {
+            var image = ConvertirAImageYQuitarMimeType(imagenBase64);
+            if (image == null)
+                throw new ExcepcionControlada("La imagen no pudo procesarse. Verificá que sea una foto válida e intentá de nuevo.");
+            if (image.Width <= anchoMaximo)
+                return image;
+            return RedimensionarImagenConAnchoFijo(image, anchoMaximo);
+        }
+
+        public static byte[] ObtenerBytesSvg(string imagenBase64)
+        {
+            var bytes = Convert.FromBase64String(QuitarMimeType(imagenBase64));
+            var texto = System.Text.Encoding.UTF8.GetString(bytes).TrimStart('\uFEFF');
+            if (!texto.Contains("<svg", StringComparison.OrdinalIgnoreCase))
+                throw new ExcepcionControlada("El archivo SVG no es válido.");
+            if (texto.Contains("<script", StringComparison.OrdinalIgnoreCase))
+                throw new ExcepcionControlada("El SVG contiene contenido no permitido.");
+            return System.Text.Encoding.UTF8.GetBytes(texto);
+        }
+
+        public static string ExtensionSponsor(SponsorImagenFormato formato) =>
+            formato switch
+            {
+                SponsorImagenFormato.Svg => ".svg",
+                SponsorImagenFormato.Png => ".png",
+                _ => ".jpg"
+            };
+
+    }
+
+    public enum SponsorImagenFormato
+    {
+        Jpeg,
+        Png,
+        Svg
     }
 }

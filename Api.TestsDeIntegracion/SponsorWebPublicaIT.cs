@@ -47,7 +47,7 @@ public class SponsorWebPublicaIT : TestBase
         Assert.Equal("Sponsor de prueba", creado.Nombre);
         Assert.False(string.IsNullOrEmpty(creado.Imagen));
 
-        var pathImagen = Path.Combine(paths.ImagenesSponsorsAbsolute, $"{creado.Id}.jpg");
+        var pathImagen = Path.Combine(paths.ImagenesSponsorsAbsolute, $"{creado.Id}.png");
         Assert.True(File.Exists(pathImagen));
 
         var listaConSponsor = await client.GetFromJsonAsync<List<SponsorWebPublicaDTO>>("/api/SponsorWebPublica");

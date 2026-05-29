@@ -27,13 +27,13 @@ public class SponsorWebPublicaCore : ABMCore<ISponsorWebPublicaRepo, SponsorWebP
     {
         var dtos = (await base.Listar()).ToList();
         foreach (var dto in dtos)
-            dto.Imagen = ImagenUtility.AgregarMimeType(_imagenSponsorWebPublicaRepo.GetImagenEnBase64(dto.Id));
+            dto.Imagen = _imagenSponsorWebPublicaRepo.GetImagenDataUrl(dto.Id);
         return dtos;
     }
 
     protected override SponsorWebPublicaDTO AntesDeObtenerPorId(SponsorWebPublica entidad, SponsorWebPublicaDTO dto)
     {
-        dto.Imagen = ImagenUtility.AgregarMimeType(_imagenSponsorWebPublicaRepo.GetImagenEnBase64(entidad.Id));
+        dto.Imagen = _imagenSponsorWebPublicaRepo.GetImagenDataUrl(entidad.Id);
         return dto;
     }
 

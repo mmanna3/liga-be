@@ -41,14 +41,30 @@ public class ImagenSponsorWebPublicaRepoTest
     }
 
     [Fact]
-    public void Guardar_CreaArchivoEnImagenesSponsors()
+    public void Guardar_Png_CreaArchivoPngEnImagenesSponsors()
     {
         const int sponsorId = 1;
         _repo.Guardar(sponsorId, PuntoRojoBase64);
 
-        var pathAbsoluto = Path.Combine(_paths.ImagenesSponsorsAbsolute, $"{sponsorId}.jpg");
+        var pathAbsoluto = Path.Combine(_paths.ImagenesSponsorsAbsolute, $"{sponsorId}.png");
         Assert.True(File.Exists(pathAbsoluto));
+        Assert.False(File.Exists(Path.Combine(_paths.ImagenesSponsorsAbsolute, $"{sponsorId}.jpg")));
         Assert.True(_repo.Existe(sponsorId));
+    }
+
+    [Fact]
+    public void Guardar_Svg_CreaArchivoSvgEnImagenesSponsors()
+    {
+        const int sponsorId = 6;
+        const string svgBase64 = Convert.ToBase64String(
+            System.Text.Encoding.UTF8.GetBytes(
+                "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\"><circle cx=\"5\" cy=\"5\" r=\"4\" fill=\"red\"/></svg>"));
+
+        _repo.Guardar(sponsorId, $"data:image/svg+xml;base64,{svgBase64}");
+
+        var pathAbsoluto = Path.Combine(_paths.ImagenesSponsorsAbsolute, $"{sponsorId}.svg");
+        Assert.True(File.Exists(pathAbsoluto));
+        Assert.Equal("image/svg+xml", _repo.GetContentTypeLogo(sponsorId));
     }
 
     [Fact]
@@ -59,7 +75,7 @@ public class ImagenSponsorWebPublicaRepoTest
 
         var ruta = _repo.GetRutaRelativaLogo(sponsorId);
 
-        Assert.Equal($"{_paths.ImagenesSponsorsRelative.TrimEnd('/')}/{sponsorId}.jpg", ruta);
+        Assert.Equal($"{_paths.ImagenesSponsorsRelative.TrimEnd('/')}/{sponsorId}.png", ruta);
     }
 
     [Fact]
@@ -71,7 +87,7 @@ public class ImagenSponsorWebPublicaRepoTest
         var path = _repo.GetRutaAbsolutaLogo(sponsorId);
 
         Assert.NotNull(path);
-        Assert.Equal(Path.Combine(_paths.ImagenesSponsorsAbsolute, $"{sponsorId}.jpg"), path);
+        Assert.Equal(Path.Combine(_paths.ImagenesSponsorsAbsolute, $"{sponsorId}.png"), path);
     }
 
     [Fact]
@@ -90,7 +106,7 @@ public class ImagenSponsorWebPublicaRepoTest
     {
         const int sponsorId = 5;
         _repo.Guardar(sponsorId, PuntoRojoBase64);
-        var pathAbsoluto = Path.Combine(_paths.ImagenesSponsorsAbsolute, $"{sponsorId}.jpg");
+        var pathAbsoluto = Path.Combine(_paths.ImagenesSponsorsAbsolute, $"{sponsorId}.png");
         Assert.True(File.Exists(pathAbsoluto));
 
         _repo.Eliminar(sponsorId);
