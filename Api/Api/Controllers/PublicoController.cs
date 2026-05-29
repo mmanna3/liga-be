@@ -74,5 +74,12 @@ namespace Api.Api.Controllers
             var escudos = await _core.ListarEscudosDeClubes();
             return Ok(escudos);
         }
+
+        [HttpGet("sponsors-web-publica")]
+        public async Task<ActionResult<IReadOnlyList<SponsorWebPublicaPublicoDTO>>> SponsorsWebPublica()
+        {
+            var sponsors = await _core.ListarSponsorsWebPublica();
+            return Ok(sponsors);
+        }
     }
 }

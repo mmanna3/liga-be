@@ -8,4 +8,5 @@ public interface IPublicoCore
     Task<int> FicharEnOtroEquipo(FicharEnOtroEquipoDTO dto);
     Task<string> ListarJugadoresSinFoto();
     Task<IReadOnlyList<EscudoClubDTO>> ListarEscudosDeClubes();
+    Task<IReadOnlyList<SponsorWebPublicaPublicoDTO>> ListarSponsorsWebPublica();
 }

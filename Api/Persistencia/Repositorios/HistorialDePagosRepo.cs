@@ -70,6 +70,61 @@ public class HistorialDePagosRepo : IHistorialDePagosRepo
         return resultado;
     }
 
+    public async Task<IEnumerable<ReporteJugadoresHabilitadosPorTorneoDTO>> ObtenerJugadoresHabilitadosPorTorneo(int anio)
+    {
+        var query =
+            from h in _context.HistorialDePagos
+            join je in _context.JugadorEquipo on h.JugadorEquipoId equals je.Id
+            join ez in _context.EquipoZona on je.EquipoId equals ez.EquipoId
+            join z in _context.Zonas on ez.ZonaId equals z.Id
+            join f in _context.Fases on z.FaseId equals f.Id
+            join t in _context.Torneos on f.TorneoId equals t.Id
+            where h.Fecha.Year == anio
+            select new { h, t };
+
+        var agrupadoPorTorneoYMes = await query
+            .GroupBy(x => new
+            {
+                x.t.Nombre,
+                x.h.Fecha.Month
+            })
+            .Select(g => new
+            {
+                g.Key.Nombre,
+                g.Key.Month,
+                Cantidad = g.Select(x => x.h.JugadorEquipoId).Distinct().Count()
+            })
+            .ToListAsync();
+
+        var resultado = agrupadoPorTorneoYMes
+            .GroupBy(x => x.Nombre)
+            .Select(g =>
+            {
+                var meses = g.ToDictionary(x => x.Month, x => x.Cantidad);
+                return new ReporteJugadoresHabilitadosPorTorneoDTO
+                {
+                    NombreTorneo = g.Key,
+                    Enero = meses.GetValueOrDefault(1),
+                    Febrero = meses.GetValueOrDefault(2),
+                    Marzo = meses.GetValueOrDefault(3),
+                    Abril = meses.GetValueOrDefault(4),
+                    Mayo = meses.GetValueOrDefault(5),
+                    Junio = meses.GetValueOrDefault(6),
+                    Julio = meses.GetValueOrDefault(7),
+                    Agosto = meses.GetValueOrDefault(8),
+                    Septiembre = meses.GetValueOrDefault(9),
+                    Octubre = meses.GetValueOrDefault(10),
+                    Noviembre = meses.GetValueOrDefault(11),
+                    Diciembre = meses.GetValueOrDefault(12),
+                    TotalEnElAnio = g.Sum(x => x.Cantidad)
+                };
+            })
+            .OrderBy(x => x.NombreTorneo)
+            .ToList();
+
+        return resultado;
+    }
+
     public HistorialDePagos? ObtenerPagoPorJugadorEquipoId(int jugadorEquipoId)
     {
         return _context.HistorialDePagos

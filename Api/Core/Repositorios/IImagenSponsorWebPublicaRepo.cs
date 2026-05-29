@@ -1,0 +1,10 @@
+namespace Api.Core.Repositorios;
+
+public interface IImagenSponsorWebPublicaRepo
+{
+    string GetImagenEnBase64(int sponsorId);
+    string GetRutaRelativaLogo(int sponsorId);
+    void Guardar(int sponsorId, string imagenBase64);
+    void Eliminar(int sponsorId);
+    bool Existe(int sponsorId);
+}

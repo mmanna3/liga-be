@@ -36,6 +36,10 @@ public static class InyeccionDeDependenciasConfig
         builder.Services.AddScoped<IDniExpulsadoDeLaLigaRepo, DniExpulsadoDeLaLigaRepo>();
         builder.Services.AddScoped<IDniExpulsadoDeLaLigaCore, DniExpulsadoDeLaLigaCore>();
 
+        builder.Services.AddScoped<ISponsorWebPublicaRepo, SponsorWebPublicaRepo>();
+        builder.Services.AddScoped<IImagenSponsorWebPublicaRepo, ImagenSponsorWebPublicaRepo>();
+        builder.Services.AddScoped<ISponsorWebPublicaCore, SponsorWebPublicaCore>();
+
         builder.Services.AddSingleton<IRelojZonaHorariaArgentina, RelojZonaHorariaArgentina>();
 
         builder.Services.AddScoped<IConfiguracionRepo, ConfiguracionRepo>();

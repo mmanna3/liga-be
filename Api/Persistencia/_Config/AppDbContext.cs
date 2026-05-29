@@ -161,6 +161,9 @@ public class AppDbContext : DbContext
             .HasIndex(e => e.DNI)
             .IsUnique();
 
+        builder.Entity<SponsorWebPublica>()
+            .ToTable("SponsorsWebPublica");
+
         builder.Entity<Configuracion>()
             .HasOne(c => c.HabilitacionFichaje)
             .WithMany()
@@ -573,6 +576,7 @@ public class AppDbContext : DbContext
     public DbSet<Rol> Roles { get; set; } = null!;
     public DbSet<Torneo> Torneos { get; set; } = null!;
     public DbSet<DniExpulsadoDeLaLiga> DnisExpulsadosDeLaLiga { get; set; } = null!;
+    public DbSet<SponsorWebPublica> SponsorsWebPublica { get; set; } = null!;
     public DbSet<Configuracion> Configuraciones { get; set; } = null!;
     public DbSet<TorneoAgrupador> TorneoAgrupadores { get; set; } = null!;
     public DbSet<TorneoCategoria> TorneoCategorias { get; set; } = null!;

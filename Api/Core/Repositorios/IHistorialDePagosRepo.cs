@@ -7,5 +7,6 @@ public interface IHistorialDePagosRepo
 {
     Task RegistrarPago(int jugadorEquipoId);
     Task<IEnumerable<ReportePagosDTO>> ObtenerPagosPorMesYEquipo(int? mes, int? anio);
+    Task<IEnumerable<ReporteJugadoresHabilitadosPorTorneoDTO>> ObtenerJugadoresHabilitadosPorTorneo(int anio);
     HistorialDePagos? ObtenerPagoPorJugadorEquipoId(int jugadorEquipoId);
 } 

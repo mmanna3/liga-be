@@ -16,6 +16,8 @@ public class PublicoCore : IPublicoCore
     private readonly IImagenJugadorRepo _imagenJugadorRepo;
     private readonly IClubRepo _clubRepo;
     private readonly IImagenEscudoRepo _imagenEscudoRepo;
+    private readonly ISponsorWebPublicaRepo _sponsorWebPublicaRepo;
+    private readonly IImagenSponsorWebPublicaRepo _imagenSponsorWebPublicaRepo;
     private readonly IBDVirtual _bdVirtual;
     private readonly IDniExpulsadoDeLaLigaRepo _dniExpulsadoDeLaLigaRepo;
 
@@ -26,6 +28,8 @@ public class PublicoCore : IPublicoCore
         IImagenJugadorRepo imagenJugadorRepo,
         IClubRepo clubRepo,
         IImagenEscudoRepo imagenEscudoRepo,
+        ISponsorWebPublicaRepo sponsorWebPublicaRepo,
+        IImagenSponsorWebPublicaRepo imagenSponsorWebPublicaRepo,
         IBDVirtual bdVirtual,
         IDniExpulsadoDeLaLigaRepo dniExpulsadoDeLaLigaRepo)
     {
@@ -35,6 +39,8 @@ public class PublicoCore : IPublicoCore
         _imagenJugadorRepo = imagenJugadorRepo;
         _clubRepo = clubRepo;
         _imagenEscudoRepo = imagenEscudoRepo;
+        _sponsorWebPublicaRepo = sponsorWebPublicaRepo;
+        _imagenSponsorWebPublicaRepo = imagenSponsorWebPublicaRepo;
         _bdVirtual = bdVirtual;
         _dniExpulsadoDeLaLigaRepo = dniExpulsadoDeLaLigaRepo;
     }
@@ -112,6 +118,20 @@ public class PublicoCore : IPublicoCore
                 Nombre = c.Nombre,
                 Escudo = _imagenEscudoRepo.GetRutaRelativaEscudo(c.Id)
             })
+            .ToList();
+    }
+
+    public async Task<IReadOnlyList<SponsorWebPublicaPublicoDTO>> ListarSponsorsWebPublica()
+    {
+        var sponsors = await _sponsorWebPublicaRepo.Listar();
+        return sponsors
+            .Select(s => new SponsorWebPublicaPublicoDTO
+            {
+                Id = s.Id,
+                Nombre = s.Nombre,
+                LogoUrl = _imagenSponsorWebPublicaRepo.GetRutaRelativaLogo(s.Id)
+            })
+            .Where(s => !string.IsNullOrEmpty(s.LogoUrl))
             .ToList();
     }
 
