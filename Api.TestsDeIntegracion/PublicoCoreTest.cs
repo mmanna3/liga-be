@@ -19,6 +19,8 @@ public class PublicoCoreTest
     private readonly Mock<IImagenJugadorRepo> _imagenJugadorRepoMock;
     private readonly Mock<IClubRepo> _clubRepoMock;
     private readonly Mock<IImagenEscudoRepo> _imagenEscudoRepoMock;
+    private readonly Mock<ISponsorWebPublicaRepo> _sponsorWebPublicaRepoMock;
+    private readonly Mock<IImagenSponsorWebPublicaRepo> _imagenSponsorWebPublicaRepoMock;
     private readonly Mock<IBDVirtual> _bdVirtualMock;
     private readonly Mock<IDniExpulsadoDeLaLigaRepo> _dniExpulsadoDeLaLigaRepoMock;
     private readonly PublicoCore _publicoCore;
@@ -31,6 +33,8 @@ public class PublicoCoreTest
         _imagenJugadorRepoMock = new Mock<IImagenJugadorRepo>();
         _clubRepoMock = new Mock<IClubRepo>();
         _imagenEscudoRepoMock = new Mock<IImagenEscudoRepo>();
+        _sponsorWebPublicaRepoMock = new Mock<ISponsorWebPublicaRepo>();
+        _imagenSponsorWebPublicaRepoMock = new Mock<IImagenSponsorWebPublicaRepo>();
         _bdVirtualMock = new Mock<IBDVirtual>();
         _dniExpulsadoDeLaLigaRepoMock = new Mock<IDniExpulsadoDeLaLigaRepo>();
         _dniExpulsadoDeLaLigaRepoMock
@@ -43,6 +47,8 @@ public class PublicoCoreTest
             _imagenJugadorRepoMock.Object,
             _clubRepoMock.Object,
             _imagenEscudoRepoMock.Object,
+            _sponsorWebPublicaRepoMock.Object,
+            _imagenSponsorWebPublicaRepoMock.Object,
             _bdVirtualMock.Object,
             _dniExpulsadoDeLaLigaRepoMock.Object);
     }
