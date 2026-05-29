@@ -56,7 +56,7 @@ public class ImagenSponsorWebPublicaRepoTest
     public void Guardar_Svg_CreaArchivoSvgEnImagenesSponsors()
     {
         const int sponsorId = 6;
-        const string svgBase64 = Convert.ToBase64String(
+        var svgBase64 = Convert.ToBase64String(
             System.Text.Encoding.UTF8.GetBytes(
                 "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 10 10\"><circle cx=\"5\" cy=\"5\" r=\"4\" fill=\"red\"/></svg>"));
 
