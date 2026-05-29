@@ -1,4 +1,5 @@
 using Api.Core.DTOs;
+using Api.Core.Repositorios;
 using Api.Core.Servicios.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,12 +15,18 @@ namespace Api.Api.Controllers
         private readonly IPublicoCore _core;
         private readonly IEquipoCore _equipoCore;
         private readonly IDelegadoCore _delegadoCore;
+        private readonly IImagenSponsorWebPublicaRepo _imagenSponsorWebPublicaRepo;
 
-        public PublicoController(IPublicoCore publicoCore, IEquipoCore equipoCore, IDelegadoCore delegadoCore)
+        public PublicoController(
+            IPublicoCore publicoCore,
+            IEquipoCore equipoCore,
+            IDelegadoCore delegadoCore,
+            IImagenSponsorWebPublicaRepo imagenSponsorWebPublicaRepo)
         {
             _core = publicoCore;
             _equipoCore = equipoCore;
             _delegadoCore = delegadoCore;
+            _imagenSponsorWebPublicaRepo = imagenSponsorWebPublicaRepo;
         }
 
         [HttpGet("el-dni-esta-fichado")]
@@ -80,6 +87,19 @@ namespace Api.Api.Controllers
         {
             var sponsors = await _core.ListarSponsorsWebPublica();
             return Ok(sponsors);
+        }
+
+        /// <summary>
+        /// Sirve el logo del sponsor por ID (evita rutas bloqueadas por ad blockers).
+        /// </summary>
+        [HttpGet("sponsor-logo/{id:int}")]
+        public IActionResult SponsorLogo(int id)
+        {
+            var path = _imagenSponsorWebPublicaRepo.GetRutaAbsolutaLogo(id);
+            if (path is null)
+                return NotFound();
+
+            return PhysicalFile(path, "image/jpeg");
         }
     }
 }

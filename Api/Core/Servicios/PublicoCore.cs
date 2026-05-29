@@ -125,13 +125,13 @@ public class PublicoCore : IPublicoCore
     {
         var sponsors = await _sponsorWebPublicaRepo.Listar();
         return sponsors
+            .Where(s => _imagenSponsorWebPublicaRepo.Existe(s.Id))
             .Select(s => new SponsorWebPublicaPublicoDTO
             {
                 Id = s.Id,
                 Nombre = s.Nombre,
-                LogoUrl = _imagenSponsorWebPublicaRepo.GetRutaRelativaLogo(s.Id)
+                LogoUrl = $"/api/publico/sponsor-logo/{s.Id}"
             })
-            .Where(s => !string.IsNullOrEmpty(s.LogoUrl))
             .ToList();
     }
 

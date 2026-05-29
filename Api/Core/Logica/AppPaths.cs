@@ -8,7 +8,7 @@ namespace Api.Core.Logica
 		public string ImagenesJugadoresRelative { get; } = "/Imagenes/Jugadores";
 		public string ImagenesDelegadosRelative { get; } = "/Imagenes/Delegados";
 		public string ImagenesEscudosRelative { get; } = "/Imagenes/Escudos";
-		public string ImagenesPublicidadesRelative { get; } = "/Imagenes/Publicidades";
+		public string ImagenesSponsorsRelative { get; } = "/Imagenes/Sponsors";
 		public string EscudoDefaultRelative { get; } = "/Imagenes/Escudos/_pordefecto.jpg";
 		public string ImagenesTemporalesCarnetRelative { get; } = "/Imagenes/Temporales/Carnet";
 		public string ImagenesTemporalesDNIFrenteRelative { get; } = "/Imagenes/Temporales/DNIFrente";
@@ -18,7 +18,7 @@ namespace Api.Core.Logica
 		public string ImagenesAbsolute { get; }
 		public string ImagenesJugadoresAbsolute { get; }
 		public string ImagenesDelegadosAbsolute { get; }
-		public string ImagenesPublicidadesAbsolute { get; }
+		public string ImagenesSponsorsAbsolute { get; }
 		public string ImagenesEscudosAbsolute { get; }
 		public string EscudoDefaultFileAbsolute { get; }
 		public string ImagenesTemporalesCarnetAbsolute { get; set; }
@@ -35,7 +35,7 @@ namespace Api.Core.Logica
 			ImagenesJugadoresAbsolute = GetAbsolutePath(ImagenesJugadoresRelative);
 			ImagenesDelegadosAbsolute = GetAbsolutePath(ImagenesDelegadosRelative);
 			ImagenesEscudosAbsolute = GetAbsolutePath(ImagenesEscudosRelative);
-			ImagenesPublicidadesAbsolute = GetAbsolutePath(ImagenesPublicidadesRelative);
+			ImagenesSponsorsAbsolute = GetAbsolutePath(ImagenesSponsorsRelative);
 			EscudoDefaultFileAbsolute = GetAbsolutePath(EscudoDefaultRelative);
 			ImagenesTemporalesCarnetAbsolute = GetAbsolutePath(ImagenesTemporalesCarnetRelative);
 			ImagenesTemporalesDNIFrenteAbsolute = GetAbsolutePath(ImagenesTemporalesDNIFrenteRelative);
