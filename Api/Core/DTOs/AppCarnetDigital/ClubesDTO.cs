@@ -7,6 +7,4 @@ public class ClubesDTO
     public string Localidad { get; set; } = string.Empty;
     public string Direccion { get; set; } = string.Empty;
     public string TipoCancha { get; set; } = string.Empty;
-
-    public string SuperficieCancha { get; set; } = string.Empty;
 }

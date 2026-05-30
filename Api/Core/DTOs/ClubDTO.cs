@@ -19,9 +19,6 @@ public class ClubDTO : DTO
     public int CanchaTipoId { get; set; } = (int)CanchaTipoEnum.Consultar;
     public string CanchaTipo { get; set; } = nameof(CanchaTipoEnum.Consultar);
 
-    public int CanchaSuperficieId { get; set; } = (int)CanchaSuperficieEnum.Consultar;
-    public string CanchaSuperficie { get; set; } = nameof(CanchaSuperficieEnum.Consultar);
-
     [MaxLength(100)]
     public string? Localidad { get; set; }
     

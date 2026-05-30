@@ -4,6 +4,7 @@ using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260529222956_EliminarCanchaSuperficie")]
+    partial class EliminarCanchaSuperficie
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -208,16 +211,6 @@ namespace Api.Migrations
                         {
                             Id = 4,
                             Tipo = "Consultar"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Tipo = "PastoSintetico"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Tipo = "PastoNatural"
                         });
                 });
 
@@ -1215,42 +1208,42 @@ namespace Api.Migrations
                         {
                             Id = 1,
                             NombreUsuario = "mati",
-                            Password = "$2a$12$6hasIZb574IpswLA/SqxnOpA7zzAWvK.oLgePBLq1Lt6838RFABBS",
+                            Password = "$2a$12$U9E3yVbk.uwmqx829.LXX.XTxq5dug2oQ/YWsp.2XR8hxweeSPwpi",
                             RolId = 0
                         },
                         new
                         {
                             Id = 2,
                             NombreUsuario = "pipa",
-                            Password = "$2a$12$6itwklGbgS0Ka6bXPMvFpO8XLOsVhR08sstu6Tj3NuHMyh3X3Buxq",
+                            Password = "$2a$12$Mo89qLb95c47.UXaBqHtHOIXwQMxNYAODoyHLzkThoA2tDWScUGBq",
                             RolId = 1
                         },
                         new
                         {
                             Id = 101,
                             NombreUsuario = "consulta",
-                            Password = "$2a$12$fhp8BmEbLYK0d/V/oO174usLvmaFLvQL1AAhunc7J6nVeTlyaIktG",
+                            Password = "$2a$12$LVRqMsMn9CxEfjQYeGTm2ewIIw7i5h7WNSMRqBF/tPSCP..1HLeRO",
                             RolId = 3
                         },
                         new
                         {
                             Id = 1000,
                             NombreUsuario = "eze",
-                            Password = "$2a$12$5J7/2DbIaaI3Z1I9lNoLM.fbeqmXadi/HMSBQ0.6ZJQShQOrrmeSu",
+                            Password = "$2a$12$4.b.8FH6Z1TdorsR5UDace9FqQfw9RWG90/QJrVvOIkWk.i3fRXEe",
                             RolId = 1
                         },
                         new
                         {
                             Id = 1001,
                             NombreUsuario = "lucas",
-                            Password = "$2a$12$Hw11J3sqBndcn6dfFam13.mVdF0318QVZuEh3c/k3CQB5Z3W6utH6",
+                            Password = "$2a$12$zGzIXMbFNbPxFJuQTrIkMO1AKwsonN3Y68K3IUbiMkQ/d.evXgjQ2",
                             RolId = 1
                         },
                         new
                         {
                             Id = 1002,
                             NombreUsuario = "elias",
-                            Password = "$2a$12$tU8YAzU/nQ0q89h0N1/AKu8qamMF2d/mSD8uqQkhRAcm/8MPAJQsm",
+                            Password = "$2a$12$hh5qFMkeNVyIL.KyIg06IObiAgl2/jI7GiPHPShpIGiXOQcRkNFIW",
                             RolId = 1
                         });
                 });

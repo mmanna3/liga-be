@@ -4,6 +4,7 @@ using Api.Core.Entidades;
 using Api.Core.Entidades.EntidadesConValoresPredefinidos;
 using Api.Core.Enums;
 using Api.Core.Logica;
+using Api.Core.Otros;
 using AutoMapper;
 using System.Linq;
 using Api.Core.DTOs.AppCarnetDigital;
@@ -19,13 +20,10 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Delegados, opt => opt.MapFrom(src => src.DelegadoClubs.Select(dc => dc.Delegado).ToList()))
             .ForMember(dest => dest.Direccion, opt => opt.MapFrom(src => src.Direccion))
             .ForMember(dest => dest.CanchaTipo,
-                opt => opt.MapFrom(src => src.CanchaTipo != null ? src.CanchaTipo.Tipo : nameof(CanchaTipoEnum.Consultar)))
-            .ForMember(dest => dest.CanchaSuperficie,
-                opt => opt.MapFrom(src => src.CanchaSuperficie != null ? src.CanchaSuperficie.Superficie : nameof(CanchaSuperficieEnum.Consultar)))
+                opt => opt.MapFrom(src => CanchaTipoEtiqueta.Formatear(src.CanchaTipo)))
             .ForMember(dest => dest.Localidad, opt => opt.MapFrom(src => src.Localidad))
             .PreserveReferences().ReverseMap()
             .ForMember(dest => dest.CanchaTipo, opt => opt.Ignore())
-            .ForMember(dest => dest.CanchaSuperficie, opt => opt.Ignore())
             .ForMember(dest => dest.DelegadoClubs, opt => opt.Ignore());
         CreateMap<Torneo, TorneoDTO>()
             .ForMember(dest => dest.TorneoAgrupadorNombre, opt => opt.MapFrom(src => src.TorneoAgrupador != null ? src.TorneoAgrupador.Nombre : string.Empty))

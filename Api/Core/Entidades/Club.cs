@@ -18,9 +18,6 @@ public class Club : Entidad
     public int CanchaTipoId { get; set; } = (int)CanchaTipoEnum.Consultar;
     public virtual CanchaTipo CanchaTipo { get; set; } = null!;
 
-    public int CanchaSuperficieId { get; set; } = (int)CanchaSuperficieEnum.Consultar;
-    public virtual CanchaSuperficie CanchaSuperficie { get; set; } = null!;
-
     public virtual ICollection<Equipo> Equipos { get; set; } = null!;
     public virtual ICollection<DelegadoClub> DelegadoClubs { get; set; } = null!;
 }
