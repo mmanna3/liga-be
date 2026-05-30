@@ -80,7 +80,7 @@ public class HistorialDePagosRepo : IHistorialDePagosRepo
             join f in _context.Fases on z.FaseId equals f.Id
             join t in _context.Torneos on f.TorneoId equals t.Id
             join ta in _context.TorneoAgrupadores on t.TorneoAgrupadorId equals ta.Id
-            where h.Fecha.Year == anio
+            where h.Fecha.Year == anio && t.Anio == anio
             select new { h, t, ta };
 
         var agrupadoPorAgrupadorTorneoYMes = await query
@@ -113,7 +113,7 @@ public class HistorialDePagosRepo : IHistorialDePagosRepo
                     .Select(torneoGrupo =>
                     {
                         var meses = torneoGrupo.ToDictionary(x => x.Mes, x => x.Cantidad);
-                        return CrearFilaMeses(torneoGrupo.Key.NombreTorneo, meses);
+                        return CrearFilaMeses(torneoGrupo.Key.TorneoId, torneoGrupo.Key.NombreTorneo, meses);
                     })
                     .OrderBy(t => t.NombreTorneo)
                     .ToList()
@@ -125,11 +125,13 @@ public class HistorialDePagosRepo : IHistorialDePagosRepo
     }
 
     private static ReporteJugadoresHabilitadosFilaDTO CrearFilaMeses(
+        int torneoId,
         string nombreTorneo,
         Dictionary<int, int> meses)
     {
         return new ReporteJugadoresHabilitadosFilaDTO
         {
+            TorneoId = torneoId,
             NombreTorneo = nombreTorneo,
             Enero = meses.GetValueOrDefault(1),
             Febrero = meses.GetValueOrDefault(2),

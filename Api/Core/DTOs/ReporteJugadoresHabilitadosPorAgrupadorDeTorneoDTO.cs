@@ -2,6 +2,7 @@ namespace Api.Core.DTOs;
 
 public class ReporteJugadoresHabilitadosFilaDTO
 {
+    public int TorneoId { get; set; }
     public string NombreTorneo { get; set; } = string.Empty;
     public int Enero { get; set; }
     public int Febrero { get; set; }
