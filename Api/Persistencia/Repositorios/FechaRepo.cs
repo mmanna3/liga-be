@@ -117,7 +117,7 @@ public class FechaRepo : RepositorioABMAnidado<Fecha, int>, IFechaRepo
         if (zona == null)
             return Array.Empty<TorneoCategoria>();
 
-        return zona.Fase.Torneo.Categorias.OrderBy(c => c.Id).ToList();
+        return zona.Fase.Torneo.Categorias.OrderBy(c => c.Orden).ThenBy(c => c.Id).ToList();
     }
 
     public async Task<(int ZonaAperturaId, int ZonaClausuraId)?> ObtenerIdsZonasAnualPorZonaReferenciaAsync(int zonaId,

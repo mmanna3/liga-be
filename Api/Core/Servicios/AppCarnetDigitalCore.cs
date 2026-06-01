@@ -149,7 +149,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         if (equipo == null)
             throw new ExcepcionControlada("No existe el equipo.");
 
-        var categoriasOrdenadas = torneo.Categorias.OrderBy(c => c.Id).ToList();
+        var categoriasOrdenadas = torneo.Categorias.OrderBy(c => c.Orden).ThenBy(c => c.Id).ToList();
         var estadosPermitidos = new HashSet<int>
         {
             (int)EstadoJugadorEnum.Activo,
@@ -301,7 +301,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         if (fechas.Count == 0)
             return dto;
 
-        var categoriasOrdenadas = fechas[0].Zona.Fase.Torneo.Categorias.OrderBy(c => c.Id).ToList();
+        var categoriasOrdenadas = fechas[0].Zona.Fase.Torneo.Categorias.OrderBy(c => c.Orden).ThenBy(c => c.Id).ToList();
 
         foreach (var fecha in fechas)
         {
