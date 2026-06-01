@@ -1,3 +1,4 @@
+using Api.Core.Entidades;
 using Api.Core.Logica;
 using Xunit;
 using static Api.Core.Logica.PosicionesTodosContraTodosLogica;
@@ -122,41 +123,70 @@ public class PosicionesTodosContraTodosPuntosTests
     }
 
     /// <summary>
-    /// Misma regla de desempate que <c>PosicionesTodosContraTodosAsync</c>: puntos desc, nombre asc.
+    /// Misma regla de desempate que <c>PosicionesTodosContraTodosAsync</c>: puntos, dif. de goles, goles a favor, nombre.
     /// </summary>
     [Fact]
-    public void OrdenTabla_PuntosIguales_DesempateAlfabeticamentePorNombreEquipo()
+    public void OrdenTabla_PuntosIguales_DesempatePorDiferenciaDeGoles()
     {
-        var filas = new List<(string Nombre, int Puntos)>
+        var filas = new List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>
         {
-            ("Zebra", 3),
-            ("Abeja", 3),
-            ("Carpa", 1)
+            (new Equipo { Id = 1, Nombre = "Zebra", ClubId = 1, Jugadores = [] },
+                new EstadisticasPosicionEquipo { GolesAFavor = 3, GolesEnContra = 2 }, 6),
+            (new Equipo { Id = 2, Nombre = "Abeja", ClubId = 1, Jugadores = [] },
+                new EstadisticasPosicionEquipo { GolesAFavor = 5, GolesEnContra = 2 }, 6),
+            (new Equipo { Id = 3, Nombre = "Carpa", ClubId = 1, Jugadores = [] },
+                new EstadisticasPosicionEquipo { GolesAFavor = 1, GolesEnContra = 1 }, 1)
         };
-        var orden = filas
-            .OrderByDescending(f => f.Puntos)
-            .ThenBy(f => f.Nombre, StringComparer.CurrentCultureIgnoreCase)
-            .ToList();
-        Assert.Equal("Abeja", orden[0].Nombre);
-        Assert.Equal("Zebra", orden[1].Nombre);
-        Assert.Equal("Carpa", orden[2].Nombre);
+        var orden = OrdenarFilasParaTabla(filas);
+        Assert.Equal("Abeja", orden[0].Equipo.Nombre);
+        Assert.Equal("Zebra", orden[1].Equipo.Nombre);
+        Assert.Equal("Carpa", orden[2].Equipo.Nombre);
         var posicionesAsignadas = orden.Select((_, i) => (i + 1).ToString()).ToList();
         Assert.Equal(new[] { "1", "2", "3" }, posicionesAsignadas);
     }
 
     [Fact]
+    public void OrdenTabla_PuntosYDiferenciaIguales_DesempatePorGolesAFavor()
+    {
+        var filas = new List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>
+        {
+            (new Equipo { Id = 1, Nombre = "Zebra", ClubId = 1, Jugadores = [] },
+                new EstadisticasPosicionEquipo { GolesAFavor = 4, GolesEnContra = 2 }, 6),
+            (new Equipo { Id = 2, Nombre = "Abeja", ClubId = 1, Jugadores = [] },
+                new EstadisticasPosicionEquipo { GolesAFavor = 5, GolesEnContra = 3 }, 6)
+        };
+        var orden = OrdenarFilasParaTabla(filas);
+        Assert.Equal("Abeja", orden[0].Equipo.Nombre);
+        Assert.Equal("Zebra", orden[1].Equipo.Nombre);
+    }
+
+    [Fact]
+    public void OrdenTabla_PuntosDiferenciaYGolesIguales_DesempateAlfabeticamentePorNombreEquipo()
+    {
+        var filas = new List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>
+        {
+            (new Equipo { Id = 1, Nombre = "Zebra", ClubId = 1, Jugadores = [] },
+                new EstadisticasPosicionEquipo { GolesAFavor = 3, GolesEnContra = 1 }, 6),
+            (new Equipo { Id = 2, Nombre = "Abeja", ClubId = 1, Jugadores = [] },
+                new EstadisticasPosicionEquipo { GolesAFavor = 3, GolesEnContra = 1 }, 6)
+        };
+        var orden = OrdenarFilasParaTabla(filas);
+        Assert.Equal("Abeja", orden[0].Equipo.Nombre);
+        Assert.Equal("Zebra", orden[1].Equipo.Nombre);
+    }
+
+    [Fact]
     public void OrdenTabla_PuntosDistintos_ElMayorVaPrimeroYRecibePosicion1()
     {
-        var filas = new List<(string Nombre, int Puntos)>
+        var filas = new List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>
         {
-            ("B", 2),
-            ("A", 6)
+            (new Equipo { Id = 1, Nombre = "B", ClubId = 1, Jugadores = [] },
+                new EstadisticasPosicionEquipo(), 2),
+            (new Equipo { Id = 2, Nombre = "A", ClubId = 1, Jugadores = [] },
+                new EstadisticasPosicionEquipo(), 6)
         };
-        var orden = filas
-            .OrderByDescending(f => f.Puntos)
-            .ThenBy(f => f.Nombre, StringComparer.CurrentCultureIgnoreCase)
-            .ToList();
-        Assert.Equal("A", orden[0].Nombre);
+        var orden = OrdenarFilasParaTabla(filas);
+        Assert.Equal("A", orden[0].Equipo.Nombre);
         Assert.Equal("1", orden.Select((_, i) => (i + 1).ToString()).First());
     }
 }

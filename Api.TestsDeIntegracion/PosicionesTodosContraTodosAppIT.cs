@@ -240,7 +240,7 @@ public class PosicionesTodosContraTodosAppIT : TestBase
     }
 
     [Fact]
-    public async Task PosicionesTodosContraTodos_DosCategorias_SumaPuntosYEstadisticasYDesempataPorNombreEquipo()
+    public async Task PosicionesTodosContraTodos_DosCategorias_SumaPuntosYEstadisticasYDesempataPorDiferenciaDeGoles()
     {
         Assert.NotNull(_club);
         var zonaId = await CrearZonaDePrueba(Factory);
@@ -316,15 +316,15 @@ public class PosicionesTodosContraTodosAppIT : TestBase
                 {
                     Id = partidosDb[0].Id,
                     CategoriaId = partidosDb[0].CategoriaId,
-                    ResultadoLocal = "2",
-                    ResultadoVisitante = "1"
+                    ResultadoLocal = "5",
+                    ResultadoVisitante = "0"
                 },
                 new PartidoDTO
                 {
                     Id = partidosDb[1].Id,
                     CategoriaId = partidosDb[1].CategoriaId,
-                    ResultadoLocal = "1",
-                    ResultadoVisitante = "2"
+                    ResultadoLocal = "0",
+                    ResultadoVisitante = "1"
                 }
             ];
         }
@@ -382,8 +382,10 @@ public class PosicionesTodosContraTodosAppIT : TestBase
         var gr = general.Renglones.ToList();
         Assert.Equal("1", gr[0].Posicion);
         Assert.Equal("2", gr[1].Posicion);
-        Assert.Equal("Alpha", gr[0].Equipo);
-        Assert.Equal("un equipo", gr[1].Equipo);
+        Assert.Equal("un equipo", gr[0].Equipo);
+        Assert.Equal("Alpha", gr[1].Equipo);
+        Assert.Equal("4", gr[0].GolesDiferencia);
+        Assert.Equal("-4", gr[1].GolesDiferencia);
     }
 
     [Fact]
@@ -512,15 +514,15 @@ public class PosicionesTodosContraTodosAppIT : TestBase
                 {
                     Id = partidosDb[0].Id,
                     CategoriaId = partidosDb[0].CategoriaId,
-                    ResultadoLocal = "2",
-                    ResultadoVisitante = "1"
+                    ResultadoLocal = "5",
+                    ResultadoVisitante = "0"
                 },
                 new PartidoDTO
                 {
                     Id = partidosDb[1].Id,
                     CategoriaId = partidosDb[1].CategoriaId,
-                    ResultadoLocal = "1",
-                    ResultadoVisitante = "2"
+                    ResultadoLocal = "0",
+                    ResultadoVisitante = "1"
                 }
             ];
         }

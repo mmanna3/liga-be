@@ -145,6 +145,20 @@ public static class PosicionesTodosContraTodosLogica
     }
 
     /// <summary>
+    /// Orden de tabla: puntos desc, diferencia de goles desc, goles a favor desc, nombre asc.
+    /// </summary>
+    public static List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)> OrdenarFilasParaTabla(
+        IEnumerable<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)> filas)
+    {
+        return filas
+            .OrderByDescending(f => f.Puntos)
+            .ThenByDescending(f => f.Stats.GolesAFavor - f.Stats.GolesEnContra)
+            .ThenByDescending(f => f.Stats.GolesAFavor)
+            .ThenBy(f => f.Equipo.Nombre, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+    }
+
+    /// <summary>
     /// Obtiene el resultado del equipo y el del rival en un <see cref="Partido"/> según el tipo de jornada.
     /// </summary>
     public static bool IntentarObtenerMiResultadoYRival(Partido partido, Jornada jornada, int equipoId,

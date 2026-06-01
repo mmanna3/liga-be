@@ -538,10 +538,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             Renglones = []
         };
 
-        var ordenadas = filas
-            .OrderByDescending(f => f.Puntos)
-            .ThenBy(f => f.Equipo.Nombre, StringComparer.CurrentCultureIgnoreCase)
-            .ToList();
+        var ordenadas = PosicionesTodosContraTodosLogica.OrdenarFilasParaTabla(filas);
 
         var numeroPosicion = 1;
         foreach (var f in ordenadas)
