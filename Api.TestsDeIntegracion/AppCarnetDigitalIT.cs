@@ -464,6 +464,48 @@ public class AppCarnetDigitalIT : TestBase
         Assert.Equal(2, anual.Zonas.Count);
         Assert.Contains(anual.Zonas, z => z.Nombre == "Norte");
         Assert.Contains(anual.Zonas, z => z.Nombre == "Sur");
+        Assert.Equal(["Norte", "Sur"], anual.Zonas.Select(z => z.Nombre).ToList());
+    }
+
+    [Fact]
+    public async Task InformacionInicialDeTorneos_ZonasDeFase_OrdenadasPorOrdenNoPorNombre()
+    {
+        int faseId;
+        await using (var scope = Factory.Services.CreateAsyncScope())
+        {
+            var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var fase = new FaseTodosContraTodos
+            {
+                Id = 0,
+                Nombre = "Fase orden zonas",
+                TorneoId = 1,
+                Numero = 99,
+                EstadoFaseId = 100,
+                EsVisibleEnApp = true
+            };
+            ctx.Fases.Add(fase);
+            await ctx.SaveChangesAsync();
+            faseId = fase.Id;
+
+            ctx.Zonas.Add(new ZonaTodosContraTodos { Id = 0, FaseId = faseId, Nombre = "Zona Z", Orden = 1 });
+            ctx.Zonas.Add(new ZonaTodosContraTodos { Id = 0, FaseId = faseId, Nombre = "Zona A", Orden = 2 });
+            ctx.Zonas.Add(new ZonaTodosContraTodos { Id = 0, FaseId = faseId, Nombre = "Zona M", Orden = 3 });
+            await ctx.SaveChangesAsync();
+        }
+
+        var client = await GetAuthenticatedClient();
+        var response = await client.GetAsync("/api/carnet-digital/info-inicial-de-torneos");
+        response.EnsureSuccessStatusCode();
+        var lista = await response.Content.ReadFromJsonAsync<List<InformacionInicialAgrupadorDTO>>();
+        Assert.NotNull(lista);
+
+        var faseDto = lista
+            .SelectMany(a => a.Torneos)
+            .SelectMany(t => t.Fases)
+            .First(f => f.Id == faseId);
+
+        Assert.Equal(["Zona Z", "Zona A", "Zona M"], faseDto.Zonas.Select(z => z.Nombre).ToList());
+        Assert.Equal([1, 2, 3], faseDto.Zonas.Select(z => z.Orden).ToList());
     }
 
     [Fact]

@@ -51,15 +51,21 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
             var filasZona = await Context.Set<Zona>()
                 .AsNoTracking()
                 .Where(z => faseIds.Contains(z.FaseId))
-                .OrderBy(z => z.Nombre)
-                .Select(z => new { z.FaseId, z.Id, z.Nombre })
+                .OrderBy(z => z.Orden)
+                .ThenBy(z => z.Id)
+                .Select(z => new { z.FaseId, z.Id, z.Nombre, z.Orden })
                 .ToListAsync(cancellationToken);
 
             zonasPorFaseId = filasZona
                 .GroupBy(x => x.FaseId)
                 .ToDictionary(
                     g => g.Key,
-                    g => g.Select(x => new InformacionInicialZonaDTO { Id = x.Id, Nombre = x.Nombre }).ToList());
+                    g => g.Select(x => new InformacionInicialZonaDTO
+                    {
+                        Id = x.Id,
+                        Nombre = x.Nombre,
+                        Orden = x.Orden
+                    }).ToList());
         }
 
         var resultado = new List<InformacionInicialAgrupadorDTO>();
@@ -134,6 +140,10 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
             if (seen.Add(z.Nombre.Trim()))
                 list.Add(z);
         }
-        return list;
+
+        return list
+            .OrderBy(z => z.Orden)
+            .ThenBy(z => z.Id)
+            .ToList();
     }
 }
