@@ -274,6 +274,7 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.FechaNacimiento, opt => opt.MapFrom(src => src.Jugador.FechaNacimiento))
             .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.EstadoJugadorId))
             .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => TorneoNombreDesdePrimeraZona(src.Equipo)))
+            .ForMember(dest => dest.Color, opt => opt.MapFrom(src => ColorAgrupadorDesdePrimeraZona(src.Equipo)))
             .ForMember(dest => dest.TarjetasAmarillas, opt => opt.MapFrom(src => src.TarjetasAmarillas))
             .ForMember(dest => dest.TarjetasRojas, opt => opt.MapFrom(src => src.TarjetasRojas));
 
@@ -285,6 +286,7 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.FechaNacimiento, opt => opt.MapFrom(src => src.Jugador.FechaNacimiento))
             .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.EstadoJugadorId))
             .ForMember(dest => dest.Torneo, opt => opt.MapFrom(src => TorneoNombreDesdePrimeraZona(src.Equipo)))
+            .ForMember(dest => dest.Color, opt => opt.MapFrom(src => ColorAgrupadorDesdePrimeraZona(src.Equipo)))
             .ForMember(dest => dest.Motivo, opt => opt.MapFrom(src => src.Motivo))
             .ForMember(dest => dest.TarjetasAmarillas, opt => opt.MapFrom(src => src.TarjetasAmarillas))
             .ForMember(dest => dest.TarjetasRojas, opt => opt.MapFrom(src => src.TarjetasRojas));
@@ -301,15 +303,33 @@ public class MapperConfig : Profile
         return TorneoNombreDesdeZona(equipo.Zonas.First().Zona);
     }
 
-    private static string TorneoNombreDesdeZona(Zona? zona)
+    private static string ColorAgrupadorDesdePrimeraZona(Equipo? equipo)
     {
-        if (zona == null) return "";
+        if (equipo?.Zonas == null || !equipo.Zonas.Any())
+            return "";
+        return ColorAgrupadorDesdeZona(equipo.Zonas.First().Zona);
+    }
+
+    private static string ColorAgrupadorDesdeZona(Zona? zona)
+    {
+        var torneo = TorneoDesdeZona(zona);
+        return torneo?.TorneoAgrupador?.Color?.Nombre ?? "";
+    }
+
+    private static Torneo? TorneoDesdeZona(Zona? zona)
+    {
+        if (zona == null) return null;
         return zona switch
         {
-            ZonaTodosContraTodos z => z.Fase?.Torneo?.Nombre ?? "",
-            ZonaEliminacionDirecta z => z.Fase?.Torneo?.Nombre ?? "",
-            _ => ""
+            ZonaTodosContraTodos z => z.Fase?.Torneo,
+            ZonaEliminacionDirecta z => z.Fase?.Torneo,
+            _ => null
         };
+    }
+
+    private static string TorneoNombreDesdeZona(Zona? zona)
+    {
+        return TorneoDesdeZona(zona)?.Nombre ?? "";
     }
 }
 
