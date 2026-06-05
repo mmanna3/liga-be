@@ -160,6 +160,7 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Partidos,
                 opt => opt.MapFrom(src => src.Partidos != null ? src.Partidos.ToList() : new List<Partido>()));
         CreateMap<DniExpulsadoDeLaLiga, DniExpulsadoDeLaLigaDTO>().ReverseMap();
+        CreateMap<Arbitro, ArbitroDTO>().ReverseMap();
         CreateMap<SponsorWebPublica, SponsorWebPublicaDTO>()
             .ForMember(dest => dest.Imagen, opt => opt.Ignore())
             .ReverseMap()

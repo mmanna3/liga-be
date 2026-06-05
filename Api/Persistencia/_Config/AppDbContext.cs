@@ -465,6 +465,10 @@ public class AppDbContext : DbContext
             .HasIndex(d => d.DNI)
             .IsUnique();
 
+        builder.Entity<Arbitro>()
+            .HasIndex(a => a.DNI)
+            .IsUnique();
+
         builder.Entity<Usuario>()
             .HasOne(u => u.Delegado)
             .WithOne(d => d.Usuario)
@@ -543,6 +547,7 @@ public class AppDbContext : DbContext
 
     public DbSet<Club> Clubs { get; set; } = null!;
     public DbSet<Equipo> Equipos { get; set; } = null!;
+    public DbSet<Arbitro> Arbitros { get; set; } = null!;
     public DbSet<Delegado> Delegados { get; set; } = null!;
     public DbSet<DelegadoClub> DelegadoClub { get; set; } = null!;
     public DbSet<Jugador> Jugadores { get; set; } = null!;
