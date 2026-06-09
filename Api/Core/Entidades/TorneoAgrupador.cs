@@ -7,6 +7,7 @@ public class TorneoAgrupador : Entidad, IEsVisibleEnApp
     public required string Nombre { get; set; }
     public required bool EsVisibleEnApp { get; set; }
     public virtual ICollection<Torneo> Torneos { get; set; } = null!;
+    public virtual ICollection<ArbitroTorneoAgrupador> Arbitros { get; set; } = new List<ArbitroTorneoAgrupador>();
     public virtual Color Color { get; set; } = null!;
     public required int ColorId { get; set; }
 }

@@ -469,6 +469,17 @@ public class AppDbContext : DbContext
             .HasIndex(a => a.DNI)
             .IsUnique();
 
+        builder.Entity<ArbitroTorneoAgrupador>()
+            .HasOne(a => a.Arbitro)
+            .WithMany(ar => ar.ArbitroTorneoAgrupadores)
+            .HasForeignKey(a => a.ArbitroId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<ArbitroTorneoAgrupador>()
+            .HasOne(a => a.TorneoAgrupador)
+            .WithMany(t => t.Arbitros)
+            .HasForeignKey(a => a.TorneoAgrupadorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Entity<Usuario>()
             .HasOne(u => u.Delegado)
             .WithOne(d => d.Usuario)
@@ -548,6 +559,7 @@ public class AppDbContext : DbContext
     public DbSet<Club> Clubs { get; set; } = null!;
     public DbSet<Equipo> Equipos { get; set; } = null!;
     public DbSet<Arbitro> Arbitros { get; set; } = null!;
+    public DbSet<ArbitroTorneoAgrupador> ArbitroTorneoAgrupador { get; set; } = null!;
     public DbSet<Delegado> Delegados { get; set; } = null!;
     public DbSet<DelegadoClub> DelegadoClub { get; set; } = null!;
     public DbSet<Jugador> Jugadores { get; set; } = null!;

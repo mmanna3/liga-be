@@ -15,4 +15,7 @@ public class ArbitroDTO : DTO
 
     [MaxLength(20)]
     public string? TelefonoCelular { get; set; }
+
+    public List<int> TorneoAgrupadorIds { get; set; } = new();
+    public List<ArbitroTorneoAgrupadorDTO> TorneoAgrupadores { get; set; } = new();
 }

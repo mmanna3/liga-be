@@ -1,6 +1,8 @@
+using System.Net;
 using System.Net.Http.Json;
 using Api.Core.DTOs;
 using Api.Core.Entidades;
+using Api.Core.Enums;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
 using Microsoft.Extensions.DependencyInjection;
@@ -234,5 +236,199 @@ public class ArbitroIT : TestBase
         var listaFinal = await client.GetFromJsonAsync<List<ArbitroDTO>>("/api/arbitro");
         Assert.NotNull(listaFinal);
         Assert.Empty(listaFinal);
+    }
+
+    [Fact]
+    public async Task CrearArbitro_SinAgrupadores_ListaVacia()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var dto = new ArbitroDTO
+        {
+            DNI = "40123456",
+            Nombre = "Sin",
+            Apellido = "Agrupadores"
+        };
+
+        var crearResponse = await client.PostAsJsonAsync("/api/arbitro", dto);
+        crearResponse.EnsureSuccessStatusCode();
+        var creado = JsonConvert.DeserializeObject<ArbitroDTO>(await crearResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(creado);
+
+        var obtenido = await client.GetFromJsonAsync<ArbitroDTO>($"/api/arbitro/{creado.Id}");
+        Assert.NotNull(obtenido);
+        Assert.Empty(obtenido.TorneoAgrupadorIds);
+        Assert.Empty(obtenido.TorneoAgrupadores);
+    }
+
+    [Fact]
+    public async Task CrearArbitro_ConDosAgrupadores_DevuelveIdsYNombres()
+    {
+        var client = await GetAuthenticatedClient();
+        int agrupadorId2;
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var agrupador2 = new TorneoAgrupador
+            {
+                Id = 0,
+                Nombre = "Futsal",
+                EsVisibleEnApp = true,
+                ColorId = (int)ColorEnum.Negro
+            };
+            context.TorneoAgrupadores.Add(agrupador2);
+            context.SaveChanges();
+            agrupadorId2 = agrupador2.Id;
+        }
+
+        var dto = new ArbitroDTO
+        {
+            DNI = "40234567",
+            Nombre = "Con",
+            Apellido = "Agrupadores",
+            TorneoAgrupadorIds = [1, agrupadorId2]
+        };
+
+        var crearResponse = await client.PostAsJsonAsync("/api/arbitro", dto);
+        crearResponse.EnsureSuccessStatusCode();
+        var creado = JsonConvert.DeserializeObject<ArbitroDTO>(await crearResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(creado);
+
+        var obtenido = await client.GetFromJsonAsync<ArbitroDTO>($"/api/arbitro/{creado.Id}");
+        Assert.NotNull(obtenido);
+        Assert.Equal(2, obtenido.TorneoAgrupadorIds.Count);
+        Assert.Contains(1, obtenido.TorneoAgrupadorIds);
+        Assert.Contains(agrupadorId2, obtenido.TorneoAgrupadorIds);
+        Assert.Equal(2, obtenido.TorneoAgrupadores.Count);
+        Assert.Contains(obtenido.TorneoAgrupadores, a => a.TorneoAgrupadorId == 1 && a.TorneoAgrupadorNombre == "General");
+        Assert.Contains(obtenido.TorneoAgrupadores, a => a.TorneoAgrupadorId == agrupadorId2 && a.TorneoAgrupadorNombre == "Futsal");
+    }
+
+    [Fact]
+    public async Task ModificarArbitro_CambiaAgrupadoresAsignados()
+    {
+        var client = await GetAuthenticatedClient();
+        int agrupadorId2;
+        int arbitroId;
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var agrupador2 = new TorneoAgrupador
+            {
+                Id = 0,
+                Nombre = "Beach",
+                EsVisibleEnApp = true,
+                ColorId = (int)ColorEnum.Negro
+            };
+            context.TorneoAgrupadores.Add(agrupador2);
+            context.SaveChanges();
+            agrupadorId2 = agrupador2.Id;
+
+            var arbitro = new Arbitro
+            {
+                Id = 0,
+                DNI = "40345678",
+                Nombre = "Modif",
+                Apellido = "Agrupadores",
+                ArbitroTorneoAgrupadores =
+                [
+                    new ArbitroTorneoAgrupador { Id = 0, TorneoAgrupadorId = 1 }
+                ]
+            };
+            context.Arbitros.Add(arbitro);
+            context.SaveChanges();
+            arbitroId = arbitro.Id;
+        }
+
+        var dto = new ArbitroDTO
+        {
+            Id = arbitroId,
+            DNI = "40345678",
+            Nombre = "Modif",
+            Apellido = "Agrupadores",
+            TorneoAgrupadorIds = [agrupadorId2]
+        };
+
+        var response = await client.PutAsJsonAsync($"/api/arbitro/{arbitroId}", dto);
+        response.EnsureSuccessStatusCode();
+
+        var obtenido = await client.GetFromJsonAsync<ArbitroDTO>($"/api/arbitro/{arbitroId}");
+        Assert.NotNull(obtenido);
+        Assert.Single(obtenido.TorneoAgrupadorIds);
+        Assert.Equal(agrupadorId2, obtenido.TorneoAgrupadorIds[0]);
+        Assert.Single(obtenido.TorneoAgrupadores);
+        Assert.Equal("Beach", obtenido.TorneoAgrupadores[0].TorneoAgrupadorNombre);
+    }
+
+    [Fact]
+    public async Task ModificarArbitro_AgrupadorInexistente_400()
+    {
+        var client = await GetAuthenticatedClient();
+        int arbitroId;
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var arbitro = new Arbitro
+            {
+                Id = 0,
+                DNI = "40456789",
+                Nombre = "Error",
+                Apellido = "Agrupador"
+            };
+            context.Arbitros.Add(arbitro);
+            context.SaveChanges();
+            arbitroId = arbitro.Id;
+        }
+
+        var dto = new ArbitroDTO
+        {
+            Id = arbitroId,
+            DNI = "40456789",
+            Nombre = "Error",
+            Apellido = "Agrupador",
+            TorneoAgrupadorIds = [99999]
+        };
+
+        var response = await client.PutAsJsonAsync($"/api/arbitro/{arbitroId}", dto);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task EliminarArbitro_ConAgrupadores_EliminaEnlaces()
+    {
+        var client = await GetAuthenticatedClient();
+        int arbitroId;
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var arbitro = new Arbitro
+            {
+                Id = 0,
+                DNI = "40567890",
+                Nombre = "Eliminar",
+                Apellido = "ConAgrupador",
+                ArbitroTorneoAgrupadores =
+                [
+                    new ArbitroTorneoAgrupador { Id = 0, TorneoAgrupadorId = 1 }
+                ]
+            };
+            context.Arbitros.Add(arbitro);
+            context.SaveChanges();
+            arbitroId = arbitro.Id;
+        }
+
+        var response = await client.DeleteAsync($"/api/arbitro/{arbitroId}");
+        response.EnsureSuccessStatusCode();
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            Assert.Null(context.Arbitros.Find(arbitroId));
+            Assert.Empty(context.ArbitroTorneoAgrupador.Where(a => a.ArbitroId == arbitroId).ToList());
+        }
     }
 }

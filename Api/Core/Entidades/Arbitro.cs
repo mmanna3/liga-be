@@ -15,4 +15,6 @@ public class Arbitro : Entidad
 
     [MaxLength(20)]
     public string? TelefonoCelular { get; set; }
+
+    public virtual ICollection<ArbitroTorneoAgrupador> ArbitroTorneoAgrupadores { get; set; } = new List<ArbitroTorneoAgrupador>();
 }

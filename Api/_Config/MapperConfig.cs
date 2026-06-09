@@ -162,7 +162,13 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.Partidos,
                 opt => opt.MapFrom(src => src.Partidos != null ? src.Partidos.ToList() : new List<Partido>()));
         CreateMap<DniExpulsadoDeLaLiga, DniExpulsadoDeLaLigaDTO>().ReverseMap();
-        CreateMap<Arbitro, ArbitroDTO>().ReverseMap();
+        CreateMap<ArbitroTorneoAgrupador, ArbitroTorneoAgrupadorDTO>()
+            .ForMember(dest => dest.TorneoAgrupadorNombre, opt => opt.MapFrom(src => src.TorneoAgrupador.Nombre));
+        CreateMap<Arbitro, ArbitroDTO>()
+            .ForMember(dest => dest.TorneoAgrupadorIds, opt => opt.MapFrom(src => src.ArbitroTorneoAgrupadores.Select(x => x.TorneoAgrupadorId).ToList()))
+            .ForMember(dest => dest.TorneoAgrupadores, opt => opt.MapFrom(src => src.ArbitroTorneoAgrupadores))
+            .ReverseMap()
+            .ForMember(dest => dest.ArbitroTorneoAgrupadores, opt => opt.Ignore());
         CreateMap<SponsorWebPublica, SponsorWebPublicaDTO>()
             .ForMember(dest => dest.Imagen, opt => opt.Ignore())
             .ReverseMap()
