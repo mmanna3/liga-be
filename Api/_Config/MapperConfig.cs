@@ -146,7 +146,9 @@ public class MapperConfig : Profile
 
         CreateMap<Partido, PartidoDTO>()
             .ForMember(dest => dest.Categoria,
-                opt => opt.MapFrom(src => src.Categoria != null ? src.Categoria.Nombre : string.Empty));
+                opt => opt.MapFrom(src => src.Categoria != null ? src.Categoria.Nombre : string.Empty))
+            .ForMember(dest => dest.Orden,
+                opt => opt.MapFrom(src => src.Categoria != null ? src.Categoria.Orden : 0));
         CreateMap<Jornada, JornadaDTO>()
             .ForMember(dest => dest.Tipo, opt => opt.MapFrom<JornadaTipoResolver>())
             .ForMember(dest => dest.LocalId, opt => opt.MapFrom<JornadaLocalIdResolver>())

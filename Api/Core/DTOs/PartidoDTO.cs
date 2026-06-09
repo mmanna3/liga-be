@@ -4,6 +4,10 @@ public class PartidoDTO : DTO
 {
     /// <summary>Solo lectura al listar; en creación/modificación basta <see cref="CategoriaId"/>.</summary>
     public string? Categoria { get; set; }
+
+    /// <summary>Solo lectura al listar; proviene del orden de la categoría en el torneo.</summary>
+    public int Orden { get; set; }
+
     public required int CategoriaId { get; set; }
     public required string ResultadoLocal { get; set; } = string.Empty;
     public required string ResultadoVisitante { get; set; } = string.Empty;
