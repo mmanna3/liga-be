@@ -5,17 +5,32 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Persistencia.Repositorios;
 
-public class UsuarioRepo : IUsuarioRepo
+public class UsuarioRepo : RepositorioABM<Usuario>, IUsuarioRepo
 {
-    private readonly AppDbContext _context;
-
-    public UsuarioRepo(AppDbContext context)
+    public UsuarioRepo(AppDbContext context) : base(context)
     {
-        _context = context;
+    }
+
+    protected override IQueryable<Usuario> Set()
+    {
+        return Context.Usuarios
+            .Include(u => u.Rol)
+            .Where(u => u.DelegadoId == null);
     }
 
     public async Task<bool> ExisteNombreUsuario(string nombreUsuario)
     {
-        return await _context.Usuarios.AnyAsync(u => u.NombreUsuario == nombreUsuario);
+        return await Context.Usuarios.AnyAsync(u => u.NombreUsuario == nombreUsuario);
+    }
+
+    public async Task<bool> ExisteNombreUsuarioExceptoId(string nombreUsuario, int id)
+    {
+        return await Context.Usuarios.AnyAsync(u => u.NombreUsuario == nombreUsuario && u.Id != id);
+    }
+
+    public async Task<int> ContarUsuariosConRoles(IEnumerable<int> rolIds)
+    {
+        var ids = rolIds.ToList();
+        return await Context.Usuarios.CountAsync(u => u.DelegadoId == null && ids.Contains(u.RolId));
     }
 }

@@ -225,6 +225,17 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.DelegadoId, x => x.MapFrom(src => src.DelegadoId))
             .PreserveReferences();
 
+        CreateMap<Usuario, UsuarioAdminDTO>()
+            .ForMember(dest => dest.RolNombre, opt => opt.MapFrom(src => src.Rol.Nombre))
+            .ForMember(dest => dest.BlanqueoPendiente, opt => opt.MapFrom(src => src.Password == null))
+            .ReverseMap()
+            .ForMember(dest => dest.Password, opt => opt.Ignore())
+            .ForMember(dest => dest.Rol, opt => opt.Ignore())
+            .ForMember(dest => dest.DelegadoId, opt => opt.Ignore())
+            .ForMember(dest => dest.Delegado, opt => opt.Ignore());
+
+        CreateMap<Rol, RolDTO>();
+
         CreateMap<Delegado, DelegadoDTO>()
             .ForMember(dest => dest.Usuario, x => x.MapFrom(src => src.Usuario))
             .ForMember(dest => dest.BlanqueoPendiente, x => x.MapFrom(src => src.Usuario != null && src.Usuario.Password == null))

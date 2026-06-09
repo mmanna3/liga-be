@@ -15,6 +15,8 @@ public static class InyeccionDeDependenciasConfig
 {
     public static WebApplicationBuilder Configurar(WebApplicationBuilder builder)
     {
+        builder.Services.AddHttpContextAccessor();
+
         builder.Services.AddScoped<IBDVirtual, BDVirtual>();
         
         builder.Services.AddScoped<IClubRepo, ClubRepo>();
@@ -69,6 +71,7 @@ public static class InyeccionDeDependenciasConfig
         builder.Services.AddScoped<IDelegadoRepo, DelegadoRepo>();
         builder.Services.AddScoped<IImagenDelegadoRepo, ImagenDelegadoRepo>();
         builder.Services.AddScoped<IUsuarioRepo, UsuarioRepo>();
+        builder.Services.AddScoped<IUsuarioCore, UsuarioCore>();
         builder.Services.AddScoped<IDelegadoCore, DelegadoCore>();
         
         builder.Services.AddScoped<IHistorialDePagosRepo, HistorialDePagosRepo>();
