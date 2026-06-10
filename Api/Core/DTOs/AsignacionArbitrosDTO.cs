@@ -12,6 +12,7 @@ public class ArbitroElegibleAsignacionDTO
     public required int Id { get; set; }
     public required string Nombre { get; set; }
     public required string Apellido { get; set; }
+    public string? TelefonoCelular { get; set; }
     public required List<JornadaAsignadaResumenDTO> JornadasAsignadasEnProximasFechas { get; set; }
 }
 
@@ -75,8 +76,13 @@ public class JornadaAsignacionDTO
     public required int Id { get; set; }
     public required DateOnly Dia { get; set; }
     public required string DiaSemana { get; set; }
+    public required string TorneoNombre { get; set; }
+    public required string FaseNombre { get; set; }
+    public required string ZonaNombre { get; set; }
     public required string Local { get; set; }
     public required string Visitante { get; set; }
+    public required string NombreClubLocal { get; set; }
+    public string? DireccionLocal { get; set; }
     public string? LocalidadLocal { get; set; }
     public required List<ArbitroAsignadoDTO> ArbitrosAsignados { get; set; }
 }
@@ -86,7 +92,9 @@ public class ArbitroAsignadoDTO
     public required int Id { get; set; }
     public required string Nombre { get; set; }
     public required string Apellido { get; set; }
+    public string? TelefonoCelular { get; set; }
     public required int Orden { get; set; }
+    public required bool WhatsappEnviado { get; set; }
 }
 
 public class AsignarArbitrosJornadaDTO

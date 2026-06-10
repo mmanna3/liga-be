@@ -10,4 +10,5 @@ public class ArbitroJornada : Entidad
     public int JornadaId { get; set; }
     public virtual Jornada Jornada { get; set; } = null!;
     public required int Orden { get; set; }
+    public bool WhatsappEnviado { get; set; }
 }

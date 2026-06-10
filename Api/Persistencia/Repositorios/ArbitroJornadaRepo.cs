@@ -28,9 +28,21 @@ public class ArbitroJornadaRepo : IArbitroJornadaRepo
                 Id = 0,
                 ArbitroId = arbitroId,
                 JornadaId = jornadaId,
-                Orden = orden
+                Orden = orden,
+                WhatsappEnviado = false
             });
         }
+    }
+
+    public async Task<bool> MarcarWhatsappEnviado(int jornadaId, int arbitroId)
+    {
+        var asignacion = await _context.ArbitroJornada
+            .FirstOrDefaultAsync(a => a.JornadaId == jornadaId && a.ArbitroId == arbitroId);
+        if (asignacion == null)
+            return false;
+
+        asignacion.WhatsappEnviado = true;
+        return true;
     }
 
     public Task<List<ArbitroJornada>> ListarPorJornadaIds(IEnumerable<int> jornadaIds)

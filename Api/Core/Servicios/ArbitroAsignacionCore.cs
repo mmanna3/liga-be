@@ -136,6 +136,10 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
                             instanciasPorId.TryGetValue(fed.InstanciaId, out instanciaNombre);
 
                         var jornadasDto = new List<JornadaAsignacionDTO>();
+                        var faseNombre = string.IsNullOrWhiteSpace(fase.Nombre)
+                            ? $"Fase {fase.Numero}"
+                            : fase.Nombre;
+
                         if (jornadasPorFechaId.TryGetValue(proximaFecha.Id, out var jornadasDeFecha))
                         {
                             foreach (var jornada in jornadasDeFecha)
@@ -146,7 +150,9 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
                                         Id = a.ArbitroId,
                                         Nombre = a.Arbitro.Nombre,
                                         Apellido = a.Arbitro.Apellido,
-                                        Orden = a.Orden
+                                        TelefonoCelular = a.Arbitro.TelefonoCelular,
+                                        Orden = a.Orden,
+                                        WhatsappEnviado = a.WhatsappEnviado
                                     }).ToList()
                                     : [];
 
@@ -155,8 +161,13 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
                                     Id = jornada.Id,
                                     Dia = dia,
                                     DiaSemana = diaSemana,
+                                    TorneoNombre = torneo.Nombre,
+                                    FaseNombre = faseNombre,
+                                    ZonaNombre = zona.Nombre,
                                     Local = jornada.LocalEquipo.Nombre,
                                     Visitante = jornada.VisitanteEquipo.Nombre,
+                                    NombreClubLocal = jornada.LocalEquipo.Club.Nombre,
+                                    DireccionLocal = jornada.LocalEquipo.Club.Direccion,
                                     LocalidadLocal = jornada.LocalEquipo.Club.Localidad,
                                     ArbitrosAsignados = arbitrosAsignados
                                 };
@@ -168,7 +179,7 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
                                     Dia = dia,
                                     DiaSemana = diaSemana,
                                     TorneoNombre = torneo.Nombre,
-                                    FaseNombre = fase.Nombre,
+                                    FaseNombre = faseNombre,
                                     ZonaNombre = zona.Nombre,
                                     Local = jornada.LocalEquipo.Nombre,
                                     Visitante = jornada.VisitanteEquipo.Nombre,
@@ -255,6 +266,7 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
                 Id = a.Id,
                 Nombre = a.Nombre,
                 Apellido = a.Apellido,
+                TelefonoCelular = a.TelefonoCelular,
                 JornadasAsignadasEnProximasFechas = jornadasDelArbitro
             };
         }).ToList();
@@ -320,6 +332,15 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
             .ToList();
 
         await _arbitroJornadaRepo.ReemplazarAsignaciones(jornadaId, asignaciones);
+        await _bdVirtual.GuardarCambios();
+    }
+
+    public async Task MarcarWhatsappEnviado(int jornadaId, int arbitroId)
+    {
+        var marcado = await _arbitroJornadaRepo.MarcarWhatsappEnviado(jornadaId, arbitroId);
+        if (!marcado)
+            throw new ExcepcionControlada("No existe una asignación de ese árbitro a la jornada indicada.");
+
         await _bdVirtual.GuardarCambios();
     }
 

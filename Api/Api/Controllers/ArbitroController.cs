@@ -46,4 +46,18 @@ public class ArbitroController : ABMController<ArbitroDTO, IArbitroCore, Arbitro
             return BadRequest(ex.Message);
         }
     }
+
+    [HttpPut("jornada/{jornadaId}/arbitros/{arbitroId}/whatsapp-enviado", Name = "marcarWhatsappEnviadoArbitroJornada")]
+    public async Task<IActionResult> MarcarWhatsappEnviado(int jornadaId, int arbitroId)
+    {
+        try
+        {
+            await _asignacionCore.MarcarWhatsappEnviado(jornadaId, arbitroId);
+            return NoContent();
+        }
+        catch (ExcepcionControlada ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 }

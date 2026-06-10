@@ -34,6 +34,7 @@ public class ArbitroAsignacionIT : TestBase
 
         var club = util.DadoQueExisteElClub();
         club.Localidad = "Rosario";
+        club.Direccion = "Av. Test 123";
         context.SaveChanges();
 
         var eq1 = util.DadoQueExisteElEquipo(club);
@@ -135,7 +136,14 @@ public class ArbitroAsignacionIT : TestBase
         context.Jornadas.AddRange(jornadaPasada, jornadaProxima, jornadaPosterior);
         context.SaveChanges();
 
-        var arbitro1 = new Arbitro { Id = 0, DNI = "30111222", Nombre = "Juan", Apellido = "Uno" };
+        var arbitro1 = new Arbitro
+        {
+            Id = 0,
+            DNI = "30111222",
+            Nombre = "Juan",
+            Apellido = "Uno",
+            TelefonoCelular = "+5491111223344"
+        };
         var arbitro2 = new Arbitro { Id = 0, DNI = "30222333", Nombre = "Pedro", Apellido = "Dos" };
         var arbitroSinAgrupador = new Arbitro { Id = 0, DNI = "30333444", Nombre = "Luis", Apellido = "Tres" };
         context.Arbitros.AddRange(arbitro1, arbitro2, arbitroSinAgrupador);
@@ -322,5 +330,39 @@ public class ArbitroAsignacionIT : TestBase
 
         var arbitroSinJornada = content.ArbitrosConJornadas.Single(a => a.ArbitroId == escenario.Arbitro2Id);
         Assert.Empty(arbitroSinJornada.JornadasProximaFecha);
+    }
+
+    [Fact]
+    public async Task MarcarWhatsappEnviado_PersisteYApareceEnGet()
+    {
+        var escenario = await CrearEscenario();
+        var client = await GetAuthenticatedClient();
+
+        await client.PutAsJsonAsync(
+            $"/api/arbitro/jornada/{escenario.JornadaProximaId}/arbitros",
+            new AsignarArbitrosJornadaDTO { ArbitroIds = [escenario.Arbitro1Id] });
+
+        var response = await client.PutAsync(
+            $"/api/arbitro/jornada/{escenario.JornadaProximaId}/arbitros/{escenario.Arbitro1Id}/whatsapp-enviado",
+            null);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var asignacion = await context.ArbitroJornada
+            .SingleAsync(a => a.JornadaId == escenario.JornadaProximaId && a.ArbitroId == escenario.Arbitro1Id);
+        Assert.True(asignacion.WhatsappEnviado);
+
+        var getResponse = await client.GetAsync(
+            $"/api/arbitro/asignacion-por-agrupador?agrupadorId={escenario.AgrupadorId}&anio={escenario.Anio}");
+        getResponse.EnsureSuccessStatusCode();
+        var content = JsonConvert.DeserializeObject<AsignacionArbitrosPorAgrupadorDTO>(
+            await getResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+
+        var jornada = content.Torneos!.Single().Fases!.Single().Zonas!.Single().ProximaFecha!.Jornadas!.Single();
+        var arbitroAsignado = Assert.Single(jornada.ArbitrosAsignados);
+        Assert.True(arbitroAsignado.WhatsappEnviado);
+        Assert.Equal("+5491111223344", arbitroAsignado.TelefonoCelular);
     }
 }
