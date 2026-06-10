@@ -67,6 +67,8 @@ public static class InyeccionDeDependenciasConfig
         
         builder.Services.AddScoped<IArbitroRepo, ArbitroRepo>();
         builder.Services.AddScoped<IArbitroCore, ArbitroCore>();
+        builder.Services.AddScoped<IArbitroJornadaRepo, ArbitroJornadaRepo>();
+        builder.Services.AddScoped<IArbitroAsignacionCore, ArbitroAsignacionCore>();
 
         builder.Services.AddScoped<IDelegadoRepo, DelegadoRepo>();
         builder.Services.AddScoped<IImagenDelegadoRepo, ImagenDelegadoRepo>();
