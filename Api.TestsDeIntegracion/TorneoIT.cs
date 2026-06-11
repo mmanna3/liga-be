@@ -85,6 +85,35 @@ public class TorneoIT : TestBase
     }
 
     [Fact]
+    public async Task CrearTorneo_ConHorarioDeJuego_PersisteYDevuelveElHorario()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var dto = new CrearTorneoDTO
+        {
+            Nombre = "Torneo con horario",
+            Anio = 2026,
+            TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true,
+            HorarioDeJuego = "20:30"
+        };
+
+        var response = await client.PostAsJsonAsync("/api/torneo", dto);
+        response.EnsureSuccessStatusCode();
+
+        var torneoCreado = JsonConvert.DeserializeObject<CrearTorneoDTO>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(torneoCreado);
+        Assert.Equal("20:30", torneoCreado.HorarioDeJuego);
+
+        var getResponse = await client.GetAsync($"/api/Torneo/{torneoCreado.Id}");
+        getResponse.EnsureSuccessStatusCode();
+        var torneoObtenido = JsonConvert.DeserializeObject<TorneoDTO>(await getResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(torneoObtenido);
+        Assert.Equal("20:30", torneoObtenido.HorarioDeJuego);
+    }
+
+    [Fact]
     public async Task CrearTorneo_SinFaseNiCategorias_CreaFasePorDefecto()
     {
         var client = await GetAuthenticatedClient();

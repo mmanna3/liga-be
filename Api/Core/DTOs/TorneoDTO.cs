@@ -11,6 +11,11 @@ public class TorneoDTO : DTO, IEsVisibleEnApp
     public required int Anio { get; set; }
     public required bool EsVisibleEnApp { get; set; }
     public required bool SeVenLosGolesEnTablaDePosiciones { get; set; }
+
+    /// <summary>Horario habitual de juego del torneo (formato HH:mm). Opcional.</summary>
+    [MaxLength(5)]
+    public string? HorarioDeJuego { get; set; }
+
     public int TorneoAgrupadorId { get; set; }
     public int? FaseAperturaId { get; set; }
     public string? FaseAperturaNombre { get; set; }
