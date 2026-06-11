@@ -127,4 +127,45 @@ public class FaseCore : ABMCoreAnidado<IFaseRepo, Fase, FaseDTO, int>, IFaseCore
         if (filas == 0)
             throw new ExcepcionControlada("No existe la fase a modificar o no pertenece al torneo indicado.");
     }
+
+    public async Task Reordenar(int torneoId, IReadOnlyList<int> faseIdsEnOrden)
+    {
+        ValidarOrdenFasesPayload(faseIdsEnOrden);
+
+        var torneo = await _torneoRepo.ObtenerPorId(torneoId);
+        if (torneo == null)
+            throw new ExcepcionControlada("El torneo indicado no existe.");
+
+        var fases = await Repo.ListarPorPadreParaEditar(torneoId);
+        if (faseIdsEnOrden.Count != fases.Count)
+            throw new ExcepcionControlada("La cantidad de fases no coincide con las del torneo.");
+
+        var idsExistentes = fases.Select(f => f.Id).ToHashSet();
+        if (faseIdsEnOrden.Any(id => !idsExistentes.Contains(id)))
+            throw new ExcepcionControlada("Hay fases que no pertenecen al torneo indicado.");
+
+        var porId = fases.ToDictionary(f => f.Id);
+
+        foreach (var fase in fases)
+            fase.Numero = -fase.Id;
+
+        await BDVirtual.GuardarCambios();
+
+        for (var i = 0; i < faseIdsEnOrden.Count; i++)
+            porId[faseIdsEnOrden[i]].Numero = i + 1;
+
+        await BDVirtual.GuardarCambios();
+    }
+
+    private static void ValidarOrdenFasesPayload(IReadOnlyList<int> faseIdsEnOrden)
+    {
+        if (faseIdsEnOrden.Count == 0)
+            throw new ExcepcionControlada("Debe indicar al menos una fase.");
+
+        if (faseIdsEnOrden.Any(id => id <= 0))
+            throw new ExcepcionControlada("Cada fase debe tener un identificador válido.");
+
+        if (faseIdsEnOrden.Distinct().Count() != faseIdsEnOrden.Count)
+            throw new ExcepcionControlada("No puede haber fases repetidas en el orden.");
+    }
 }

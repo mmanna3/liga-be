@@ -472,4 +472,42 @@ public class FaseIT : TestBase
         Assert.Equal("Eliminación directa", content.TipoDeFaseNombre);
         Assert.Equal("En curso", content.EstadoFaseNombre);
     }
+
+    [Fact]
+    public async Task ReordenarFases_OrdenInvertido_ActualizaNumeros()
+    {
+        var torneoId = await CrearTorneoDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var response1 = await client.PostAsJsonAsync(
+            $"/api/Torneo/{torneoId}/fases",
+            CrearDtoFaseGrupos(1));
+        response1.EnsureSuccessStatusCode();
+        var fase1 = JsonConvert.DeserializeObject<FaseDTO>(await response1.Content.ReadAsStringAsync());
+        Assert.NotNull(fase1);
+
+        var response2 = await client.PostAsJsonAsync(
+            $"/api/Torneo/{torneoId}/fases",
+            CrearDtoFaseEliminacionDirecta(2));
+        response2.EnsureSuccessStatusCode();
+        var fase2 = JsonConvert.DeserializeObject<FaseDTO>(await response2.Content.ReadAsStringAsync());
+        Assert.NotNull(fase2);
+
+        var reordenResponse = await client.PutAsJsonAsync(
+            $"/api/Torneo/{torneoId}/fases/reordenar",
+            new ReordenarFasesDTO { FaseIds = [fase2.Id, fase1.Id] });
+        reordenResponse.EnsureSuccessStatusCode();
+
+        var listResponse = await client.GetAsync($"/api/Torneo/{torneoId}/fases");
+        listResponse.EnsureSuccessStatusCode();
+        var fases = JsonConvert.DeserializeObject<List<FaseDTO>>(
+            await listResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(fases);
+        Assert.Equal(2, fases.Count);
+
+        var fase1Actualizada = fases.Single(f => f.Id == fase1.Id);
+        var fase2Actualizada = fases.Single(f => f.Id == fase2.Id);
+        Assert.Equal(2, fase1Actualizada.Numero);
+        Assert.Equal(1, fase2Actualizada.Numero);
+    }
 }

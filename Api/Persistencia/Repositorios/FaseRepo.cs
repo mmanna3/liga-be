@@ -21,6 +21,7 @@ public class FaseRepo : RepositorioABMAnidado<Fase, int>, IFaseRepo
     public override async Task<IEnumerable<Fase>> ListarPorPadre(int padreId)
     {
         return await Set()
+            .AsNoTracking()
             .Include(x => x.EstadoFase)
             .Include("Zonas")
             .Include("Zonas.Categoria")
@@ -28,6 +29,17 @@ public class FaseRepo : RepositorioABMAnidado<Fase, int>, IFaseRepo
             .Include("Zonas.EquiposZona")
             .AsSplitQuery()
             .Where(FiltroPorPadre(padreId))
+            .OrderBy(x => x.Numero)
+            .ThenBy(x => x.Id)
+            .ToListAsync();
+    }
+
+    public async Task<List<Fase>> ListarPorPadreParaEditar(int padreId)
+    {
+        return await Set()
+            .Where(FiltroPorPadre(padreId))
+            .OrderBy(x => x.Numero)
+            .ThenBy(x => x.Id)
             .ToListAsync();
     }
 

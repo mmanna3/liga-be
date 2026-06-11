@@ -27,6 +27,14 @@ public class FaseController : ABMControllerAnidado<FaseDTO, IFaseCore>
         dto.TorneoId = padreId;
     }
 
+    /// <summary>Reordena las fases del torneo según el orden de ids recibido (1…n en Numero).</summary>
+    [HttpPut("reordenar", Name = "fasesReordenar")]
+    public async Task<IActionResult> Reordenar(int padreId, [FromBody] ReordenarFasesDTO dto)
+    {
+        await Core.Reordenar(padreId, dto.FaseIds);
+        return NoContent();
+    }
+
     /// <summary>Cambia solo la visibilidad de la fase en la app (request con una sola propiedad).</summary>
     [HttpPut("{id}/visibilidad-en-app", Name = "fasesCambiarVisibilidadEnApp")]
     public async Task<IActionResult> CambiarVisibilidadEnApp(

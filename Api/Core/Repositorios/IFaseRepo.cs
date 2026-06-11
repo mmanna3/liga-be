@@ -5,6 +5,7 @@ namespace Api.Core.Repositorios;
 
 public interface IFaseRepo : IRepositorioABMAnidado<Fase, int>
 {
+    Task<List<Fase>> ListarPorPadreParaEditar(int padreId);
     Task CambiarTipo(int padreId, int id, TipoDeFaseEnum nuevoTipo);
     Task DecrementarNumeroDeFasesPosteriores(int torneoId, int numeroEliminado);
 
