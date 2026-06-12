@@ -9,7 +9,7 @@ public class LeyendaTablaPosiciones : Entidad
 
     public int? CategoriaId { get; set; }
 
-    public virtual TorneoCategoria? Categoria { get; set; }
+    public virtual FaseCategoria? Categoria { get; set; }
 
     public int ZonaId { get; set; }
 

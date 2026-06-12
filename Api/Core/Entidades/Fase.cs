@@ -20,4 +20,6 @@ public abstract class Fase : Entidad, IEsVisibleEnApp
     public virtual EstadoFase EstadoFase { get; set; } = null!;
 
     public required bool EsVisibleEnApp { get; set; }
+
+    public virtual ICollection<FaseCategoria> Categorias { get; set; } = new List<FaseCategoria>();
 }

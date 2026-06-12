@@ -1,3 +1,4 @@
+using Api.TestsUtilidades;
 using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Core.Enums;
@@ -48,27 +49,6 @@ public class FechaCoreCargarResultadosTests
         ctx.Torneos.Add(torneo);
         await ctx.SaveChangesAsync();
 
-        var cat1 = new TorneoCategoria
-        {
-            Id = 0,
-            Nombre = "CatA",
-            AnioDesde = 2010,
-            AnioHasta = 2020,
-            TorneoId = torneo.Id,
-            Orden = 1
-        };
-        var cat2 = new TorneoCategoria
-        {
-            Id = 0,
-            Nombre = "CatB",
-            AnioDesde = 2010,
-            AnioHasta = 2020,
-            TorneoId = torneo.Id,
-            Orden = 2
-        };
-        ctx.TorneoCategorias.AddRange(cat1, cat2);
-        await ctx.SaveChangesAsync();
-
         if (!await ctx.EstadoFase.AnyAsync(e => e.Id == 100))
             ctx.EstadoFase.Add(new EstadoFase { Id = 100, Estado = "Inicio pendiente" });
         await ctx.SaveChangesAsync();
@@ -84,6 +64,9 @@ public class FechaCoreCargarResultadosTests
         };
         ctx.Fases.Add(fase);
         await ctx.SaveChangesAsync();
+
+        var cat1 = await CategoriasDePrueba.AgregarFaseCategoria(ctx, fase.Id, "CatA", 1);
+        var cat2 = await CategoriasDePrueba.AgregarFaseCategoria(ctx, fase.Id, "CatB", 2);
 
         var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Z", FaseId = fase.Id, Orden = 1 };
         ctx.Zonas.Add(zona);

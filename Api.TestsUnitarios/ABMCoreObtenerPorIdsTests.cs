@@ -2,6 +2,7 @@ using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Core.Repositorios;
 using Api.Core.Servicios;
+using Api.Core.Servicios.Interfaces;
 using AutoMapper;
 using Moq;
 
@@ -33,8 +34,9 @@ public class ABMCoreObtenerPorIdsTests
         var torneoFaseRepoMock = new Mock<IFaseRepo>();
         var torneoCategoriaRepoMock = new Mock<ITorneoCategoriaRepo>();
         var torneoZonaRepoMock = new Mock<IZonaRepo>();
+        var faseCategoriaCoreMock = new Mock<IFaseCategoriaCore>();
         var core = new TorneoCore(bdMock.Object, repoMock.Object, torneoFaseRepoMock.Object,
-            torneoCategoriaRepoMock.Object, torneoZonaRepoMock.Object, mapperMock.Object);
+            torneoCategoriaRepoMock.Object, faseCategoriaCoreMock.Object, torneoZonaRepoMock.Object, mapperMock.Object);
 
         var result = (await core.ObtenerPorId(new[] { 1, 2 })).ToList();
 
@@ -58,8 +60,9 @@ public class ABMCoreObtenerPorIdsTests
         var torneoFaseRepoMock = new Mock<IFaseRepo>();
         var torneoCategoriaRepoMock = new Mock<ITorneoCategoriaRepo>();
         var torneoZonaRepoMock = new Mock<IZonaRepo>();
+        var faseCategoriaCoreMock = new Mock<IFaseCategoriaCore>();
         var core = new TorneoCore(bdMock.Object, repoMock.Object, torneoFaseRepoMock.Object,
-            torneoCategoriaRepoMock.Object, torneoZonaRepoMock.Object, mapperMock.Object);
+            torneoCategoriaRepoMock.Object, faseCategoriaCoreMock.Object, torneoZonaRepoMock.Object, mapperMock.Object);
 
         var result = await core.ObtenerPorId(Array.Empty<int>());
 

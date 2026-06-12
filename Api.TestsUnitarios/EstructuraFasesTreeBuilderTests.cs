@@ -53,6 +53,56 @@ public class EstructuraFasesTreeBuilderTests
     }
 
     [Fact]
+    public void AplanarFasesInformacionInicial_AchataGruposManteniendoOrden()
+    {
+        var elementos = new List<InformacionInicialElementoTorneoDTO>
+        {
+            new()
+            {
+                Tipo = EstructuraFasesTreeBuilder.TipoFase,
+                Id = 1,
+                Nombre = "Fase A",
+                TipoDeFase = nameof(TipoDeFaseEnum.TodosContraTodos)
+            },
+            new()
+            {
+                Tipo = EstructuraFasesTreeBuilder.TipoGrupo,
+                GrupoId = 10,
+                NombreGrupo = "Grupo A",
+                Elementos =
+                [
+                    new InformacionInicialElementoTorneoDTO
+                    {
+                        Tipo = EstructuraFasesTreeBuilder.TipoFase,
+                        Id = 2,
+                        Nombre = "Fase B",
+                        TipoDeFase = nameof(TipoDeFaseEnum.TodosContraTodos)
+                    },
+                    new InformacionInicialElementoTorneoDTO
+                    {
+                        Tipo = EstructuraFasesTreeBuilder.TipoFase,
+                        Id = 3,
+                        Nombre = "Fase C",
+                        TipoDeFase = nameof(TipoDeFaseEnum.TodosContraTodos)
+                    }
+                ]
+            },
+            new()
+            {
+                Tipo = EstructuraFasesTreeBuilder.TipoFase,
+                Id = 4,
+                Nombre = "Fase F",
+                TipoDeFase = nameof(TipoDeFaseEnum.TodosContraTodos)
+            }
+        };
+
+        var fases = EstructuraFasesTreeBuilder.AplanarFasesInformacionInicial(elementos);
+
+        Assert.Equal(["Fase A", "Fase B", "Fase C", "Fase F"], fases.Select(f => f.Nombre).ToList());
+        Assert.All(fases, f => Assert.Equal(nameof(TipoDeFaseEnum.TodosContraTodos), f.TipoDeFase));
+    }
+
+    [Fact]
     public void ValidarProfundidad_RechazaTercerNivel()
     {
         var items = new List<EstructuraFasesItemDTO>

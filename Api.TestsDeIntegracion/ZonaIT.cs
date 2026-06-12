@@ -6,6 +6,7 @@ using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
 using Api.TestsDeIntegracion._Config;
 using Api.TestsUtilidades;
+using Api.TestsUtilidades;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 // ReSharper disable InconsistentNaming
@@ -66,13 +67,6 @@ public class ZonaIT : TestBase
         context.Torneos.Add(torneo);
         await context.SaveChangesAsync();
 
-        var cat1 = new TorneoCategoria
-            { Id = 0, TorneoId = torneo.Id, Nombre = "Cat A", AnioDesde = 2010, AnioHasta = 2020, Orden = 1 };
-        var cat2 = new TorneoCategoria
-            { Id = 0, TorneoId = torneo.Id, Nombre = "Cat B", AnioDesde = 2010, AnioHasta = 2020, Orden = 2 };
-        context.TorneoCategorias.AddRange(cat1, cat2);
-        await context.SaveChangesAsync();
-
         var fase = new FaseEliminacionDirecta
         {
             Id = 0,
@@ -84,6 +78,9 @@ public class ZonaIT : TestBase
         };
         context.Fases.Add(fase);
         await context.SaveChangesAsync();
+
+        var cat1 = await CategoriasDePrueba.AgregarFaseCategoria(context, fase.Id, "Cat A", 1);
+        var cat2 = await CategoriasDePrueba.AgregarFaseCategoria(context, fase.Id, "Cat B", 2);
 
         return (fase.Id, cat1.Id, cat2.Id);
     }

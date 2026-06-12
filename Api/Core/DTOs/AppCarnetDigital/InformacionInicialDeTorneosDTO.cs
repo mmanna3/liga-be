@@ -15,6 +15,9 @@ public class InformacionInicialTorneoDTO
 {
     public int Id { get; set; }
     public string Nombre { get; set; } = string.Empty;
+    /// <summary>Lista plana de fases para la app móvil (compatibilidad con clientes que no conocen grupos).</summary>
+    public List<InformacionInicialFaseDTO> Fases { get; set; } = [];
+    /// <summary>Árbol de fases y grupos para clientes que soportan la estructura anidada.</summary>
     public List<InformacionInicialElementoTorneoDTO> Elementos { get; set; } = [];
 }
 

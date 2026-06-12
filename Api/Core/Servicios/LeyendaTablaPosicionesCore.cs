@@ -12,20 +12,20 @@ public class LeyendaTablaPosicionesCore
         ILeyendaTablaPosicionesCore
 {
     private readonly IZonaRepo _zonaRepo;
-    private readonly ITorneoCategoriaRepo _torneoCategoriaRepo;
+    private readonly IFaseCategoriaRepo _faseCategoriaRepo;
     private readonly IEquipoRepo _equipoRepo;
 
     public LeyendaTablaPosicionesCore(
         IBDVirtual bd,
         ILeyendaTablaPosicionesRepo repo,
         IZonaRepo zonaRepo,
-        ITorneoCategoriaRepo torneoCategoriaRepo,
+        IFaseCategoriaRepo faseCategoriaRepo,
         IEquipoRepo equipoRepo,
         IMapper mapper)
         : base(bd, repo, mapper)
     {
         _zonaRepo = zonaRepo;
-        _torneoCategoriaRepo = torneoCategoriaRepo;
+        _faseCategoriaRepo = faseCategoriaRepo;
         _equipoRepo = equipoRepo;
     }
 
@@ -79,25 +79,14 @@ public class LeyendaTablaPosicionesCore
         if (zona == null)
             throw new ExcepcionControlada("La zona no existe.");
 
-        var torneoId = ObtenerTorneoIdDeZona(zona);
         if (!categoriaId.HasValue)
             return;
 
-        var categoria = await _torneoCategoriaRepo.ObtenerPorId(categoriaId.Value);
+        var categoria = await _faseCategoriaRepo.ObtenerPorId(categoriaId.Value);
         if (categoria == null)
             throw new ExcepcionControlada("La categoría no existe.");
 
-        if (categoria.TorneoId != torneoId)
-            throw new ExcepcionControlada("La categoría no pertenece al torneo de la zona.");
-    }
-
-    private static int ObtenerTorneoIdDeZona(Zona zona)
-    {
-        return zona switch
-        {
-            ZonaTodosContraTodos zt => zt.Fase.TorneoId,
-            ZonaEliminacionDirecta ze => ze.Fase.TorneoId,
-            _ => throw new ExcepcionControlada("Tipo de zona no soportado para leyendas.")
-        };
+        if (categoria.FaseId != zona.FaseId)
+            throw new ExcepcionControlada("La categoría debe pertenecer a la misma fase que la zona.");
     }
 }

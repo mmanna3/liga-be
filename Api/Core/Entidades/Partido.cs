@@ -5,7 +5,7 @@ namespace Api.Core.Entidades;
 // Lógica en AppDbContext
 public class Partido : Entidad
 {
-    public virtual TorneoCategoria Categoria { get; set; } = null!;
+    public virtual FaseCategoria Categoria { get; set; } = null!;
     public required int CategoriaId { get; set; }
     public required int JornadaId { get; set; }
     public virtual Jornada Jornada { get; set; } = null!;

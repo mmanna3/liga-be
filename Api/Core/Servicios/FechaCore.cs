@@ -366,19 +366,19 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
     }
 
     /// <summary>
-    /// Zona todos contra todos: un partido por cada par (jornada, categoría del torneo).
+    /// Zona todos contra todos: un partido por cada par (jornada, categoría de la fase).
     /// Zona eliminación directa: un solo partido por jornada, con la categoría de la zona.
     /// Resultados vacíos. Idempotente: no duplica si ya existía el partido.
     /// </summary>
     private async Task AsegurarPartidosPorCategoriaPorJornada(int fechaId, int zonaId)
     {
-        var torneoId = await (
-            from z in _context.Zonas
-            join f in _context.Fases on z.FaseId equals f.Id
-            where z.Id == zonaId
-            select f.TorneoId).FirstOrDefaultAsync();
+        var faseId = await _context.Zonas
+            .AsNoTracking()
+            .Where(z => z.Id == zonaId)
+            .Select(z => (int?)z.FaseId)
+            .FirstOrDefaultAsync();
 
-        if (torneoId == 0)
+        if (faseId is null or 0)
             return;
 
         var zonaEliminacionDirecta = await _context.Zonas
@@ -390,9 +390,11 @@ public class FechaCore : ABMCoreAnidado<IFechaRepo, Fecha, FechaDTO, int>, IFech
         if (zonaEliminacionDirecta != null)
             categoriaIds = [zonaEliminacionDirecta.CategoriaId];
         else
-            categoriaIds = await _context.TorneoCategorias
-                .Where(tc => tc.TorneoId == torneoId)
-                .Select(tc => tc.Id)
+            categoriaIds = await _context.FaseCategorias
+                .Where(fc => fc.FaseId == faseId)
+                .OrderBy(fc => fc.Orden)
+                .ThenBy(fc => fc.Id)
+                .Select(fc => fc.Id)
                 .ToListAsync();
 
         if (categoriaIds.Count == 0)

@@ -301,7 +301,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         if (fechas.Count == 0)
             return dto;
 
-        var categoriasOrdenadas = fechas[0].Zona.Fase.Torneo.Categorias.OrderBy(c => c.Orden).ThenBy(c => c.Id).ToList();
+        var categoriasOrdenadas = fechas[0].Zona.Fase.Categorias.OrderBy(c => c.Orden).ThenBy(c => c.Id).ToList();
 
         foreach (var fecha in fechas)
         {
@@ -359,9 +359,13 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
 
         foreach (var (cat, filas) in filasFusion)
         {
+            var catClausura = datosC.FilasPorCategoria
+                .FirstOrDefault(x => x.Cat.Nombre.Trim() == cat.Nombre.Trim()).Cat;
             var leyendaCat = PosicionesLeyendasTablaHelper.ConcatenarTextos(
                 datosA.LeyendasZona.Where(l => l.CategoriaId == cat.Id)
-                    .Concat(datosC.LeyendasZona.Where(l => l.CategoriaId == cat.Id)));
+                    .Concat(catClausura != null
+                        ? datosC.LeyendasZona.Where(l => l.CategoriaId == catClausura.Id)
+                        : []));
             bloques.Add(ConstruirBloquePosiciones(cat.Nombre, leyendaCat, filas, EscudoDeClub));
         }
 
@@ -377,7 +381,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         CancellationToken cancellationToken)
     {
         var categorias =
-            await _fechaRepo.ListarCategoriasTorneoPorZonaTodosContraTodosAsync(zonaId, cancellationToken);
+            await _fechaRepo.ListarCategoriasFasePorZonaTodosContraTodosAsync(zonaId, cancellationToken);
         var fechas = await _fechaRepo.ListarTodosContraTodosPorZonaParaAppConPartidosAsync(zonaId, cancellationToken);
         var equipos = (await _equipoRepo.ListarPorZonaIdAsync(zonaId, cancellationToken))
             .OrderBy(e => e.Nombre, StringComparer.CurrentCultureIgnoreCase)
@@ -385,7 +389,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
 
         var verGoles = fechas.Count > 0
             ? fechas[0].Zona.Fase.Torneo.SeVenLosGolesEnTablaDePosiciones
-            : categorias.FirstOrDefault()?.Torneo?.SeVenLosGolesEnTablaDePosiciones ?? true;
+            : true;
 
         var leyendasZona = (await _leyendaTablaPosicionesRepo.ListarPorPadre(zonaId)).OrderBy(l => l.Id).ToList();
 
@@ -404,7 +408,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
                 soloGeneralPorEquipo[eqId] = soloGeneralPorEquipo.GetValueOrDefault(eqId) + l.QuitaDePuntos;
         }
 
-        var filasPorCategoria = new List<(TorneoCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)>();
+        var filasPorCategoria = new List<(FaseCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)>();
 
         foreach (var cat in categorias)
         {
@@ -440,20 +444,20 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         return new DatosPosicionesZonaCalculados(filasPorCategoria, leyendasZona, soloGeneralPorEquipo, verGoles);
     }
 
-    private static List<(TorneoCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)>
+    private static List<(FaseCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)>
         FusionarFilasDosZonas(
-            List<(TorneoCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)> a,
-            List<(TorneoCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)> b)
+            List<(FaseCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)> a,
+            List<(FaseCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)> b)
     {
         if (a.Count != b.Count)
             throw new InvalidOperationException("Categorías distintas al fusionar posiciones anuales.");
 
-        var result = new List<(TorneoCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)>();
+        var result = new List<(FaseCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)>();
         for (var i = 0; i < a.Count; i++)
         {
             var (catA, filasA) = a[i];
             var (catB, filasB) = b[i];
-            if (catA.Id != catB.Id)
+            if (catA.Nombre.Trim() != catB.Nombre.Trim())
                 throw new InvalidOperationException("Categorías distintas al fusionar posiciones anuales.");
 
             var porEquipo = new Dictionary<int, (Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>();
@@ -487,14 +491,14 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
     }
 
     private sealed record DatosPosicionesZonaCalculados(
-        List<(TorneoCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)> FilasPorCategoria,
+        List<(FaseCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)> FilasPorCategoria,
         List<LeyendaTablaPosiciones> LeyendasZona,
         Dictionary<int, int> SoloGeneralPorEquipo,
         bool VerGoles);
 
     private static CategoriasConPosicionesDTO ConstruirBloqueGeneralAcumulado(
         string? leyenda,
-        List<(TorneoCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)> filasPorCategoria,
+        List<(FaseCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)> filasPorCategoria,
         Dictionary<int, int> soloGeneralPorEquipo,
         Func<int, string> escudoRelativoPorClubId)
     {
@@ -726,7 +730,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
     }
 
     private JornadasPorFechaDTO MapJornadaAJornadasPorFecha(Jornada j,
-        IReadOnlyList<TorneoCategoria> categoriasOrdenadas)
+        IReadOnlyList<FaseCategoria> categoriasOrdenadas)
     {
         var partidosPorCat = (j.Partidos ?? [])
             .GroupBy(p => p.CategoriaId)

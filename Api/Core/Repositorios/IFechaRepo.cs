@@ -18,8 +18,8 @@ public interface IFechaRepo : IRepositorioABMAnidado<Fecha, int>
     Task<IReadOnlyList<FechaTodosContraTodos>> ListarTodosContraTodosPorZonaParaAppConPartidosAsync(int zonaId,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Categorías del torneo de una zona todos-contra-todos (vacío si la zona no existe o no es TCT).</summary>
-    Task<IReadOnlyList<TorneoCategoria>> ListarCategoriasTorneoPorZonaTodosContraTodosAsync(int zonaId,
+    /// <summary>Categorías de la fase de una zona todos-contra-todos (vacío si la zona no existe o no es TCT).</summary>
+    Task<IReadOnlyList<FaseCategoria>> ListarCategoriasFasePorZonaTodosContraTodosAsync(int zonaId,
         CancellationToken cancellationToken = default);
 
     /// <summary>

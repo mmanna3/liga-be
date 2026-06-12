@@ -9,6 +9,7 @@ using Api.Persistencia._Config;
 using Api.Core.Enums;
 using Api.Core.Logica;
 using Api.TestsDeIntegracion._Config;
+using Api.TestsUtilidades;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -70,25 +71,7 @@ public class JornadasTodosContraTodosAppIT : TestBase
     {
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var maxOrden = await context.TorneoCategorias
-            .Where(c => c.TorneoId == torneoId)
-            .Select(c => (int?)c.Orden)
-            .MaxAsync();
-        var baseOrden = maxOrden ?? 0;
-        for (var i = 0; i < cantidad; i++)
-        {
-            context.TorneoCategorias.Add(new TorneoCategoria
-            {
-                Id = 0,
-                Nombre = $"Cat Jornadas {i}",
-                AnioDesde = 2010,
-                AnioHasta = 2020,
-                TorneoId = torneoId,
-                Orden = baseOrden + i + 1
-            });
-        }
-
-        await context.SaveChangesAsync();
+        await CategoriasDePrueba.AgregarTorneoPlantillaYReplicarEnFases(context, torneoId, cantidad, "Cat Jornadas");
     }
 
     private Club? _club;

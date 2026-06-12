@@ -200,6 +200,13 @@ public class AppDbContext : DbContext
             .HasForeignKey(tc => tc.TorneoId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<FaseCategoria>()
+            .ToTable("FaseCategorias")
+            .HasOne(fc => fc.Fase)
+            .WithMany(f => f.Categorias)
+            .HasForeignKey(fc => fc.FaseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Entity<Fase>()
             .ToTable("Fases")
             .HasDiscriminator<string>("TipoFase")
@@ -276,7 +283,7 @@ public class AppDbContext : DbContext
 
         builder.Entity<LeyendaTablaPosiciones>()
             .HasOne(l => l.Categoria)
-            .WithMany(c => c.LeyendasTablaPosiciones)
+            .WithMany(c => c!.LeyendasTablaPosiciones)
             .HasForeignKey(l => l.CategoriaId)
             .OnDelete(DeleteBehavior.Restrict);
 
@@ -613,6 +620,7 @@ public class AppDbContext : DbContext
     public DbSet<Configuracion> Configuraciones { get; set; } = null!;
     public DbSet<TorneoAgrupador> TorneoAgrupadores { get; set; } = null!;
     public DbSet<TorneoCategoria> TorneoCategorias { get; set; } = null!;
+    public DbSet<FaseCategoria> FaseCategorias { get; set; } = null!;
     public DbSet<Fase> Fases { get; set; } = null!;
     public DbSet<Zona> Zonas { get; set; } = null!;
     public DbSet<LeyendaTablaPosiciones> LeyendaTablaPosiciones { get; set; } = null!;
@@ -626,17 +634,17 @@ public class AppDbContext : DbContext
 
     public override int SaveChanges()
     {
-        ValidarZonasEliminacionDirectaCategoriaDelTorneo();
+        ValidarZonasEliminacionDirectaCategoriaDeLaFase();
         return base.SaveChanges();
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        ValidarZonasEliminacionDirectaCategoriaDelTorneo();
+        ValidarZonasEliminacionDirectaCategoriaDeLaFase();
         return base.SaveChangesAsync(cancellationToken);
     }
 
-    private void ValidarZonasEliminacionDirectaCategoriaDelTorneo()
+    private void ValidarZonasEliminacionDirectaCategoriaDeLaFase()
     {
         var entries = ChangeTracker.Entries<ZonaEliminacionDirecta>()
             .Where(e => e.State is EntityState.Added or EntityState.Modified)
@@ -644,12 +652,14 @@ public class AppDbContext : DbContext
         foreach (var entry in entries)
         {
             var zona = entry.Entity;
-            var torneoFase = Fases.AsNoTracking().Where(f => f.Id == zona.FaseId).Select(f => (int?)f.TorneoId).FirstOrDefault();
-            var torneoCat = TorneoCategorias.AsNoTracking().Where(c => c.Id == zona.CategoriaId).Select(c => (int?)c.TorneoId).FirstOrDefault();
-            if (torneoFase is null || torneoCat is null)
+            var faseCategoria = FaseCategorias.AsNoTracking()
+                .Where(c => c.Id == zona.CategoriaId)
+                .Select(c => (int?)c.FaseId)
+                .FirstOrDefault();
+            if (faseCategoria is null)
                 throw new ExcepcionControlada("La categoría o la fase no existen.");
-            if (torneoFase != torneoCat)
-                throw new ExcepcionControlada("La categoría debe pertenecer al mismo torneo que la fase de la zona.");
+            if (faseCategoria != zona.FaseId)
+                throw new ExcepcionControlada("La categoría debe pertenecer a la misma fase que la zona.");
         }
     }
 }

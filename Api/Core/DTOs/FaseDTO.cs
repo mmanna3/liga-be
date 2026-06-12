@@ -31,4 +31,5 @@ public class FaseDTO : DTO, IEsVisibleEnApp
     public required bool EsVisibleEnApp { get; set; }
     public bool SePuedeEditar { get; set; }
     public List<ZonaDeFaseDTO> Zonas { get; set; } = [];
+    public List<FaseCategoriaDTO>? Categorias { get; set; }
 }

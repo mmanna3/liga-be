@@ -4,6 +4,7 @@ using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
+using Api.TestsUtilidades;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Api.TestsDeIntegracion;
@@ -35,18 +36,6 @@ public class LeyendaTablaPosicionesIT : TestBase
         context.Torneos.Add(torneo);
         await context.SaveChangesAsync();
 
-        var cat = new TorneoCategoria
-        {
-            Id = 0,
-            TorneoId = torneo.Id,
-            Nombre = "Cat Leyenda",
-            AnioDesde = 2010,
-            AnioHasta = 2020,
-            Orden = 1
-        };
-        context.TorneoCategorias.Add(cat);
-        await context.SaveChangesAsync();
-
         var fase = new FaseTodosContraTodos
         {
             Id = 0,
@@ -58,6 +47,8 @@ public class LeyendaTablaPosicionesIT : TestBase
         };
         context.Fases.Add(fase);
         await context.SaveChangesAsync();
+
+        var cat = await CategoriasDePrueba.AgregarFaseCategoria(context, fase.Id, "Cat Leyenda", 1);
 
         var zona = new ZonaTodosContraTodos { Id = 0, Nombre = "Zona leyendas", FaseId = fase.Id, Orden = 1 };
         context.Zonas.Add(zona);

@@ -108,6 +108,7 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
                         {
                             Id = t.Id,
                             Nombre = t.Anio == anioActual ? t.Nombre : $"{t.Nombre} {t.Anio}",
+                            Fases = EstructuraFasesTreeBuilder.AplanarFasesInformacionInicial(elementos),
                             Elementos = elementos
                         };
                     })

@@ -1,6 +1,7 @@
 using Api.Core.Entidades;
 using Api.Core.Repositorios;
 using Api.Core.Servicios;
+using Api.Core.Servicios.Interfaces;
 using Moq;
 
 namespace Api.TestsUnitarios;
@@ -13,7 +14,9 @@ public class FaseCoreEliminarTests
         var torneoRepoMock = new Mock<ITorneoRepo>();
         var grupoRepoMock = new Mock<IGrupoDeFasesRepo>();
         var mapperMock = new Mock<AutoMapper.IMapper>();
-        return new FaseCore(bdMock.Object, repoMock.Object, torneoRepoMock.Object, grupoRepoMock.Object, mapperMock.Object);
+        var faseCategoriaCoreMock = new Mock<IFaseCategoriaCore>();
+        return new FaseCore(bdMock.Object, repoMock.Object, torneoRepoMock.Object, grupoRepoMock.Object,
+            faseCategoriaCoreMock.Object, mapperMock.Object);
     }
 
     private static FaseTodosContraTodos FaseConNumero(int id, int numero) =>

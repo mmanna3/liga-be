@@ -86,8 +86,10 @@ public class FechaRepo : RepositorioABMAnidado<Fecha, int>, IFechaRepo
             .OrderBy(f => f.Numero)
             .Include(x => x.Zona)
             .ThenInclude(z => z.Fase)
+            .ThenInclude(f => f.Categorias)
+            .Include(x => x.Zona)
+            .ThenInclude(z => z.Fase)
             .ThenInclude(f => f.Torneo)
-            .ThenInclude(t => t.Categorias)
             .Include(x => x.Jornadas)
             .ThenInclude(j => ((JornadaNormal)j).LocalEquipo)
             .Include(x => x.Jornadas)
@@ -103,21 +105,20 @@ public class FechaRepo : RepositorioABMAnidado<Fecha, int>, IFechaRepo
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<TorneoCategoria>> ListarCategoriasTorneoPorZonaTodosContraTodosAsync(int zonaId,
+    public async Task<IReadOnlyList<FaseCategoria>> ListarCategoriasFasePorZonaTodosContraTodosAsync(int zonaId,
         CancellationToken cancellationToken = default)
     {
         var zona = await Context.Set<ZonaTodosContraTodos>()
             .AsNoTracking()
             .Where(z => z.Id == zonaId)
             .Include(z => z.Fase)
-            .ThenInclude(f => f.Torneo)
-            .ThenInclude(t => t.Categorias)
+            .ThenInclude(f => f.Categorias)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (zona == null)
-            return Array.Empty<TorneoCategoria>();
+            return Array.Empty<FaseCategoria>();
 
-        return zona.Fase.Torneo.Categorias.OrderBy(c => c.Orden).ThenBy(c => c.Id).ToList();
+        return zona.Fase.Categorias.OrderBy(c => c.Orden).ThenBy(c => c.Id).ToList();
     }
 
     public async Task<(int ZonaAperturaId, int ZonaClausuraId)?> ObtenerIdsZonasAnualPorZonaReferenciaAsync(int zonaId,

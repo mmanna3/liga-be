@@ -12,17 +12,20 @@ public class FaseCore : ABMCoreAnidado<IFaseRepo, Fase, FaseDTO, int>, IFaseCore
 {
     private readonly ITorneoRepo _torneoRepo;
     private readonly IGrupoDeFasesRepo _grupoDeFasesRepo;
+    private readonly IFaseCategoriaCore _faseCategoriaCore;
 
     public FaseCore(
         IBDVirtual bd,
         IFaseRepo repo,
         ITorneoRepo torneoRepo,
         IGrupoDeFasesRepo grupoDeFasesRepo,
+        IFaseCategoriaCore faseCategoriaCore,
         IMapper mapper)
         : base(bd, repo, mapper)
     {
         _torneoRepo = torneoRepo;
         _grupoDeFasesRepo = grupoDeFasesRepo;
+        _faseCategoriaCore = faseCategoriaCore;
     }
 
     public override async Task<int> Crear(int padreId, FaseDTO dto)
@@ -31,6 +34,9 @@ public class FaseCore : ABMCoreAnidado<IFaseRepo, Fase, FaseDTO, int>, IFaseCore
         entidad = await AntesDeCrear(padreId, dto, entidad);
         Repo.Crear(entidad);
         await BDVirtual.GuardarCambios();
+
+        await AplicarCategoriasEnFase(padreId, entidad.Id, dto.Categorias);
+
         return entidad.Id;
     }
 
@@ -68,6 +74,10 @@ public class FaseCore : ABMCoreAnidado<IFaseRepo, Fase, FaseDTO, int>, IFaseCore
 
         Repo.Modificar(entidadAnterior, entidadNueva);
         await BDVirtual.GuardarCambios();
+
+        if (nuevo.Categorias != null)
+            await _faseCategoriaCore.ReemplazarCategorias(id, nuevo.Categorias, padreId);
+
         return id;
     }
 
@@ -128,6 +138,18 @@ public class FaseCore : ABMCoreAnidado<IFaseRepo, Fase, FaseDTO, int>, IFaseCore
     {
         entidadNueva.TorneoId = padreId;
         return Task.CompletedTask;
+    }
+
+    private async Task AplicarCategoriasEnFase(int torneoId, int faseId, List<FaseCategoriaDTO>? categorias)
+    {
+        if (categorias is { Count: > 0 })
+        {
+            await _faseCategoriaCore.ReemplazarCategorias(faseId, categorias, torneoId);
+            return;
+        }
+
+        await _faseCategoriaCore.CopiarDesdePlantillaTorneo(faseId, torneoId);
+        await _faseCategoriaCore.ValidarCategoriasAnualSiAplica(faseId, torneoId);
     }
 
     public async Task CambiarVisibilidadEnApp(int torneoId, int faseId, bool esVisibleEnApp)

@@ -12,14 +12,17 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
 {
     private readonly IFaseRepo _torneoFaseRepo;
     private readonly ITorneoCategoriaRepo _torneoCategoriaRepo;
+    private readonly IFaseCategoriaCore _faseCategoriaCore;
     private readonly IZonaRepo _torneoZonaRepo;
 
     public TorneoCore(IBDVirtual bd, ITorneoRepo repo, IFaseRepo torneoFaseRepo,
-        ITorneoCategoriaRepo torneoCategoriaRepo, IZonaRepo torneoZonaRepo, IMapper mapper)
+        ITorneoCategoriaRepo torneoCategoriaRepo, IFaseCategoriaCore faseCategoriaCore,
+        IZonaRepo torneoZonaRepo, IMapper mapper)
         : base(bd, repo, mapper)
     {
         _torneoFaseRepo = torneoFaseRepo;
         _torneoCategoriaRepo = torneoCategoriaRepo;
+        _faseCategoriaCore = faseCategoriaCore;
         _torneoZonaRepo = torneoZonaRepo;
     }
 
@@ -102,6 +105,11 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
             _torneoFaseRepo.Crear(fase);
             await BDVirtual.GuardarCambios();
 
+            if (dto.Categorias is { Count: > 0 })
+                await _faseCategoriaCore.ReemplazarCategorias(fase.Id, dto.Categorias, torneoId);
+            else
+                await _faseCategoriaCore.CopiarDesdePlantillaTorneo(fase.Id, torneoId);
+
             if (dto.TipoDeFase == TipoDeFaseEnum.TodosContraTodos)
             {
                 var zona = new ZonaTodosContraTodos
@@ -126,10 +134,6 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
 
         var idsEnPayload = categoriasDto.Where(d => d.Id > 0).Select(d => d.Id).ToHashSet();
         var idsAEliminar = categoriasExistentes.Select(c => c.Id).Where(id => !idsEnPayload.Contains(id)).ToList();
-
-        if (idsAEliminar.Count > 0 &&
-            await _torneoCategoriaRepo.AlgunaTienePartidosOZonas(idsAEliminar))
-            throw new ExcepcionControlada("No se pueden eliminar categorías con partidos o zonas asociadas.");
 
         foreach (var id in idsAEliminar)
         {
@@ -218,6 +222,8 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
                     await CrearCategoria(id, cat);
                 }
             }
+
+            await CopiarPlantillaCategoriasAPrimeraFase(id, crearDto.PrimeraFase?.Categorias);
         }
         else
         {
@@ -328,7 +334,24 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
         var filas = await Repo.ActualizarFasesParaTablaAnual(id, dto.FaseAperturaId, dto.FaseClausuraId);
         if (filas == 0)
             throw new ExcepcionControlada("No existe el torneo a modificar.");
+
+        if (dto.FaseAperturaId.HasValue && dto.FaseClausuraId.HasValue)
+            await _faseCategoriaCore.ValidarCategoriasAnualSiAplica(dto.FaseAperturaId.Value, id);
     }
+
+    private async Task CopiarPlantillaCategoriasAPrimeraFase(int torneoId, List<FaseCategoriaDTO>? categoriasPrimeraFase)
+    {
+        var fases = (await _torneoFaseRepo.ListarPorPadre(torneoId)).ToList();
+        var primeraFase = fases.OrderBy(f => f.Numero).ThenBy(f => f.Id).FirstOrDefault();
+        if (primeraFase == null)
+            return;
+
+        if (categoriasPrimeraFase is { Count: > 0 })
+            await _faseCategoriaCore.ReemplazarCategorias(primeraFase.Id, categoriasPrimeraFase, torneoId);
+        else
+            await _faseCategoriaCore.CopiarDesdePlantillaTorneo(primeraFase.Id, torneoId);
+    }
+
 
     private static void AsegurarFaseTodosContraTodosParaTablaAnual(Fase fase, string rol)
     {

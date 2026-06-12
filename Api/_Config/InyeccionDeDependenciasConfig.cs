@@ -53,6 +53,9 @@ public static class InyeccionDeDependenciasConfig
         builder.Services.AddScoped<IFaseRepo, FaseRepo>();
         builder.Services.AddScoped<IFaseCore, FaseCore>();
 
+        builder.Services.AddScoped<IFaseCategoriaRepo, FaseCategoriaRepo>();
+        builder.Services.AddScoped<IFaseCategoriaCore, FaseCategoriaCore>();
+
         builder.Services.AddScoped<IGrupoDeFasesRepo, GrupoDeFasesRepo>();
         builder.Services.AddScoped<IGrupoDeFasesCore, GrupoDeFasesCore>();
         builder.Services.AddScoped<IEstructuraFasesCore, EstructuraFasesCore>();

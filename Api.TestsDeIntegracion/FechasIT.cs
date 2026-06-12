@@ -100,17 +100,7 @@ public class FechasIT : TestBase
         context.Fases.Add(fase);
         await context.SaveChangesAsync();
 
-        var cat = new TorneoCategoria
-        {
-            Id = 0,
-            Nombre = "Cat ED",
-            AnioDesde = 2010,
-            AnioHasta = 2020,
-            TorneoId = torneo.Id,
-            Orden = 1
-        };
-        context.TorneoCategorias.Add(cat);
-        await context.SaveChangesAsync();
+        var cat = await CategoriasDePrueba.AgregarFaseCategoria(context, fase.Id, "Cat ED", 1);
 
         var zona = new ZonaEliminacionDirecta
         {
@@ -139,24 +129,7 @@ public class FechasIT : TestBase
     {
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var maxOrden = await context.TorneoCategorias
-            .Where(c => c.TorneoId == torneoId)
-            .Select(c => (int?)c.Orden)
-            .MaxAsync();
-        var baseOrden = maxOrden ?? 0;
-        for (var i = 0; i < cantidad; i++)
-        {
-            context.TorneoCategorias.Add(new TorneoCategoria
-            {
-                Id = 0,
-                Nombre = $"Cat Test {i}",
-                AnioDesde = 2010,
-                AnioHasta = 2020,
-                TorneoId = torneoId,
-                Orden = baseOrden + i + 1
-            });
-        }
-        await context.SaveChangesAsync();
+        await CategoriasDePrueba.AgregarTorneoPlantillaYReplicarEnFases(context, torneoId, cantidad);
     }
 
     [Fact]
@@ -1665,7 +1638,11 @@ public class FechasIT : TestBase
         Assert.NotNull(_club);
         var zonaId = await CrearZonaEliminacionDirectaDePrueba(Factory);
         var torneoId = await ObtenerTorneoIdDeZona(Factory, zonaId);
-        await SeedTorneoCategorias(Factory, torneoId, 2);
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await CategoriasDePrueba.AgregarSoloPlantillaTorneo(context, torneoId, 2);
+        }
 
         int categoriaZonaId;
         int equipo1Id, equipo2Id;

@@ -52,6 +52,11 @@ public class MapperConfig : Profile
             .ReverseMap()
             .ForMember(dest => dest.Torneo, opt => opt.Ignore());
 
+        CreateMap<FaseCategoria, FaseCategoriaDTO>()
+            .PreserveReferences()
+            .ReverseMap()
+            .ForMember(dest => dest.Fase, opt => opt.Ignore());
+
         CreateMap<GrupoDeFases, GrupoDeFasesDTO>()
             .PreserveReferences()
             .ReverseMap()
@@ -109,6 +114,9 @@ public class MapperConfig : Profile
                 src.Zonas == null || !src.Zonas.Any()))
             .ForMember(dest => dest.GrupoDeFasesId, opt => opt.MapFrom(src => src.GrupoDeFasesId))
             .ForMember(dest => dest.Zonas, opt => opt.MapFrom(src => src.Zonas != null ? src.Zonas.Cast<Zona>().ToList() : new List<Zona>()))
+            .ForMember(dest => dest.Categorias, opt => opt.MapFrom(src => src.Categorias != null
+                ? src.Categorias.OrderBy(c => c.Orden).ThenBy(c => c.Id).ToList()
+                : new List<FaseCategoria>()))
             .PreserveReferences();
         CreateMap<FaseEliminacionDirecta, FaseDTO>()
             .ForMember(dest => dest.TipoDeFase, opt => opt.MapFrom(_ => TipoDeFaseEnum.EliminacionDirecta))
@@ -117,6 +125,9 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.SePuedeEditar, opt => opt.MapFrom(_ => true))
             .ForMember(dest => dest.GrupoDeFasesId, opt => opt.MapFrom(src => src.GrupoDeFasesId))
             .ForMember(dest => dest.Zonas, opt => opt.MapFrom(src => src.Zonas != null ? src.Zonas.Cast<Zona>().ToList() : new List<Zona>()))
+            .ForMember(dest => dest.Categorias, opt => opt.MapFrom(src => src.Categorias != null
+                ? src.Categorias.OrderBy(c => c.Orden).ThenBy(c => c.Id).ToList()
+                : new List<FaseCategoria>()))
             .PreserveReferences();
         CreateMap<Equipo, EquipoDeLaZonaDTO>()
             .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombre))

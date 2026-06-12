@@ -3,6 +3,7 @@ using Api.Core.DTOs.AppCarnetDigital;
 using Api.Core.Entidades;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
+using Api.TestsUtilidades;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Api.TestsDeIntegracion;
@@ -46,17 +47,7 @@ public class AppCarnetDigitalEliminacionDirectaIT : TestBase
         context.Fases.Add(fase);
         await context.SaveChangesAsync();
 
-        var cat = new TorneoCategoria
-        {
-            Id = 0,
-            Nombre = "Cat ED",
-            AnioDesde = 2010,
-            AnioHasta = 2020,
-            TorneoId = torneo.Id,
-            Orden = 1
-        };
-        context.TorneoCategorias.Add(cat);
-        await context.SaveChangesAsync();
+        var cat = await CategoriasDePrueba.AgregarFaseCategoria(context, fase.Id, "Cat ED", 1);
 
         var zona = new ZonaEliminacionDirecta
         {
@@ -180,17 +171,7 @@ public class AppCarnetDigitalEliminacionDirectaIT : TestBase
         context.Fases.Add(fase);
         await context.SaveChangesAsync();
 
-        var cat = new TorneoCategoria
-        {
-            Id = 0,
-            Nombre = "Cat ED SR",
-            AnioDesde = 2010,
-            AnioHasta = 2020,
-            TorneoId = torneo.Id,
-            Orden = 1
-        };
-        context.TorneoCategorias.Add(cat);
-        await context.SaveChangesAsync();
+        var cat = await CategoriasDePrueba.AgregarFaseCategoria(context, fase.Id, "Cat ED SR", 1);
 
         var zona = new ZonaEliminacionDirecta
         {

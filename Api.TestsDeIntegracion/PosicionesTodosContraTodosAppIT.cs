@@ -8,6 +8,7 @@ using Api.Core.DTOs.AppCarnetDigital;
 using Api.Core.Entidades;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
+using Api.TestsUtilidades;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -90,26 +91,9 @@ public class PosicionesTodosContraTodosAppIT : TestBase
     {
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var c1 = new TorneoCategoria
-        {
-            Id = 0,
-            Nombre = "Cat A",
-            AnioDesde = 2010,
-            AnioHasta = 2020,
-            TorneoId = torneoId,
-            Orden = 1
-        };
-        var c2 = new TorneoCategoria
-        {
-            Id = 0,
-            Nombre = "Cat B",
-            AnioDesde = 2010,
-            AnioHasta = 2020,
-            TorneoId = torneoId,
-            Orden = 2
-        };
-        context.TorneoCategorias.AddRange(c1, c2);
-        await context.SaveChangesAsync();
+        var faseId = await context.Fases.Where(f => f.TorneoId == torneoId).Select(f => f.Id).FirstAsync();
+        var c1 = await CategoriasDePrueba.AgregarFaseCategoria(context, faseId, "Cat A", 1);
+        var c2 = await CategoriasDePrueba.AgregarFaseCategoria(context, faseId, "Cat B", 2);
         return (c1.Id, c2.Id);
     }
 
@@ -117,17 +101,8 @@ public class PosicionesTodosContraTodosAppIT : TestBase
     {
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var c = new TorneoCategoria
-        {
-            Id = 0,
-            Nombre = "Única",
-            AnioDesde = 2010,
-            AnioHasta = 2020,
-            TorneoId = torneoId,
-            Orden = 1
-        };
-        context.TorneoCategorias.Add(c);
-        await context.SaveChangesAsync();
+        var faseId = await context.Fases.Where(f => f.TorneoId == torneoId).Select(f => f.Id).FirstAsync();
+        var c = await CategoriasDePrueba.AgregarFaseCategoria(context, faseId, "Única", 1);
         return c.Id;
     }
 

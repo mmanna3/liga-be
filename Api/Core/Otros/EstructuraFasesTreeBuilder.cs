@@ -90,6 +90,31 @@ public static class EstructuraFasesTreeBuilder
             .ToList();
     }
 
+    public static List<InformacionInicialFaseDTO> AplanarFasesInformacionInicial(
+        IEnumerable<InformacionInicialElementoTorneoDTO> elementos)
+    {
+        var fases = new List<InformacionInicialFaseDTO>();
+        foreach (var el in elementos)
+        {
+            if (el.Tipo == TipoFase)
+            {
+                fases.Add(new InformacionInicialFaseDTO
+                {
+                    Id = el.Id ?? 0,
+                    Nombre = el.Nombre ?? string.Empty,
+                    TipoDeFase = el.TipoDeFase ?? string.Empty,
+                    Zonas = el.Zonas ?? []
+                });
+            }
+            else if (el.Elementos is { Count: > 0 })
+            {
+                fases.AddRange(AplanarFasesInformacionInicial(el.Elementos));
+            }
+        }
+
+        return fases;
+    }
+
     public static void ValidarProfundidadEstructura(IReadOnlyList<EstructuraFasesItemDTO> items, int profundidadGrupo = 0)
     {
         foreach (var item in items)

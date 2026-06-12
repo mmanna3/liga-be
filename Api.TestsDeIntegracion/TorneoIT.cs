@@ -82,6 +82,12 @@ public class TorneoIT : TestBase
         Assert.Equal(2, categorias.Count);
         Assert.Contains(categorias, c => c.Nombre == "Sub-15" && c.AnioDesde == 2010 && c.AnioHasta == 2015);
         Assert.Contains(categorias, c => c.Nombre == "Sub-18" && c.AnioDesde == 2007 && c.AnioHasta == 2009);
+
+        Assert.NotNull(fases[0].Categorias);
+        Assert.Equal(2, fases[0].Categorias!.Count);
+        Assert.Contains(fases[0].Categorias, c => c.Nombre == "Sub-15");
+        Assert.Contains(fases[0].Categorias, c => c.Nombre == "Sub-18");
+        Assert.All(fases[0].Categorias, c => Assert.Equal(fases[0].Id, c.FaseId));
     }
 
     [Fact]
@@ -769,8 +775,8 @@ public class TorneoIT : TestBase
             context.Jornadas.Add(jornada);
             await context.SaveChangesAsync();
 
-            var primeraCategoriaId = await context.TorneoCategorias
-                .Where(c => c.TorneoId == torneoId)
+            var primeraCategoriaId = await context.FaseCategorias
+                .Where(c => c.FaseId == zona.FaseId)
                 .OrderBy(c => c.Id)
                 .Select(c => c.Id)
                 .FirstAsync();

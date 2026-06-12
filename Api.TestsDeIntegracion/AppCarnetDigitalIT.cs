@@ -349,12 +349,12 @@ public class AppCarnetDigitalIT : TestBase
         Assert.Equal("Negro", agrupador.Color);
         var torneo = Assert.Single(agrupador.Torneos, t => t.Id == 1 && t.Nombre == "Torneo 2024");
 
-        var fase = Assert.Single(FasesEnElementos(torneo.Elementos));
+        var fase = Assert.Single(torneo.Fases);
         Assert.Equal(1, fase.Id);
         Assert.Equal(string.Empty, fase.Nombre);
         Assert.Equal("TodosContraTodos", fase.TipoDeFase);
 
-        var zona = Assert.Single(fase.Zonas!);
+        var zona = Assert.Single(fase.Zonas);
         Assert.True(zona.Id > 0);
         Assert.Equal("Zona única", zona.Nombre);
     }
@@ -459,9 +459,9 @@ public class AppCarnetDigitalIT : TestBase
         var agr = lista.First(a => a.Id == 1);
         var torneoDto = agr.Torneos.First(t => t.Id == torneoId);
 
-        var anual = Assert.Single(FasesEnElementos(torneoDto.Elementos), f => f.TipoDeFase == "Anual" && f.Nombre == "Anual");
+        var anual = Assert.Single(torneoDto.Fases, f => f.TipoDeFase == "Anual" && f.Nombre == "Anual");
         Assert.Equal(0, anual.Id);
-        Assert.Equal(2, anual.Zonas!.Count);
+        Assert.Equal(2, anual.Zonas.Count);
         Assert.Contains(anual.Zonas, z => z.Nombre == "Norte");
         Assert.Contains(anual.Zonas, z => z.Nombre == "Sur");
         Assert.Equal(["Norte", "Sur"], anual.Zonas.Select(z => z.Nombre).ToList());
@@ -501,26 +501,84 @@ public class AppCarnetDigitalIT : TestBase
 
         var faseDto = lista
             .SelectMany(a => a.Torneos)
-            .SelectMany(t => FasesEnElementos(t.Elementos))
+            .SelectMany(t => t.Fases)
             .First(f => f.Id == faseId);
 
-        Assert.Equal(["Zona Z", "Zona A", "Zona M"], faseDto.Zonas!.Select(z => z.Nombre).ToList());
-        Assert.Equal([1, 2, 3], faseDto.Zonas!.Select(z => z.Orden).ToList());
+        Assert.Equal(["Zona Z", "Zona A", "Zona M"], faseDto.Zonas.Select(z => z.Nombre).ToList());
+        Assert.Equal([1, 2, 3], faseDto.Zonas.Select(z => z.Orden).ToList());
     }
 
-    private static IEnumerable<InformacionInicialElementoTorneoDTO> FasesEnElementos(
-        IEnumerable<InformacionInicialElementoTorneoDTO> elementos)
+    [Fact]
+    public async Task InformacionInicialDeTorneos_ConGruposDeFases_FasesEsListaPlanaEnOrden()
     {
-        foreach (var el in elementos)
+        var anioActual = DateTime.Today.Year;
+        int torneoId;
+        await using (var scope = Factory.Services.CreateAsyncScope())
         {
-            if (el.Tipo == "fase")
-                yield return el;
-            if (el.Elementos != null)
+            var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var torneo = new Torneo
             {
-                foreach (var sub in FasesEnElementos(el.Elementos))
-                    yield return sub;
-            }
+                Id = 0,
+                Nombre = "Torneo con grupos app",
+                Anio = anioActual,
+                EsVisibleEnApp = true,
+                SeVenLosGolesEnTablaDePosiciones = true,
+                TorneoAgrupadorId = 1
+            };
+            ctx.Torneos.Add(torneo);
+            await ctx.SaveChangesAsync();
+            torneoId = torneo.Id;
+
+            var faseA = new FaseTodosContraTodos
+            {
+                Id = 0,
+                Nombre = "Fase A",
+                TorneoId = torneoId,
+                Numero = 1,
+                EstadoFaseId = 100,
+                EsVisibleEnApp = true
+            };
+            ctx.Fases.Add(faseA);
+            await ctx.SaveChangesAsync();
+
+            var grupoA = new GrupoDeFases { Id = 0, Nombre = "Grupo A", Numero = 2, TorneoId = torneoId };
+            ctx.Set<GrupoDeFases>().Add(grupoA);
+            await ctx.SaveChangesAsync();
+
+            var faseB = new FaseTodosContraTodos
+            {
+                Id = 0,
+                Nombre = "Fase B",
+                TorneoId = torneoId,
+                Numero = 1,
+                GrupoDeFasesId = grupoA.Id,
+                EstadoFaseId = 100,
+                EsVisibleEnApp = true
+            };
+            var faseC = new FaseTodosContraTodos
+            {
+                Id = 0,
+                Nombre = "Fase C",
+                TorneoId = torneoId,
+                Numero = 2,
+                GrupoDeFasesId = grupoA.Id,
+                EstadoFaseId = 100,
+                EsVisibleEnApp = true
+            };
+            ctx.Fases.AddRange(faseB, faseC);
+            await ctx.SaveChangesAsync();
         }
+
+        var client = await GetAuthenticatedClient();
+        var response = await client.GetAsync("/api/carnet-digital/info-inicial-de-torneos");
+        response.EnsureSuccessStatusCode();
+        var lista = await response.Content.ReadFromJsonAsync<List<InformacionInicialAgrupadorDTO>>();
+        Assert.NotNull(lista);
+
+        var torneoDto = lista.SelectMany(a => a.Torneos).First(t => t.Id == torneoId);
+
+        Assert.Equal(["Fase A", "Fase B", "Fase C"], torneoDto.Fases.Select(f => f.Nombre).ToList());
+        Assert.Single(torneoDto.Elementos, e => e.Tipo == "grupo" && e.NombreGrupo == "Grupo A");
     }
 
     [Fact]
