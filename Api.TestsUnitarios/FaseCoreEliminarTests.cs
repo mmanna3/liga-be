@@ -11,8 +11,9 @@ public class FaseCoreEliminarTests
     {
         var bdMock = new Mock<IBDVirtual>();
         var torneoRepoMock = new Mock<ITorneoRepo>();
+        var grupoRepoMock = new Mock<IGrupoDeFasesRepo>();
         var mapperMock = new Mock<AutoMapper.IMapper>();
-        return new FaseCore(bdMock.Object, repoMock.Object, torneoRepoMock.Object, mapperMock.Object);
+        return new FaseCore(bdMock.Object, repoMock.Object, torneoRepoMock.Object, grupoRepoMock.Object, mapperMock.Object);
     }
 
     private static FaseTodosContraTodos FaseConNumero(int id, int numero) =>
@@ -56,7 +57,7 @@ public class FaseCoreEliminarTests
             .ReturnsAsync(FaseConNumero(faseId, numeroEsperado));
 
         repoMock
-            .Setup(r => r.DecrementarNumeroDeFasesPosteriores(torneoId, numeroEsperado))
+            .Setup(r => r.DecrementarNumeroDeFasesPosteriores(torneoId, null, numeroEsperado))
             .Returns(Task.CompletedTask);
 
         var core = CrearCore(repoMock);
@@ -64,7 +65,7 @@ public class FaseCoreEliminarTests
         await core.Eliminar(torneoId, faseId);
 
         repoMock.Verify(
-            r => r.DecrementarNumeroDeFasesPosteriores(torneoId, numeroEsperado),
+            r => r.DecrementarNumeroDeFasesPosteriores(torneoId, null, numeroEsperado),
             Times.Once);
     }
 
@@ -88,7 +89,7 @@ public class FaseCoreEliminarTests
         await core.Eliminar(torneoId, faseId);
 
         repoMock.Verify(
-            r => r.DecrementarNumeroDeFasesPosteriores(torneoId, 2),
+            r => r.DecrementarNumeroDeFasesPosteriores(torneoId, null, 2),
             Times.Once);
     }
 
@@ -106,7 +107,7 @@ public class FaseCoreEliminarTests
         await core.Eliminar(torneoId, 999);
 
         repoMock.Verify(
-            r => r.DecrementarNumeroDeFasesPosteriores(It.IsAny<int>(), It.IsAny<int>()),
+            r => r.DecrementarNumeroDeFasesPosteriores(It.IsAny<int>(), It.IsAny<int?>(), It.IsAny<int>()),
             Times.Never);
     }
 }

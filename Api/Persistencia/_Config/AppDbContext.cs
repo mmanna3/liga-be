@@ -211,9 +211,29 @@ public class AppDbContext : DbContext
             .WithMany(t => t.Fases)
             .HasForeignKey(tf => tf.TorneoId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Restrict: SQL Server no admite SetNull aquí (ciclos de cascada Torneo → Fases y Torneo → GruposDeFases → Fases).
         builder.Entity<Fase>()
-            .HasIndex(tf => new { tf.TorneoId, tf.Numero })
-            .IsUnique();
+            .HasOne(f => f.GrupoDeFases)
+            .WithMany(g => g.Fases)
+            .HasForeignKey(f => f.GrupoDeFasesId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<GrupoDeFases>()
+            .ToTable("GruposDeFases")
+            .HasOne(g => g.Torneo)
+            .WithMany(t => t.GruposDeFases)
+            .HasForeignKey(g => g.TorneoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<GrupoDeFases>()
+            .HasOne(g => g.GrupoDeFasesPadre)
+            .WithMany(g => g.SubGrupos)
+            .HasForeignKey(g => g.GrupoDeFasesPadreId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<GrupoDeFases>()
+            .HasIndex(g => new { g.TorneoId, g.GrupoDeFasesPadreId, g.Numero });
 
         builder.Entity<Zona>()
             .ToTable("Zonas", t =>

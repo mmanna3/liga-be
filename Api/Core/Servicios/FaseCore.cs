@@ -11,11 +11,18 @@ namespace Api.Core.Servicios;
 public class FaseCore : ABMCoreAnidado<IFaseRepo, Fase, FaseDTO, int>, IFaseCore
 {
     private readonly ITorneoRepo _torneoRepo;
+    private readonly IGrupoDeFasesRepo _grupoDeFasesRepo;
 
-    public FaseCore(IBDVirtual bd, IFaseRepo repo, ITorneoRepo torneoRepo, IMapper mapper)
+    public FaseCore(
+        IBDVirtual bd,
+        IFaseRepo repo,
+        ITorneoRepo torneoRepo,
+        IGrupoDeFasesRepo grupoDeFasesRepo,
+        IMapper mapper)
         : base(bd, repo, mapper)
     {
         _torneoRepo = torneoRepo;
+        _grupoDeFasesRepo = grupoDeFasesRepo;
     }
 
     public override async Task<int> Crear(int padreId, FaseDTO dto)
@@ -75,7 +82,7 @@ public class FaseCore : ABMCoreAnidado<IFaseRepo, Fase, FaseDTO, int>, IFaseCore
         Repo.Eliminar(entidad);
         await BDVirtual.GuardarCambios();
 
-        await Repo.DecrementarNumeroDeFasesPosteriores(padreId, entidad.Numero);
+        await Repo.DecrementarNumeroDeFasesPosteriores(padreId, entidad.GrupoDeFasesId, entidad.Numero);
         return id;
     }
 
@@ -89,6 +96,7 @@ public class FaseCore : ABMCoreAnidado<IFaseRepo, Fase, FaseDTO, int>, IFaseCore
                 Nombre = dto.Nombre,
                 Numero = dto.Numero,
                 TorneoId = dto.TorneoId,
+                GrupoDeFasesId = dto.GrupoDeFasesId,
                 EstadoFaseId = dto.EstadoFaseId,
                 EsVisibleEnApp = dto.EsVisibleEnApp
             },
@@ -98,6 +106,7 @@ public class FaseCore : ABMCoreAnidado<IFaseRepo, Fase, FaseDTO, int>, IFaseCore
                 Nombre = dto.Nombre,
                 Numero = dto.Numero,
                 TorneoId = dto.TorneoId,
+                GrupoDeFasesId = dto.GrupoDeFasesId,
                 EstadoFaseId = dto.EstadoFaseId,
                 EsVisibleEnApp = dto.EsVisibleEnApp
             },
@@ -139,6 +148,10 @@ public class FaseCore : ABMCoreAnidado<IFaseRepo, Fase, FaseDTO, int>, IFaseCore
         var fases = await Repo.ListarPorPadreParaEditar(torneoId);
         if (faseIdsEnOrden.Count != fases.Count)
             throw new ExcepcionControlada("La cantidad de fases no coincide con las del torneo.");
+
+        var grupos = await _grupoDeFasesRepo.ListarTodosPorTorneoParaEditar(torneoId);
+        if (grupos.Count > 0 || fases.Any(f => f.GrupoDeFasesId != null))
+            throw new ExcepcionControlada("Use el endpoint de estructura de fases cuando el torneo tiene grupos.");
 
         var idsExistentes = fases.Select(f => f.Id).ToHashSet();
         if (faseIdsEnOrden.Any(id => !idsExistentes.Contains(id)))

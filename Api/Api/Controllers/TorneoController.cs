@@ -34,4 +34,11 @@ public class TorneoController(ITorneoCore core) : ABMController<TorneoDTO, ITorn
         await Core.EditarFasesParaTablaAnual(id, dto);
         return NoContent();
     }
+
+    [HttpPut("{id}/estructura-fases", Name = "torneoPersistirEstructuraFases")]
+    public async Task<IActionResult> PersistirEstructuraFases(int id, [FromBody] EstructuraFasesDTO dto, [FromServices] IEstructuraFasesCore estructuraFasesCore)
+    {
+        await estructuraFasesCore.PersistirEstructura(id, dto);
+        return NoContent();
+    }
 }

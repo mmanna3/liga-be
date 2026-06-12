@@ -349,12 +349,12 @@ public class AppCarnetDigitalIT : TestBase
         Assert.Equal("Negro", agrupador.Color);
         var torneo = Assert.Single(agrupador.Torneos, t => t.Id == 1 && t.Nombre == "Torneo 2024");
 
-        var fase = Assert.Single(torneo.Fases);
+        var fase = Assert.Single(FasesEnElementos(torneo.Elementos));
         Assert.Equal(1, fase.Id);
         Assert.Equal(string.Empty, fase.Nombre);
         Assert.Equal("TodosContraTodos", fase.TipoDeFase);
 
-        var zona = Assert.Single(fase.Zonas);
+        var zona = Assert.Single(fase.Zonas!);
         Assert.True(zona.Id > 0);
         Assert.Equal("Zona única", zona.Nombre);
     }
@@ -459,9 +459,9 @@ public class AppCarnetDigitalIT : TestBase
         var agr = lista.First(a => a.Id == 1);
         var torneoDto = agr.Torneos.First(t => t.Id == torneoId);
 
-        var anual = Assert.Single(torneoDto.Fases, f => f.TipoDeFase == "Anual" && f.Nombre == "Anual");
+        var anual = Assert.Single(FasesEnElementos(torneoDto.Elementos), f => f.TipoDeFase == "Anual" && f.Nombre == "Anual");
         Assert.Equal(0, anual.Id);
-        Assert.Equal(2, anual.Zonas.Count);
+        Assert.Equal(2, anual.Zonas!.Count);
         Assert.Contains(anual.Zonas, z => z.Nombre == "Norte");
         Assert.Contains(anual.Zonas, z => z.Nombre == "Sur");
         Assert.Equal(["Norte", "Sur"], anual.Zonas.Select(z => z.Nombre).ToList());
@@ -501,11 +501,26 @@ public class AppCarnetDigitalIT : TestBase
 
         var faseDto = lista
             .SelectMany(a => a.Torneos)
-            .SelectMany(t => t.Fases)
+            .SelectMany(t => FasesEnElementos(t.Elementos))
             .First(f => f.Id == faseId);
 
-        Assert.Equal(["Zona Z", "Zona A", "Zona M"], faseDto.Zonas.Select(z => z.Nombre).ToList());
-        Assert.Equal([1, 2, 3], faseDto.Zonas.Select(z => z.Orden).ToList());
+        Assert.Equal(["Zona Z", "Zona A", "Zona M"], faseDto.Zonas!.Select(z => z.Nombre).ToList());
+        Assert.Equal([1, 2, 3], faseDto.Zonas!.Select(z => z.Orden).ToList());
+    }
+
+    private static IEnumerable<InformacionInicialElementoTorneoDTO> FasesEnElementos(
+        IEnumerable<InformacionInicialElementoTorneoDTO> elementos)
+    {
+        foreach (var el in elementos)
+        {
+            if (el.Tipo == "fase")
+                yield return el;
+            if (el.Elementos != null)
+            {
+                foreach (var sub in FasesEnElementos(el.Elementos))
+                    yield return sub;
+            }
+        }
     }
 
     [Fact]

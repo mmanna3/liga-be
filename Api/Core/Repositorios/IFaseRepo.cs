@@ -7,7 +7,7 @@ public interface IFaseRepo : IRepositorioABMAnidado<Fase, int>
 {
     Task<List<Fase>> ListarPorPadreParaEditar(int padreId);
     Task CambiarTipo(int padreId, int id, TipoDeFaseEnum nuevoTipo);
-    Task DecrementarNumeroDeFasesPosteriores(int torneoId, int numeroEliminado);
+    Task DecrementarNumeroDeFasesPosteriores(int torneoId, int? grupoDeFasesId, int numeroEliminado);
 
     /// <summary>Filas afectadas (0 si no existe la fase en ese torneo).</summary>
     Task<int> ActualizarEsVisibleEnApp(int torneoId, int faseId, bool esVisibleEnApp);

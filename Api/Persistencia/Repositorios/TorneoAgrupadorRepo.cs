@@ -1,6 +1,7 @@
 using Api.Core.DTOs.AppCarnetDigital;
 using Api.Core.Entidades;
 using Api.Core.Enums;
+using Api.Core.Otros;
 using Api.Core.Repositorios;
 using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,8 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
             .Include(a => a.Color)
             .Include(a => a.Torneos.Where(t => t.EsVisibleEnApp))
             .ThenInclude(t => t.Fases.Where(f => f.EsVisibleEnApp))
+            .Include(a => a.Torneos.Where(t => t.EsVisibleEnApp))
+            .ThenInclude(t => t.GruposDeFases)
             .ToListAsync(cancellationToken);
 
         var faseIds = new HashSet<int>(
@@ -77,33 +80,21 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
                 Nombre = agr.Nombre,
                 Color = agr.Color != null ? agr.Color.Nombre : nameof(ColorEnum.Negro),
                 Torneos = agr.Torneos
-                    // Año calendario actual primero (A-Z); luego años futuros (por año); luego pasados (más reciente primero).
                     .OrderBy(t => t.Anio == anioActual ? 0 : t.Anio > anioActual ? 1 : 2)
                     .ThenBy(t => t.Anio == anioActual ? 0 : t.Anio > anioActual ? t.Anio : -t.Anio)
                     .ThenBy(t => t.Nombre, StringComparer.CurrentCultureIgnoreCase)
                     .Select(t =>
                     {
-                        var fases = t.Fases
-                            .OrderBy(f => f.Numero)
-                            .ThenBy(f => f.Nombre)
-                            .Select(f => new InformacionInicialFaseDTO
-                            {
-                                Id = f.Id,
-                                Nombre = f.Nombre,
-                                TipoDeFase = f switch
-                                {
-                                    FaseTodosContraTodos => nameof(TipoDeFaseEnum.TodosContraTodos),
-                                    FaseEliminacionDirecta => nameof(TipoDeFaseEnum.EliminacionDirecta),
-                                    _ => string.Empty
-                                },
-                                Zonas = zonasPorFaseId.GetValueOrDefault(f.Id) ?? []
-                            })
-                            .ToList();
+                        var elementos = EstructuraFasesTreeBuilder.ConstruirElementosInformacionInicial(
+                            t.Fases,
+                            t.GruposDeFases,
+                            zonasPorFaseId);
 
                         if (t.FaseAperturaId is { } idApertura && t.FaseClausuraId is { } idClausura)
                         {
-                            fases.Add(new InformacionInicialFaseDTO
+                            elementos.Add(new InformacionInicialElementoTorneoDTO
                             {
+                                Tipo = EstructuraFasesTreeBuilder.TipoFase,
                                 Id = 0,
                                 Nombre = "Anual",
                                 TipoDeFase = "Anual",
@@ -117,7 +108,7 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
                         {
                             Id = t.Id,
                             Nombre = t.Anio == anioActual ? t.Nombre : $"{t.Nombre} {t.Anio}",
-                            Fases = fases
+                            Elementos = elementos
                         };
                     })
                     .ToList()

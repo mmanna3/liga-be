@@ -15,7 +15,21 @@ public class InformacionInicialTorneoDTO
 {
     public int Id { get; set; }
     public string Nombre { get; set; } = string.Empty;
-    public List<InformacionInicialFaseDTO> Fases { get; set; } = [];
+    public List<InformacionInicialElementoTorneoDTO> Elementos { get; set; } = [];
+}
+
+public class InformacionInicialElementoTorneoDTO
+{
+    public string Tipo { get; set; } = string.Empty;
+
+    public int? Id { get; set; }
+    public string? Nombre { get; set; }
+    public string? TipoDeFase { get; set; }
+    public List<InformacionInicialZonaDTO>? Zonas { get; set; }
+
+    public int? GrupoId { get; set; }
+    public string? NombreGrupo { get; set; }
+    public List<InformacionInicialElementoTorneoDTO>? Elementos { get; set; }
 }
 
 public class InformacionInicialFaseDTO

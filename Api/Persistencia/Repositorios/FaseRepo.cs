@@ -57,11 +57,20 @@ public class FaseRepo : RepositorioABMAnidado<Fase, int>, IFaseRepo
             .SingleOrDefaultAsync(x => x.Id == id);
     }
 
-    public async Task DecrementarNumeroDeFasesPosteriores(int torneoId, int numeroEliminado)
+    public async Task DecrementarNumeroDeFasesPosteriores(int torneoId, int? grupoDeFasesId, int numeroEliminado)
     {
-        await Context.Database.ExecuteSqlRawAsync(
-            "UPDATE [Fases] SET [Numero] = [Numero] - 1 WHERE [TorneoId] = {0} AND [Numero] > {1}",
-            torneoId, numeroEliminado);
+        if (grupoDeFasesId.HasValue)
+        {
+            await Context.Database.ExecuteSqlRawAsync(
+                "UPDATE [Fases] SET [Numero] = [Numero] - 1 WHERE [TorneoId] = {0} AND [GrupoDeFasesId] = {1} AND [Numero] > {2}",
+                torneoId, grupoDeFasesId.Value, numeroEliminado);
+        }
+        else
+        {
+            await Context.Database.ExecuteSqlRawAsync(
+                "UPDATE [Fases] SET [Numero] = [Numero] - 1 WHERE [TorneoId] = {0} AND [GrupoDeFasesId] IS NULL AND [Numero] > {1}",
+                torneoId, numeroEliminado);
+        }
     }
 
     public async Task CambiarTipo(int padreId, int id, TipoDeFaseEnum nuevoTipo)

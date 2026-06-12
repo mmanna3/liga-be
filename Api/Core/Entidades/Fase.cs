@@ -13,6 +13,9 @@ public abstract class Fase : Entidad, IEsVisibleEnApp
     public virtual Torneo Torneo { get; set; } = null!;
     public required int TorneoId { get; set; }
 
+    public int? GrupoDeFasesId { get; set; }
+    public virtual GrupoDeFases? GrupoDeFases { get; set; }
+
     public int EstadoFaseId { get; set; }
     public virtual EstadoFase EstadoFase { get; set; } = null!;
 

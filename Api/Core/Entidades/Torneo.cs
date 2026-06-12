@@ -22,4 +22,5 @@ public class Torneo : Entidad, IEsVisibleEnApp
 
     public virtual ICollection<TorneoCategoria> Categorias { get; set; } = null!;
     public virtual ICollection<Fase> Fases { get; set; } = null!;
+    public virtual ICollection<GrupoDeFases> GruposDeFases { get; set; } = null!;
 }

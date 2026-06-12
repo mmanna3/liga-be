@@ -25,6 +25,7 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
             .Include("Fases.Zonas.EquiposZona")
             .Include(x => x.Fases)
                 .ThenInclude(f => f.EstadoFase)
+            .Include(x => x.GruposDeFases)
             .AsSplitQuery()
             .AsQueryable();
     }

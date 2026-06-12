@@ -22,6 +22,7 @@ public class FaseDTO : DTO, IEsVisibleEnApp
     public required int Numero { get; set; }
 
     public int TorneoId { get; set; }
+    public int? GrupoDeFasesId { get; set; }
     [Required]
     public TipoDeFaseEnum TipoDeFase { get; set; }
     public string TipoDeFaseNombre { get; set; } = string.Empty;

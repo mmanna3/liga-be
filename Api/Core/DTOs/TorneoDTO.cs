@@ -27,6 +27,7 @@ public class TorneoDTO : DTO, IEsVisibleEnApp
     /// Null = no modificar. Lista vacía = borrar todas. Con items = reemplazar.
     /// </summary>
     public List<FaseDTO>? Fases { get; set; }
+    public List<GrupoDeFasesDTO>? GruposDeFases { get; set; }
     /// <summary>
     /// Null = no modificar. Lista vacía = borrar todas. Con items = reemplazar.
     /// </summary>
