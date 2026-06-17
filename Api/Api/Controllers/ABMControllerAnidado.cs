@@ -81,7 +81,6 @@ public abstract class ABMControllerAnidado<TDTO, TCore> : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [AutorizarSoloAdmin]
     public async Task<ActionResult<int>> Eliminar(int padreId, int id)
     {
         var resultado = await Core.Eliminar(padreId, id);

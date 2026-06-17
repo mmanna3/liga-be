@@ -1,11 +1,13 @@
 using Api.Api.Authorization;
 using Api.Core.DTOs;
+using Api.Core.Enums;
 using Api.Core.Servicios.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers;
 
 [Route("api/Zona/{padreId}/fechas")]
+[ModuloSistema(ModuloSistema.Torneos)]
 public class FechaController : ABMControllerAnidado<FechaDTO, IFechaCore>
 {
     public FechaController(IFechaCore core) : base(core)

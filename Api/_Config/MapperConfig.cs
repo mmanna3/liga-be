@@ -257,11 +257,15 @@ public class MapperConfig : Profile
         CreateMap<Usuario, UsuarioAdminDTO>()
             .ForMember(dest => dest.RolNombre, opt => opt.MapFrom(src => src.Rol.Nombre))
             .ForMember(dest => dest.BlanqueoPendiente, opt => opt.MapFrom(src => src.Password == null))
+            .ForMember(dest => dest.AccesosModulo, opt => opt.MapFrom(src => src.AccesosModulo))
             .ReverseMap()
             .ForMember(dest => dest.Password, opt => opt.Ignore())
             .ForMember(dest => dest.Rol, opt => opt.Ignore())
             .ForMember(dest => dest.DelegadoId, opt => opt.Ignore())
-            .ForMember(dest => dest.Delegado, opt => opt.Ignore());
+            .ForMember(dest => dest.Delegado, opt => opt.Ignore())
+            .ForMember(dest => dest.AccesosModulo, opt => opt.Ignore());
+
+        CreateMap<UsuarioAccesoModulo, UsuarioAccesoModuloDTO>().ReverseMap();
 
         CreateMap<Rol, RolDTO>();
 

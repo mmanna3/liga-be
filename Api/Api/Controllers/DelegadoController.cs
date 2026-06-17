@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers
 {
+    [ModuloSistema(ModuloSistema.Delegados)]
     public class DelegadoController : ABMController<DelegadoDTO, IDelegadoCore, DelegadoDTO>
     {
         public DelegadoController(IDelegadoCore core) : base(core)

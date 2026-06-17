@@ -13,4 +13,6 @@ public class UsuarioAdminDTO : DTO
     public string RolNombre { get; set; } = string.Empty;
 
     public bool BlanqueoPendiente { get; set; }
+
+    public List<UsuarioAccesoModuloDTO> AccesosModulo { get; set; } = [];
 }

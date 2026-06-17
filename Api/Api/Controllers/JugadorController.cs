@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers
 {
+    [ModuloSistema(ModuloSistema.Jugadores)]
     public class JugadorController : ABMController<JugadorDTO, IJugadorCore, JugadorDTO>
     {
         public JugadorController(IJugadorCore core) : base(core)

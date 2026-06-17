@@ -17,7 +17,10 @@ try
 
     builder = InyeccionDeDependenciasConfig.Configurar(builder);
 
-    builder.Services.AddControllers()
+    builder.Services.AddControllers(options =>
+    {
+        options.Filters.Add<Api.Api.Filters.PermisoModuloFilter>();
+    })
     .AddJsonOptions(o =>
     {
         o.JsonSerializerOptions.Converters.Add(new Api._Config.DateOnlyJsonConverter());

@@ -15,6 +15,7 @@ public class UsuarioRepo : RepositorioABM<Usuario>, IUsuarioRepo
     {
         return Context.Usuarios
             .Include(u => u.Rol)
+            .Include(u => u.AccesosModulo)
             .Where(u => u.DelegadoId == null);
     }
 

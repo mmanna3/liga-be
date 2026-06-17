@@ -5,4 +5,5 @@ public class LoginResponseDTO
     public bool Exito { get; set; }
     public string? Token { get; set; }
     public string? Error { get; set; }
+    public List<UsuarioAccesoModuloDTO> Permisos { get; set; } = [];
 } 

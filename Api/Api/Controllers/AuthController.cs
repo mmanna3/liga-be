@@ -43,4 +43,12 @@ public class AuthController : ControllerBase
         
         return Ok(response);
     }
+
+    [HttpGet("permisos")]
+    [Authorize]
+    public async Task<ActionResult<IReadOnlyList<UsuarioAccesoModuloDTO>>> ObtenerPermisos()
+    {
+        var permisos = await _authService.ObtenerPermisosDelUsuarioAutenticado();
+        return Ok(permisos);
+    }
 } 

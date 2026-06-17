@@ -1,6 +1,8 @@
 using Api.Api.Authorization;
 using Api.Core.DTOs;
+using Api.Core.Enums;
 using Api.Core.Servicios.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,7 +10,8 @@ namespace Api.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[AutorizarSoloAdmin]
+[Authorize]
+[ModuloSistema(ModuloSistema.Configuracion)]
 public class UsuarioController : ControllerBase
 {
     private readonly IUsuarioCore _core;

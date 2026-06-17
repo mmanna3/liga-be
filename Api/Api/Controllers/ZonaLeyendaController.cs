@@ -1,11 +1,13 @@
 using Api.Api.Authorization;
 using Api.Core.DTOs;
+using Api.Core.Enums;
 using Api.Core.Servicios.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers;
 
 [Route("api/Zona/{padreId}/leyendas")]
+[ModuloSistema(ModuloSistema.Torneos)]
 public class ZonaLeyendaController : ABMControllerAnidado<LeyendaTablaPosicionesDTO, ILeyendaTablaPosicionesCore>
 {
     public ZonaLeyendaController(ILeyendaTablaPosicionesCore core) : base(core)

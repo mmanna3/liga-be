@@ -1,10 +1,13 @@
+using Api.Api.Authorization;
 using Api.Core.DTOs;
+using Api.Core.Enums;
 using Api.Core.Otros;
 using Api.Core.Servicios.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers;
 
+[ModuloSistema(ModuloSistema.Arbitros)]
 public class ArbitroController : ABMController<ArbitroDTO, IArbitroCore, ArbitroDTO>
 {
     private readonly IArbitroAsignacionCore _asignacionCore;

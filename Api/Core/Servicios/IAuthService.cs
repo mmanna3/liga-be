@@ -6,4 +6,5 @@ public interface IAuthService
 {
     Task<LoginResponseDTO> Login(LoginDTO dto);
     Task<LoginResponseDTO> CambiarPassword(CambiarPasswordDTO dto);
+    Task<IReadOnlyList<UsuarioAccesoModuloDTO>> ObtenerPermisosDelUsuarioAutenticado();
 } 

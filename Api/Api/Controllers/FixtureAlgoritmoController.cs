@@ -1,10 +1,12 @@
 using Api.Api.Authorization;
 using Api.Core.DTOs;
+using Api.Core.Enums;
 using Api.Core.Servicios.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers;
 
+[ModuloSistema(ModuloSistema.Configuracion)]
 public class FixtureAlgoritmoController : ABMController<FixtureAlgoritmoDTO, IFixtureAlgoritmoCore, FixtureAlgoritmoDTO>
 {
     public FixtureAlgoritmoController(IFixtureAlgoritmoCore core) : base(core)

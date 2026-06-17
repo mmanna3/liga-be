@@ -16,4 +16,6 @@ public class Usuario : Entidad
 
     public int? DelegadoId { get; set; }
     public virtual Delegado? Delegado { get; set; }
+
+    public virtual ICollection<UsuarioAccesoModulo> AccesosModulo { get; set; } = [];
 } 

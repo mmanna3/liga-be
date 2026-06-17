@@ -1,11 +1,13 @@
 using Api.Api.Authorization;
 using Api.Core.DTOs;
+using Api.Core.Enums;
 using Api.Core.Servicios.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers;
 
 [Route("api/Fase/{padreId}/zonas")]
+[ModuloSistema(ModuloSistema.Torneos)]
 public class ZonaController : ABMControllerAnidado<ZonaDTO, IZonaCore>
 {
     public ZonaController(IZonaCore core) : base(core)

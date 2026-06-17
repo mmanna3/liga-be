@@ -1,11 +1,13 @@
 using Api.Api.Authorization;
 using Api.Core.DTOs;
+using Api.Core.Enums;
 using Api.Core.Servicios.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers;
 
 [Route("api/Torneo/{padreId}/fases")]
+[ModuloSistema(ModuloSistema.Torneos)]
 public class FaseController : ABMControllerAnidado<FaseDTO, IFaseCore>
 {
     public FaseController(IFaseCore core) : base(core)

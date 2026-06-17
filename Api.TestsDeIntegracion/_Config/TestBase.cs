@@ -1,6 +1,8 @@
 using Api.Core.Entidades;
+using Api.Core.Enums;
 using Api.Core.Servicios;
 using Api.Persistencia._Config;
+using Api.TestsUtilidades;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Api.TestsDeIntegracion._Config;
@@ -48,6 +50,8 @@ public abstract class TestBase
         
         context.Usuarios.Add(usuario);
         context.SaveChanges();
+
+        PermisosDePrueba.SembrarAccesosControlTotal(context, usuario.Id);
     }
     
     protected async Task<HttpClient> GetAuthenticatedClient()

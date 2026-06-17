@@ -1,11 +1,18 @@
+using Api.Api.Authorization;
 using Api.Core.DTOs;
+using Api.Core.Enums;
+using Api.Core.Otros;
 using Api.Core.Servicios.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
+    [AutorizarCualquierUsuarioAdministrativo]
+    [ModuloSistema(ModuloSistema.Reportes)]
     public class ReporteController : ControllerBase
     {
         private readonly IReporteCore _reporteCore;

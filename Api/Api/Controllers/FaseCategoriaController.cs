@@ -1,11 +1,16 @@
+using Api.Api.Authorization;
 using Api.Core.DTOs;
+using Api.Core.Enums;
 using Api.Core.Otros;
 using Api.Core.Servicios.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Api.Controllers;
 
 [Route("api/Torneo/{torneoId}/fases/{faseId}/categorias")]
+[AutorizarCualquierUsuarioAdministrativo]
+[ModuloSistema(ModuloSistema.Torneos)]
 public class FaseCategoriaController : ControllerBase
 {
     private readonly IFaseCategoriaCore _core;

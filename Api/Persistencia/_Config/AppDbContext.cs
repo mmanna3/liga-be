@@ -103,6 +103,16 @@ public class AppDbContext : DbContext
             .Property(u => u.RolId)
             .HasDefaultValue(1);
 
+        builder.Entity<UsuarioAccesoModulo>()
+            .HasIndex(a => new { a.UsuarioId, a.Modulo })
+            .IsUnique();
+
+        builder.Entity<UsuarioAccesoModulo>()
+            .HasOne(a => a.Usuario)
+            .WithMany(u => u.AccesosModulo)
+            .HasForeignKey(a => a.UsuarioId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Entity<EstadoJugador>().HasData(
             new EstadoJugador { Id = 1, Estado = "Fichaje pendiente de aprobación" },
             new EstadoJugador { Id = 2, Estado = "Fichaje rechazado" },
@@ -613,6 +623,7 @@ public class AppDbContext : DbContext
     public DbSet<CanchaTipo> CanchaTipos { get; set; } = null!;
     public DbSet<HabilitacionFichaje> HabilitacionFichajes { get; set; } = null!;
     public DbSet<Usuario> Usuarios { get; set; } = null!;
+    public DbSet<UsuarioAccesoModulo> UsuarioAccesoModulo { get; set; } = null!;
     public DbSet<Rol> Roles { get; set; } = null!;
     public DbSet<Torneo> Torneos { get; set; } = null!;
     public DbSet<DniExpulsadoDeLaLiga> DnisExpulsadosDeLaLiga { get; set; } = null!;

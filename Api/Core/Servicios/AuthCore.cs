@@ -3,6 +3,9 @@ using System.Security.Claims;
 using System.Text;
 using Api.Core.DTOs;
 using Api.Core.Entidades;
+using Api.Core.Enums;
+using Api.Core.Otros;
+using Api.Core.Servicios.Interfaces;
 using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -13,17 +16,20 @@ public class AuthCore : IAuthService
 {
     private readonly AppDbContext _context;
     private readonly IConfiguration _configuration;
+    private readonly IPermisoServicio _permisoServicio;
 
-    public AuthCore(AppDbContext context, IConfiguration configuration)
+    public AuthCore(AppDbContext context, IConfiguration configuration, IPermisoServicio permisoServicio)
     {
         _context = context;
         _configuration = configuration;
+        _permisoServicio = permisoServicio;
     }
 
     public async Task<LoginResponseDTO> Login(LoginDTO dto)
     {
         var usuario = await _context.Usuarios
             .Include(u => u.Rol)
+            .Include(u => u.AccesosModulo)
             .FirstOrDefaultAsync(u => u.NombreUsuario == dto.Usuario);
 
         if (usuario == null)
@@ -44,7 +50,6 @@ public class AuthCore : IAuthService
             };
         }
 
-        // Verificar la contraseña usando BCrypt
         if (!VerificarPasswordHash(dto.Password, usuario.Password))
         {
             return new LoginResponseDTO
@@ -54,13 +59,14 @@ public class AuthCore : IAuthService
             };
         }
 
-        // Generar el token JWT
-        var token = GenerarToken(usuario);
+        var permisos = MapearPermisos(usuario);
+        var token = GenerarToken(usuario, permisos);
 
         return new LoginResponseDTO
         {
             Exito = true,
-            Token = token
+            Token = token,
+            Permisos = permisos
         };
     }
 
@@ -68,6 +74,7 @@ public class AuthCore : IAuthService
     {
         var usuario = await _context.Usuarios
             .Include(u => u.Rol)
+            .Include(u => u.AccesosModulo)
             .FirstOrDefaultAsync(u => u.NombreUsuario == dto.Usuario);
 
         if (usuario == null)
@@ -100,38 +107,54 @@ public class AuthCore : IAuthService
             }
         }
 
-        // Actualizar la contraseña
         usuario.Password = HashPassword(dto.PasswordNuevo);
         await _context.SaveChangesAsync();
 
-        // Generar nuevo token
-        var token = GenerarToken(usuario);
+        var permisos = MapearPermisos(usuario);
+        var token = GenerarToken(usuario, permisos);
 
         return new LoginResponseDTO
         {
             Exito = true,
-            Token = token
+            Token = token,
+            Permisos = permisos
         };
     }
 
-    private string GenerarToken(Usuario usuario)
+    public Task<IReadOnlyList<UsuarioAccesoModuloDTO>> ObtenerPermisosDelUsuarioAutenticado()
+    {
+        IReadOnlyList<UsuarioAccesoModuloDTO> permisos = _permisoServicio.EsSuperAdministrador()
+            ? []
+            : _permisoServicio.ObtenerPermisosDelUsuario();
+        return Task.FromResult(permisos);
+    }
+
+    internal static List<UsuarioAccesoModuloDTO> MapearPermisos(Usuario usuario)
+    {
+        if (usuario.RolId == (int)RolEnum.SuperAdministrador)
+            return [];
+
+        return usuario.AccesosModulo
+            .Select(a => new UsuarioAccesoModuloDTO { Modulo = a.Modulo, Nivel = a.Nivel })
+            .ToList();
+    }
+
+    private string GenerarToken(Usuario usuario, IReadOnlyList<UsuarioAccesoModuloDTO> permisos)
     {
         var claims = new List<Claim>
         {
-            new (ClaimTypes.Name, usuario.NombreUsuario),
-            new (ClaimTypes.NameIdentifier, usuario.Id.ToString()),
-            new (ClaimTypes.Role, usuario.Rol.Nombre)
+            new(ClaimTypes.Name, usuario.NombreUsuario),
+            new(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+            new(ClaimTypes.Role, usuario.Rol.Nombre)
         };
 
-        // Obtener la clave secreta de la configuración o usar una clave por defecto
+        if (permisos.Count > 0)
+            claims.Add(new Claim(PermisosClaimHelper.ClaimType, PermisosClaimHelper.Serializar(permisos)));
+
         string claveSecreta = _configuration.GetSection("AppSettings:Token").Value ?? "clave_secreta_por_defecto_para_desarrollo_con_longitud_suficiente_para_hmac_sha512";
-        
-        // Asegurar que la clave tenga al menos 64 bytes (512 bits) para HMAC-SHA512
+
         if (Encoding.UTF8.GetByteCount(claveSecreta) < 64)
-        {
-            // Extender la clave hasta alcanzar al menos 64 bytes
             claveSecreta = claveSecreta.PadRight(64, '_');
-        }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(claveSecreta));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
@@ -151,22 +174,18 @@ public class AuthCore : IAuthService
 
     private bool VerificarPasswordHash(string password, string passwordHash)
     {
-        // Verificar la contraseña usando BCrypt
         try
         {
             return BCrypt.Net.BCrypt.Verify(password, passwordHash);
         }
         catch
         {
-            // Si hay un error (por ejemplo, el hash no está en formato BCrypt),
-            // devolver false para indicar que la contraseña es incorrecta
             return false;
         }
     }
-    
-    // Método auxiliar para generar hash de contraseñas (útil para crear usuarios)
+
     public static string HashPassword(string password)
     {
         return BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt(12));
     }
-} 
+}

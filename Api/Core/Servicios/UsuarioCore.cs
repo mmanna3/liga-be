@@ -62,6 +62,24 @@ public class UsuarioCore : ABMCore<IUsuarioRepo, Usuario, UsuarioAdminDTO>, IUsu
         return true;
     }
 
+    public override async Task<int> Crear(UsuarioAdminDTO dto)
+    {
+        ValidarAccesosModulo(dto.AccesosModulo);
+        var id = await base.Crear(dto);
+        await SincronizarAccesosModulo(id, dto.AccesosModulo);
+        await BDVirtual.GuardarCambios();
+        return id;
+    }
+
+    public override async Task<int> Modificar(int id, UsuarioAdminDTO nuevo)
+    {
+        ValidarAccesosModulo(nuevo.AccesosModulo);
+        var resultado = await base.Modificar(id, nuevo);
+        await SincronizarAccesosModulo(id, nuevo.AccesosModulo);
+        await BDVirtual.GuardarCambios();
+        return resultado;
+    }
+
     protected override async Task<Usuario> AntesDeCrear(UsuarioAdminDTO dto, Usuario entidad)
     {
         dto.NombreUsuario = NormalizarNombreUsuario(dto.NombreUsuario);
@@ -180,5 +198,40 @@ public class UsuarioCore : ABMCore<IUsuarioRepo, Usuario, UsuarioAdminDTO>, IUsu
         if (string.IsNullOrEmpty(idClaim) || !int.TryParse(idClaim, out var id))
             throw new ExcepcionControlada("No se pudo determinar el usuario autenticado.");
         return id;
+    }
+
+    private static void ValidarAccesosModulo(List<UsuarioAccesoModuloDTO> accesos)
+    {
+        if (accesos.Count == 0)
+            return;
+
+        var modulos = accesos.Select(a => a.Modulo).ToList();
+        if (modulos.Distinct().Count() != modulos.Count)
+            throw new ExcepcionControlada("No se puede asignar más de un nivel de acceso por módulo.");
+
+        if (accesos.Any(a => !Enum.IsDefined(typeof(ModuloSistema), a.Modulo)))
+            throw new ExcepcionControlada("Módulo de acceso inválido.");
+
+        if (accesos.Any(a => !Enum.IsDefined(typeof(NivelAcceso), a.Nivel)))
+            throw new ExcepcionControlada("Nivel de acceso inválido.");
+    }
+
+    private async Task SincronizarAccesosModulo(int usuarioId, List<UsuarioAccesoModuloDTO> accesos)
+    {
+        var existentes = await _context.UsuarioAccesoModulo
+            .Where(a => a.UsuarioId == usuarioId)
+            .ToListAsync();
+        _context.UsuarioAccesoModulo.RemoveRange(existentes);
+
+        foreach (var acceso in accesos)
+        {
+            _context.UsuarioAccesoModulo.Add(new UsuarioAccesoModulo
+            {
+                Id = 0,
+                UsuarioId = usuarioId,
+                Modulo = acceso.Modulo,
+                Nivel = acceso.Nivel
+            });
+        }
     }
 }
