@@ -198,7 +198,7 @@ public class AuthIT : TestBase
     }
 
     [Fact]
-    public async Task CambiarPassword_ContraseñaNoNull_400()
+    public async Task CambiarPassword_ContraseñaNoNull_SinPasswordActual_400()
     {
         // Arrange
         var client = Factory.CreateClient();
@@ -219,7 +219,69 @@ public class AuthIT : TestBase
         
         Assert.NotNull(content);
         Assert.False(content.Exito);
-        Assert.Equal("No se puede cambiar la contraseña. Debe solicitar que se blanquee su contraseña.", content.Error);
+        Assert.Equal("Debe ingresar la contraseña actual", content.Error);
+    }
+
+    [Fact]
+    public async Task CambiarPassword_ContraseñaNoNull_PasswordActualIncorrecta_400()
+    {
+        // Arrange
+        var client = Factory.CreateClient();
+        var request = new CambiarPasswordDTO
+        {
+            Usuario = "test",
+            PasswordActual = "incorrecta",
+            PasswordNuevo = "nueva123"
+        };
+        
+        // Act
+        var response = await client.PostAsync("/api/auth/cambiar-password", JsonContent.Create(request));
+        
+        // Assert
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+        
+        var content = JsonConvert.DeserializeObject<LoginResponseDTO>(
+            await response.Content.ReadAsStringAsync());
+        
+        Assert.NotNull(content);
+        Assert.False(content.Exito);
+        Assert.Equal("La contraseña actual es incorrecta", content.Error);
+    }
+
+    [Fact]
+    public async Task CambiarPassword_ContraseñaNoNull_200()
+    {
+        // Arrange
+        var client = Factory.CreateClient();
+        var request = new CambiarPasswordDTO
+        {
+            Usuario = "test",
+            PasswordActual = "test123",
+            PasswordNuevo = "nueva123"
+        };
+        
+        // Act
+        var response = await client.PostAsync("/api/auth/cambiar-password", JsonContent.Create(request));
+        
+        // Assert
+        Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        
+        var content = JsonConvert.DeserializeObject<LoginResponseDTO>(
+            await response.Content.ReadAsStringAsync());
+        
+        Assert.NotNull(content);
+        Assert.True(content.Exito);
+        Assert.NotNull(content.Token);
+        
+        // Verificar que se puede hacer login con la nueva contraseña
+        var loginRequest = new LoginDTO
+        {
+            Usuario = "test",
+            Password = "nueva123"
+        };
+        
+        var loginResponse = await client.PostAsync("/api/auth/login", JsonContent.Create(loginRequest));
+        Assert.Equal(System.Net.HttpStatusCode.OK, loginResponse.StatusCode);
     }
 
     [Fact]

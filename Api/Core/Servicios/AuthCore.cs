@@ -81,11 +81,23 @@ public class AuthCore : IAuthService
 
         if (usuario.Password != null)
         {
-            return new LoginResponseDTO
+            if (string.IsNullOrEmpty(dto.PasswordActual))
             {
-                Exito = false,
-                Error = "No se puede cambiar la contraseña. Debe solicitar que se blanquee su contraseña."
-            };
+                return new LoginResponseDTO
+                {
+                    Exito = false,
+                    Error = "Debe ingresar la contraseña actual"
+                };
+            }
+
+            if (!VerificarPasswordHash(dto.PasswordActual, usuario.Password))
+            {
+                return new LoginResponseDTO
+                {
+                    Exito = false,
+                    Error = "La contraseña actual es incorrecta"
+                };
+            }
         }
 
         // Actualizar la contraseña
