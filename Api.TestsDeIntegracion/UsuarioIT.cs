@@ -38,12 +38,12 @@ public class UsuarioIT : TestBase
         var client = await GetAuthenticatedClient();
         using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var rolConsulta = context.Roles.First(r => r.Nombre == "Consulta");
+        var rolUsuario = context.Roles.First(r => r.Nombre == "Usuario");
 
         var dto = new UsuarioAdminDTO
         {
             NombreUsuario = "nuevo.usuario",
-            RolId = rolConsulta.Id
+            RolId = rolUsuario.Id
         };
 
         var createResponse = await client.PostAsJsonAsync("/api/usuario", dto);

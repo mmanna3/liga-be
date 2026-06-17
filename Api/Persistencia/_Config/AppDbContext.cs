@@ -2,7 +2,6 @@ using Api.Core.Entidades;
 using Api.Core.Entidades.EntidadesConValoresPredefinidos;
 using Api.Core.Enums;
 using Api.Core.Otros;
-using Api.Core.Servicios;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.Persistencia._Config;
@@ -95,7 +94,6 @@ public class AppDbContext : DbContext
         builder.Entity<Rol>().HasData(
             new Rol { Id = 1, Nombre = "Administrador" },
             new Rol { Id = 2, Nombre = "Usuario" },
-            new Rol { Id = 3, Nombre = "Consulta" },
             new Rol { Id = 4, Nombre = "Delegado" }
         );
 
@@ -557,51 +555,6 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(dc => dc.EstadoDelegadoId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        builder.Entity<Usuario>().HasData(
-            new Usuario
-            {
-                Id = 1,
-                NombreUsuario = "mati",
-                Password = AuthCore.HashPassword("mandarina1"),
-                RolId = 0
-            },
-            new Usuario
-            {
-                Id = 2,
-                NombreUsuario = "pipa",
-                Password = AuthCore.HashPassword("edefiliga"),
-                RolId = 1
-            },
-            new Usuario
-            {
-                Id = 101,
-                NombreUsuario = "consulta",
-                Password = AuthCore.HashPassword("consulta"),
-                RolId = 3
-            },
-            new Usuario
-            {
-                Id = 1000,
-                NombreUsuario = "eze",
-                Password = AuthCore.HashPassword("edefiliga"),
-                RolId = 1
-            },
-            new Usuario
-            {
-                Id = 1001,
-                NombreUsuario = "lucas",
-                Password = AuthCore.HashPassword("edefiliga"),
-                RolId = 1
-            },
-            new Usuario
-            {
-                Id = 1002,
-                NombreUsuario = "elias",
-                Password = AuthCore.HashPassword("edefiliga"),
-                RolId = 1
-            }
-        );
     }
 
     public DbSet<Club> Clubs { get; set; } = null!;

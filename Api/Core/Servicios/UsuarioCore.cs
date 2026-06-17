@@ -160,14 +160,12 @@ public class UsuarioCore : ABMCore<IUsuarioRepo, Usuario, UsuarioAdminDTO>, IUsu
             [
                 (int)RolEnum.SuperAdministrador,
                 (int)RolEnum.Administrador,
-                (int)RolEnum.Usuario,
-                (int)RolEnum.Consulta
+                (int)RolEnum.Usuario
             ],
             "Administrador" =>
             [
                 (int)RolEnum.Administrador,
-                (int)RolEnum.Usuario,
-                (int)RolEnum.Consulta
+                (int)RolEnum.Usuario
             ],
             _ => []
         };
