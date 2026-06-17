@@ -36,6 +36,21 @@ public class ArbitroController : ABMController<ArbitroDTO, IArbitroCore, Arbitro
         }
     }
 
+    [HttpGet("asignacion-historica-por-agrupador", Name = "arbitroAsignacionHistoricaPorAgrupador")]
+    public async Task<ActionResult<AsignacionHistoricaArbitrosPorAgrupadorDTO>> ObtenerAsignacionHistoricaPorAgrupador(
+        [FromQuery] int agrupadorId,
+        [FromQuery] int anio)
+    {
+        try
+        {
+            return Ok(await _asignacionCore.ObtenerAsignacionHistoricaPorAgrupador(agrupadorId, anio));
+        }
+        catch (ExcepcionControlada ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
     [HttpPut("jornada/{jornadaId}/arbitros", Name = "asignarArbitrosJornada")]
     public async Task<IActionResult> AsignarArbitrosAJornada(int jornadaId, [FromBody] AsignarArbitrosJornadaDTO dto)
     {
@@ -51,11 +66,14 @@ public class ArbitroController : ABMController<ArbitroDTO, IArbitroCore, Arbitro
     }
 
     [HttpPut("jornada/{jornadaId}/arbitros/{arbitroId}/whatsapp-enviado", Name = "marcarWhatsappEnviadoArbitroJornada")]
-    public async Task<IActionResult> MarcarWhatsappEnviado(int jornadaId, int arbitroId)
+    public async Task<IActionResult> MarcarWhatsappEnviado(
+        int jornadaId,
+        int arbitroId,
+        [FromBody] MarcarWhatsappEnviadoArbitroJornadaDTO dto)
     {
         try
         {
-            await _asignacionCore.MarcarWhatsappEnviado(jornadaId, arbitroId);
+            await _asignacionCore.MarcarWhatsappEnviado(jornadaId, arbitroId, dto);
             return NoContent();
         }
         catch (ExcepcionControlada ex)

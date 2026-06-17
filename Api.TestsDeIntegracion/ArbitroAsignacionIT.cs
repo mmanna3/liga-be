@@ -342,9 +342,14 @@ public class ArbitroAsignacionIT : TestBase
             $"/api/arbitro/jornada/{escenario.JornadaProximaId}/arbitros",
             new AsignarArbitrosJornadaDTO { ArbitroIds = [escenario.Arbitro1Id] });
 
-        var response = await client.PutAsync(
+        var response = await client.PutAsJsonAsync(
             $"/api/arbitro/jornada/{escenario.JornadaProximaId}/arbitros/{escenario.Arbitro1Id}/whatsapp-enviado",
-            null);
+            new MarcarWhatsappEnviadoArbitroJornadaDTO
+            {
+                HorarioInicio = "20:30",
+                Observaciones = "Llegar 15 min antes",
+                Categorias = [new WhatsappCategoriaSnapshotDTO { Id = 1, Nombre = "Sub 15" }]
+            });
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
         using var scope = Factory.Services.CreateScope();
@@ -352,6 +357,10 @@ public class ArbitroAsignacionIT : TestBase
         var asignacion = await context.ArbitroJornada
             .SingleAsync(a => a.JornadaId == escenario.JornadaProximaId && a.ArbitroId == escenario.Arbitro1Id);
         Assert.True(asignacion.WhatsappEnviado);
+        Assert.Equal("20:30", asignacion.WhatsappHorarioInicio);
+        Assert.Equal("Llegar 15 min antes", asignacion.WhatsappObservaciones);
+        Assert.NotNull(asignacion.WhatsappCategoriasJson);
+        Assert.NotNull(asignacion.WhatsappEnviadoEn);
 
         var getResponse = await client.GetAsync(
             $"/api/arbitro/asignacion-por-agrupador?agrupadorId={escenario.AgrupadorId}&anio={escenario.Anio}");
@@ -364,5 +373,140 @@ public class ArbitroAsignacionIT : TestBase
         var arbitroAsignado = Assert.Single(jornada.ArbitrosAsignados);
         Assert.True(arbitroAsignado.WhatsappEnviado);
         Assert.Equal("+5491111223344", arbitroAsignado.TelefonoCelular);
+        Assert.NotNull(arbitroAsignado.Whatsapp);
+        Assert.Equal("20:30", arbitroAsignado.Whatsapp!.HorarioInicio);
+        Assert.Equal("Llegar 15 min antes", arbitroAsignado.Whatsapp.Observaciones);
+        Assert.Contains("Sub 15", arbitroAsignado.Whatsapp.CategoriasNombres);
+    }
+
+    [Fact]
+    public async Task ObtenerAsignacionHistorica_DevuelveJornadaPasadaConAsignacion()
+    {
+        var escenario = await CrearEscenario();
+        var client = await GetAuthenticatedClient();
+
+        await client.PutAsJsonAsync(
+            $"/api/arbitro/jornada/{escenario.JornadaPasadaId}/arbitros",
+            new AsignarArbitrosJornadaDTO { ArbitroIds = [escenario.Arbitro1Id] });
+
+        var response = await client.GetAsync(
+            $"/api/arbitro/asignacion-historica-por-agrupador?agrupadorId={escenario.AgrupadorId}&anio={escenario.Anio}");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<AsignacionHistoricaArbitrosPorAgrupadorDTO>(
+            await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+
+        var jornada = content.Torneos!.Single().Fases!.Single().Zonas!.Single()
+            .FechasHistoricas!.Single().Jornadas!.Single();
+        Assert.Equal(escenario.JornadaPasadaId, jornada.Id);
+        var arbitro = Assert.Single(jornada.ArbitrosAsignados);
+        Assert.Equal(escenario.Arbitro1Id, arbitro.Id);
+    }
+
+    [Fact]
+    public async Task ObtenerAsignacionHistorica_ExcluyeProximaFecha()
+    {
+        var escenario = await CrearEscenario();
+        var client = await GetAuthenticatedClient();
+
+        await client.PutAsJsonAsync(
+            $"/api/arbitro/jornada/{escenario.JornadaProximaId}/arbitros",
+            new AsignarArbitrosJornadaDTO { ArbitroIds = [escenario.Arbitro1Id] });
+
+        var response = await client.GetAsync(
+            $"/api/arbitro/asignacion-historica-por-agrupador?agrupadorId={escenario.AgrupadorId}&anio={escenario.Anio}");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<AsignacionHistoricaArbitrosPorAgrupadorDTO>(
+            await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+        Assert.Empty(content.Torneos);
+        Assert.Empty(content.ArbitrosConJornadas);
+    }
+
+    [Fact]
+    public async Task ObtenerAsignacionHistorica_ExcluyeJornadasSinAsignacion()
+    {
+        var escenario = await CrearEscenario();
+        var client = await GetAuthenticatedClient();
+
+        var response = await client.GetAsync(
+            $"/api/arbitro/asignacion-historica-por-agrupador?agrupadorId={escenario.AgrupadorId}&anio={escenario.Anio}");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<AsignacionHistoricaArbitrosPorAgrupadorDTO>(
+            await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+        Assert.Empty(content.Torneos);
+    }
+
+    [Fact]
+    public async Task ObtenerAsignacionHistorica_VistaPorArbitro()
+    {
+        var escenario = await CrearEscenario();
+        var client = await GetAuthenticatedClient();
+
+        await client.PutAsJsonAsync(
+            $"/api/arbitro/jornada/{escenario.JornadaPasadaId}/arbitros",
+            new AsignarArbitrosJornadaDTO { ArbitroIds = [escenario.Arbitro1Id, escenario.Arbitro2Id] });
+
+        var response = await client.GetAsync(
+            $"/api/arbitro/asignacion-historica-por-agrupador?agrupadorId={escenario.AgrupadorId}&anio={escenario.Anio}");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<AsignacionHistoricaArbitrosPorAgrupadorDTO>(
+            await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+
+        Assert.Equal(2, content.ArbitrosConJornadas.Count);
+        var arbitro1 = content.ArbitrosConJornadas.Single(a => a.ArbitroId == escenario.Arbitro1Id);
+        var jornada1 = Assert.Single(arbitro1.JornadasHistoricas);
+        Assert.Equal(escenario.JornadaPasadaId, jornada1.JornadaId);
+        Assert.Equal(1, jornada1.Orden);
+    }
+
+    [Fact]
+    public async Task MarcarWhatsappEnviado_PersisteMetadataYApareceEnHistorico()
+    {
+        var escenario = await CrearEscenario();
+        var client = await GetAuthenticatedClient();
+
+        await client.PutAsJsonAsync(
+            $"/api/arbitro/jornada/{escenario.JornadaPasadaId}/arbitros",
+            new AsignarArbitrosJornadaDTO { ArbitroIds = [escenario.Arbitro1Id] });
+
+        await client.PutAsJsonAsync(
+            $"/api/arbitro/jornada/{escenario.JornadaPasadaId}/arbitros/{escenario.Arbitro1Id}/whatsapp-enviado",
+            new MarcarWhatsappEnviadoArbitroJornadaDTO
+            {
+                HorarioInicio = "18:00",
+                Observaciones = "Traer silbato",
+                Categorias =
+                [
+                    new WhatsappCategoriaSnapshotDTO { Id = 10, Nombre = "Primera" },
+                    new WhatsappCategoriaSnapshotDTO { Id = 11, Nombre = "Reserva" }
+                ]
+            });
+
+        var response = await client.GetAsync(
+            $"/api/arbitro/asignacion-historica-por-agrupador?agrupadorId={escenario.AgrupadorId}&anio={escenario.Anio}");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<AsignacionHistoricaArbitrosPorAgrupadorDTO>(
+            await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+
+        var arbitro = content.Torneos!.Single().Fases!.Single().Zonas!.Single()
+            .FechasHistoricas!.Single().Jornadas!.Single().ArbitrosAsignados!.Single();
+        Assert.NotNull(arbitro.Whatsapp);
+        Assert.Equal("18:00", arbitro.Whatsapp!.HorarioInicio);
+        Assert.Equal("Traer silbato", arbitro.Whatsapp.Observaciones);
+        Assert.Equal(["Primera", "Reserva"], arbitro.Whatsapp.CategoriasNombres);
+
+        var arbitroHistorico = content.ArbitrosConJornadas.Single(a => a.ArbitroId == escenario.Arbitro1Id);
+        var jornadaHistorica = Assert.Single(arbitroHistorico.JornadasHistoricas);
+        Assert.NotNull(jornadaHistorica.Whatsapp);
+        Assert.Equal("18:00", jornadaHistorica.Whatsapp!.HorarioInicio);
     }
 }

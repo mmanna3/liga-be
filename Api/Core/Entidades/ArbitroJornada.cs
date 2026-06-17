@@ -11,4 +11,8 @@ public class ArbitroJornada : Entidad
     public virtual Jornada Jornada { get; set; } = null!;
     public required int Orden { get; set; }
     public bool WhatsappEnviado { get; set; }
+    public string? WhatsappHorarioInicio { get; set; }
+    public string? WhatsappObservaciones { get; set; }
+    public string? WhatsappCategoriasJson { get; set; }
+    public DateTime? WhatsappEnviadoEn { get; set; }
 }

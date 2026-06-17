@@ -1,3 +1,5 @@
+using System.Text.Json;
+using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Core.Repositorios;
 using Api.Persistencia._Config;
@@ -34,7 +36,11 @@ public class ArbitroJornadaRepo : IArbitroJornadaRepo
         }
     }
 
-    public async Task<bool> MarcarWhatsappEnviado(int jornadaId, int arbitroId)
+    public async Task<bool> MarcarWhatsappEnviado(
+        int jornadaId,
+        int arbitroId,
+        MarcarWhatsappEnviadoArbitroJornadaDTO dto,
+        DateTime enviadoEn)
     {
         var asignacion = await _context.ArbitroJornada
             .FirstOrDefaultAsync(a => a.JornadaId == jornadaId && a.ArbitroId == arbitroId);
@@ -42,6 +48,16 @@ public class ArbitroJornadaRepo : IArbitroJornadaRepo
             return false;
 
         asignacion.WhatsappEnviado = true;
+        asignacion.WhatsappHorarioInicio = string.IsNullOrWhiteSpace(dto.HorarioInicio)
+            ? null
+            : dto.HorarioInicio.Trim();
+        asignacion.WhatsappObservaciones = string.IsNullOrWhiteSpace(dto.Observaciones)
+            ? null
+            : dto.Observaciones.Trim();
+        asignacion.WhatsappCategoriasJson = (dto.Categorias ?? []).Count > 0
+            ? JsonSerializer.Serialize(dto.Categorias)
+            : null;
+        asignacion.WhatsappEnviadoEn = enviadoEn;
         return true;
     }
 
