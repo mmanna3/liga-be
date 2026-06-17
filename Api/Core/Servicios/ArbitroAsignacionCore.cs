@@ -16,17 +16,20 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
 
     private readonly AppDbContext _context;
     private readonly IArbitroJornadaRepo _arbitroJornadaRepo;
+    private readonly IFaseCategoriaRepo _faseCategoriaRepo;
     private readonly IBDVirtual _bdVirtual;
     private readonly IRelojZonaHorariaArgentina _relojArgentina;
 
     public ArbitroAsignacionCore(
         AppDbContext context,
         IArbitroJornadaRepo arbitroJornadaRepo,
+        IFaseCategoriaRepo faseCategoriaRepo,
         IBDVirtual bdVirtual,
         IRelojZonaHorariaArgentina relojArgentina)
     {
         _context = context;
         _arbitroJornadaRepo = arbitroJornadaRepo;
+        _faseCategoriaRepo = faseCategoriaRepo;
         _bdVirtual = bdVirtual;
         _relojArgentina = relojArgentina;
     }
@@ -54,6 +57,20 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
             .ToListAsync();
 
         var faseIds = fases.Select(f => f.Id).ToList();
+
+        var categoriasPorFaseId = (await _faseCategoriaRepo.ListarPorFaseIds(faseIds))
+            .GroupBy(c => c.FaseId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(c => new FaseCategoriaDTO
+                {
+                    Id = c.Id,
+                    Nombre = c.Nombre,
+                    AnioDesde = c.AnioDesde,
+                    AnioHasta = c.AnioHasta,
+                    Orden = c.Orden,
+                    FaseId = c.FaseId
+                }).ToList());
 
         var zonas = await _context.Zonas
             .AsNoTracking()
@@ -219,6 +236,9 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
                     {
                         Id = fase.Id,
                         Nombre = string.IsNullOrWhiteSpace(fase.Nombre) ? $"Fase {fase.Numero}" : fase.Nombre,
+                        Categorias = categoriasPorFaseId.TryGetValue(fase.Id, out var categorias)
+                            ? categorias
+                            : [],
                         Zonas = zonasDto
                     });
                 }
@@ -230,6 +250,7 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
                 {
                     Id = torneo.Id,
                     Nombre = torneo.Nombre,
+                    HorarioDeJuego = torneo.HorarioDeJuego,
                     Fases = fasesDto
                 });
             }

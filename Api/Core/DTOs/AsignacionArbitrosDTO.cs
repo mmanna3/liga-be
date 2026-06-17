@@ -44,6 +44,7 @@ public class TorneoAsignacionDTO
 {
     public required int Id { get; set; }
     public required string Nombre { get; set; }
+    public string? HorarioDeJuego { get; set; }
     public required List<FaseAsignacionDTO> Fases { get; set; }
 }
 
@@ -51,6 +52,7 @@ public class FaseAsignacionDTO
 {
     public required int Id { get; set; }
     public required string Nombre { get; set; }
+    public required List<FaseCategoriaDTO> Categorias { get; set; }
     public required List<ZonaAsignacionDTO> Zonas { get; set; }
 }
 
