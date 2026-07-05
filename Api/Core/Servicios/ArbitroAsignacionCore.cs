@@ -123,6 +123,7 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
         var arbitrosElegibles = await _context.Arbitros
             .AsNoTracking()
             .Include(a => a.ArbitroTorneoAgrupadores)
+            .Include(a => a.ArbitroEquiposProhibidos)
             .Where(a => a.ArbitroTorneoAgrupadores.Any(x => x.TorneoAgrupadorId == agrupadorId))
             .OrderBy(a => a.Apellido).ThenBy(a => a.Nombre)
             .ToListAsync();
@@ -176,6 +177,8 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
                                     ZonaNombre = zona.Nombre,
                                     Local = jornada.LocalEquipo.Nombre,
                                     Visitante = jornada.VisitanteEquipo.Nombre,
+                                    LocalEquipoId = jornada.LocalEquipoId,
+                                    VisitanteEquipoId = jornada.VisitanteEquipoId,
                                     NombreClubLocal = jornada.LocalEquipo.Club.Nombre,
                                     DireccionLocal = jornada.LocalEquipo.Club.Direccion,
                                     LocalidadLocal = jornada.LocalEquipo.Club.Localidad,
@@ -282,7 +285,8 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
                 Nombre = a.Nombre,
                 Apellido = a.Apellido,
                 TelefonoCelular = a.TelefonoCelular,
-                JornadasAsignadasEnProximasFechas = jornadasDelArbitro
+                JornadasAsignadasEnProximasFechas = jornadasDelArbitro,
+                EquiposProhibidosIds = a.ArbitroEquiposProhibidos.Select(x => x.EquipoId).ToList()
             };
         }).ToList();
 
@@ -385,6 +389,7 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
         var arbitrosElegibles = await _context.Arbitros
             .AsNoTracking()
             .Include(a => a.ArbitroTorneoAgrupadores)
+            .Include(a => a.ArbitroEquiposProhibidos)
             .Where(a => a.ArbitroTorneoAgrupadores.Any(x => x.TorneoAgrupadorId == agrupadorId))
             .OrderBy(a => a.Apellido).ThenBy(a => a.Nombre)
             .ToListAsync();
@@ -445,6 +450,8 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
                                 ZonaNombre = zona.Nombre,
                                 Local = jornada.LocalEquipo.Nombre,
                                 Visitante = jornada.VisitanteEquipo.Nombre,
+                                LocalEquipoId = jornada.LocalEquipoId,
+                                VisitanteEquipoId = jornada.VisitanteEquipoId,
                                 NombreClubLocal = jornada.LocalEquipo.Club.Nombre,
                                 DireccionLocal = jornada.LocalEquipo.Club.Direccion,
                                 LocalidadLocal = jornada.LocalEquipo.Club.Localidad,

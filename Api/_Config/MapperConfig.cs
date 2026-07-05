@@ -8,6 +8,7 @@ using Api.Core.Otros;
 using AutoMapper;
 using System.Linq;
 using Api.Core.DTOs.AppCarnetDigital;
+using Api.Core.Servicios;
 using ClubDTOAdmin = Api.Core.DTOs.ClubDTO;
 
 namespace Api._Config;
@@ -187,11 +188,16 @@ public class MapperConfig : Profile
         CreateMap<DniExpulsadoDeLaLiga, DniExpulsadoDeLaLigaDTO>().ReverseMap();
         CreateMap<ArbitroTorneoAgrupador, ArbitroTorneoAgrupadorDTO>()
             .ForMember(dest => dest.TorneoAgrupadorNombre, opt => opt.MapFrom(src => src.TorneoAgrupador.Nombre));
+        CreateMap<ArbitroEquipoProhibido, ArbitroEquipoProhibidoDTO>()
+            .ConvertUsing(src => ArbitroEquipoProhibidoMapper.Map(src));
         CreateMap<Arbitro, ArbitroDTO>()
             .ForMember(dest => dest.TorneoAgrupadorIds, opt => opt.MapFrom(src => src.ArbitroTorneoAgrupadores.Select(x => x.TorneoAgrupadorId).ToList()))
             .ForMember(dest => dest.TorneoAgrupadores, opt => opt.MapFrom(src => src.ArbitroTorneoAgrupadores))
+            .ForMember(dest => dest.EquipoProhibidoIds, opt => opt.MapFrom(src => src.ArbitroEquiposProhibidos.Select(x => x.EquipoId).ToList()))
+            .ForMember(dest => dest.EquiposProhibidos, opt => opt.MapFrom(src => src.ArbitroEquiposProhibidos))
             .ReverseMap()
-            .ForMember(dest => dest.ArbitroTorneoAgrupadores, opt => opt.Ignore());
+            .ForMember(dest => dest.ArbitroTorneoAgrupadores, opt => opt.Ignore())
+            .ForMember(dest => dest.ArbitroEquiposProhibidos, opt => opt.Ignore());
         CreateMap<SponsorWebPublica, SponsorWebPublicaDTO>()
             .ForMember(dest => dest.Imagen, opt => opt.Ignore())
             .ReverseMap()

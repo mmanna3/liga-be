@@ -17,4 +17,5 @@ public class Arbitro : Entidad
     public string? TelefonoCelular { get; set; }
 
     public virtual ICollection<ArbitroTorneoAgrupador> ArbitroTorneoAgrupadores { get; set; } = new List<ArbitroTorneoAgrupador>();
+    public virtual ICollection<ArbitroEquipoProhibido> ArbitroEquiposProhibidos { get; set; } = new List<ArbitroEquipoProhibido>();
 }

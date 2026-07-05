@@ -18,4 +18,6 @@ public class ArbitroDTO : DTO
 
     public List<int> TorneoAgrupadorIds { get; set; } = new();
     public List<ArbitroTorneoAgrupadorDTO> TorneoAgrupadores { get; set; } = new();
+    public List<int> EquipoProhibidoIds { get; set; } = new();
+    public List<ArbitroEquipoProhibidoDTO> EquiposProhibidos { get; set; } = new();
 }

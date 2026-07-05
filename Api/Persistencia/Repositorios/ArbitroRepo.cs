@@ -16,6 +16,8 @@ public class ArbitroRepo : RepositorioABM<Arbitro>, IArbitroRepo
         return Context.Set<Arbitro>()
             .Include(x => x.ArbitroTorneoAgrupadores)
                 .ThenInclude(x => x.TorneoAgrupador)
+            .Include("ArbitroEquiposProhibidos.Equipo.Club")
+            .Include("ArbitroEquiposProhibidos.Equipo.Zonas.Zona.Fase.Torneo")
             .AsQueryable();
     }
 
@@ -25,5 +27,13 @@ public class ArbitroRepo : RepositorioABM<Arbitro>, IArbitroRepo
             .Where(a => a.ArbitroId == arbitroId)
             .ToListAsync();
         Context.ArbitroTorneoAgrupador.RemoveRange(agrupadores);
+    }
+
+    public async Task EliminarEquiposProhibidosDelArbitro(int arbitroId)
+    {
+        var equipos = await Context.ArbitroEquipoProhibido
+            .Where(a => a.ArbitroId == arbitroId)
+            .ToListAsync();
+        Context.ArbitroEquipoProhibido.RemoveRange(equipos);
     }
 }

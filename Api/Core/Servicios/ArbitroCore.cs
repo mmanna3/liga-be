@@ -1,5 +1,6 @@
 using Api.Core.DTOs;
 using Api.Core.Entidades;
+using Api.Core.Logica;
 using Api.Core.Otros;
 using Api.Core.Repositorios;
 using Api.Core.Servicios.Interfaces;
@@ -20,16 +21,25 @@ public class ArbitroCore : ABMCore<IArbitroRepo, Arbitro, ArbitroDTO>, IArbitroC
 
     protected override async Task<Arbitro> AntesDeCrear(ArbitroDTO dto, Arbitro entidad)
     {
-        var ids = await ValidarYObtenerTorneoAgrupadorIds(dto.TorneoAgrupadorIds);
-        entidad.ArbitroTorneoAgrupadores = ConstruirAgrupadores(ids);
+        var agrupadorIds = await ValidarYObtenerTorneoAgrupadorIds(dto.TorneoAgrupadorIds);
+        entidad.ArbitroTorneoAgrupadores = ConstruirAgrupadores(agrupadorIds);
+
+        var equipoIds = await ValidarYObtenerEquipoProhibidoIds(dto.EquipoProhibidoIds);
+        entidad.ArbitroEquiposProhibidos = ConstruirEquiposProhibidos(equipoIds);
+
         return entidad;
     }
 
     protected override async Task<Arbitro> AntesDeModificar(int id, ArbitroDTO dto, Arbitro entidadAnterior, Arbitro entidadNueva)
     {
-        var ids = await ValidarYObtenerTorneoAgrupadorIds(dto.TorneoAgrupadorIds);
+        var agrupadorIds = await ValidarYObtenerTorneoAgrupadorIds(dto.TorneoAgrupadorIds);
         await Repo.EliminarAgrupadoresDelArbitro(id);
-        entidadNueva.ArbitroTorneoAgrupadores = ConstruirAgrupadores(ids);
+        entidadNueva.ArbitroTorneoAgrupadores = ConstruirAgrupadores(agrupadorIds);
+
+        var equipoIds = await ValidarYObtenerEquipoProhibidoIds(dto.EquipoProhibidoIds);
+        await Repo.EliminarEquiposProhibidosDelArbitro(id);
+        entidadNueva.ArbitroEquiposProhibidos = ConstruirEquiposProhibidos(equipoIds);
+
         entidadNueva.Id = id;
         return entidadNueva;
     }
@@ -51,12 +61,38 @@ public class ArbitroCore : ABMCore<IArbitroRepo, Arbitro, ArbitroDTO>, IArbitroC
         return ids;
     }
 
+    private async Task<List<int>> ValidarYObtenerEquipoProhibidoIds(List<int>? equipoProhibidoIds)
+    {
+        var ids = (equipoProhibidoIds ?? []).Distinct().ToList();
+        if (ids.Count == 0)
+            return ids;
+
+        var existentes = await _context.Equipos
+            .Where(e => ids.Contains(e.Id))
+            .Select(e => e.Id)
+            .ToListAsync();
+        var inexistentes = ids.Except(existentes).ToList();
+        if (inexistentes.Count > 0)
+            throw new ExcepcionControlada("Uno o más equipos prohibidos no existen en el sistema.");
+
+        return ids;
+    }
+
     private static List<ArbitroTorneoAgrupador> ConstruirAgrupadores(IEnumerable<int> torneoAgrupadorIds)
     {
         return torneoAgrupadorIds.Select(torneoAgrupadorId => new ArbitroTorneoAgrupador
         {
             Id = 0,
             TorneoAgrupadorId = torneoAgrupadorId
+        }).ToList();
+    }
+
+    private static List<ArbitroEquipoProhibido> ConstruirEquiposProhibidos(IEnumerable<int> equipoIds)
+    {
+        return equipoIds.Select(equipoId => new ArbitroEquipoProhibido
+        {
+            Id = 0,
+            EquipoId = equipoId
         }).ToList();
     }
 }

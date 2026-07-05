@@ -515,6 +515,17 @@ public class AppDbContext : DbContext
             .HasForeignKey(a => a.TorneoAgrupadorId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.Entity<ArbitroEquipoProhibido>()
+            .HasOne(a => a.Arbitro)
+            .WithMany(ar => ar.ArbitroEquiposProhibidos)
+            .HasForeignKey(a => a.ArbitroId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<ArbitroEquipoProhibido>()
+            .HasOne(a => a.Equipo)
+            .WithMany()
+            .HasForeignKey(a => a.EquipoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Entity<ArbitroJornada>()
             .HasOne(a => a.Arbitro)
             .WithMany()
@@ -561,6 +572,7 @@ public class AppDbContext : DbContext
     public DbSet<Equipo> Equipos { get; set; } = null!;
     public DbSet<Arbitro> Arbitros { get; set; } = null!;
     public DbSet<ArbitroTorneoAgrupador> ArbitroTorneoAgrupador { get; set; } = null!;
+    public DbSet<ArbitroEquipoProhibido> ArbitroEquipoProhibido { get; set; } = null!;
     public DbSet<ArbitroJornada> ArbitroJornada { get; set; } = null!;
     public DbSet<Delegado> Delegados { get; set; } = null!;
     public DbSet<DelegadoClub> DelegadoClub { get; set; } = null!;

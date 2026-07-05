@@ -5,6 +5,7 @@ using Api.Core.Entidades;
 using Api.Core.Enums;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
+using Api.TestsUtilidades;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
@@ -430,5 +431,140 @@ public class ArbitroIT : TestBase
             Assert.Null(context.Arbitros.Find(arbitroId));
             Assert.Empty(context.ArbitroTorneoAgrupador.Where(a => a.ArbitroId == arbitroId).ToList());
         }
+    }
+
+    [Fact]
+    public async Task CrearArbitro_ConEquiposProhibidos_DevuelveIdsYNombres()
+    {
+        var client = await GetAuthenticatedClient();
+        int equipoId1;
+        int equipoId2;
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var util = new Utilidades(context);
+            var club = util.DadoQueExisteElClub();
+            context.SaveChanges();
+            var eq1 = util.DadoQueExisteElEquipo(club)!;
+            var eq2 = new Equipo { Id = 0, Nombre = "Prohibido FC", ClubId = club.Id, Jugadores = [] };
+            context.Equipos.Add(eq2);
+            context.SaveChanges();
+            equipoId1 = eq1.Id;
+            equipoId2 = eq2.Id;
+        }
+
+        var dto = new ArbitroDTO
+        {
+            DNI = "40678901",
+            Nombre = "Con",
+            Apellido = "Prohibidos",
+            EquipoProhibidoIds = [equipoId1, equipoId2]
+        };
+
+        var crearResponse = await client.PostAsJsonAsync("/api/arbitro", dto);
+        crearResponse.EnsureSuccessStatusCode();
+        var creado = JsonConvert.DeserializeObject<ArbitroDTO>(await crearResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(creado);
+
+        var obtenido = await client.GetFromJsonAsync<ArbitroDTO>($"/api/arbitro/{creado.Id}");
+        Assert.NotNull(obtenido);
+        Assert.Equal(2, obtenido.EquipoProhibidoIds.Count);
+        Assert.Contains(equipoId1, obtenido.EquipoProhibidoIds);
+        Assert.Contains(equipoId2, obtenido.EquipoProhibidoIds);
+        Assert.Equal(2, obtenido.EquiposProhibidos.Count);
+        Assert.Contains(obtenido.EquiposProhibidos, e => e.EquipoId == equipoId1 && e.Nombre == "un equipo");
+        Assert.Contains(obtenido.EquiposProhibidos, e => e.EquipoId == equipoId2 && e.Nombre == "Prohibido FC");
+    }
+
+    [Fact]
+    public async Task ModificarArbitro_CambiaEquiposProhibidos()
+    {
+        var client = await GetAuthenticatedClient();
+        int equipoId1;
+        int equipoId2;
+        int arbitroId;
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var util = new Utilidades(context);
+            var club = util.DadoQueExisteElClub();
+            context.SaveChanges();
+            var eq1 = util.DadoQueExisteElEquipo(club)!;
+            var eq2 = new Equipo { Id = 0, Nombre = "Otro FC", ClubId = club.Id, Jugadores = [] };
+            context.Equipos.Add(eq2);
+            context.SaveChanges();
+            equipoId1 = eq1.Id;
+            equipoId2 = eq2.Id;
+
+            var arbitro = new Arbitro
+            {
+                Id = 0,
+                DNI = "40789012",
+                Nombre = "Modif",
+                Apellido = "Prohibidos",
+                ArbitroEquiposProhibidos =
+                [
+                    new ArbitroEquipoProhibido { Id = 0, EquipoId = equipoId1 }
+                ]
+            };
+            context.Arbitros.Add(arbitro);
+            context.SaveChanges();
+            arbitroId = arbitro.Id;
+        }
+
+        var dto = new ArbitroDTO
+        {
+            Id = arbitroId,
+            DNI = "40789012",
+            Nombre = "Modif",
+            Apellido = "Prohibidos",
+            EquipoProhibidoIds = [equipoId2]
+        };
+
+        var response = await client.PutAsJsonAsync($"/api/arbitro/{arbitroId}", dto);
+        response.EnsureSuccessStatusCode();
+
+        var obtenido = await client.GetFromJsonAsync<ArbitroDTO>($"/api/arbitro/{arbitroId}");
+        Assert.NotNull(obtenido);
+        Assert.Single(obtenido.EquipoProhibidoIds);
+        Assert.Equal(equipoId2, obtenido.EquipoProhibidoIds[0]);
+        Assert.Single(obtenido.EquiposProhibidos);
+        Assert.Equal("Otro FC", obtenido.EquiposProhibidos[0].Nombre);
+    }
+
+    [Fact]
+    public async Task ModificarArbitro_EquipoProhibidoInexistente_400()
+    {
+        var client = await GetAuthenticatedClient();
+        int arbitroId;
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var arbitro = new Arbitro
+            {
+                Id = 0,
+                DNI = "40890123",
+                Nombre = "Error",
+                Apellido = "Equipo"
+            };
+            context.Arbitros.Add(arbitro);
+            context.SaveChanges();
+            arbitroId = arbitro.Id;
+        }
+
+        var dto = new ArbitroDTO
+        {
+            Id = arbitroId,
+            DNI = "40890123",
+            Nombre = "Error",
+            Apellido = "Equipo",
+            EquipoProhibidoIds = [99999]
+        };
+
+        var response = await client.PutAsJsonAsync($"/api/arbitro/{arbitroId}", dto);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

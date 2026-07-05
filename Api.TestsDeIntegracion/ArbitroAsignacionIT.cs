@@ -24,7 +24,9 @@ public class ArbitroAsignacionIT : TestBase
         int JornadaPasadaId,
         int Arbitro1Id,
         int Arbitro2Id,
-        int ArbitroSinAgrupadorId);
+        int ArbitroSinAgrupadorId,
+        int LocalEquipoId,
+        int VisitanteEquipoId);
 
     private async Task<EscenarioAsignacion> CrearEscenario()
     {
@@ -161,7 +163,9 @@ public class ArbitroAsignacionIT : TestBase
             jornadaPasada.Id,
             arbitro1.Id,
             arbitro2.Id,
-            arbitroSinAgrupador.Id);
+            arbitroSinAgrupador.Id,
+            eq1.Id,
+            eq2.Id);
     }
 
     [Fact]
@@ -524,5 +528,42 @@ public class ArbitroAsignacionIT : TestBase
         var jornadaHistorica = Assert.Single(arbitroHistorico.JornadasHistoricas);
         Assert.NotNull(jornadaHistorica.Whatsapp);
         Assert.Equal("18:00", jornadaHistorica.Whatsapp!.HorarioInicio);
+    }
+
+    [Fact]
+    public async Task ObtenerAsignacionPorAgrupador_IncluyeEquiposProhibidosIdsYEquipoIdsEnJornada()
+    {
+        var escenario = await CrearEscenario();
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            context.ArbitroEquipoProhibido.Add(new ArbitroEquipoProhibido
+            {
+                Id = 0,
+                ArbitroId = escenario.Arbitro1Id,
+                EquipoId = escenario.LocalEquipoId
+            });
+            context.SaveChanges();
+        }
+
+        var client = await GetAuthenticatedClient();
+        var response = await client.GetAsync(
+            $"/api/arbitro/asignacion-por-agrupador?agrupadorId={escenario.AgrupadorId}&anio={escenario.Anio}");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<AsignacionArbitrosPorAgrupadorDTO>(
+            await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+
+        var jornada = content.Torneos!.Single().Fases!.Single().Zonas!.Single()
+            .ProximaFecha!.Jornadas!.Single();
+        Assert.Equal(escenario.LocalEquipoId, jornada.LocalEquipoId);
+        Assert.Equal(escenario.VisitanteEquipoId, jornada.VisitanteEquipoId);
+
+        var arbitro1 = content.ArbitrosElegibles.Single(a => a.Id == escenario.Arbitro1Id);
+        Assert.Contains(escenario.LocalEquipoId, arbitro1.EquiposProhibidosIds);
+        var arbitro2 = content.ArbitrosElegibles.Single(a => a.Id == escenario.Arbitro2Id);
+        Assert.Empty(arbitro2.EquiposProhibidosIds);
     }
 }
