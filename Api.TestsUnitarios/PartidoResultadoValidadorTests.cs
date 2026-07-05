@@ -26,10 +26,16 @@ public class PartidoResultadoValidadorTests
     }
 
     [Fact]
-    public void ValidarPenalesSegunZonaYResultado_EliminacionDirecta_EmpateNumerico_PenalCero_Lanza()
+    public void ValidarPenalesSegunZonaYResultado_EliminacionDirecta_EmpateNumerico_PenalCero_NoLanza()
+    {
+        PartidoResultadoValidador.ValidarPenalesSegunZonaYResultado(true, "1", "1", "0", "1");
+    }
+
+    [Fact]
+    public void ValidarPenalesSegunZonaYResultado_EliminacionDirecta_EmpateNumerico_AmbosPenalesCero_Lanza()
     {
         Assert.Throws<ExcepcionControlada>(() =>
-            PartidoResultadoValidador.ValidarPenalesSegunZonaYResultado(true, "1", "1", "0", "1"));
+            PartidoResultadoValidador.ValidarPenalesSegunZonaYResultado(true, "1", "1", "0", "0"));
     }
 
     [Fact]

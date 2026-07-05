@@ -53,7 +53,7 @@ public static class PartidoResultadoValidador
 
     /// <summary>
     /// En zona de eliminación directa, si el resultado es empate numérico, los penales son obligatorios,
-    /// enteros distintos y mayores que cero. En el resto de los casos aplica <see cref="ValidarPenalesOpcional"/>.
+    /// enteros no negativos y distintos. En el resto de los casos aplica <see cref="ValidarPenalesOpcional"/>.
     /// </summary>
     public static void ValidarPenalesSegunZonaYResultado(
         bool zonaEsEliminacionDirecta,
@@ -101,10 +101,6 @@ public static class PartidoResultadoValidador
         if (!int.TryParse(pl, NumberStyles.Integer, CultureInfo.InvariantCulture, out var nL) ||
             !int.TryParse(pv, NumberStyles.Integer, CultureInfo.InvariantCulture, out var nV))
             throw new ExcepcionControlada("Los penales solo pueden contener números.");
-
-        if (nL <= 0 || nV <= 0)
-            throw new ExcepcionControlada(
-                "En eliminación directa, si el resultado es empate numérico, los penales deben ser mayores que cero.");
 
         if (nL == nV)
             throw new ExcepcionControlada(

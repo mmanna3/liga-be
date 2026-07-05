@@ -15,6 +15,19 @@ public class ArbitroElegibleAsignacionDTO
     public string? TelefonoCelular { get; set; }
     public required List<JornadaAsignadaResumenDTO> JornadasAsignadasEnProximasFechas { get; set; }
     public List<int> EquiposProhibidosIds { get; set; } = new();
+    public List<JornadaAsignadaRecienteDTO> JornadasEnUltimasFechas { get; set; } = new();
+}
+
+public class JornadaAsignadaRecienteDTO
+{
+    public required int ZonaId { get; set; }
+    public required int JornadaId { get; set; }
+    public int? FechaNumero { get; set; }
+    public string? InstanciaNombre { get; set; }
+    public required int LocalEquipoId { get; set; }
+    public required int VisitanteEquipoId { get; set; }
+    public required string Local { get; set; }
+    public required string Visitante { get; set; }
 }
 
 public class ArbitroConJornadasAsignacionDTO
@@ -83,6 +96,7 @@ public class JornadaAsignacionDTO
     public required string TorneoNombre { get; set; }
     public required string FaseNombre { get; set; }
     public required string ZonaNombre { get; set; }
+    public required int ZonaId { get; set; }
     public required string Local { get; set; }
     public required string Visitante { get; set; }
     public required int LocalEquipoId { get; set; }

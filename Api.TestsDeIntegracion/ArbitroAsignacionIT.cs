@@ -20,6 +20,7 @@ public class ArbitroAsignacionIT : TestBase
     private sealed record EscenarioAsignacion(
         int AgrupadorId,
         int Anio,
+        int ZonaId,
         int JornadaProximaId,
         int JornadaPasadaId,
         int Arbitro1Id,
@@ -159,6 +160,7 @@ public class ArbitroAsignacionIT : TestBase
         return new EscenarioAsignacion(
             1,
             anio,
+            zona.Id,
             jornadaProxima.Id,
             jornadaPasada.Id,
             arbitro1.Id,
@@ -565,5 +567,39 @@ public class ArbitroAsignacionIT : TestBase
         Assert.Contains(escenario.LocalEquipoId, arbitro1.EquiposProhibidosIds);
         var arbitro2 = content.ArbitrosElegibles.Single(a => a.Id == escenario.Arbitro2Id);
         Assert.Empty(arbitro2.EquiposProhibidosIds);
+    }
+
+    [Fact]
+    public async Task ObtenerAsignacionPorAgrupador_IncluyeJornadasEnUltimasFechasYZonaId()
+    {
+        var escenario = await CrearEscenario();
+        var client = await GetAuthenticatedClient();
+
+        await client.PutAsJsonAsync(
+            $"/api/arbitro/jornada/{escenario.JornadaPasadaId}/arbitros",
+            new AsignarArbitrosJornadaDTO { ArbitroIds = [escenario.Arbitro1Id] });
+
+        var response = await client.GetAsync(
+            $"/api/arbitro/asignacion-por-agrupador?agrupadorId={escenario.AgrupadorId}&anio={escenario.Anio}");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<AsignacionArbitrosPorAgrupadorDTO>(
+            await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+
+        var jornada = content.Torneos!.Single().Fases!.Single().Zonas!.Single()
+            .ProximaFecha!.Jornadas!.Single();
+        Assert.Equal(escenario.ZonaId, jornada.ZonaId);
+
+        var arbitro1 = content.ArbitrosElegibles.Single(a => a.Id == escenario.Arbitro1Id);
+        var reciente = Assert.Single(arbitro1.JornadasEnUltimasFechas);
+        Assert.Equal(escenario.ZonaId, reciente.ZonaId);
+        Assert.Equal(escenario.JornadaPasadaId, reciente.JornadaId);
+        Assert.Equal(1, reciente.FechaNumero);
+        Assert.Equal(escenario.LocalEquipoId, reciente.LocalEquipoId);
+        Assert.Equal(escenario.VisitanteEquipoId, reciente.VisitanteEquipoId);
+
+        var arbitro2 = content.ArbitrosElegibles.Single(a => a.Id == escenario.Arbitro2Id);
+        Assert.Empty(arbitro2.JornadasEnUltimasFechas);
     }
 }

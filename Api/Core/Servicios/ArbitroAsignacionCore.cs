@@ -120,6 +120,79 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
             .GroupBy(a => a.JornadaId)
             .ToDictionary(g => g.Key, g => g.OrderBy(a => a.Orden).ToList());
 
+        var fechasPasadas = await _context.Fechas
+            .AsNoTracking()
+            .Where(f => zonaIds.Contains(f.ZonaId) && f.Dia != null && f.Dia <= hoy)
+            .ToListAsync();
+
+        var ultimasDosFechasPorZona = fechasPasadas
+            .GroupBy(f => f.ZonaId)
+            .ToDictionary(
+                g => g.Key,
+                g => OrdenarFechasHistoricas(g.ToList()).Take(2).ToList());
+
+        var ultimasFechaIds = ultimasDosFechasPorZona.Values
+            .SelectMany(fechas => fechas)
+            .Select(f => f.Id)
+            .Distinct()
+            .ToList();
+
+        var metadataPorFechaId = new Dictionary<int, (int ZonaId, int? Numero, string? InstanciaNombre)>();
+        foreach (var (zonaId, fechasDeZona) in ultimasDosFechasPorZona)
+        {
+            foreach (var fecha in fechasDeZona)
+            {
+                var numero = (fecha as FechaTodosContraTodos)?.Numero;
+                string? instanciaNombre = null;
+                if (fecha is FechaEliminacionDirecta fed)
+                    instanciasPorId.TryGetValue(fed.InstanciaId, out instanciaNombre);
+                metadataPorFechaId[fecha.Id] = (zonaId, numero, instanciaNombre);
+            }
+        }
+
+        var jornadasRecientes = ultimasFechaIds.Count == 0
+            ? []
+            : await _context.Jornadas
+                .OfType<JornadaNormal>()
+                .AsNoTracking()
+                .Include(j => j.LocalEquipo)
+                .Include(j => j.VisitanteEquipo)
+                .Where(j => ultimasFechaIds.Contains(j.FechaId))
+                .ToListAsync();
+
+        var jornadaRecienteIds = jornadasRecientes.Select(j => j.Id).ToList();
+        var asignacionesRecientes = jornadaRecienteIds.Count == 0
+            ? []
+            : await _arbitroJornadaRepo.ListarPorJornadaIds(jornadaRecienteIds);
+
+        var recientesPorArbitroId = new Dictionary<int, List<JornadaAsignadaRecienteDTO>>();
+        foreach (var asignacionReciente in asignacionesRecientes)
+        {
+            var jornadaReciente = jornadasRecientes.First(j => j.Id == asignacionReciente.JornadaId);
+            if (!metadataPorFechaId.TryGetValue(jornadaReciente.FechaId, out var meta))
+                continue;
+
+            var dto = new JornadaAsignadaRecienteDTO
+            {
+                ZonaId = meta.ZonaId,
+                JornadaId = jornadaReciente.Id,
+                FechaNumero = meta.Numero,
+                InstanciaNombre = meta.InstanciaNombre,
+                LocalEquipoId = jornadaReciente.LocalEquipoId,
+                VisitanteEquipoId = jornadaReciente.VisitanteEquipoId,
+                Local = jornadaReciente.LocalEquipo.Nombre,
+                Visitante = jornadaReciente.VisitanteEquipo.Nombre
+            };
+
+            if (!recientesPorArbitroId.TryGetValue(asignacionReciente.ArbitroId, out var lista))
+            {
+                lista = [];
+                recientesPorArbitroId[asignacionReciente.ArbitroId] = lista;
+            }
+
+            lista.Add(dto);
+        }
+
         var arbitrosElegibles = await _context.Arbitros
             .AsNoTracking()
             .Include(a => a.ArbitroTorneoAgrupadores)
@@ -175,6 +248,7 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
                                     TorneoNombre = torneo.Nombre,
                                     FaseNombre = faseNombre,
                                     ZonaNombre = zona.Nombre,
+                                    ZonaId = zona.Id,
                                     Local = jornada.LocalEquipo.Nombre,
                                     Visitante = jornada.VisitanteEquipo.Nombre,
                                     LocalEquipoId = jornada.LocalEquipoId,
@@ -286,7 +360,10 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
                 Apellido = a.Apellido,
                 TelefonoCelular = a.TelefonoCelular,
                 JornadasAsignadasEnProximasFechas = jornadasDelArbitro,
-                EquiposProhibidosIds = a.ArbitroEquiposProhibidos.Select(x => x.EquipoId).ToList()
+                EquiposProhibidosIds = a.ArbitroEquiposProhibidos.Select(x => x.EquipoId).ToList(),
+                JornadasEnUltimasFechas = recientesPorArbitroId.TryGetValue(a.Id, out var recientes)
+                    ? recientes
+                    : []
             };
         }).ToList();
 
@@ -448,6 +525,7 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
                                 TorneoNombre = torneo.Nombre,
                                 FaseNombre = faseNombre,
                                 ZonaNombre = zona.Nombre,
+                                ZonaId = zona.Id,
                                 Local = jornada.LocalEquipo.Nombre,
                                 Visitante = jornada.VisitanteEquipo.Nombre,
                                 LocalEquipoId = jornada.LocalEquipoId,
