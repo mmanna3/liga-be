@@ -396,6 +396,7 @@ public class ArbitroAsignacionIT : TestBase
         var content = JsonConvert.DeserializeObject<AsignacionHistoricaArbitrosPorAgrupadorDTO>(
             await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
+        Assert.Equal(2, content.ArbitrosElegibles.Count);
 
         var jornada = content.Torneos!.Single().Fases!.Single().Zonas!.Single()
             .FechasHistoricas!.Single().Jornadas!.Single();
@@ -421,12 +422,22 @@ public class ArbitroAsignacionIT : TestBase
         var content = JsonConvert.DeserializeObject<AsignacionHistoricaArbitrosPorAgrupadorDTO>(
             await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
-        Assert.Empty(content.Torneos);
+        Assert.NotEmpty(content.Torneos);
         Assert.Empty(content.ArbitrosConJornadas);
+
+        var jornadasHistoricas = content.Torneos!
+            .SelectMany(t => t.Fases!)
+            .SelectMany(f => f.Zonas!)
+            .SelectMany(z => z.FechasHistoricas!)
+            .SelectMany(fh => fh.Jornadas!)
+            .Select(j => j.Id)
+            .ToList();
+        Assert.Contains(escenario.JornadaPasadaId, jornadasHistoricas);
+        Assert.DoesNotContain(escenario.JornadaProximaId, jornadasHistoricas);
     }
 
     [Fact]
-    public async Task ObtenerAsignacionHistorica_ExcluyeJornadasSinAsignacion()
+    public async Task ObtenerAsignacionHistorica_IncluyeJornadasSinAsignacion()
     {
         var escenario = await CrearEscenario();
         var client = await GetAuthenticatedClient();
@@ -438,7 +449,12 @@ public class ArbitroAsignacionIT : TestBase
         var content = JsonConvert.DeserializeObject<AsignacionHistoricaArbitrosPorAgrupadorDTO>(
             await response.Content.ReadAsStringAsync());
         Assert.NotNull(content);
-        Assert.Empty(content.Torneos);
+        Assert.Equal(2, content.ArbitrosElegibles.Count);
+
+        var jornada = content.Torneos!.Single().Fases!.Single().Zonas!.Single()
+            .FechasHistoricas!.Single().Jornadas!.Single();
+        Assert.Equal(escenario.JornadaPasadaId, jornada.Id);
+        Assert.Empty(jornada.ArbitrosAsignados);
     }
 
     [Fact]

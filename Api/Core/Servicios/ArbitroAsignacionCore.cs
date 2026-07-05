@@ -378,7 +378,6 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
 
         var jornadaIds = jornadasNormales.Select(j => j.Id).ToList();
         var asignaciones = await _arbitroJornadaRepo.ListarPorJornadaIds(jornadaIds);
-        var jornadaIdsConAsignacion = asignaciones.Select(a => a.JornadaId).Distinct().ToHashSet();
         var asignacionesPorJornadaId = asignaciones
             .GroupBy(a => a.JornadaId)
             .ToDictionary(g => g.Key, g => g.OrderBy(a => a.Orden).ToList());
@@ -427,14 +426,14 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
 
                         var jornadasDto = new List<JornadaAsignacionDTO>();
                         var jornadasDeFecha = jornadasNormales
-                            .Where(j => j.FechaId == fecha.Id && jornadaIdsConAsignacion.Contains(j.Id))
+                            .Where(j => j.FechaId == fecha.Id)
                             .ToList();
 
                         foreach (var jornada in jornadasDeFecha)
                         {
-                            var arbitrosAsignados = asignacionesPorJornadaId[jornada.Id]
-                                .Select(MapArbitroAsignado)
-                                .ToList();
+                            var arbitrosAsignados = asignacionesPorJornadaId.TryGetValue(jornada.Id, out var asigs)
+                                ? asigs.Select(MapArbitroAsignado).ToList()
+                                : [];
 
                             var jornadaDto = new JornadaAsignacionDTO
                             {
@@ -561,8 +560,20 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
             .Where(a => a.JornadasHistoricas.Count > 0)
             .ToList();
 
+        var arbitrosElegiblesDto = arbitrosElegibles
+            .Select(a => new ArbitroElegibleAsignacionDTO
+            {
+                Id = a.Id,
+                Nombre = a.Nombre,
+                Apellido = a.Apellido,
+                TelefonoCelular = a.TelefonoCelular,
+                JornadasAsignadasEnProximasFechas = []
+            })
+            .ToList();
+
         return new AsignacionHistoricaArbitrosPorAgrupadorDTO
         {
+            ArbitrosElegibles = arbitrosElegiblesDto,
             Torneos = torneosDto,
             ArbitrosConJornadas = arbitrosConJornadasDto
         };

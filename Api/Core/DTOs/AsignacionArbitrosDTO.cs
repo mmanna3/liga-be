@@ -130,6 +130,7 @@ public class AsignarArbitrosJornadaDTO
 
 public class AsignacionHistoricaArbitrosPorAgrupadorDTO
 {
+    public required List<ArbitroElegibleAsignacionDTO> ArbitrosElegibles { get; set; }
     public required List<TorneoAsignacionHistoricaDTO> Torneos { get; set; }
     public required List<ArbitroConJornadasHistoricasDTO> ArbitrosConJornadas { get; set; }
 }
