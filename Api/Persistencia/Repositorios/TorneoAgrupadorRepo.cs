@@ -35,7 +35,7 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
             .Include(a => a.Torneos.Where(t => t.EsVisibleEnApp))
             .ThenInclude(t => t.Fases.Where(f => f.EsVisibleEnApp))
             .Include(a => a.Torneos.Where(t => t.EsVisibleEnApp))
-            .ThenInclude(t => t.GruposDeFases)
+            .ThenInclude(t => t.GruposDeFases.Where(g => g.EsVisibleEnApp))
             .ToListAsync(cancellationToken);
 
         var faseIds = new HashSet<int>(

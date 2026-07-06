@@ -18,4 +18,15 @@ public class GrupoDeFasesController : ABMControllerAnidado<GrupoDeFasesDTO, IGru
     {
         dto.TorneoId = padreId;
     }
+
+    /// <summary>Cambia solo la visibilidad del grupo de fases en la app (request con una sola propiedad).</summary>
+    [HttpPut("{id}/visibilidad-en-app", Name = "gruposDeFasesCambiarVisibilidadEnApp")]
+    public async Task<IActionResult> CambiarVisibilidadEnApp(
+        int padreId,
+        int id,
+        [FromBody] CambiarVisibilidadEnAppDTO dto)
+    {
+        await Core.CambiarVisibilidadEnApp(padreId, id, dto.EsVisibleEnApp);
+        return NoContent();
+    }
 }

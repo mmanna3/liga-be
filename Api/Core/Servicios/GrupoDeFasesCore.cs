@@ -36,6 +36,7 @@ public class GrupoDeFasesCore : ABMCoreAnidado<IGrupoDeFasesRepo, GrupoDeFases, 
             throw new ExcepcionControlada("El número del grupo debe ser mayor o igual a 1.");
 
         entidad.TorneoId = padreId;
+        entidad.EsVisibleEnApp = true;
         return entidad;
     }
 
@@ -120,5 +121,12 @@ public class GrupoDeFasesCore : ABMCoreAnidado<IGrupoDeFasesRepo, GrupoDeFases, 
 
         if (grupoActualId != null && padreGrupoId == grupoActualId)
             throw new ExcepcionControlada("Un grupo no puede ser padre de sí mismo.");
+    }
+
+    public async Task CambiarVisibilidadEnApp(int torneoId, int grupoId, bool esVisibleEnApp)
+    {
+        var filas = await Repo.ActualizarEsVisibleEnApp(torneoId, grupoId, esVisibleEnApp);
+        if (filas == 0)
+            throw new ExcepcionControlada("No existe el grupo de fases a modificar o no pertenece al torneo indicado.");
     }
 }

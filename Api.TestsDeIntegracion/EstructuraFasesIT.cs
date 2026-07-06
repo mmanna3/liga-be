@@ -42,7 +42,7 @@ public class EstructuraFasesIT : TestBase
         ctx.Fases.AddRange(faseA, faseF);
         await ctx.SaveChangesAsync();
 
-        var grupoA = new GrupoDeFases { Id = 0, Nombre = "Grupo A", Numero = 2, TorneoId = torneo.Id };
+        var grupoA = new GrupoDeFases { Id = 0, Nombre = "Grupo A", Numero = 2, TorneoId = torneo.Id, EsVisibleEnApp = true };
         ctx.Set<GrupoDeFases>().Add(grupoA);
         await ctx.SaveChangesAsync();
 
@@ -51,7 +51,7 @@ public class EstructuraFasesIT : TestBase
         ctx.Fases.AddRange(faseB, faseC);
         await ctx.SaveChangesAsync();
 
-        var grupoB = new GrupoDeFases { Id = 0, Nombre = "Grupo B", Numero = 3, TorneoId = torneo.Id, GrupoDeFasesPadreId = grupoA.Id };
+        var grupoB = new GrupoDeFases { Id = 0, Nombre = "Grupo B", Numero = 3, TorneoId = torneo.Id, GrupoDeFasesPadreId = grupoA.Id, EsVisibleEnApp = true };
         ctx.Set<GrupoDeFases>().Add(grupoB);
         await ctx.SaveChangesAsync();
 
@@ -137,17 +137,17 @@ public class EstructuraFasesIT : TestBase
         await using (var scope = Factory.Services.CreateAsyncScope())
         {
             var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var grupo1 = new GrupoDeFases { Id = 0, Nombre = "G1", Numero = 1, TorneoId = torneoId };
+            var grupo1 = new GrupoDeFases { Id = 0, Nombre = "G1", Numero = 1, TorneoId = torneoId, EsVisibleEnApp = true };
             ctx.Set<GrupoDeFases>().Add(grupo1);
             await ctx.SaveChangesAsync();
             g1 = grupo1.Id;
 
-            var grupo2 = new GrupoDeFases { Id = 0, Nombre = "G2", Numero = 1, TorneoId = torneoId, GrupoDeFasesPadreId = g1 };
+            var grupo2 = new GrupoDeFases { Id = 0, Nombre = "G2", Numero = 1, TorneoId = torneoId, GrupoDeFasesPadreId = g1, EsVisibleEnApp = true };
             ctx.Set<GrupoDeFases>().Add(grupo2);
             await ctx.SaveChangesAsync();
             g2 = grupo2.Id;
 
-            var grupo3 = new GrupoDeFases { Id = 0, Nombre = "G3", Numero = 1, TorneoId = torneoId, GrupoDeFasesPadreId = g2 };
+            var grupo3 = new GrupoDeFases { Id = 0, Nombre = "G3", Numero = 1, TorneoId = torneoId, GrupoDeFasesPadreId = g2, EsVisibleEnApp = true };
             ctx.Set<GrupoDeFases>().Add(grupo3);
             await ctx.SaveChangesAsync();
             g3 = grupo3.Id;

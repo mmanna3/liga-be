@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using Api.Core.DTOs;
 using Api.Core.DTOs.AppCarnetDigital;
 using Api.Core.Entidades;
 using Api.Core.Enums;
@@ -541,7 +542,7 @@ public class AppCarnetDigitalIT : TestBase
             ctx.Fases.Add(faseA);
             await ctx.SaveChangesAsync();
 
-            var grupoA = new GrupoDeFases { Id = 0, Nombre = "Grupo A", Numero = 2, TorneoId = torneoId };
+            var grupoA = new GrupoDeFases { Id = 0, Nombre = "Grupo A", Numero = 2, TorneoId = torneoId, EsVisibleEnApp = true };
             ctx.Set<GrupoDeFases>().Add(grupoA);
             await ctx.SaveChangesAsync();
 
@@ -579,6 +580,91 @@ public class AppCarnetDigitalIT : TestBase
 
         Assert.Equal(["Fase A", "Fase B", "Fase C"], torneoDto.Fases.Select(f => f.Nombre).ToList());
         Assert.Single(torneoDto.Elementos, e => e.Tipo == "grupo" && e.NombreGrupo == "Grupo A");
+    }
+
+    [Fact]
+    public async Task InformacionInicialDeTorneos_GrupoOculto_ExcluyeSubarbol()
+    {
+        var anioActual = DateTime.Today.Year;
+        int torneoId, grupoId;
+        await using (var scope = Factory.Services.CreateAsyncScope())
+        {
+            var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var torneo = new Torneo
+            {
+                Id = 0,
+                Nombre = "Torneo grupo oculto",
+                Anio = anioActual,
+                EsVisibleEnApp = true,
+                SeVenLosGolesEnTablaDePosiciones = true,
+                TorneoAgrupadorId = 1
+            };
+            ctx.Torneos.Add(torneo);
+            await ctx.SaveChangesAsync();
+            torneoId = torneo.Id;
+
+            var faseA = new FaseTodosContraTodos
+            {
+                Id = 0,
+                Nombre = "Fase A",
+                TorneoId = torneoId,
+                Numero = 1,
+                EstadoFaseId = 100,
+                EsVisibleEnApp = true
+            };
+            ctx.Fases.Add(faseA);
+            await ctx.SaveChangesAsync();
+
+            var grupoA = new GrupoDeFases
+            {
+                Id = 0,
+                Nombre = "Grupo A",
+                Numero = 2,
+                TorneoId = torneoId,
+                EsVisibleEnApp = true
+            };
+            ctx.Set<GrupoDeFases>().Add(grupoA);
+            await ctx.SaveChangesAsync();
+            grupoId = grupoA.Id;
+
+            var faseB = new FaseTodosContraTodos
+            {
+                Id = 0,
+                Nombre = "Fase B",
+                TorneoId = torneoId,
+                Numero = 1,
+                GrupoDeFasesId = grupoA.Id,
+                EstadoFaseId = 100,
+                EsVisibleEnApp = true
+            };
+            var faseC = new FaseTodosContraTodos
+            {
+                Id = 0,
+                Nombre = "Fase C",
+                TorneoId = torneoId,
+                Numero = 2,
+                GrupoDeFasesId = grupoA.Id,
+                EstadoFaseId = 100,
+                EsVisibleEnApp = true
+            };
+            ctx.Fases.AddRange(faseB, faseC);
+            await ctx.SaveChangesAsync();
+        }
+
+        var client = await GetAuthenticatedClient();
+        var ocultar = await client.PutAsJsonAsync(
+            $"/api/Torneo/{torneoId}/grupos-de-fases/{grupoId}/visibilidad-en-app",
+            new CambiarVisibilidadEnAppDTO { EsVisibleEnApp = false });
+        ocultar.EnsureSuccessStatusCode();
+
+        var response = await client.GetAsync("/api/carnet-digital/info-inicial-de-torneos");
+        response.EnsureSuccessStatusCode();
+        var lista = await response.Content.ReadFromJsonAsync<List<InformacionInicialAgrupadorDTO>>();
+        Assert.NotNull(lista);
+
+        var torneoDto = lista.SelectMany(a => a.Torneos).First(t => t.Id == torneoId);
+        Assert.Equal(["Fase A"], torneoDto.Fases.Select(f => f.Nombre).ToList());
+        Assert.DoesNotContain(torneoDto.Elementos, e => e.Tipo == "grupo" && e.NombreGrupo == "Grupo A");
     }
 
     [Fact]

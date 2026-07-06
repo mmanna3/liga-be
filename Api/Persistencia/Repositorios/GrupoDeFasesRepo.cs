@@ -46,4 +46,11 @@ public class GrupoDeFasesRepo : RepositorioABMAnidado<GrupoDeFases, int>, IGrupo
             .ThenBy(x => x.Id)
             .ToListAsync();
     }
+
+    public async Task<int> ActualizarEsVisibleEnApp(int torneoId, int grupoId, bool esVisibleEnApp)
+    {
+        return await Set()
+            .Where(g => g.TorneoId == torneoId && g.Id == grupoId)
+            .ExecuteUpdateAsync(s => s.SetProperty(g => g.EsVisibleEnApp, esVisibleEnApp));
+    }
 }

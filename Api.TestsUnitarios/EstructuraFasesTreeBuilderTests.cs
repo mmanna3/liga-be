@@ -28,8 +28,8 @@ public class EstructuraFasesTreeBuilderTests
     [Fact]
     public void ConstruirElementosInformacionInicial_ConGrupoAnidado()
     {
-        var grupoA = new GrupoDeFases { Id = 10, Nombre = "Grupo A", Numero = 1, TorneoId = 1 };
-        var grupoB = new GrupoDeFases { Id = 11, Nombre = "Grupo B", Numero = 1, TorneoId = 1, GrupoDeFasesPadreId = 10 };
+        var grupoA = new GrupoDeFases { Id = 10, Nombre = "Grupo A", Numero = 1, TorneoId = 1, EsVisibleEnApp = true };
+        var grupoB = new GrupoDeFases { Id = 11, Nombre = "Grupo B", Numero = 1, TorneoId = 1, GrupoDeFasesPadreId = 10, EsVisibleEnApp = true };
         var faseD = new FaseTodosContraTodos { Id = 4, Nombre = "D", Numero = 1, TorneoId = 1, GrupoDeFasesId = 11, EstadoFaseId = 100, EsVisibleEnApp = true };
 
         var zonas = new Dictionary<int, List<InformacionInicialZonaDTO>>

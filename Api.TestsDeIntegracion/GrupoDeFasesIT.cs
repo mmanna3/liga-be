@@ -43,7 +43,8 @@ public class GrupoDeFasesIT : TestBase
         {
             Nombre = "Grupo A",
             Numero = 1,
-            GrupoDeFasesPadreId = null
+            GrupoDeFasesPadreId = null,
+            EsVisibleEnApp = true
         };
 
         var response = await client.PostAsJsonAsync($"/api/Torneo/{torneoId}/grupos-de-fases", dto);
@@ -54,6 +55,7 @@ public class GrupoDeFasesIT : TestBase
         Assert.True(creado.Id > 0);
         Assert.Equal("Grupo A", creado.Nombre);
         Assert.Equal(torneoId, creado.TorneoId);
+        Assert.True(creado.EsVisibleEnApp);
     }
 
     [Fact]
@@ -62,7 +64,7 @@ public class GrupoDeFasesIT : TestBase
         var torneoId = await CrearTorneo(Factory);
         var client = await GetAuthenticatedClient();
 
-        var padre = new GrupoDeFasesDTO { Nombre = "Grupo padre", Numero = 1 };
+        var padre = new GrupoDeFasesDTO { Nombre = "Grupo padre", Numero = 1, EsVisibleEnApp = true };
         var respPadre = await client.PostAsJsonAsync($"/api/Torneo/{torneoId}/grupos-de-fases", padre);
         respPadre.EnsureSuccessStatusCode();
         var grupoPadre = JsonConvert.DeserializeObject<GrupoDeFasesDTO>(await respPadre.Content.ReadAsStringAsync());
@@ -72,7 +74,8 @@ public class GrupoDeFasesIT : TestBase
         {
             Nombre = "Subgrupo",
             Numero = 1,
-            GrupoDeFasesPadreId = grupoPadre.Id
+            GrupoDeFasesPadreId = grupoPadre.Id,
+            EsVisibleEnApp = true
         };
         var response = await client.PostAsJsonAsync($"/api/Torneo/{torneoId}/grupos-de-fases", sub);
         response.EnsureSuccessStatusCode();
@@ -92,12 +95,12 @@ public class GrupoDeFasesIT : TestBase
         await using (var scope = Factory.Services.CreateAsyncScope())
         {
             var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var padre = new GrupoDeFases { Id = 0, Nombre = "P", Numero = 1, TorneoId = torneoId };
+            var padre = new GrupoDeFases { Id = 0, Nombre = "P", Numero = 1, TorneoId = torneoId, EsVisibleEnApp = true };
             ctx.Set<GrupoDeFases>().Add(padre);
             await ctx.SaveChangesAsync();
             padreId = padre.Id;
 
-            var sub = new GrupoDeFases { Id = 0, Nombre = "S", Numero = 1, TorneoId = torneoId, GrupoDeFasesPadreId = padreId };
+            var sub = new GrupoDeFases { Id = 0, Nombre = "S", Numero = 1, TorneoId = torneoId, GrupoDeFasesPadreId = padreId, EsVisibleEnApp = true };
             ctx.Set<GrupoDeFases>().Add(sub);
             await ctx.SaveChangesAsync();
             subId = sub.Id;
@@ -107,7 +110,8 @@ public class GrupoDeFasesIT : TestBase
         {
             Nombre = "Tercer nivel",
             Numero = 1,
-            GrupoDeFasesPadreId = subId
+            GrupoDeFasesPadreId = subId,
+            EsVisibleEnApp = true
         };
         var response = await client.PostAsJsonAsync($"/api/Torneo/{torneoId}/grupos-de-fases", dto);
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
@@ -121,7 +125,7 @@ public class GrupoDeFasesIT : TestBase
         await using (var scope = Factory.Services.CreateAsyncScope())
         {
             var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var grupo = new GrupoDeFases { Id = 0, Nombre = "G", Numero = 1, TorneoId = torneoId };
+            var grupo = new GrupoDeFases { Id = 0, Nombre = "G", Numero = 1, TorneoId = torneoId, EsVisibleEnApp = true };
             ctx.Set<GrupoDeFases>().Add(grupo);
             await ctx.SaveChangesAsync();
             grupoId = grupo.Id;
@@ -152,5 +156,81 @@ public class GrupoDeFasesIT : TestBase
             Assert.NotNull(fase);
             Assert.Null(fase.GrupoDeFasesId);
         }
+    }
+
+    [Fact]
+    public async Task CambiarVisibilidadEnApp_OcultaGrupo()
+    {
+        var torneoId = await CrearTorneo(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var dto = new GrupoDeFasesDTO
+        {
+            Nombre = "Grupo visible",
+            Numero = 1,
+            EsVisibleEnApp = true
+        };
+        var response = await client.PostAsJsonAsync($"/api/Torneo/{torneoId}/grupos-de-fases", dto);
+        response.EnsureSuccessStatusCode();
+        var creado = JsonConvert.DeserializeObject<GrupoDeFasesDTO>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(creado);
+
+        var putResponse = await client.PutAsJsonAsync(
+            $"/api/Torneo/{torneoId}/grupos-de-fases/{creado.Id}/visibilidad-en-app",
+            new CambiarVisibilidadEnAppDTO { EsVisibleEnApp = false });
+        putResponse.EnsureSuccessStatusCode();
+
+        var getResponse = await client.GetAsync($"/api/Torneo/{torneoId}/grupos-de-fases/{creado.Id}");
+        getResponse.EnsureSuccessStatusCode();
+        var obtenido = JsonConvert.DeserializeObject<GrupoDeFasesDTO>(await getResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(obtenido);
+        Assert.False(obtenido.EsVisibleEnApp);
+    }
+
+    [Fact]
+    public async Task CambiarVisibilidadEnApp_VuelveAMostrarGrupo()
+    {
+        var torneoId = await CrearTorneo(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var dto = new GrupoDeFasesDTO
+        {
+            Nombre = "Grupo toggle",
+            Numero = 1,
+            EsVisibleEnApp = true
+        };
+        var response = await client.PostAsJsonAsync($"/api/Torneo/{torneoId}/grupos-de-fases", dto);
+        response.EnsureSuccessStatusCode();
+        var creado = JsonConvert.DeserializeObject<GrupoDeFasesDTO>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(creado);
+
+        var ocultar = await client.PutAsJsonAsync(
+            $"/api/Torneo/{torneoId}/grupos-de-fases/{creado.Id}/visibilidad-en-app",
+            new CambiarVisibilidadEnAppDTO { EsVisibleEnApp = false });
+        ocultar.EnsureSuccessStatusCode();
+
+        var mostrar = await client.PutAsJsonAsync(
+            $"/api/Torneo/{torneoId}/grupos-de-fases/{creado.Id}/visibilidad-en-app",
+            new CambiarVisibilidadEnAppDTO { EsVisibleEnApp = true });
+        mostrar.EnsureSuccessStatusCode();
+
+        var getResponse = await client.GetAsync($"/api/Torneo/{torneoId}/grupos-de-fases/{creado.Id}");
+        getResponse.EnsureSuccessStatusCode();
+        var obtenido = JsonConvert.DeserializeObject<GrupoDeFasesDTO>(await getResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(obtenido);
+        Assert.True(obtenido.EsVisibleEnApp);
+    }
+
+    [Fact]
+    public async Task CambiarVisibilidadEnApp_GrupoInexistente_400()
+    {
+        var torneoId = await CrearTorneo(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var response = await client.PutAsJsonAsync(
+            $"/api/Torneo/{torneoId}/grupos-de-fases/999999/visibilidad-en-app",
+            new CambiarVisibilidadEnAppDTO { EsVisibleEnApp = false });
+
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
     }
 }
