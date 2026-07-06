@@ -20,15 +20,7 @@ public class FixtureAlgoritmoCore : ABMCore<IFixtureAlgoritmoRepo, FixtureAlgori
         ValidarEquiposUnaSolaVezPorFecha(dto);
         ValidarEncuentrosNoRepetidos(dto);
         var fixture = new FixtureAlgoritmo { Id = 0, CantidadDeEquipos = dto.CantidadDeEquipos, Nombre = dto.Nombre };
-        var fechas = (dto.Fechas ?? []).Select(p => new FixtureAlgoritmoFecha
-        {
-            Id = 0,
-            FixtureAlgoritmoId = 0,
-            Fecha = p.Fecha,
-            EquipoLocal = p.EquipoLocal,
-            EquipoVisitante = p.EquipoVisitante,
-            FixtureAlgoritmo = fixture
-        }).ToList();
+        var fechas = ConstruirFechasEntidad(dto.Fechas ?? [], fixtureAlgoritmoId: 0, fixture);
         fixture.Fechas = fechas;
 
         Repo.Crear(fixture);
@@ -49,17 +41,34 @@ public class FixtureAlgoritmoCore : ABMCore<IFixtureAlgoritmoRepo, FixtureAlgori
         ValidarEncuentrosNoRepetidos(dto);
         await Repo.EliminarFechasDelFixture(id);
 
-        var fechas = (dto.Fechas ?? []).Select(p => new FixtureAlgoritmoFecha
-        {
-            Id = 0,
-            FixtureAlgoritmoId = id,
-            Fecha = p.Fecha,
-            EquipoLocal = p.EquipoLocal,
-            EquipoVisitante = p.EquipoVisitante
-        }).ToList();
-        entidadNueva.Fechas = fechas;
+        entidadNueva.Fechas = ConstruirFechasEntidad(dto.Fechas ?? [], id, entidadNueva);
         entidadNueva.Id = id;
         return entidadNueva;
+    }
+
+    private static List<FixtureAlgoritmoFecha> ConstruirFechasEntidad(
+        IReadOnlyList<FixtureAlgoritmoFechaDTO> fechasDto,
+        int fixtureAlgoritmoId,
+        FixtureAlgoritmo fixture)
+    {
+        var ordenPorFecha = new Dictionary<int, int>();
+        return fechasDto.Select(p =>
+        {
+            var orden = p.Orden > 0
+                ? p.Orden
+                : ordenPorFecha.GetValueOrDefault(p.Fecha, 0) + 1;
+            ordenPorFecha[p.Fecha] = orden;
+            return new FixtureAlgoritmoFecha
+            {
+                Id = 0,
+                FixtureAlgoritmoId = fixtureAlgoritmoId,
+                Fecha = p.Fecha,
+                Orden = orden,
+                EquipoLocal = p.EquipoLocal,
+                EquipoVisitante = p.EquipoVisitante,
+                FixtureAlgoritmo = fixture
+            };
+        }).ToList();
     }
 
     /// <summary>

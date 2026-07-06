@@ -7,6 +7,51 @@ namespace Api.TestsDeIntegracion;
 
 public class FixtureAlgoritmoIT : TestBase
 {
+    [Fact]
+    public async Task Modificar_PreservaOrdenDePartidosDentroDeCadaFecha()
+    {
+        var client = await GetAuthenticatedClient();
+        var dtoCrear = CrearDtoValidoN4();
+        var responseCrear = await client.PostAsJsonAsync("/api/FixtureAlgoritmo", dtoCrear);
+        responseCrear.EnsureSuccessStatusCode();
+        var creado = await responseCrear.Content.ReadFromJsonAsync<FixtureAlgoritmoDTO>();
+        Assert.NotNull(creado);
+
+        var dtoModificar = new FixtureAlgoritmoDTO
+        {
+            Id = creado.Id,
+            FixtureAlgoritmoId = creado.Id,
+            CantidadDeEquipos = 4,
+            Nombre = creado.Nombre,
+            Fechas =
+            [
+                new FixtureAlgoritmoFechaDTO { Fecha = 1, Orden = 1, EquipoLocal = 3, EquipoVisitante = 4 },
+                new FixtureAlgoritmoFechaDTO { Fecha = 1, Orden = 2, EquipoLocal = 1, EquipoVisitante = 2 },
+                new FixtureAlgoritmoFechaDTO { Fecha = 2, Orden = 1, EquipoLocal = 2, EquipoVisitante = 3 },
+                new FixtureAlgoritmoFechaDTO { Fecha = 2, Orden = 2, EquipoLocal = 4, EquipoVisitante = 1 },
+                new FixtureAlgoritmoFechaDTO { Fecha = 3, Orden = 1, EquipoLocal = 3, EquipoVisitante = 1 },
+                new FixtureAlgoritmoFechaDTO { Fecha = 3, Orden = 2, EquipoLocal = 2, EquipoVisitante = 4 }
+            ]
+        };
+        var responsePut = await client.PutAsJsonAsync($"/api/FixtureAlgoritmo/{creado.Id}", dtoModificar);
+        responsePut.EnsureSuccessStatusCode();
+
+        var responseGet = await client.GetAsync($"/api/FixtureAlgoritmo/{creado.Id}");
+        responseGet.EnsureSuccessStatusCode();
+        var modificado = await responseGet.Content.ReadFromJsonAsync<FixtureAlgoritmoDTO>();
+        Assert.NotNull(modificado);
+
+        var partidosFecha1 = modificado.Fechas
+            .Where(f => f.Fecha == 1)
+            .OrderBy(f => f.Orden)
+            .ToList();
+        Assert.Equal(2, partidosFecha1.Count);
+        Assert.Equal(3, partidosFecha1[0].EquipoLocal);
+        Assert.Equal(4, partidosFecha1[0].EquipoVisitante);
+        Assert.Equal(1, partidosFecha1[1].EquipoLocal);
+        Assert.Equal(2, partidosFecha1[1].EquipoVisitante);
+    }
+
     private static FixtureAlgoritmoDTO CrearDtoValidoN4() => new()
     {
         FixtureAlgoritmoId = 0,

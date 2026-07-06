@@ -305,7 +305,12 @@ public class MapperConfig : Profile
 
         CreateMap<FixtureAlgoritmo, FixtureAlgoritmoDTO>()
             .ForMember(d => d.FixtureAlgoritmoId, opt => opt.MapFrom(s => s.Id))
-            .ForMember(d => d.Fechas, opt => opt.MapFrom(s => s.Fechas ?? new List<FixtureAlgoritmoFecha>()));
+            .ForMember(d => d.Fechas, opt => opt.MapFrom(s =>
+                (s.Fechas ?? new List<FixtureAlgoritmoFecha>())
+                    .OrderBy(f => f.Fecha)
+                    .ThenBy(f => f.Orden)
+                    .ThenBy(f => f.Id)
+                    .ToList()));
         CreateMap<FixtureAlgoritmoDTO, FixtureAlgoritmo>()
             .ForMember(d => d.Fechas, opt => opt.Ignore());
         CreateMap<FixtureAlgoritmoFecha, FixtureAlgoritmoFechaDTO>();

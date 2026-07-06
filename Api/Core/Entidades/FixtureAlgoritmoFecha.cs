@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Core.Entidades;
 
+[Index(nameof(FixtureAlgoritmoId), nameof(Fecha), nameof(Orden), IsUnique = true)]
 [Index(nameof(FixtureAlgoritmoId), nameof(Fecha), nameof(EquipoLocal), nameof(EquipoVisitante), IsUnique = true)]
 public class FixtureAlgoritmoFecha : Entidad
 {
@@ -10,6 +11,8 @@ public class FixtureAlgoritmoFecha : Entidad
     public required int FixtureAlgoritmoId { get; set; }
     public virtual FixtureAlgoritmo FixtureAlgoritmo { get; set; } = null!;
     public required int Fecha { get; set; }
+    /// <summary>Orden del partido dentro de la fecha (1-based).</summary>
+    public required int Orden { get; set; }
     public required int EquipoLocal { get; set; }
     public required int EquipoVisitante { get; set; }
 }

@@ -11,6 +11,7 @@ public class FixtureAlgoritmoDTO : DTO
 public class FixtureAlgoritmoFechaDTO : DTO
 {
     public required int Fecha { get; set; }
+    public int Orden { get; set; }
     public required int EquipoLocal { get; set; }
     public required int EquipoVisitante { get; set; }
 }
