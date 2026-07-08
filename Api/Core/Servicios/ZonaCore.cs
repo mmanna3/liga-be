@@ -202,6 +202,9 @@ public class ZonaCore : ABMCoreAnidado<IZonaRepo, Zona, ZonaDTO, int>, IZonaCore
 
     private async Task ValidarEquiposUnicosEnFaseTodosContraTodos(int faseId, IReadOnlyList<ZonaDTO> zonas)
     {
+        if (zonas.Any(z => z.CategoriaId is > 0))
+            return;
+
         var fase = await _torneoFaseRepo.ObtenerPorId(faseId);
         if (fase is not FaseTodosContraTodos)
             return;
@@ -220,6 +223,10 @@ public class ZonaCore : ABMCoreAnidado<IZonaRepo, Zona, ZonaDTO, int>, IZonaCore
     private async Task ValidarEquiposEnFaseTodosContraTodos(int faseId, int zonaId, IReadOnlyList<int> equipoIds)
     {
         if (equipoIds.Count == 0)
+            return;
+
+        var zona = await Repo.ObtenerPorIdYPadre(faseId, zonaId);
+        if (zona is ZonaEliminacionDirecta)
             return;
 
         var fase = await _torneoFaseRepo.ObtenerPorId(faseId);
