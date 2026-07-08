@@ -123,6 +123,21 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
         CancellationToken cancellationToken = default) =>
         Context.Set<EquipoZona>().AnyAsync(ez => ez.EquipoId == equipoId && ez.ZonaId == zonaId, cancellationToken);
 
+    public async Task<IReadOnlyList<int>> ObtenerEquipoIdsEnOtrasZonasDeLaFase(int faseId, int zonaIdExcluir,
+        IEnumerable<int> equipoIds, CancellationToken cancellationToken = default)
+    {
+        var ids = equipoIds.Distinct().ToList();
+        if (ids.Count == 0)
+            return [];
+
+        return await (
+            from ez in Context.Set<EquipoZona>()
+            join z in Context.Zonas on ez.ZonaId equals z.Id
+            where z.FaseId == faseId && ez.ZonaId != zonaIdExcluir && ids.Contains(ez.EquipoId)
+            select ez.EquipoId
+        ).Distinct().ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<int>> ListarTorneoIdsDelEquipoEnAnioAsync(int equipoId, int anio,
         CancellationToken cancellationToken = default)
     {

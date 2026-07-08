@@ -39,6 +39,11 @@ public class ZonaCore : ABMCoreAnidado<IZonaRepo, Zona, ZonaDTO, int>, IZonaCore
 
     public override async Task<int> Crear(int padreId, ZonaDTO dto)
     {
+        return await Crear(padreId, dto, validarEquiposUnicosEntreZonasDeFase: true);
+    }
+
+    private async Task<int> Crear(int padreId, ZonaDTO dto, bool validarEquiposUnicosEntreZonasDeFase)
+    {
         var fase = await _torneoFaseRepo.ObtenerPorId(padreId);
         if (fase == null)
             throw new ExcepcionControlada("La fase indicada no existe.");
@@ -72,20 +77,19 @@ public class ZonaCore : ABMCoreAnidado<IZonaRepo, Zona, ZonaDTO, int>, IZonaCore
         if (dto.Equipos != null)
         {
             var equipoIds = ParsearEquipoIds(dto.Equipos);
-            await AplicarEquiposEnZona(id, padreId, equipoIds);
+            await AplicarEquiposEnZona(id, padreId, equipoIds, validarEquiposUnicosEntreZonasDeFase);
             await BDVirtual.GuardarCambios();
         }
 
         return id;
     }
 
-    protected override Task AntesDeModificar(int padreId, int id, ZonaDTO dto, Zona entidadAnterior, Zona entidadNueva)
+    public override async Task<int> Modificar(int padreId, int id, ZonaDTO dto)
     {
-        entidadNueva.FaseId = padreId;
-        return Task.CompletedTask;
+        return await Modificar(padreId, id, dto, validarEquiposUnicosEntreZonasDeFase: true);
     }
 
-    public override async Task<int> Modificar(int padreId, int id, ZonaDTO dto)
+    private async Task<int> Modificar(int padreId, int id, ZonaDTO dto, bool validarEquiposUnicosEntreZonasDeFase)
     {
         var entidadAnterior = await Repo.ObtenerPorIdYPadre(padreId, id);
         if (entidadAnterior == null)
@@ -118,19 +122,28 @@ public class ZonaCore : ABMCoreAnidado<IZonaRepo, Zona, ZonaDTO, int>, IZonaCore
         if (dto.Equipos != null)
         {
             var equipoIds = ParsearEquipoIds(dto.Equipos);
-            await AplicarEquiposEnZona(id, padreId, equipoIds);
+            await AplicarEquiposEnZona(id, padreId, equipoIds, validarEquiposUnicosEntreZonasDeFase);
             await BDVirtual.GuardarCambios();
         }
 
         return id;
     }
 
+    protected override Task AntesDeModificar(int padreId, int id, ZonaDTO dto, Zona entidadAnterior, Zona entidadNueva)
+    {
+        entidadNueva.FaseId = padreId;
+        return Task.CompletedTask;
+    }
+
     public async Task<IEnumerable<ZonaDTO>> CrearMasivamente(int padreId, IEnumerable<ZonaDTO> dtos)
     {
+        var list = dtos.ToList();
+        await ValidarEquiposUnicosEnFaseTodosContraTodos(padreId, list);
+
         var creados = new List<ZonaDTO>();
-        foreach (var dto in dtos)
+        foreach (var dto in list)
         {
-            var id = await Crear(padreId, dto);
+            var id = await Crear(padreId, dto, validarEquiposUnicosEntreZonasDeFase: false);
             var creado = await ObtenerPorId(padreId, id);
             if (creado != null)
                 creados.Add(creado);
@@ -145,7 +158,7 @@ public class ZonaCore : ABMCoreAnidado<IZonaRepo, Zona, ZonaDTO, int>, IZonaCore
             return -1;
 
         await AntesDeEliminar(padreId, id, entidad);
-        await AplicarEquiposEnZona(id, padreId, []);
+        await AplicarEquiposEnZona(id, padreId, [], validarEquiposUnicosEntreZonasDeFase: false);
         await BDVirtual.GuardarCambios();
         Repo.Eliminar(entidad);
         await BDVirtual.GuardarCambios();
@@ -155,6 +168,8 @@ public class ZonaCore : ABMCoreAnidado<IZonaRepo, Zona, ZonaDTO, int>, IZonaCore
     public async Task ModificarMasivamente(int padreId, IEnumerable<ZonaDTO> dtos)
     {
         var list = dtos?.ToList() ?? [];
+        await ValidarEquiposUnicosEnFaseTodosContraTodos(padreId, list);
+
         var idsEnRequest = list.Where(d => d.Id > 0).Select(d => d.Id).ToHashSet();
 
         var idsExistentes = (await Repo.ListarIdsPorPadre(padreId)).ToList();
@@ -179,14 +194,49 @@ public class ZonaCore : ABMCoreAnidado<IZonaRepo, Zona, ZonaDTO, int>, IZonaCore
         foreach (var dto in list)
         {
             if (dto.Id <= 0)
-                await Crear(padreId, dto);
+                await Crear(padreId, dto, validarEquiposUnicosEntreZonasDeFase: false);
             else
-                await Modificar(padreId, dto.Id, dto);
+                await Modificar(padreId, dto.Id, dto, validarEquiposUnicosEntreZonasDeFase: false);
         }
     }
 
-    private async Task AplicarEquiposEnZona(int zonaId, int faseId, IReadOnlyList<int> equipoIds)
+    private async Task ValidarEquiposUnicosEnFaseTodosContraTodos(int faseId, IReadOnlyList<ZonaDTO> zonas)
     {
+        var fase = await _torneoFaseRepo.ObtenerPorId(faseId);
+        if (fase is not FaseTodosContraTodos)
+            return;
+
+        var equiposVistos = new HashSet<int>();
+        foreach (var zona in zonas)
+        {
+            foreach (var equipoId in ParsearEquipoIds(zona.Equipos ?? []))
+            {
+                if (!equiposVistos.Add(equipoId))
+                    throw new ExcepcionControlada("No puede haber equipos repetidos entre zonas de la misma fase.");
+            }
+        }
+    }
+
+    private async Task ValidarEquiposEnFaseTodosContraTodos(int faseId, int zonaId, IReadOnlyList<int> equipoIds)
+    {
+        if (equipoIds.Count == 0)
+            return;
+
+        var fase = await _torneoFaseRepo.ObtenerPorId(faseId);
+        if (fase is not FaseTodosContraTodos)
+            return;
+
+        var repetidos = await _equipoRepo.ObtenerEquipoIdsEnOtrasZonasDeLaFase(faseId, zonaId, equipoIds);
+        if (repetidos.Count > 0)
+            throw new ExcepcionControlada("No puede haber equipos repetidos entre zonas de la misma fase.");
+    }
+
+    private async Task AplicarEquiposEnZona(int zonaId, int faseId, IReadOnlyList<int> equipoIds,
+        bool validarEquiposUnicosEntreZonasDeFase)
+    {
+        if (validarEquiposUnicosEntreZonasDeFase)
+            await ValidarEquiposEnFaseTodosContraTodos(faseId, zonaId, equipoIds);
+
         await _equipoRepo.QuitarEquiposDeZona(zonaId);
         await BDVirtual.GuardarCambios();
         if (equipoIds.Count > 0)

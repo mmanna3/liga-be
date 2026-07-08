@@ -1253,4 +1253,74 @@ public class ZonaIT : TestBase
 
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    [Fact]
+    public async Task CrearZonasMasivamente_FaseTodosContraTodos_EquipoRepetidoEntreZonas_400()
+    {
+        Assert.NotNull(_club);
+        var faseId = await CrearFaseDePrueba(Factory);
+        var client = await GetAuthenticatedClient();
+
+        int equipoId;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            equipoId = context.Equipos.First(e => e.ClubId == _club.Id).Id;
+        }
+
+        var dtos = new List<ZonaDTO>
+        {
+            new() { Nombre = "Zona A", Orden = 1, Equipos = [new EquipoDeLaZonaDTO { Id = equipoId.ToString() }] },
+            new() { Nombre = "Zona B", Orden = 2, Equipos = [new EquipoDeLaZonaDTO { Id = equipoId.ToString() }] }
+        };
+
+        var response = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas/crear-zonas-masivamente", dtos);
+
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+        var mensaje = await response.Content.ReadAsStringAsync();
+        Assert.Contains("repetidos", mensaje, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task CrearZonasMasivamente_FaseEliminacionDirecta_EquipoRepetidoEntreZonas_200()
+    {
+        Assert.NotNull(_club);
+        var (faseId, cat1Id, cat2Id) = await CrearFaseEliminacionDirectaConCategorias(Factory);
+        var client = await GetAuthenticatedClient();
+
+        int equipoId;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            equipoId = context.Equipos.First(e => e.ClubId == _club!.Id).Id;
+        }
+
+        var dtos = new List<ZonaDTO>
+        {
+            new()
+            {
+                Nombre = "Zona Cat A",
+                Orden = 1,
+                CategoriaId = cat1Id,
+                Equipos = [new EquipoDeLaZonaDTO { Id = equipoId.ToString() }]
+            },
+            new()
+            {
+                Nombre = "Zona Cat B",
+                Orden = 2,
+                CategoriaId = cat2Id,
+                Equipos = [new EquipoDeLaZonaDTO { Id = equipoId.ToString() }]
+            }
+        };
+
+        var response = await client.PostAsJsonAsync($"/api/Fase/{faseId}/zonas/crear-zonas-masivamente", dtos);
+        response.EnsureSuccessStatusCode();
+
+        var creados = JsonConvert.DeserializeObject<List<ZonaDTO>>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(creados);
+        Assert.Equal(2, creados.Count);
+        Assert.All(creados, z => Assert.Single(z.Equipos!));
+        Assert.Equal(equipoId.ToString(), creados[0].Equipos![0].Id);
+        Assert.Equal(equipoId.ToString(), creados[1].Equipos![0].Id);
+    }
 }

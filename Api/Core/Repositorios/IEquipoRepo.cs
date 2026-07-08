@@ -16,6 +16,12 @@ public interface IEquipoRepo : IRepositorioABM<Equipo>
 
     Task<bool> EquipoPerteneceAZonaAsync(int equipoId, int zonaId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Equipos de la lista que ya están asignados a otra zona de la misma fase (excluyendo zonaIdExcluir).
+    /// </summary>
+    Task<IReadOnlyList<int>> ObtenerEquipoIdsEnOtrasZonasDeLaFase(int faseId, int zonaIdExcluir,
+        IEnumerable<int> equipoIds, CancellationToken cancellationToken = default);
+
     /// <summary>Ids de torneo distintos en los que el equipo está en alguna zona, filtrado por año del torneo.</summary>
     Task<IReadOnlyList<int>> ListarTorneoIdsDelEquipoEnAnioAsync(int equipoId, int anio,
         CancellationToken cancellationToken = default);
