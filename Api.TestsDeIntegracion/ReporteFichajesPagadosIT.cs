@@ -8,9 +8,9 @@ using Newtonsoft.Json;
 
 namespace Api.TestsDeIntegracion;
 
-public class ReporteJugadoresHabilitadosIT : TestBase
+public class ReporteFichajesPagadosIT : TestBase
 {
-    public ReporteJugadoresHabilitadosIT(CustomWebApplicationFactory<Program> factory) : base(factory)
+    public ReporteFichajesPagadosIT(CustomWebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
@@ -315,14 +315,14 @@ public class ReporteJugadoresHabilitadosIT : TestBase
         return (equipo.Id, je.Id);
     }
 
-    private async Task<List<ReporteJugadoresHabilitadosPorAgrupadorDeTorneoDTO>> ObtenerReporte(int anio)
+    private async Task<List<ReporteFichajesPagadosPorAgrupadorDeTorneoDTO>> ObtenerReporte(int anio)
     {
         var client = await GetAuthenticatedClient();
-        var response = await client.GetAsync($"/api/reporte/obtener-reporte-jugadores-habilitados-por-torneo?anio={anio}");
+        var response = await client.GetAsync($"/api/reporte/obtener-reporte-fichajes-pagados-por-torneo?anio={anio}");
         response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadAsStringAsync();
-        var reporte = JsonConvert.DeserializeObject<List<ReporteJugadoresHabilitadosPorAgrupadorDeTorneoDTO>>(json);
+        var reporte = JsonConvert.DeserializeObject<List<ReporteFichajesPagadosPorAgrupadorDeTorneoDTO>>(json);
         Assert.NotNull(reporte);
         return reporte;
     }

@@ -70,7 +70,7 @@ public class HistorialDePagosRepo : IHistorialDePagosRepo
         return resultado;
     }
 
-    public async Task<IEnumerable<ReporteJugadoresHabilitadosPorAgrupadorDeTorneoDTO>> ObtenerJugadoresHabilitadosPorAgrupadorDeTorneo(int anio)
+    public async Task<IEnumerable<ReporteFichajesPagadosPorAgrupadorDeTorneoDTO>> ObtenerFichajesPagadosPorAgrupadorDeTorneo(int anio)
     {
         var query =
             from h in _context.HistorialDePagos
@@ -105,7 +105,7 @@ public class HistorialDePagosRepo : IHistorialDePagosRepo
 
         var resultado = agrupadoPorAgrupadorTorneoYMes
             .GroupBy(x => new { x.AgrupadorId, x.NombreAgrupador })
-            .Select(agrupadorGrupo => new ReporteJugadoresHabilitadosPorAgrupadorDeTorneoDTO
+            .Select(agrupadorGrupo => new ReporteFichajesPagadosPorAgrupadorDeTorneoDTO
             {
                 NombreAgrupador = agrupadorGrupo.Key.NombreAgrupador,
                 Torneos = agrupadorGrupo
@@ -124,12 +124,12 @@ public class HistorialDePagosRepo : IHistorialDePagosRepo
         return resultado;
     }
 
-    private static ReporteJugadoresHabilitadosFilaDTO CrearFilaMeses(
+    private static ReporteFichajesPagadosFilaDTO CrearFilaMeses(
         int torneoId,
         string nombreTorneo,
         Dictionary<int, int> meses)
     {
-        return new ReporteJugadoresHabilitadosFilaDTO
+        return new ReporteFichajesPagadosFilaDTO
         {
             TorneoId = torneoId,
             NombreTorneo = nombreTorneo,

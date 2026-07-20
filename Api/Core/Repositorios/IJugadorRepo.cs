@@ -1,3 +1,4 @@
+using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Core.Enums;
 
@@ -16,4 +17,5 @@ public interface IJugadorRepo : IRepositorioABM<Jugador>
     Task<int?> ObtenerDelegadoIdPorDNI(string dni);
     Task<int> ActualizarTarjetas(int jugadorEquipoId, int tarjetasAmarillas, int tarjetasRojas);
     Task<List<JugadorEquipo>> ListarJugadorEquiposNoPendientesConRelaciones();
+    Task<IEnumerable<ReporteJugadoresActivosPorAgrupadorDeTorneoDTO>> ObtenerJugadoresActivosPorAgrupadorDeTorneo(int anio, bool mostrarEquipos);
 }

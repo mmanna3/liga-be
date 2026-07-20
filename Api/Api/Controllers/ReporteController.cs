@@ -29,10 +29,19 @@ namespace Api.Api.Controllers
             return Ok(reporte);
         }
 
-        [HttpGet("obtener-reporte-jugadores-habilitados-por-torneo")]
-        public async Task<ActionResult<IEnumerable<ReporteJugadoresHabilitadosPorAgrupadorDeTorneoDTO>>> ObtenerReporteJugadoresHabilitadosPorTorneo([FromQuery] int anio)
+        [HttpGet("obtener-reporte-fichajes-pagados-por-torneo")]
+        public async Task<ActionResult<IEnumerable<ReporteFichajesPagadosPorAgrupadorDeTorneoDTO>>> ObtenerReporteFichajesPagadosPorTorneo([FromQuery] int anio)
         {
-            var reporte = await _reporteCore.ObtenerReporteJugadoresHabilitadosPorTorneo(anio);
+            var reporte = await _reporteCore.ObtenerReporteFichajesPagadosPorTorneo(anio);
+            return Ok(reporte);
+        }
+
+        [HttpGet("obtener-reporte-jugadores-activos-por-torneo")]
+        public async Task<ActionResult<IEnumerable<ReporteJugadoresActivosPorAgrupadorDeTorneoDTO>>> ObtenerReporteJugadoresActivosPorTorneo(
+            [FromQuery] int anio,
+            [FromQuery] bool mostrarEquipos = false)
+        {
+            var reporte = await _reporteCore.ObtenerReporteJugadoresActivosPorTorneo(anio, mostrarEquipos);
             return Ok(reporte);
         }
     }

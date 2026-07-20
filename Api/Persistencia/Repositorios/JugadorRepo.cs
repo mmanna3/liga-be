@@ -1,3 +1,4 @@
+using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Core.Enums;
 using Api.Core.Repositorios;
@@ -169,5 +170,71 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
         jugadorEquipo.TarjetasRojas = tarjetasRojas;
         Context.Update(jugadorEquipo);
         return jugadorEquipoId;
+    }
+
+    public async Task<IEnumerable<ReporteJugadoresActivosPorAgrupadorDeTorneoDTO>> ObtenerJugadoresActivosPorAgrupadorDeTorneo(int anio, bool mostrarEquipos)
+    {
+        var query =
+            from je in Context.JugadorEquipo
+            join e in Context.Equipos on je.EquipoId equals e.Id
+            join ez in Context.EquipoZona on e.Id equals ez.EquipoId
+            join z in Context.Zonas on ez.ZonaId equals z.Id
+            join f in Context.Fases on z.FaseId equals f.Id
+            join t in Context.Torneos on f.TorneoId equals t.Id
+            join ta in Context.TorneoAgrupadores on t.TorneoAgrupadorId equals ta.Id
+            where je.EstadoJugadorId == (int)EstadoJugadorEnum.Activo && t.Anio == anio
+            select new { je, e, t, ta };
+
+        var agrupadoPorEquipo = await query
+            .GroupBy(x => new
+            {
+                AgrupadorId = x.ta.Id,
+                NombreAgrupador = x.ta.Nombre,
+                TorneoId = x.t.Id,
+                NombreTorneo = x.t.Nombre,
+                EquipoId = x.e.Id,
+                NombreEquipo = x.e.Nombre
+            })
+            .Select(g => new
+            {
+                g.Key.AgrupadorId,
+                g.Key.NombreAgrupador,
+                g.Key.TorneoId,
+                g.Key.NombreTorneo,
+                g.Key.EquipoId,
+                g.Key.NombreEquipo,
+                Cantidad = g.Select(x => x.je.Id).Distinct().Count()
+            })
+            .ToListAsync();
+
+        return agrupadoPorEquipo
+            .GroupBy(x => new { x.AgrupadorId, x.NombreAgrupador })
+            .Select(agrupadorGrupo => new ReporteJugadoresActivosPorAgrupadorDeTorneoDTO
+            {
+                NombreAgrupador = agrupadorGrupo.Key.NombreAgrupador,
+                Torneos = agrupadorGrupo
+                    .GroupBy(x => new { x.TorneoId, x.NombreTorneo })
+                    .Select(torneoGrupo => new ReporteJugadoresActivosTorneoDTO
+                    {
+                        TorneoId = torneoGrupo.Key.TorneoId,
+                        NombreTorneo = torneoGrupo.Key.NombreTorneo,
+                        CantidadJugadoresActivos = torneoGrupo.Sum(x => x.Cantidad),
+                        Equipos = mostrarEquipos
+                            ? torneoGrupo
+                                .Select(x => new ReporteJugadoresActivosEquipoDTO
+                                {
+                                    EquipoId = x.EquipoId,
+                                    NombreEquipo = x.NombreEquipo,
+                                    CantidadJugadoresActivos = x.Cantidad
+                                })
+                                .OrderBy(e => e.NombreEquipo)
+                                .ToList()
+                            : []
+                    })
+                    .OrderBy(t => t.NombreTorneo)
+                    .ToList()
+            })
+            .OrderBy(x => x.NombreAgrupador)
+            .ToList();
     }
 }

@@ -1,6 +1,6 @@
 namespace Api.Core.DTOs;
 
-public class ReporteJugadoresHabilitadosFilaDTO
+public class ReporteFichajesPagadosFilaDTO
 {
     public int TorneoId { get; set; }
     public string NombreTorneo { get; set; } = string.Empty;
@@ -19,8 +19,8 @@ public class ReporteJugadoresHabilitadosFilaDTO
     public int TotalEnElAnio { get; set; }
 }
 
-public class ReporteJugadoresHabilitadosPorAgrupadorDeTorneoDTO
+public class ReporteFichajesPagadosPorAgrupadorDeTorneoDTO
 {
     public string NombreAgrupador { get; set; } = string.Empty;
-    public List<ReporteJugadoresHabilitadosFilaDTO> Torneos { get; set; } = [];
+    public List<ReporteFichajesPagadosFilaDTO> Torneos { get; set; } = [];
 }
