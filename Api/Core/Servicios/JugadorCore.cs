@@ -20,8 +20,9 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
     private readonly IHistorialDePagosRepo _historialDePagosRepo;
     private readonly IDelegadoRepo _delegadoRepo;
     private readonly IDniExpulsadoDeLaLigaRepo _dniExpulsadoDeLaLigaRepo;
+    private readonly IJugadorAuditLogger _jugadorAuditLogger;
 
-    public JugadorCore(IBDVirtual bd, IJugadorRepo repo, IMapper mapper, IEquipoRepo equipoRepo, IImagenJugadorRepo imagenJugadorRepo, AppPaths paths, IHistorialDePagosRepo historialDePagosRepo, IDelegadoRepo delegadoRepo, IDniExpulsadoDeLaLigaRepo dniExpulsadoDeLaLigaRepo) : base(bd, repo, mapper)
+    public JugadorCore(IBDVirtual bd, IJugadorRepo repo, IMapper mapper, IEquipoRepo equipoRepo, IImagenJugadorRepo imagenJugadorRepo, AppPaths paths, IHistorialDePagosRepo historialDePagosRepo, IDelegadoRepo delegadoRepo, IDniExpulsadoDeLaLigaRepo dniExpulsadoDeLaLigaRepo, IJugadorAuditLogger jugadorAuditLogger) : base(bd, repo, mapper)
     {
         _equipoRepo = equipoRepo;
         _imagenJugadorRepo = imagenJugadorRepo;
@@ -29,6 +30,7 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         _historialDePagosRepo = historialDePagosRepo;
         _delegadoRepo = delegadoRepo;
         _dniExpulsadoDeLaLigaRepo = dniExpulsadoDeLaLigaRepo;
+        _jugadorAuditLogger = jugadorAuditLogger;
     }
     
     protected override async Task<Jugador> AntesDeCrear(JugadorDTO dto, Jugador entidad)
@@ -61,7 +63,17 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         }
         
         var resultado = await FicharJugadorEnElEquipo(dto.EquipoInicialId, entidad);
-        
+
+        if (jugadorExistente != null)
+        {
+            _jugadorAuditLogger.Log(
+                op: "ReFichajeRechazado",
+                dni: entidad.DNI,
+                jugadorId: jugadorExistente.Id,
+                equipoId: dto.EquipoInicialId,
+                resultado: "Eliminado");
+        }
+
         Repo.SiElDNISeHabiaFichadoYEstaRechazadoEliminarJugador(entidad.DNI);
         await BDVirtual.GuardarCambios();
         _imagenJugadorRepo.GuardarFotosTemporalesDeJugadorAutofichado(dto);
@@ -139,11 +151,30 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         if (esDelegado && !EsEstadoPermitidoParaDesvinculacionDeDelegado((EstadoJugadorEnum)jugadorEquipo.EstadoJugadorId))
             throw new ExcepcionControlada("Como delegado solo podés desvincular jugadores en estado FichajePendienteDeAprobacion, FichajeRechazado, AprobadoPendienteDePago o Inhabilitado.");
 
-        if (jugador.JugadorEquipos.Count == 1)
+        var unicoEquipo = jugador.JugadorEquipos.Count == 1;
+        if (unicoEquipo)
+        {
+            _jugadorAuditLogger.Log(
+                op: "Desvincular",
+                dni: jugador.DNI,
+                jugadorId: jugador.Id,
+                equipoId: dto.EquipoId,
+                unicoEquipo: true,
+                resultado: "Eliminado");
             return await Eliminar(dto.JugadorId);
+        }
 
         Repo.EliminarJugadorEquipo(jugadorEquipo.Id);
         await BDVirtual.GuardarCambios();
+
+        _jugadorAuditLogger.Log(
+            op: "Desvincular",
+            dni: jugador.DNI,
+            jugadorId: jugador.Id,
+            equipoId: dto.EquipoId,
+            unicoEquipo: false,
+            resultado: "Desvinculado");
+
         return dto.JugadorId;
     }
 
@@ -180,6 +211,12 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
         var jugador = await Repo.ObtenerPorIdParaEliminar(id);
         if (jugador == null)
             return -1;
+
+        _jugadorAuditLogger.Log(
+            op: "Eliminar",
+            dni: jugador.DNI,
+            jugadorId: jugador.Id,
+            resultado: "Eliminado");
         
         foreach (var jugadorEquipo in jugador.JugadorEquipos.ToList())
             Repo.EliminarJugadorEquipo(jugadorEquipo.Id);
@@ -283,6 +320,14 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
             Repo.EliminarJugadorEquipo(jugadorEquipoOrigen.Id);
 
             await BDVirtual.GuardarCambios();
+
+            _jugadorAuditLogger.Log(
+                op: "Pase",
+                dni: jugador.DNI,
+                jugadorId: jugador.Id,
+                equipoOrigenId: dto.EquipoOrigenId,
+                equipoDestinoId: dto.EquipoDestinoId,
+                resultado: "Pasado");
         }
         await BDVirtual.GuardarCambios();
         return dtos.Count;

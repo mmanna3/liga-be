@@ -89,6 +89,7 @@ public static class InyeccionDeDependenciasConfig
         builder.Services.AddScoped<IBackupCore, BackupCore>();
         builder.Services.AddScoped<IGoogleDriveCore, GoogleDriveCore>();
         builder.Services.AddScoped<ILogsCore, LogsCore>();
+        builder.Services.AddScoped<IJugadorAuditLogger, JugadorAuditLogger>();
         
         builder.Services.AddScoped<IPublicoCore, PublicoCore>();
         

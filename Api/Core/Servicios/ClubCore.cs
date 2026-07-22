@@ -13,13 +13,15 @@ public class ClubCore : ABMCore<IClubRepo, Club, ClubDTO>, IClubCore
     private readonly IImagenEscudoRepo _imagenEscudoRepo;
     private readonly IEquipoCore _equipoCore;
     private readonly IDelegadoRepo _delegadoRepo;
+    private readonly IJugadorAuditLogger _jugadorAuditLogger;
 
-    public ClubCore(IBDVirtual bd, IClubRepo repo, IMapper mapper, IImagenEscudoRepo imagenEscudoRepo, IEquipoCore equipoCore, IDelegadoRepo delegadoRepo)
+    public ClubCore(IBDVirtual bd, IClubRepo repo, IMapper mapper, IImagenEscudoRepo imagenEscudoRepo, IEquipoCore equipoCore, IDelegadoRepo delegadoRepo, IJugadorAuditLogger jugadorAuditLogger)
         : base(bd, repo, mapper)
     {
         _imagenEscudoRepo = imagenEscudoRepo;
         _equipoCore = equipoCore;
         _delegadoRepo = delegadoRepo;
+        _jugadorAuditLogger = jugadorAuditLogger;
     }
 
     public override async Task<IEnumerable<ClubDTO>> Listar()
@@ -60,6 +62,12 @@ public class ClubCore : ABMCore<IClubRepo, Club, ClubDTO>, IClubCore
 
     protected override async Task AntesDeEliminar(int id, Club entidad)
     {
+        _jugadorAuditLogger.Log(
+            op: "EliminarClub",
+            dni: null,
+            clubId: id,
+            resultado: "Inicio");
+
         foreach (var equipo in entidad.Equipos)
             await _equipoCore.Eliminar(equipo.Id);
 

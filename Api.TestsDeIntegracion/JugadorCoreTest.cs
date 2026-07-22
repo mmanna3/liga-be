@@ -2,6 +2,7 @@ using Api.Core.DTOs;
 using Api.Core.DTOs.CambiosDeEstadoJugador;
 using Api.Core.Entidades;
 using Api.Core.Enums;
+using Api.Core.Logica;
 using Api.Core.Repositorios;
 using Api.Core.Servicios;
 using Api.Persistencia.Repositorios;
@@ -20,6 +21,7 @@ namespace Api.TestsDeIntegracion
         private readonly Mock<IHistorialDePagosRepo> _historialDePagosRepoMock;
         private readonly Mock<IDelegadoRepo> _delegadoRepoMock;
         private readonly Mock<IDniExpulsadoDeLaLigaRepo> _dniExpulsadoDeLaLigaRepoMock;
+        private readonly Mock<IJugadorAuditLogger> _jugadorAuditLoggerMock;
         private readonly Mock<IMapper> _mapperMock;
         private readonly AppPathsForTest _paths;
         private readonly JugadorCore _jugadorCore;
@@ -39,6 +41,7 @@ namespace Api.TestsDeIntegracion
             _dniExpulsadoDeLaLigaRepoMock
                 .Setup(x => x.ExistePorDniAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(false);
+            _jugadorAuditLoggerMock = new Mock<IJugadorAuditLogger>();
             _mapperMock = new Mock<IMapper>();
 
             _jugadorCore = new JugadorCore(
@@ -50,7 +53,8 @@ namespace Api.TestsDeIntegracion
                 _paths,
                 _historialDePagosRepoMock.Object,
                 _delegadoRepoMock.Object,
-                _dniExpulsadoDeLaLigaRepoMock.Object
+                _dniExpulsadoDeLaLigaRepoMock.Object,
+                _jugadorAuditLoggerMock.Object
             );
         }
 
@@ -271,6 +275,63 @@ namespace Api.TestsDeIntegracion
             _jugadorRepoMock.Verify(x => x.Eliminar(jugador), Times.Once);
             _imagenJugadorRepoMock.Verify(x => x.EliminarFotosDelJugador(jugador.DNI), Times.Once);
             _bdVirtualMock.Verify(x => x.GuardarCambios(), Times.Once);
+            _jugadorAuditLoggerMock.Verify(
+                x => x.Log(
+                    "Eliminar",
+                    jugador.DNI,
+                    jugadorId,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "Eliminado"),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task Desvincular_UnicoEquipo_RegistraAuditoriaYElimina()
+        {
+            var jugador = new Jugador
+            {
+                Id = 5,
+                DNI = "30111222",
+                Nombre = "Test",
+                Apellido = "Player",
+                FechaNacimiento = DateTime.Now,
+                JugadorEquipos = [new JugadorEquipo { Id = 50, EquipoId = 9, JugadorId = 5 }]
+            };
+            _jugadorRepoMock.Setup(x => x.ObtenerPorIdParaEliminar(5)).ReturnsAsync(jugador);
+
+            var resultado = await _jugadorCore.DesvincularJugadorDelEquipo(
+                new DesvincularJugadorDelEquipoDTO { JugadorId = 5, EquipoId = 9 },
+                esDelegado: false);
+
+            Assert.Equal(5, resultado);
+            _jugadorAuditLoggerMock.Verify(
+                x => x.Log(
+                    "Desvincular",
+                    "30111222",
+                    5,
+                    9,
+                    null,
+                    null,
+                    true,
+                    null,
+                    "Eliminado"),
+                Times.Once);
+            _jugadorAuditLoggerMock.Verify(
+                x => x.Log(
+                    "Eliminar",
+                    "30111222",
+                    5,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "Eliminado"),
+                Times.Once);
         }
 
         [Fact]

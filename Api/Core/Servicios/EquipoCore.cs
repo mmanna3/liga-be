@@ -12,11 +12,13 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
 {
     private readonly IJugadorRepo _jugadorRepo;
     private readonly IImagenJugadorRepo _imagenJugadorRepo;
+    private readonly IJugadorAuditLogger _jugadorAuditLogger;
 
-    public EquipoCore(IBDVirtual bd, IEquipoRepo repo, IMapper mapper, IJugadorRepo jugadorRepo, IImagenJugadorRepo imagenJugadorRepo) : base(bd, repo, mapper)
+    public EquipoCore(IBDVirtual bd, IEquipoRepo repo, IMapper mapper, IJugadorRepo jugadorRepo, IImagenJugadorRepo imagenJugadorRepo, IJugadorAuditLogger jugadorAuditLogger) : base(bd, repo, mapper)
     {
         _jugadorRepo = jugadorRepo;
         _imagenJugadorRepo = imagenJugadorRepo;
+        _jugadorAuditLogger = jugadorAuditLogger;
     }
 
     protected override async Task<Equipo> AntesDeCrear(EquipoDTO dto, Equipo entidad)
@@ -192,8 +194,21 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
                 jugadoresQueSoloJueganEnEsteEquipo.Add(je.Jugador);
         }
 
+        var idsSoloEsteEquipo = jugadoresQueSoloJueganEnEsteEquipo.Select(j => j.Id).ToHashSet();
+
         foreach (var je in entidad.Jugadores)
+        {
+            var jugador = je.Jugador;
+            var seElimina = idsSoloEsteEquipo.Contains(je.JugadorId);
+            _jugadorAuditLogger.Log(
+                op: "EliminarEquipo",
+                dni: jugador?.DNI,
+                jugadorId: je.JugadorId,
+                equipoId: id,
+                unicoEquipo: seElimina,
+                resultado: seElimina ? "Eliminado" : "Desvinculado");
             _jugadorRepo.EliminarJugadorEquipo(je.Id);
+        }
 
         foreach (var jugador in jugadoresQueSoloJueganEnEsteEquipo)
         {
