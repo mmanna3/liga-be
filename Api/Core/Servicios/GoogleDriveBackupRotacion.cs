@@ -2,12 +2,10 @@ namespace Api.Core.Servicios;
 
 /// <summary>
 /// Lógica pura para rotar backups en Drive: agrupa por día (un "par" = backup-bd + backup-imagenes de esa fecha)
-/// y calcula qué archivos borrar cuando hay más días distintos que el máximo permitido.
+/// y conserva capas GFS: 2 diarios + 1 lunes semanal + 1 día 1 mensual, sin solapar slots.
 /// </summary>
 public static class GoogleDriveBackupRotacion
 {
-    public const int MaxParesPorDefecto = 3;
-
     /// <summary>
     /// Devuelve el sufijo yyyy-MM-dd-HH-mm de un nombre de backup reconocido, o null.
     /// </summary>
@@ -31,9 +29,30 @@ public static class GoogleDriveBackupRotacion
         return ts[..10];
     }
 
+    /// <summary>
+    /// Fechas a conservar según retención por capas anclada a <paramref name="fechaReferencia"/>.
+    /// Diario: hoy y ayer. Semanal/mensual: lunes y día 1 estrictamente anteriores a la ventana diaria.
+    /// </summary>
+    public static HashSet<string> CalcularFechasAConservar(DateOnly fechaReferencia)
+    {
+        var ayer = fechaReferencia.AddDays(-1);
+
+        var keepers = new HashSet<string>(StringComparer.Ordinal)
+        {
+            FormatearFecha(fechaReferencia),
+            FormatearFecha(ayer)
+        };
+
+        // Ventana diaria = [ayer, hoy]. Semanal/mensual deben ser estrictamente anteriores a ayer.
+        keepers.Add(FormatearFecha(UltimoLunesAntesDe(ayer)));
+        keepers.Add(FormatearFecha(UltimoDia1AntesDe(ayer)));
+
+        return keepers;
+    }
+
     public static RotacionBackupsDriveResult Calcular(
         IReadOnlyList<(string Id, string Name)> archivosEnCarpeta,
-        int maxPares = MaxParesPorDefecto)
+        DateOnly fechaReferencia)
     {
         var todosLosNombres = archivosEnCarpeta
             .Select(a => a.Name)
@@ -51,32 +70,53 @@ public static class GoogleDriveBackupRotacion
             .OrderBy(g => g.Key, StringComparer.Ordinal)
             .ToList();
 
-        var paresDetectados = gruposPorFecha.Count;
+        var fechasAConservar = CalcularFechasAConservar(fechaReferencia);
 
         var idsABorrar = new List<string>();
         var nombresBorrados = new List<string>();
 
-        if (gruposPorFecha.Count > maxPares)
+        foreach (var g in gruposPorFecha)
         {
-            var cantidadGruposABorrar = gruposPorFecha.Count - maxPares;
-            foreach (var g in gruposPorFecha.Take(cantidadGruposABorrar))
+            if (fechasAConservar.Contains(g.Key))
+                continue;
+
+            foreach (var item in g.OrderBy(x => x.Name, StringComparer.Ordinal))
             {
-                foreach (var item in g.OrderBy(x => x.Name, StringComparer.Ordinal))
-                {
-                    idsABorrar.Add(item.Id);
-                    nombresBorrados.Add(item.Name);
-                }
+                idsABorrar.Add(item.Id);
+                nombresBorrados.Add(item.Name);
             }
         }
 
         return new RotacionBackupsDriveResult
         {
             BackupsEnDrive = todosLosNombres,
-            ParesDetectados = paresDetectados,
+            ParesDetectados = gruposPorFecha.Count,
             IdsABorrar = idsABorrar,
             ArchivosBorrados = nombresBorrados
         };
     }
+
+    /// <summary>
+    /// Último lunes con fecha estrictamente anterior a <paramref name="limiteExclusivo"/>
+    /// (inicio de la ventana diaria).
+    /// </summary>
+    internal static DateOnly UltimoLunesAntesDe(DateOnly limiteExclusivo)
+    {
+        var candidato = limiteExclusivo.AddDays(-1);
+        var diasDesdeLunes = ((int)candidato.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7;
+        return candidato.AddDays(-diasDesdeLunes);
+    }
+
+    /// <summary>
+    /// Último día 1 del mes con fecha estrictamente anterior a <paramref name="limiteExclusivo"/>.
+    /// </summary>
+    internal static DateOnly UltimoDia1AntesDe(DateOnly limiteExclusivo)
+    {
+        var candidato = limiteExclusivo.AddDays(-1);
+        return new DateOnly(candidato.Year, candidato.Month, 1);
+    }
+
+    private static string FormatearFecha(DateOnly fecha) => fecha.ToString("yyyy-MM-dd");
 }
 
 public sealed class RotacionBackupsDriveResult

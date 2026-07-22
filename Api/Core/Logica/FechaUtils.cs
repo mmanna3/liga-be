@@ -10,6 +10,10 @@ public class FechaUtils
     public static string AhoraEnArgentinaFormatoBackupDisco =>
         TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfoArg()).ToString(FormatoFechaBackupDisco);
 
+    /// <summary>Fecha calendario actual en zona Argentina (America/Argentina/Buenos_Aires).</summary>
+    public static DateOnly HoyEnArgentina => DateOnly.FromDateTime(
+        TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfoArg()));
+
     private static TimeZoneInfo TimeZoneInfoArg()
     {
         var p = (int) Environment.OSVersion.Platform;

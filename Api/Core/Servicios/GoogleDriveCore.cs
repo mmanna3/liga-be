@@ -83,7 +83,7 @@ public class GoogleDriveCore : IGoogleDriveCore
             .Select(f => (f.Id!, f.Name!))
             .ToList();
 
-        var plan = GoogleDriveBackupRotacion.Calcular(archivos);
+        var plan = GoogleDriveBackupRotacion.Calcular(archivos, FechaUtils.HoyEnArgentina);
 
         foreach (var id in plan.IdsABorrar)
             await servicio.Files.Delete(id).ExecuteAsync();
