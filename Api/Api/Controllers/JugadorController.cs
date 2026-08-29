@@ -82,6 +82,13 @@ namespace Api.Api.Controllers
             return Ok(jugadorDTO);
         }
 
+        [HttpGet("listado", Name = "jugadoresListado")]
+        public async Task<ActionResult<IEnumerable<JugadorListadoDTO>>> Listado([FromQuery] IList<EstadoJugadorEnum> estados)
+        {
+            var jugadores = await Core.Listado(estados);
+            return Ok(jugadores);
+        }
+
         [HttpPost("desvincular-jugador-del-equipo")]
         public async Task<ActionResult<int>> DesvincularJugadorDelEquipo(DesvincularJugadorDelEquipoDTO dto)
         {

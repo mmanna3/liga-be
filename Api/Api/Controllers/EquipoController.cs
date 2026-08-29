@@ -13,6 +13,11 @@ namespace Api.Api.Controllers
         {
         }
 
+        [HttpGet("listado", Name = "equiposListado")]
+        [AutorizarCualquierUsuarioAdministrativo]
+        public async Task<ActionResult<IEnumerable<EquipoListadoDTO>>> Listado() =>
+            Ok(await Core.Listado());
+
         [HttpGet("por-ids", Name = "equiposPorIds")]
         public async Task<ActionResult<IEnumerable<EquipoDTO>>> ObtenerPorIds([FromQuery] IEnumerable<int> ids) =>
             await ObtenerPorIdsCore(ids);

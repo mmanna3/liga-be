@@ -28,6 +28,64 @@ public class JugadorRepo : RepositorioABM<Jugador>, IJugadorRepo
             .AsQueryable();
     }
 
+    /// <summary>
+    /// Listado liviano para el home de jugadores: una fila por
+    /// <see cref="JugadorEquipo"/> (igual que <see cref="ListarConFiltroConDelegadoIds"/>),
+    /// pero con proyección plana y <c>AsNoTracking</c>, sin traer el árbol de
+    /// entidades relacionadas. El nombre del torneo (primera zona del equipo) se
+    /// resuelve en una query aparte.
+    /// </summary>
+    public async Task<List<JugadorListadoDTO>> ListarParaListado(IList<EstadoJugadorEnum> estados)
+    {
+        var estadoIds = estados.Select(e => (int)e).ToList();
+
+        var jeQuery = Context.Set<JugadorEquipo>().AsNoTracking();
+        if (estadoIds.Count > 0)
+            jeQuery = jeQuery.Where(je => estadoIds.Contains(je.EstadoJugadorId));
+
+        var filas = await (
+            from je in jeQuery
+            join j in Context.Set<Jugador>() on je.JugadorId equals j.Id
+            join e in Context.Set<Equipo>() on je.EquipoId equals e.Id
+            join d in Context.Delegados on j.DNI equals d.DNI into dGroup
+            from d in dGroup.DefaultIfEmpty()
+            orderby j.Apellido, j.Nombre
+            select new JugadorListadoDTO
+            {
+                Id = j.Id,
+                DNI = j.DNI,
+                Nombre = j.Nombre,
+                Apellido = j.Apellido,
+                DelegadoId = (int?)d.Id,
+                JugadorEquipoId = je.Id,
+                EquipoId = e.Id,
+                EquipoNombre = e.Nombre,
+                Club = e.Club.Nombre,
+                Estado = (EstadoJugadorEnum)je.EstadoJugadorId
+            }
+        ).ToListAsync();
+
+        // Nombre de torneo por equipo (primera zona). Es un dataset chico
+        // (EquipoZona ⋈ Torneo), así que se trae completo y se arma en memoria.
+        var torneoPorEquipo = await (
+            from ez in Context.Set<EquipoZona>()
+            join z in Context.Set<Zona>() on ez.ZonaId equals z.Id
+            join f in Context.Set<Fase>() on z.FaseId equals f.Id
+            join t in Context.Set<Torneo>() on f.TorneoId equals t.Id
+            select new { ez.EquipoId, EquipoZonaId = ez.Id, t.Nombre }
+        ).ToListAsync();
+
+        var mapa = torneoPorEquipo
+            .GroupBy(x => x.EquipoId)
+            .ToDictionary(g => g.Key, g => g.OrderBy(x => x.EquipoZonaId).First().Nombre);
+
+        foreach (var fila in filas)
+            if (mapa.TryGetValue(fila.EquipoId, out var torneo))
+                fila.Torneo = torneo;
+
+        return filas;
+    }
+
     public async Task<IEnumerable<Jugador>> ListarConFiltro(IList<EstadoJugadorEnum> estados)
     {
         if (estados.Count == 0)

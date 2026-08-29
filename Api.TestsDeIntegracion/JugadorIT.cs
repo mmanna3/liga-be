@@ -387,6 +387,63 @@ public class JugadorIT : TestBase
     }
 
     [Fact]
+    public async Task Listado_DevuelveDtoPlanoUnaFilaPorEquipoConDelegadoId()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var club = context.Clubs.First();
+        var delegado = new Delegado
+        {
+            Id = 7201,
+            DNI = "12312312",
+            Nombre = "Ana",
+            Apellido = "Listado",
+            FechaNacimiento = new DateTime(1991, 2, 2)
+        };
+        context.Delegados.Add(delegado);
+        context.SaveChanges();
+        context.DelegadoClub.Add(new DelegadoClub { Id = 0, DelegadoId = delegado.Id, ClubId = club.Id, EstadoDelegadoId = (int)EstadoDelegadoEnum.Activo });
+        context.SaveChanges();
+
+        var jugador = new Jugador
+        {
+            Id = 7211,
+            DNI = "12312312",
+            Nombre = "Ana",
+            Apellido = "Listado",
+            FechaNacimiento = new DateTime(1991, 2, 2)
+        };
+        context.Jugadores.Add(jugador);
+        context.SaveChanges();
+        context.JugadorEquipo.Add(new JugadorEquipo
+        {
+            Id = 7221,
+            JugadorId = jugador.Id,
+            EquipoId = 1,
+            FechaFichaje = DateTime.Now,
+            EstadoJugadorId = (int)EstadoJugadorEnum.Activo
+        });
+        context.SaveChanges();
+
+        var client = await GetAuthenticatedClient();
+        var response = await client.GetAsync("/api/Jugador/listado?estados=Activo");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<List<JugadorListadoDTO>>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+
+        var fila = content.SingleOrDefault(j => j.DNI == "12312312");
+        Assert.NotNull(fila);
+        Assert.Equal(jugador.Id, fila.Id);
+        Assert.Equal(delegado.Id, fila.DelegadoId);
+        Assert.Equal(7221, fila.JugadorEquipoId);
+        Assert.Equal(1, fila.EquipoId);
+        Assert.Equal(EstadoJugadorEnum.Activo, fila.Estado);
+        Assert.False(string.IsNullOrEmpty(fila.EquipoNombre));
+    }
+
+    [Fact]
     public async Task ListarConFiltro_ConDelegadoMismoDNI_DevuelveDelegadoId()
     {
         using var scope = Factory.Services.CreateScope();

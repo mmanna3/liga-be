@@ -1,9 +1,13 @@
+using Api.Core.DTOs;
 using Api.Core.Entidades;
 
 namespace Api.Core.Repositorios;
 
 public interface IEquipoRepo : IRepositorioABM<Equipo>
 {
+    /// <summary>Listado plano y liviano para el home de equipos.</summary>
+    Task<List<EquipoListadoDTO>> ListarParaListado();
+
     Task<bool> ExisteEquipoConMismoNombreEnZona(string nombre, IEnumerable<int> zonaIds, int? equipoIdExcluir = null);
     Task<int> ContarEquiposDelJugador(int jugadorId);
     Task QuitarEquiposDeZona(int zonaId);

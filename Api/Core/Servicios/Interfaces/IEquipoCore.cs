@@ -5,6 +5,7 @@ namespace Api.Core.Servicios.Interfaces;
 
 public interface IEquipoCore : ICoreABM<EquipoDTO>
 {
+    Task<IEnumerable<EquipoListadoDTO>> Listado();
     Task<ObtenerNombreEquipoDTO> ObtenerNombrePorCodigoAlfanumerico(string codigoAlfanumerico);
     Task<ObtenerClubDTO> ObtenerClubPorCodigoAlfanumericoDelEquipo(string codigoAlfanumerico);
     Task<IEnumerable<JugadorBaseDTO>> JugadoresQueSoloJueganEnEsteEquipo(int equipoId);

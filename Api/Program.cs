@@ -1,8 +1,10 @@
+using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.Json.Serialization;
 using Api._Config;
 using Api.Persistencia._Config;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using NLog;
@@ -36,6 +38,18 @@ try
 
     builder.Services.AddAutoMapper(typeof(MapperConfig));
 
+    // Compresión de respuestas (Brotli + Gzip). Los listados JSON comprimen ~8-10x.
+    // Nivel "Fastest" para no cargar de CPU al hosting compartido.
+    builder.Services.AddResponseCompression(options =>
+    {
+        options.EnableForHttps = true;
+        options.Providers.Add<BrotliCompressionProvider>();
+        options.Providers.Add<GzipCompressionProvider>();
+        options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/json" });
+    });
+    builder.Services.Configure<BrotliCompressionProviderOptions>(o => o.Level = CompressionLevel.Fastest);
+    builder.Services.Configure<GzipCompressionProviderOptions>(o => o.Level = CompressionLevel.Fastest);
+
     builder.Services.AddOpenApiDocument();
 
 
@@ -62,6 +76,8 @@ try
     });
 
     var app = builder.Build();
+
+    app.UseResponseCompression();
 
     Console.WriteLine($"Entorno: {app.Environment.EnvironmentName}");
 

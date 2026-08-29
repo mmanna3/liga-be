@@ -1,3 +1,4 @@
+using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Core.Repositorios;
 using Api.Persistencia._Config;
@@ -9,6 +10,50 @@ public class EquipoRepo : RepositorioABM<Equipo>, IEquipoRepo
 {
     public EquipoRepo(AppDbContext context) : base(context)
     {
+    }
+
+    /// <summary>
+    /// Listado liviano para el home de equipos: proyección plana con
+    /// <see cref="Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AsNoTracking{TEntity}"/>,
+    /// sin traer la colección de jugadores (sólo su cantidad) ni el árbol de
+    /// zonas. Los torneos se resuelven en una única query aparte.
+    /// </summary>
+    public async Task<List<EquipoListadoDTO>> ListarParaListado()
+    {
+        var equipos = await Context.Set<Equipo>()
+            .AsNoTracking()
+            .OrderBy(e => e.Nombre)
+            .Select(e => new EquipoListadoDTO
+            {
+                Id = e.Id,
+                Nombre = e.Nombre,
+                ClubNombre = e.Club.Nombre,
+                CantidadJugadores = e.Jugadores.Count
+            })
+            .ToListAsync();
+
+        var torneosPorEquipo = await (
+            from ez in Context.Set<EquipoZona>()
+            join z in Context.Set<Zona>() on ez.ZonaId equals z.Id
+            join f in Context.Set<Fase>() on z.FaseId equals f.Id
+            join t in Context.Set<Torneo>() on f.TorneoId equals t.Id
+            select new { ez.EquipoId, EquipoZonaId = ez.Id, t.Nombre, t.Anio }
+        ).ToListAsync();
+
+        var mapa = torneosPorEquipo
+            .GroupBy(x => x.EquipoId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.OrderBy(x => x.EquipoZonaId)
+                    .Select(x => $"{x.Nombre} {x.Anio}")
+                    .Distinct()
+                    .ToList());
+
+        foreach (var equipo in equipos)
+            if (mapa.TryGetValue(equipo.Id, out var torneos))
+                equipo.Torneos = torneos;
+
+        return equipos;
     }
     
     protected override IQueryable<Equipo> Set()

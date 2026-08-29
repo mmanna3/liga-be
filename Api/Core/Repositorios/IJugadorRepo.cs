@@ -6,6 +6,8 @@ namespace Api.Core.Repositorios;
 
 public interface IJugadorRepo : IRepositorioABM<Jugador>
 {
+    /// <summary>Listado plano y liviano para el home de jugadores.</summary>
+    Task<List<JugadorListadoDTO>> ListarParaListado(IList<EstadoJugadorEnum> estados);
     Task<IEnumerable<Jugador>> ListarConFiltro(IList<EstadoJugadorEnum> estado);
     Task<List<(Jugador Jugador, int? DelegadoId)>> ListarConFiltroConDelegadoIds(IList<EstadoJugadorEnum> estados);
     Task<Jugador?> ObtenerPorDNI(string dni);

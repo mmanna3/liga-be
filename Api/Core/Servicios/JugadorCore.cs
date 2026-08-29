@@ -186,6 +186,11 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
                || estado == EstadoJugadorEnum.Inhabilitado;
     }
 
+    public async Task<IEnumerable<JugadorListadoDTO>> Listado(IList<EstadoJugadorEnum> estados)
+    {
+        return await Repo.ListarParaListado(estados);
+    }
+
     public async Task<IEnumerable<JugadorDTO>> ListarConFiltro(IList<EstadoJugadorEnum> estados)
     {
         var jugadoresConDelegado = await Repo.ListarConFiltroConDelegadoIds(estados);

@@ -49,6 +49,40 @@ public class EquipoIT : TestBase
     }
     
     [Fact]
+    public async Task ListadoEquipos_DevuelveDtoPlanoConCantidadYCodigo()
+    {
+        int equipoId;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var equipo = new Equipo { Id = 0, Nombre = "Equipo Listado", ClubId = _club!.Id, Jugadores = [], Zonas = new List<EquipoZona>() };
+            context.Equipos.Add(equipo);
+            context.SaveChanges();
+            equipoId = equipo.Id;
+
+            var jugador = new Jugador { Id = 0, DNI = "55556666", Nombre = "Juan", Apellido = "Listado", FechaNacimiento = new DateTime(1990, 1, 1) };
+            context.Jugadores.Add(jugador);
+            context.SaveChanges();
+            context.JugadorEquipo.Add(new JugadorEquipo { Id = 0, JugadorId = jugador.Id, EquipoId = equipoId, FechaFichaje = DateTime.Now, EstadoJugadorId = (int)EstadoJugadorEnum.Activo });
+            context.SaveChanges();
+        }
+
+        var client = await GetAuthenticatedClient();
+        var response = await client.GetAsync("/api/Equipo/listado");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<List<EquipoListadoDTO>>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+
+        var equipoListado = content.SingleOrDefault(e => e.Id == equipoId);
+        Assert.NotNull(equipoListado);
+        Assert.Equal("Equipo Listado", equipoListado.Nombre);
+        Assert.Equal(1, equipoListado.CantidadJugadores);
+        Assert.False(string.IsNullOrEmpty(equipoListado.CodigoAlfanumerico));
+    }
+
+    [Fact]
     public async Task CrearEquipo_DatosCorrectos_200()
     {
         var client = await GetAuthenticatedClient();

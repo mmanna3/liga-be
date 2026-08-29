@@ -112,6 +112,14 @@ public class EquipoCore : ABMCore<IEquipoRepo, Equipo, EquipoDTO>, IEquipoCore
         return ObtenerClubDTO.Exito(club.Id, club.Nombre);
     }
 
+    public async Task<IEnumerable<EquipoListadoDTO>> Listado()
+    {
+        var equipos = await Repo.ListarParaListado();
+        foreach (var equipo in equipos)
+            equipo.CodigoAlfanumerico = GeneradorDeHash.GenerarAlfanumerico7Digitos(equipo.Id);
+        return equipos;
+    }
+
     public async Task<IEnumerable<EquipoParaZonasDTO>> EquiposParaZonas()
     {
         var equipos = await Repo.ListarConZonasParaEquiposParaZonas();

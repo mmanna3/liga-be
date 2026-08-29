@@ -7,6 +7,7 @@ namespace Api.Core.Servicios.Interfaces;
 
 public interface IJugadorCore : ICoreABM<JugadorDTO>
 {
+    Task<IEnumerable<JugadorListadoDTO>> Listado(IList<EstadoJugadorEnum> estados);
     Task<IEnumerable<JugadorDTO>> ListarConFiltro(IList<EstadoJugadorEnum> estados);
     Task<int> Aprobar(AprobarJugadorDTO dto);
     Task<int> Rechazar(RechazarJugadorDTO dto);
