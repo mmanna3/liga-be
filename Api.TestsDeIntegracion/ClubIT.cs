@@ -51,6 +51,25 @@ public class ClubIT : TestBase
     }
 
     [Fact]
+    public async Task ListadoClubes_DevuelveDtoPlanoConCanchaTipoFormateado()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var response = await client.GetAsync("/api/Club/listado");
+        response.EnsureSuccessStatusCode();
+
+        var content = JsonConvert.DeserializeObject<List<ClubListadoDTO>>(
+            await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+
+        var club = content.SingleOrDefault(c => c.Id == _club!.Id);
+        Assert.NotNull(club);
+        Assert.Equal("Club de Prueba", club.Nombre);
+        Assert.Equal((int)CanchaTipoEnum.Consultar, club.CanchaTipoId);
+        Assert.Equal(nameof(CanchaTipoEnum.Consultar), club.CanchaTipo);
+    }
+
+    [Fact]
     public async Task ObtenerClub_PorId_DevuelveCanchaTipo()
     {
         var client = await GetAuthenticatedClient();

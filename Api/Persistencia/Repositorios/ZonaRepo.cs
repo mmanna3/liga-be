@@ -14,13 +14,14 @@ public class ZonaRepo : RepositorioABMAnidado<Zona, int>, IZonaRepo
 
     protected override IQueryable<Zona> Set()
     {
+        // Sólo lo que ZonaDTO mapea: categoría (para zonas de eliminación
+        // directa) y los equipos de la zona con su club. Ni Fase/Torneo ni
+        // Fechas se proyectan al DTO, así que no se incluyen.
         return Context.Set<Zona>()
-            .Include("Fase.Torneo.TorneoAgrupador")
             .Include("Categoria")
             .Include(x => x.EquiposZona)
                 .ThenInclude(e => e.Equipo)
                     .ThenInclude(e => e.Club)
-            .Include("Fechas")
             .AsSplitQuery()
             .AsQueryable();
     }

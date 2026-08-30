@@ -75,6 +75,11 @@ public class DelegadoCore : ABMCore<IDelegadoRepo, Delegado, DelegadoDTO>, IDele
         return dtos;
     }
 
+    public async Task<IEnumerable<DelegadoListadoDTO>> Listado(IList<EstadoDelegadoEnum> estados)
+    {
+        return await Repo.ListarParaListado(estados);
+    }
+
     public async Task<IEnumerable<DelegadoDTO>> ListarConFiltro(IList<EstadoDelegadoEnum> estados)
     {
         var delegadosConJugador = await Repo.ListarConFiltroConJugadorIds(estados);

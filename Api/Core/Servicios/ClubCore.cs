@@ -32,6 +32,14 @@ public class ClubCore : ABMCore<IClubRepo, Club, ClubDTO>, IClubCore
         return dtos;
     }
 
+    public async Task<IEnumerable<ClubListadoDTO>> Listado()
+    {
+        var dtos = await Repo.ListarParaListado();
+        foreach (var dto in dtos)
+            dto.CanchaTipo = CanchaTipoEtiqueta.Formatear(dto.CanchaTipo);
+        return dtos;
+    }
+
     protected override ClubDTO AntesDeObtenerPorId(Club entidad, ClubDTO dto)
     {
         dto.Escudo = ImagenUtility.AgregarMimeType(_imagenEscudoRepo.GetEscudoEnBase64(entidad.Id));

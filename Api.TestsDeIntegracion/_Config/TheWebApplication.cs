@@ -1,4 +1,5 @@
 using System.Data.Common;
+using Api._Config.Diagnostico;
 using Api.Core.Entidades;
 using Api.Core.Logica;
 using Api.Persistencia._Config;
@@ -56,6 +57,7 @@ public class CustomWebApplicationFactory<TProgram>
             {
                 var connection = container.GetRequiredService<DbConnection>();
                 options.UseSqlite(connection);
+                options.AddInterceptors(new SqlCommandTimingInterceptor());
             });
 
             // Registrar AppPaths para las pruebas

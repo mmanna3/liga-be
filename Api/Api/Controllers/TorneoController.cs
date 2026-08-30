@@ -20,6 +20,13 @@ public class TorneoController(ITorneoCore core) : ABMController<TorneoDTO, ITorn
         return Ok(resultado);
     }
 
+    [HttpGet("listado", Name = "torneosListado")]
+    public async Task<ActionResult<IEnumerable<TorneoListadoDTO>>> Listado([FromQuery] int? anio, [FromQuery] int? agrupador)
+    {
+        var resultado = await Core.Listado(anio, agrupador);
+        return Ok(resultado);
+    }
+
     /// <summary>Cambia solo la visibilidad del torneo en la app (request con una sola propiedad).</summary>
     [HttpPut("{id}/visibilidad-en-app", Name = "torneoCambiarVisibilidadEnApp")]
     public async Task<IActionResult> CambiarVisibilidadEnApp(

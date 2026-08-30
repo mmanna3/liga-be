@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text.Json.Serialization;
 using Api._Config;
+using Api._Config.Diagnostico;
 using Api.Persistencia._Config;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
@@ -34,7 +35,11 @@ try
     builder.Host.UseNLog();
 
     var connectionString = builder.Configuration.GetConnectionString("Default");
-    builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+    builder.Services.AddDbContext<AppDbContext>(options => options
+        .UseSqlServer(connectionString)
+        // Diagnóstico: registra el tiempo de ejecución en SQL de cada comando de EF.
+        // Para desactivarlo, comentar esta línea.
+        .AddInterceptors(new SqlCommandTimingInterceptor()));
 
     builder.Services.AddAutoMapper(typeof(MapperConfig));
 
@@ -76,6 +81,11 @@ try
     });
 
     var app = builder.Build();
+
+    // Diagnóstico: primer middleware, así el tiempo medido incluye todo el
+    // pipeline (auth, controller, EF, serialización, compresión).
+    // Para desactivarlo, comentar esta línea.
+    app.UseMiddleware<RequestTimingMiddleware>();
 
     app.UseResponseCompression();
 

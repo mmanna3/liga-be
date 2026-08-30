@@ -1,3 +1,4 @@
+using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Core.Enums;
 using Api.Core.Repositorios;
@@ -11,7 +12,43 @@ public class DelegadoRepo : RepositorioABM<Delegado>, IDelegadoRepo
     public DelegadoRepo(AppDbContext context) : base(context)
     {
     }
-    
+
+    /// <summary>
+    /// Listado liviano para el home de delegados: proyección plana con
+    /// <c>AsNoTracking</c>, sin fotos ni el grafo
+    /// club → equipos → zonas → torneos del <c>Set()</c> genérico.
+    /// </summary>
+    public async Task<List<DelegadoListadoDTO>> ListarParaListado(IList<EstadoDelegadoEnum> estados)
+    {
+        var estadoIds = (estados ?? new List<EstadoDelegadoEnum>()).Select(e => (int)e).ToList();
+
+        var baseQuery = Context.Set<Delegado>().AsNoTracking();
+        if (estadoIds.Count > 0)
+            baseQuery = baseQuery.Where(d => d.DelegadoClubs.Any(dc => estadoIds.Contains(dc.EstadoDelegadoId)));
+
+        var query = from d in baseQuery
+                    join j in Context.Jugadores on d.DNI equals j.DNI into jGroup
+                    from j in jGroup.DefaultIfEmpty()
+                    orderby d.Apellido, d.Nombre
+                    select new DelegadoListadoDTO
+                    {
+                        Id = d.Id,
+                        Nombre = d.Nombre,
+                        Apellido = d.Apellido,
+                        NombreUsuario = d.Usuario != null ? d.Usuario.NombreUsuario : null,
+                        JugadorId = (int?)j.Id,
+                        BlanqueoPendiente = d.Usuario != null && d.Usuario.Password == null,
+                        Clubs = d.DelegadoClubs.Select(dc => new DelegadoClubResumenDTO
+                        {
+                            ClubNombre = dc.Club.Nombre,
+                            EstadoDelegadoId = dc.EstadoDelegadoId,
+                            EstadoDelegado = dc.EstadoDelegado.Estado
+                        }).ToList()
+                    };
+
+        return await query.ToListAsync();
+    }
+
     public async Task<List<Delegado>> ListarActivosDelClub(int clubId)
     {
         return await Context.DelegadoClub

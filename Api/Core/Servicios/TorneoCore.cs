@@ -302,6 +302,11 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
         return Mapper.Map<List<TorneoDTO>>(entidades);
     }
 
+    public async Task<IEnumerable<TorneoListadoDTO>> Listado(int? anio, int? agrupadorId)
+    {
+        return await Repo.ListarParaListado(anio, agrupadorId);
+    }
+
     public async Task CambiarVisibilidadEnApp(int id, bool esVisibleEnApp)
     {
         var filas = await Repo.ActualizarEsVisibleEnApp(id, esVisibleEnApp);

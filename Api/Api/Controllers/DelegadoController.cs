@@ -50,6 +50,13 @@ namespace Api.Api.Controllers
             return Ok(delegadoDTO);
         }
 
+        [HttpGet("listado", Name = "delegadosListado")]
+        public async Task<ActionResult<IEnumerable<DelegadoListadoDTO>>> Listado([FromQuery] IList<EstadoDelegadoEnum> estados)
+        {
+            var delegados = await Core.Listado(estados);
+            return Ok(delegados);
+        }
+
         [HttpPost("fichar-delegado-solo-con-dni-y-club")]
         [AllowAnonymous]
         public async Task<ActionResult<int>> FicharDelegadoSoloConDniYClub(FicharDelegadoSoloConDniYClubDTO dto)

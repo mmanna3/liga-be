@@ -7,6 +7,7 @@ namespace Api.Core.Servicios.Interfaces;
 
 public interface IDelegadoCore : ICoreABM<DelegadoDTO>
 {
+    Task<IEnumerable<DelegadoListadoDTO>> Listado(IList<EstadoDelegadoEnum> estados);
     Task<IEnumerable<DelegadoDTO>> ListarConFiltro(IList<EstadoDelegadoEnum> estados);
     Task<int> AprobarDelegadoEnElClub(AprobarDelegadoEnElClubDTO dto);
     Task<bool> BlanquearClave(int id);

@@ -408,6 +408,46 @@ public class TorneoIT : TestBase
     }
 
     [Fact]
+    public async Task Listado_PorAnioYAgrupador_DevuelveDtoPlanoConFasesResumidas()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var dto = new CrearTorneoDTO
+        {
+            Nombre = "Torneo Listado",
+            Anio = 2027,
+            TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true,
+            PrimeraFase = new FaseDTO
+            {
+                Nombre = "Fase única",
+                Numero = 1,
+                TipoDeFase = TipoDeFaseEnum.TodosContraTodos,
+                EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
+                EsVisibleEnApp = true
+            }
+        };
+        await client.PostAsJsonAsync("/api/torneo", dto);
+
+        var response = await client.GetAsync("/api/Torneo/listado?anio=2027&agrupador=1");
+        response.EnsureSuccessStatusCode();
+
+        var torneos = JsonConvert.DeserializeObject<List<TorneoListadoDTO>>(
+            await response.Content.ReadAsStringAsync());
+        Assert.NotNull(torneos);
+
+        var torneo = torneos.Single(t => t.Nombre == "Torneo Listado");
+        Assert.Equal(2027, torneo.Anio);
+        Assert.Equal(1, torneo.TorneoAgrupadorId);
+        var fase = Assert.Single(torneo.Fases);
+        Assert.Equal("Fase única", fase.Nombre);
+        Assert.Equal(1, fase.Numero);
+        Assert.Equal(TipoDeFaseEnum.TodosContraTodos, fase.TipoDeFase);
+        Assert.Equal("Todos contra todos", fase.TipoDeFaseNombre);
+    }
+
+    [Fact]
     public async Task Filtrar_PorAnioYAgrupador_DevuelveTorneosConFases()
     {
         var client = await GetAuthenticatedClient();

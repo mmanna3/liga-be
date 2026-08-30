@@ -1,3 +1,4 @@
+using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Core.Repositorios;
 using Api.Persistencia._Config;
@@ -10,7 +11,29 @@ public class ClubRepo : RepositorioABM<Club>, IClubRepo
     public ClubRepo(AppDbContext context) : base(context)
     {
     }
-    
+
+    /// <summary>
+    /// Listado liviano para el home de clubes: proyección plana con
+    /// <c>AsNoTracking</c>, sin el escudo en base64 ni las colecciones de
+    /// equipos / delegados.
+    /// </summary>
+    public async Task<List<ClubListadoDTO>> ListarParaListado()
+    {
+        return await Context.Set<Club>()
+            .AsNoTracking()
+            .OrderBy(c => c.Nombre)
+            .Select(c => new ClubListadoDTO
+            {
+                Id = c.Id,
+                Nombre = c.Nombre,
+                Localidad = c.Localidad,
+                CanchaTipoId = c.CanchaTipoId,
+                // El .Tipo crudo; el Core lo formatea (Pasto Natural, etc.).
+                CanchaTipo = c.CanchaTipo.Tipo
+            })
+            .ToListAsync();
+    }
+
     protected override IQueryable<Club> Set()
     {
         return Context.Set<Club>()

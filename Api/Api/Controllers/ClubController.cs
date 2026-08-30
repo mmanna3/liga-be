@@ -14,6 +14,11 @@ namespace Api.Api.Controllers
         {
         }
 
+        [HttpGet("listado", Name = "clubesListado")]
+        [AutorizarCualquierUsuarioAdministrativo]
+        public async Task<ActionResult<IEnumerable<ClubListadoDTO>>> Listado() =>
+            Ok(await Core.Listado());
+
         [HttpGet("por-ids", Name = "clubsPorIds")]
         public async Task<ActionResult<IEnumerable<ClubDTO>>> ObtenerPorIds([FromQuery] IEnumerable<int> ids) =>
             await ObtenerPorIdsCore(ids);

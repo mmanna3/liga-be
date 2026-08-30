@@ -1,3 +1,4 @@
+using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Core.Enums;
 using Api.Core.Repositorios;
@@ -11,7 +12,64 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
     public TorneoRepo(AppDbContext context) : base(context)
     {
     }
-    
+
+    /// <summary>
+    /// Listado liviano: proyección plana con <c>AsNoTracking</c>. Trae fases y
+    /// grupos resumidos (sin zonas / fechas / categorías / estado), y no toca
+    /// <c>FaseApertura</c> / <c>FaseClausura</c> ni las categorías del torneo.
+    /// </summary>
+    public async Task<List<TorneoListadoDTO>> ListarParaListado(int? anio, int? torneoAgrupadorId)
+    {
+        var query = Context.Set<Torneo>().AsNoTracking();
+
+        if (anio.HasValue)
+            query = query.Where(t => t.Anio == anio.Value);
+        if (torneoAgrupadorId.HasValue)
+            query = query.Where(t => t.TorneoAgrupadorId == torneoAgrupadorId.Value);
+
+        return await query
+            .OrderBy(t => t.Nombre)
+            .Select(t => new TorneoListadoDTO
+            {
+                Id = t.Id,
+                Nombre = t.Nombre,
+                Anio = t.Anio,
+                EsVisibleEnApp = t.EsVisibleEnApp,
+                HorarioDeJuego = t.HorarioDeJuego,
+                TorneoAgrupadorId = t.TorneoAgrupadorId,
+                TorneoAgrupadorNombre = t.TorneoAgrupador != null ? t.TorneoAgrupador.Nombre : string.Empty,
+                Fases = t.Fases
+                    .OrderBy(f => f.Numero)
+                    .Select(f => new FaseResumenDTO
+                    {
+                        Id = f.Id,
+                        Numero = f.Numero,
+                        Nombre = f.Nombre,
+                        GrupoDeFasesId = f.GrupoDeFasesId,
+                        TipoDeFase = f is FaseEliminacionDirecta
+                            ? TipoDeFaseEnum.EliminacionDirecta
+                            : TipoDeFaseEnum.TodosContraTodos,
+                        TipoDeFaseNombre = f is FaseEliminacionDirecta
+                            ? "Eliminación directa"
+                            : "Todos contra todos",
+                        SePuedeEditar = f is FaseEliminacionDirecta
+                            || !Context.Set<Zona>().Any(z => z.FaseId == f.Id)
+                    })
+                    .ToList(),
+                GruposDeFases = t.GruposDeFases
+                    .OrderBy(g => g.Numero)
+                    .Select(g => new GrupoDeFasesResumenDTO
+                    {
+                        Id = g.Id,
+                        Numero = g.Numero,
+                        Nombre = g.Nombre,
+                        GrupoDeFasesPadreId = g.GrupoDeFasesPadreId
+                    })
+                    .ToList()
+            })
+            .ToListAsync();
+    }
+
     protected override IQueryable<Torneo> Set()
     {
         return Context.Set<Torneo>()

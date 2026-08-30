@@ -5,6 +5,7 @@ namespace Api.Core.Servicios.Interfaces;
 
 public interface ITorneoCore : ICoreABM<TorneoDTO>
 {
+    Task<IEnumerable<TorneoListadoDTO>> Listado(int? anio, int? agrupadorId);
     Task<IEnumerable<TorneoDTO>> Filtrar(int? anio, int? agrupadorId);
 
     Task CambiarVisibilidadEnApp(int id, bool esVisibleEnApp);

@@ -7,8 +7,10 @@ using Api.Core.Otros;
 using Api.Core.Repositorios;
 using Api.Core.Servicios.Interfaces;
 using AutoMapper;
+using Api._Config.Diagnostico;
 using Api.Persistencia._Config;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
 namespace Api.Core.Servicios;
 
@@ -188,13 +190,24 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
 
     public async Task<IEnumerable<JugadorListadoDTO>> Listado(IList<EstadoJugadorEnum> estados)
     {
-        return await Repo.ListarParaListado(estados);
+        var sw = Stopwatch.StartNew();
+        var filas = await Repo.ListarParaListado(estados);
+        sw.Stop();
+
+        PerfLog.Log.Info(
+            "CORE  trace={0} JugadorCore.Listado | repo (SQL + materialización) = {1:N0} ms | {2} filas",
+            PerfLog.TraceId, sw.Elapsed.TotalMilliseconds, filas.Count);
+
+        return filas;
     }
 
     public async Task<IEnumerable<JugadorDTO>> ListarConFiltro(IList<EstadoJugadorEnum> estados)
     {
+        var swRepo = Stopwatch.StartNew();
         var jugadoresConDelegado = await Repo.ListarConFiltroConDelegadoIds(estados);
+        swRepo.Stop();
 
+        var swMapeo = Stopwatch.StartNew();
         var dtos = new List<JugadorDTO>();
         foreach (var (jug, delegadoId) in jugadoresConDelegado)
         {
@@ -207,6 +220,12 @@ public class JugadorCore : ABMCore<IJugadorRepo, Jugador, JugadorDTO>, IJugadorC
                 dtos.Add(dto);
             }
         }
+        swMapeo.Stop();
+
+        PerfLog.Log.Info(
+            "CORE  trace={0} JugadorCore.ListarConFiltro | repo (SQL + materialización EF + tracking) = {1:N0} ms ({2} jugadores) | mapeo AutoMapper a DTO = {3:N0} ms ({4} DTOs)",
+            PerfLog.TraceId, swRepo.Elapsed.TotalMilliseconds, jugadoresConDelegado.Count,
+            swMapeo.Elapsed.TotalMilliseconds, dtos.Count);
 
         return dtos;
     }

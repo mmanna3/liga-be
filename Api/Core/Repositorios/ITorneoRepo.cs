@@ -1,9 +1,12 @@
+using Api.Core.DTOs;
 using Api.Core.Entidades;
 
 namespace Api.Core.Repositorios;
 
 public interface ITorneoRepo : IRepositorioABM<Torneo>
 {
+    /// <summary>Listado plano y liviano (home de torneos + selectores).</summary>
+    Task<List<TorneoListadoDTO>> ListarParaListado(int? anio, int? torneoAgrupadorId);
     Task<Zona?> ObtenerZonaUnicaDeTorneo(int torneoId);
     Task CrearFaseUnicaYZonaUnica(int torneoId);
     Task<bool> ExisteTorneoConNombreAnioYAgrupador(string nombre, int anio, int torneoAgrupadorId, int? excluirId = null);
