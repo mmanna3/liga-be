@@ -23,4 +23,21 @@ public interface ITorneoRepo : IRepositorioABM<Torneo>
 
     /// <summary>Torneo con categorías (sin fases/zonas), solo lectura.</summary>
     Task<Torneo?> ObtenerPorIdConCategoriasAsync(int id, CancellationToken cancellationToken = default);
-} 
+
+    /// <summary>
+    /// True/False si el agrupador del torneo habilita limpiar amarillas; null si el torneo no existe.
+    /// </summary>
+    Task<bool?> AgrupadorPermiteLimpiarAmarillas(int torneoId);
+
+    /// <summary>
+    /// Jugadores del torneo (por sus equipos en cualquier zona/fase) con al menos una tarjeta amarilla.
+    /// Ordenado por club, equipo y apellido.
+    /// </summary>
+    Task<List<JugadorConAmarillasDTO>> ListarJugadoresConAmarillasPorTorneo(int torneoId);
+
+    /// <summary>
+    /// Pone en cero las tarjetas amarillas de todas las fichas de los equipos del torneo.
+    /// Las rojas no se tocan. Devuelve la cantidad de fichas afectadas.
+    /// </summary>
+    Task<int> LimpiarAmarillasDelTorneo(int torneoId);
+}

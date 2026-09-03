@@ -177,4 +177,64 @@ public class TorneoRepo : RepositorioABM<Torneo>, ITorneoRepo
             .Include(t => t.Categorias)
             .SingleOrDefaultAsync(t => t.Id == id, cancellationToken);
     }
-} 
+
+    public async Task<bool?> AgrupadorPermiteLimpiarAmarillas(int torneoId)
+    {
+        var fila = await Context.Set<Torneo>()
+            .AsNoTracking()
+            .Where(t => t.Id == torneoId)
+            .Select(t => new { Permite = (bool?)t.TorneoAgrupador.PermiteLimpiarAmarillas })
+            .FirstOrDefaultAsync();
+
+        return fila?.Permite;
+    }
+
+    public async Task<List<JugadorConAmarillasDTO>> ListarJugadoresConAmarillasPorTorneo(int torneoId)
+    {
+        var equipoIds = await EquipoIdsDelTorneo(torneoId);
+
+        return await Context.Set<JugadorEquipo>()
+            .AsNoTracking()
+            .Where(je => equipoIds.Contains(je.EquipoId) && je.TarjetasAmarillas > 0)
+            .OrderBy(je => je.Equipo.Club.Nombre)
+            .ThenBy(je => je.Equipo.Nombre)
+            .ThenBy(je => je.Jugador.Apellido)
+            .ThenBy(je => je.Jugador.Nombre)
+            .Select(je => new JugadorConAmarillasDTO
+            {
+                JugadorEquipoId = je.Id,
+                JugadorId = je.JugadorId,
+                NombreCompleto = je.Jugador.Nombre + " " + je.Jugador.Apellido,
+                Dni = je.Jugador.DNI,
+                EquipoId = je.EquipoId,
+                NombreEquipo = je.Equipo.Nombre,
+                ClubId = je.Equipo.ClubId,
+                NombreClub = je.Equipo.Club.Nombre,
+                TarjetasAmarillas = je.TarjetasAmarillas
+            })
+            .ToListAsync();
+    }
+
+    public async Task<int> LimpiarAmarillasDelTorneo(int torneoId)
+    {
+        var equipoIds = await EquipoIdsDelTorneo(torneoId);
+
+        return await Context.Set<JugadorEquipo>()
+            .Where(je => equipoIds.Contains(je.EquipoId) && je.TarjetasAmarillas > 0)
+            .ExecuteUpdateAsync(s => s.SetProperty(je => je.TarjetasAmarillas, 0));
+    }
+
+    /// <summary>Ids (distinct) de los equipos que participan en alguna zona/fase del torneo.</summary>
+    private async Task<List<int>> EquipoIdsDelTorneo(int torneoId)
+    {
+        var faseIds = Context.Set<Fase>().Where(f => f.TorneoId == torneoId).Select(f => f.Id);
+        var zonaIds = Context.Set<Zona>().Where(z => faseIds.Contains(z.FaseId)).Select(z => z.Id);
+
+        return await Context.Set<EquipoZona>()
+            .AsNoTracking()
+            .Where(ez => zonaIds.Contains(ez.ZonaId))
+            .Select(ez => ez.EquipoId)
+            .Distinct()
+            .ToListAsync();
+    }
+}

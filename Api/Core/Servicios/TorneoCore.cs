@@ -314,6 +314,27 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
             throw new ExcepcionControlada("No existe el torneo a modificar.");
     }
 
+    public async Task<IEnumerable<JugadorConAmarillasDTO>> ListarJugadoresConAmarillas(int torneoId)
+    {
+        await ValidarTorneoPermiteLimpiarAmarillas(torneoId);
+        return await Repo.ListarJugadoresConAmarillasPorTorneo(torneoId);
+    }
+
+    public async Task<int> LimpiarAmarillasDelTorneo(int torneoId)
+    {
+        await ValidarTorneoPermiteLimpiarAmarillas(torneoId);
+        return await Repo.LimpiarAmarillasDelTorneo(torneoId);
+    }
+
+    private async Task ValidarTorneoPermiteLimpiarAmarillas(int torneoId)
+    {
+        var permite = await Repo.AgrupadorPermiteLimpiarAmarillas(torneoId);
+        if (permite is null)
+            throw new ExcepcionControlada("No existe el torneo.");
+        if (!permite.Value)
+            throw new ExcepcionControlada("El agrupador de este torneo no permite limpiar tarjetas amarillas.");
+    }
+
     public async Task EditarFasesParaTablaAnual(int id, EditarFasesParaTablaAnualDTO dto)
     {
         if (dto.FaseAperturaId.HasValue && dto.FaseClausuraId.HasValue &&

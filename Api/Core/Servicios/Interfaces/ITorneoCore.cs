@@ -11,4 +11,10 @@ public interface ITorneoCore : ICoreABM<TorneoDTO>
     Task CambiarVisibilidadEnApp(int id, bool esVisibleEnApp);
 
     Task EditarFasesParaTablaAnual(int id, EditarFasesParaTablaAnualDTO dto);
-} 
+
+    /// <summary>Jugadores del torneo con tarjetas amarillas. Requiere que el agrupador lo permita (Futsal).</summary>
+    Task<IEnumerable<JugadorConAmarillasDTO>> ListarJugadoresConAmarillas(int torneoId);
+
+    /// <summary>Pone en cero las amarillas de todos los jugadores del torneo. Devuelve fichas afectadas.</summary>
+    Task<int> LimpiarAmarillasDelTorneo(int torneoId);
+}

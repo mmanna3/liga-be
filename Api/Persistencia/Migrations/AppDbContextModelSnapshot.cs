@@ -1323,6 +1323,9 @@ namespace Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("PermiteLimpiarAmarillas")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ColorId");
@@ -1335,7 +1338,8 @@ namespace Api.Migrations
                             Id = 1,
                             ColorId = 0,
                             EsVisibleEnApp = false,
-                            Nombre = "General"
+                            Nombre = "General",
+                            PermiteLimpiarAmarillas = false
                         });
                 });
 

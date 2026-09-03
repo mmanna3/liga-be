@@ -50,4 +50,22 @@ public class TorneoController(ITorneoCore core) : ABMController<TorneoDTO, ITorn
         await estructuraFasesCore.PersistirEstructura(id, dto);
         return NoContent();
     }
+
+    /// <summary>Jugadores del torneo con tarjetas amarillas (solo torneos de agrupador Futsal). Solo administradores.</summary>
+    [HttpGet("{id}/jugadores-con-amarillas", Name = "torneoJugadoresConAmarillas")]
+    [AutorizarSoloAdmin]
+    public async Task<ActionResult<IEnumerable<JugadorConAmarillasDTO>>> JugadoresConAmarillas(int id)
+    {
+        var resultado = await Core.ListarJugadoresConAmarillas(id);
+        return Ok(resultado);
+    }
+
+    /// <summary>Pone en cero las tarjetas amarillas de todos los jugadores del torneo. Solo administradores.</summary>
+    [HttpPost("{id}/limpiar-amarillas", Name = "torneoLimpiarAmarillas")]
+    [AutorizarSoloAdmin]
+    public async Task<ActionResult<int>> LimpiarAmarillas(int id)
+    {
+        var afectados = await Core.LimpiarAmarillasDelTorneo(id);
+        return Ok(afectados);
+    }
 }

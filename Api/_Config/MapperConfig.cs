@@ -31,6 +31,7 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.FaseAperturaNombre, opt => opt.MapFrom(src => src.FaseApertura != null ? src.FaseApertura.Nombre : null))
             .ForMember(dest => dest.FaseClausuraNombre, opt => opt.MapFrom(src => src.FaseClausura != null ? src.FaseClausura.Nombre : null))
             .ForMember(dest => dest.SePuedeEditar, opt => opt.MapFrom<TorneoSePuedeEditarResolver>())
+            .ForMember(dest => dest.PermiteLimpiarAmarillas, opt => opt.MapFrom(src => src.TorneoAgrupador != null && src.TorneoAgrupador.PermiteLimpiarAmarillas))
             .ForMember(dest => dest.Fases, opt => opt.MapFrom(src => src.Fases != null ? src.Fases : new List<Fase>()))
             .ForMember(dest => dest.GruposDeFases, opt => opt.MapFrom(src => src.GruposDeFases != null ? src.GruposDeFases : new List<GrupoDeFases>()))
             .ForMember(dest => dest.Categorias, opt => opt.MapFrom(src => src.Categorias != null
@@ -46,7 +47,8 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.FaseClausura, opt => opt.Ignore())
             .ForMember(dest => dest.FaseAperturaId, opt => opt.Ignore())
             .ForMember(dest => dest.FaseClausuraId, opt => opt.Ignore())
-            .ForSourceMember(src => src.SePuedeEditar, opt => opt.DoNotValidate());
+            .ForSourceMember(src => src.SePuedeEditar, opt => opt.DoNotValidate())
+            .ForSourceMember(src => src.PermiteLimpiarAmarillas, opt => opt.DoNotValidate());
 
         CreateMap<TorneoCategoria, TorneoCategoriaDTO>()
             .PreserveReferences()

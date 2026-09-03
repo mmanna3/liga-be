@@ -22,6 +22,13 @@ public class TorneoDTO : DTO, IEsVisibleEnApp
     public int? FaseClausuraId { get; set; }
     public string? FaseClausuraNombre { get; set; }
     public string TorneoAgrupadorNombre { get; set; } = string.Empty;
+
+    /// <summary>
+    /// True si el agrupador del torneo tiene habilitada la limpieza de tarjetas amarillas (Futsal).
+    /// Solo lectura: se resuelve desde el agrupador.
+    /// </summary>
+    public bool PermiteLimpiarAmarillas { get; set; }
+
     public bool SePuedeEditar { get; set; }
     /// <summary>
     /// Null = no modificar. Lista vacía = borrar todas. Con items = reemplazar.
