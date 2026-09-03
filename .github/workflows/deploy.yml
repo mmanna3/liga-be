@@ -59,10 +59,46 @@ jobs:
       - name: Aplicar migraciones
         shell: pwsh
         run: |
-          dotnet tool install --global dotnet-ef --version 8.0.11
-          $config = Get-Content Api/appsettings.Production.json | ConvertFrom-Json
+          $ErrorActionPreference = 'Stop'
+
+          Write-Host '=== Instalando dotnet-ef 8.0.11 (global) ==='
+          # 'update' instala si falta y actualiza si ya está: idempotente entre reintentos.
+          dotnet tool update --global dotnet-ef --version 8.0.11
+          $env:PATH = "$env:USERPROFILE\.dotnet\tools;$env:PATH"
+
+          # Un .config/dotnet-tools.json en el repo haría que 'dotnet ef' exija un tool
+          # local restaurado y el step falle con "Run dotnet tool restore". No debe existir.
+          if (Test-Path .config/dotnet-tools.json) {
+            throw "Existe .config/dotnet-tools.json: rompe la resolución de 'dotnet ef' en CI. Eliminalo del repo."
+          }
+
+          Write-Host '=== Versión de dotnet-ef ==='
+          dotnet ef --version
+
+          $config = Get-Content Api/appsettings.Production.json -Raw | ConvertFrom-Json
           $connStr = $config.ConnectionStrings.Default
-          Push-Location Api; dotnet ef database update --connection $connStr; Pop-Location
+          if ([string]::IsNullOrWhiteSpace($connStr)) {
+            throw "No se pudo leer ConnectionStrings.Default de Api/appsettings.Production.json"
+          }
+          $connSanitizada = $connStr -replace '(?i)(password|pwd)\s*=\s*[^;]*', '$1=***'
+          Write-Host "=== Connection string (sin credenciales) ==="
+          Write-Host $connSanitizada
+
+          Push-Location Api
+          try {
+            Write-Host '=== Estado de migraciones (X = aplicada en la BD) ==='
+            dotnet ef migrations list --connection $connStr
+            if ($LASTEXITCODE -ne 0) { throw "dotnet ef migrations list falló con código $LASTEXITCODE" }
+
+            Write-Host '=== Aplicando migraciones ==='
+            dotnet ef database update --connection $connStr --verbose
+            if ($LASTEXITCODE -ne 0) { throw "dotnet ef database update falló con código $LASTEXITCODE" }
+
+            Write-Host '=== Migraciones aplicadas OK ==='
+          }
+          finally {
+            Pop-Location
+          }
 
       - name: Deploy
         shell: pwsh
