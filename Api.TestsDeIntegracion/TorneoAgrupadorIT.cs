@@ -124,6 +124,55 @@ public class TorneoAgrupadorIT : TestBase
     }
 
     [Fact]
+    public async Task ModificarTorneoAgrupador_PermiteLimpiarAmarillas_PersisteYSeExponeEnGet()
+    {
+        var client = await GetAuthenticatedClient();
+
+        TorneoAgrupador agrupador;
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            agrupador = new TorneoAgrupador
+            {
+                Id = 0,
+                Nombre = "Futsal Para Modificar",
+                EsVisibleEnApp = false,
+                PermiteLimpiarAmarillas = false,
+                ColorId = (int)ColorEnum.Negro
+            };
+            context.TorneoAgrupadores.Add(agrupador);
+            context.SaveChanges();
+        }
+
+        var dto = new TorneoAgrupadorDTO
+        {
+            Id = agrupador.Id,
+            Nombre = agrupador.Nombre,
+            Color = nameof(ColorEnum.Negro),
+            EsVisibleEnApp = false,
+            PermiteLimpiarAmarillas = true
+        };
+
+        var response = await client.PutAsJsonAsync($"/api/torneoagrupador/{agrupador.Id}", dto);
+        response.EnsureSuccessStatusCode();
+
+        var get = await client.GetAsync($"/api/torneoagrupador/{agrupador.Id}");
+        get.EnsureSuccessStatusCode();
+        var actualizado = JsonConvert.DeserializeObject<TorneoAgrupadorDTO>(
+            await get.Content.ReadAsStringAsync());
+        Assert.NotNull(actualizado);
+        Assert.True(actualizado.PermiteLimpiarAmarillas);
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var enBd = context.TorneoAgrupadores.Find(agrupador.Id);
+            Assert.NotNull(enBd);
+            Assert.True(enBd.PermiteLimpiarAmarillas);
+        }
+    }
+
+    [Fact]
     public async Task EliminarTorneoAgrupador_SinTorneos_200()
     {
         var client = await GetAuthenticatedClient();
