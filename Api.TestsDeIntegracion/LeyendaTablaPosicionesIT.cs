@@ -317,4 +317,139 @@ public class LeyendaTablaPosicionesIT : TestBase
         Assert.Null(sinEquipo.Equipo);
         Assert.Equal(0, sinEquipo.QuitaDePuntos);
     }
+
+    [Fact]
+    public async Task PutLeyenda_ModificaTextoCategoriaYAgregaQuitaDePuntos_OK()
+    {
+        var (zonaId, catId, eq1, _, _) = await SeedZonaCategoriaYTresEquipos(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var creada = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/leyendas", new LeyendaTablaPosicionesDTO
+        {
+            Id = 0,
+            Leyenda = "Original",
+            CategoriaId = catId,
+            ZonaId = zonaId,
+            EquipoId = null,
+            QuitaDePuntos = 0
+        });
+        creada.EnsureSuccessStatusCode();
+        var dto = await creada.Content.ReadFromJsonAsync<LeyendaTablaPosicionesDTO>();
+        Assert.NotNull(dto);
+
+        var editada = new LeyendaTablaPosicionesDTO
+        {
+            Id = dto!.Id,
+            Leyenda = "Modificada",
+            CategoriaId = null, // pasa a general
+            ZonaId = zonaId,
+            EquipoId = eq1,
+            QuitaDePuntos = 3
+        };
+        var put = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/leyendas/{dto.Id}", editada);
+        Assert.Equal(HttpStatusCode.NoContent, put.StatusCode);
+
+        var list = await client.GetFromJsonAsync<List<LeyendaTablaPosicionesDTO>>($"/api/Zona/{zonaId}/leyendas");
+        Assert.NotNull(list);
+        var actualizada = Assert.Single(list);
+        Assert.Equal("Modificada", actualizada.Leyenda);
+        Assert.Null(actualizada.CategoriaId);
+        Assert.Equal(eq1, actualizada.EquipoId);
+        Assert.Equal(3, actualizada.QuitaDePuntos);
+    }
+
+    [Fact]
+    public async Task PutLeyenda_MismaZonaCategoriaYEquipoQueEllaMisma_NoChocaConsigoMisma_OK()
+    {
+        var (zonaId, catId, eq1, _, _) = await SeedZonaCategoriaYTresEquipos(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var creada = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/leyendas", new LeyendaTablaPosicionesDTO
+        {
+            Id = 0,
+            Leyenda = "Texto",
+            CategoriaId = catId,
+            ZonaId = zonaId,
+            EquipoId = eq1,
+            QuitaDePuntos = 2
+        });
+        creada.EnsureSuccessStatusCode();
+        var dto = await creada.Content.ReadFromJsonAsync<LeyendaTablaPosicionesDTO>();
+
+        var editada = new LeyendaTablaPosicionesDTO
+        {
+            Id = dto!.Id,
+            Leyenda = "Texto editado",
+            CategoriaId = catId,
+            ZonaId = zonaId,
+            EquipoId = eq1,
+            QuitaDePuntos = 2
+        };
+        var put = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/leyendas/{dto.Id}", editada);
+        Assert.Equal(HttpStatusCode.NoContent, put.StatusCode);
+    }
+
+    [Fact]
+    public async Task PutLeyenda_ColisionaConOtraExistente_400()
+    {
+        var (zonaId, catId, eq1, eq2, _) = await SeedZonaCategoriaYTresEquipos(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var r1 = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/leyendas", new LeyendaTablaPosicionesDTO
+        {
+            Id = 0, Leyenda = "Uno", CategoriaId = catId, ZonaId = zonaId, EquipoId = eq1, QuitaDePuntos = 1
+        });
+        r1.EnsureSuccessStatusCode();
+
+        var r2 = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/leyendas", new LeyendaTablaPosicionesDTO
+        {
+            Id = 0, Leyenda = "Dos", CategoriaId = catId, ZonaId = zonaId, EquipoId = eq2, QuitaDePuntos = 2
+        });
+        r2.EnsureSuccessStatusCode();
+        var dto2 = await r2.Content.ReadFromJsonAsync<LeyendaTablaPosicionesDTO>();
+
+        // Editar "Dos" para que quede con la misma (zona, categoría, equipo) que "Uno".
+        var editada = new LeyendaTablaPosicionesDTO
+        {
+            Id = dto2!.Id,
+            Leyenda = "Dos modificada",
+            CategoriaId = catId,
+            ZonaId = zonaId,
+            EquipoId = eq1,
+            QuitaDePuntos = 5
+        };
+        var put = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/leyendas/{dto2.Id}", editada);
+        Assert.Equal(HttpStatusCode.BadRequest, put.StatusCode);
+    }
+
+    [Fact]
+    public async Task PutLeyenda_EquipoFueraDeZona_400()
+    {
+        var (zonaId, catId, eq1, _, eqFuera) = await SeedZonaCategoriaYTresEquipos(Factory);
+        var client = await GetAuthenticatedClient();
+
+        var creada = await client.PostAsJsonAsync($"/api/Zona/{zonaId}/leyendas", new LeyendaTablaPosicionesDTO
+        {
+            Id = 0,
+            Leyenda = "Texto",
+            CategoriaId = catId,
+            ZonaId = zonaId,
+            EquipoId = eq1,
+            QuitaDePuntos = 2
+        });
+        creada.EnsureSuccessStatusCode();
+        var dto = await creada.Content.ReadFromJsonAsync<LeyendaTablaPosicionesDTO>();
+
+        var editada = new LeyendaTablaPosicionesDTO
+        {
+            Id = dto!.Id,
+            Leyenda = "Texto",
+            CategoriaId = catId,
+            ZonaId = zonaId,
+            EquipoId = eqFuera,
+            QuitaDePuntos = 2
+        };
+        var put = await client.PutAsJsonAsync($"/api/Zona/{zonaId}/leyendas/{dto.Id}", editada);
+        Assert.Equal(HttpStatusCode.BadRequest, put.StatusCode);
+    }
 }
