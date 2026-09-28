@@ -583,6 +583,73 @@ public class AppCarnetDigitalIT : TestBase
     }
 
     [Fact]
+    public async Task InformacionInicialDeTorneos_AperturaYClausuraEnMismoGrupo_AnualEsHermanaDentroDelGrupo()
+    {
+        var anioActual = DateTime.Today.Year;
+        int torneoId;
+        await using (var scope = Factory.Services.CreateAsyncScope())
+        {
+            var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var torneo = new Torneo
+            {
+                Id = 0,
+                Nombre = "Torneo anual agrupado app",
+                Anio = anioActual,
+                EsVisibleEnApp = true,
+                SeVenLosGolesEnTablaDePosiciones = true,
+                TorneoAgrupadorId = 1
+            };
+            ctx.Torneos.Add(torneo);
+            await ctx.SaveChangesAsync();
+            torneoId = torneo.Id;
+
+            var grupo = new GrupoDeFases { Id = 0, Nombre = "Torneo anual", Numero = 1, TorneoId = torneoId, EsVisibleEnApp = true };
+            ctx.Set<GrupoDeFases>().Add(grupo);
+            await ctx.SaveChangesAsync();
+
+            FaseTodosContraTodos NuevaFase(string nombre, int numero, int? grupoId) => new()
+            {
+                Id = 0,
+                Nombre = nombre,
+                TorneoId = torneoId,
+                Numero = numero,
+                GrupoDeFasesId = grupoId,
+                EstadoFaseId = 100,
+                EsVisibleEnApp = true
+            };
+            var fApertura = NuevaFase("Apertura", 1, grupo.Id);
+            var fClausura = NuevaFase("Clausura", 2, grupo.Id);
+            var fPlayoffs = NuevaFase("Playoffs", 3, grupo.Id);
+            var fCopa = NuevaFase("Copa", 2, null);
+            ctx.Fases.AddRange(fApertura, fClausura, fPlayoffs, fCopa);
+            await ctx.SaveChangesAsync();
+
+            ctx.Zonas.Add(new ZonaTodosContraTodos { Id = 0, FaseId = fApertura.Id, Nombre = "Única", Orden = 1 });
+            ctx.Zonas.Add(new ZonaTodosContraTodos { Id = 0, FaseId = fClausura.Id, Nombre = "Única", Orden = 1 });
+            torneo.FaseAperturaId = fApertura.Id;
+            torneo.FaseClausuraId = fClausura.Id;
+            await ctx.SaveChangesAsync();
+        }
+
+        var client = await GetAuthenticatedClient();
+        var response = await client.GetAsync("/api/carnet-digital/info-inicial-de-torneos");
+        response.EnsureSuccessStatusCode();
+        var lista = await response.Content.ReadFromJsonAsync<List<InformacionInicialAgrupadorDTO>>();
+        Assert.NotNull(lista);
+
+        var torneoDto = lista.SelectMany(a => a.Torneos).First(t => t.Id == torneoId);
+
+        Assert.DoesNotContain(torneoDto.Elementos, e => e.TipoDeFase == "Anual");
+        var grupoDto = Assert.Single(torneoDto.Elementos, e => e.Tipo == "grupo" && e.NombreGrupo == "Torneo anual");
+        Assert.Equal(["Apertura", "Clausura", "Anual", "Playoffs"], grupoDto.Elementos!.Select(e => e.Nombre).ToList());
+        var anual = grupoDto.Elementos!.Single(e => e.TipoDeFase == "Anual");
+        Assert.Equal(["Única"], anual.Zonas!.Select(z => z.Nombre).ToList());
+        Assert.Equal(
+            ["Apertura", "Clausura", "Anual", "Playoffs", "Copa"],
+            torneoDto.Fases.Select(f => f.Nombre).ToList());
+    }
+
+    [Fact]
     public async Task InformacionInicialDeTorneos_GrupoOculto_ExcluyeSubarbol()
     {
         var anioActual = DateTime.Today.Year;

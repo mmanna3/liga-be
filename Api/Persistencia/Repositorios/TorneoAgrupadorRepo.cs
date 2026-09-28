@@ -71,6 +71,32 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
                     }).ToList());
         }
 
+        // Para ubicar la fase Anual: grupo de Apertura/Clausura (aunque no sean visibles) y cadena de grupos padre.
+        var torneosConAnual = agrupadores.SelectMany(a => a.Torneos)
+            .Where(t => t.FaseAperturaId.HasValue && t.FaseClausuraId.HasValue)
+            .ToList();
+        Dictionary<int, int?> grupoPorFaseId = new();
+        Dictionary<int, int?> padrePorGrupoId = new();
+        if (torneosConAnual.Count > 0)
+        {
+            var idsFasesAnual = torneosConAnual
+                .SelectMany(t => new[] { t.FaseAperturaId!.Value, t.FaseClausuraId!.Value })
+                .ToHashSet();
+            var idsTorneosAnual = torneosConAnual.Select(t => t.Id).ToHashSet();
+
+            grupoPorFaseId = await Context.Set<Fase>()
+                .AsNoTracking()
+                .Where(f => idsFasesAnual.Contains(f.Id))
+                .Select(f => new { f.Id, f.GrupoDeFasesId })
+                .ToDictionaryAsync(f => f.Id, f => f.GrupoDeFasesId, cancellationToken);
+
+            padrePorGrupoId = await Context.Set<GrupoDeFases>()
+                .AsNoTracking()
+                .Where(g => idsTorneosAnual.Contains(g.TorneoId))
+                .Select(g => new { g.Id, g.GrupoDeFasesPadreId })
+                .ToDictionaryAsync(g => g.Id, g => g.GrupoDeFasesPadreId, cancellationToken);
+        }
+
         var resultado = new List<InformacionInicialAgrupadorDTO>();
         foreach (var agr in agrupadores)
         {
@@ -92,16 +118,21 @@ public class TorneoAgrupadorRepo : RepositorioABM<TorneoAgrupador>, ITorneoAgrup
 
                         if (t.FaseAperturaId is { } idApertura && t.FaseClausuraId is { } idClausura)
                         {
-                            elementos.Add(new InformacionInicialElementoTorneoDTO
-                            {
-                                Tipo = EstructuraFasesTreeBuilder.TipoFase,
-                                Id = 0,
-                                Nombre = "Anual",
-                                TipoDeFase = "Anual",
-                                Zonas = ZonasAnualCombinadas(
-                                    zonasPorFaseId.GetValueOrDefault(idApertura),
-                                    zonasPorFaseId.GetValueOrDefault(idClausura))
-                            });
+                            EstructuraFasesTreeBuilder.InsertarFaseAnual(
+                                elementos,
+                                padrePorGrupoId,
+                                (idApertura, grupoPorFaseId.GetValueOrDefault(idApertura)),
+                                (idClausura, grupoPorFaseId.GetValueOrDefault(idClausura)),
+                                new InformacionInicialElementoTorneoDTO
+                                {
+                                    Tipo = EstructuraFasesTreeBuilder.TipoFase,
+                                    Id = 0,
+                                    Nombre = "Anual",
+                                    TipoDeFase = "Anual",
+                                    Zonas = ZonasAnualCombinadas(
+                                        zonasPorFaseId.GetValueOrDefault(idApertura),
+                                        zonasPorFaseId.GetValueOrDefault(idClausura))
+                                });
                         }
 
                         return new InformacionInicialTorneoDTO

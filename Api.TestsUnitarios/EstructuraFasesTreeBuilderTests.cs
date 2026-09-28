@@ -134,4 +134,135 @@ public class EstructuraFasesTreeBuilderTests
         Assert.Throws<ExcepcionControlada>(() =>
             EstructuraFasesTreeBuilder.ValidarProfundidadEstructura(items));
     }
+
+    private static InformacionInicialElementoTorneoDTO ElementoFase(int id, string nombre) => new()
+    {
+        Tipo = EstructuraFasesTreeBuilder.TipoFase,
+        Id = id,
+        Nombre = nombre,
+        TipoDeFase = nameof(TipoDeFaseEnum.TodosContraTodos)
+    };
+
+    private static InformacionInicialElementoTorneoDTO ElementoGrupo(int id, string nombre,
+        params InformacionInicialElementoTorneoDTO[] hijos) => new()
+    {
+        Tipo = EstructuraFasesTreeBuilder.TipoGrupo,
+        GrupoId = id,
+        NombreGrupo = nombre,
+        Elementos = hijos.ToList()
+    };
+
+    private static InformacionInicialElementoTorneoDTO ElementoAnual() => new()
+    {
+        Tipo = EstructuraFasesTreeBuilder.TipoFase,
+        Id = 0,
+        Nombre = "Anual",
+        TipoDeFase = "Anual"
+    };
+
+    private static List<string> Nombres(IEnumerable<InformacionInicialElementoTorneoDTO> elementos) =>
+        elementos.Select(e => e.Tipo == EstructuraFasesTreeBuilder.TipoGrupo ? e.NombreGrupo! : e.Nombre!).ToList();
+
+    [Fact]
+    public void InsertarFaseAnual_AperturaYClausuraEnMismoGrupo_QuedaComoHermanaDentroDelGrupo()
+    {
+        var elementos = new List<InformacionInicialElementoTorneoDTO>
+        {
+            ElementoGrupo(10, "Torneo anual", ElementoFase(1, "Apertura"), ElementoFase(2, "Clausura")),
+            ElementoFase(3, "Copa")
+        };
+
+        EstructuraFasesTreeBuilder.InsertarFaseAnual(
+            elementos, new Dictionary<int, int?> { [10] = null }, (1, 10), (2, 10), ElementoAnual());
+
+        Assert.Equal(["Torneo anual", "Copa"], Nombres(elementos));
+        Assert.Equal(["Apertura", "Clausura", "Anual"], Nombres(elementos[0].Elementos!));
+    }
+
+    [Fact]
+    public void InsertarFaseAnual_ConFasesPosteriores_QuedaJustoDespuesDeLaUltima()
+    {
+        var elementos = new List<InformacionInicialElementoTorneoDTO>
+        {
+            ElementoGrupo(10, "Torneo anual", ElementoFase(1, "Apertura"), ElementoFase(2, "Clausura"), ElementoFase(3, "Playoffs"))
+        };
+
+        EstructuraFasesTreeBuilder.InsertarFaseAnual(
+            elementos, new Dictionary<int, int?> { [10] = null }, (1, 10), (2, 10), ElementoAnual());
+
+        Assert.Equal(["Apertura", "Clausura", "Anual", "Playoffs"], Nombres(elementos[0].Elementos!));
+    }
+
+    [Fact]
+    public void InsertarFaseAnual_ClausuraAntesQueApertura_QuedaDespuesDeApertura()
+    {
+        var elementos = new List<InformacionInicialElementoTorneoDTO>
+        {
+            ElementoFase(2, "Clausura"), ElementoFase(1, "Apertura"), ElementoFase(3, "Copa")
+        };
+
+        EstructuraFasesTreeBuilder.InsertarFaseAnual(
+            elementos, new Dictionary<int, int?>(), (1, null), (2, null), ElementoAnual());
+
+        Assert.Equal(["Clausura", "Apertura", "Anual", "Copa"], Nombres(elementos));
+    }
+
+    [Fact]
+    public void InsertarFaseAnual_EnSubgruposDistintos_QuedaEnElGrupoPadreDespuesDelUltimoSubgrupo()
+    {
+        var elementos = new List<InformacionInicialElementoTorneoDTO>
+        {
+            ElementoGrupo(10, "Torneo anual",
+                ElementoGrupo(11, "Primera mitad", ElementoFase(1, "Apertura")),
+                ElementoGrupo(12, "Segunda mitad", ElementoFase(2, "Clausura")),
+                ElementoFase(3, "Final"))
+        };
+        var padres = new Dictionary<int, int?> { [10] = null, [11] = 10, [12] = 10 };
+
+        EstructuraFasesTreeBuilder.InsertarFaseAnual(elementos, padres, (1, 11), (2, 12), ElementoAnual());
+
+        Assert.Equal(["Primera mitad", "Segunda mitad", "Anual", "Final"], Nombres(elementos[0].Elementos!));
+    }
+
+    [Fact]
+    public void InsertarFaseAnual_SinGrupoComun_QuedaEnRaizDespuesDelUltimoContenedor()
+    {
+        var elementos = new List<InformacionInicialElementoTorneoDTO>
+        {
+            ElementoGrupo(10, "Grupo A", ElementoFase(1, "Apertura")),
+            ElementoFase(2, "Clausura"),
+            ElementoFase(3, "Copa")
+        };
+
+        EstructuraFasesTreeBuilder.InsertarFaseAnual(
+            elementos, new Dictionary<int, int?> { [10] = null }, (1, 10), (2, null), ElementoAnual());
+
+        Assert.Equal(["Grupo A", "Clausura", "Anual", "Copa"], Nombres(elementos));
+        Assert.Equal(["Apertura"], Nombres(elementos[0].Elementos!));
+    }
+
+    [Fact]
+    public void InsertarFaseAnual_GrupoComunNoVisible_QuedaAlFinalDelContenedorVisible()
+    {
+        var elementos = new List<InformacionInicialElementoTorneoDTO> { ElementoFase(3, "Copa") };
+
+        EstructuraFasesTreeBuilder.InsertarFaseAnual(
+            elementos, new Dictionary<int, int?> { [10] = null }, (1, 10), (2, 10), ElementoAnual());
+
+        Assert.Equal(["Copa", "Anual"], Nombres(elementos));
+    }
+
+    [Fact]
+    public void InsertarFaseAnual_ClausuraNoVisible_QuedaDespuesDeApertura()
+    {
+        var elementos = new List<InformacionInicialElementoTorneoDTO>
+        {
+            ElementoGrupo(10, "Torneo anual", ElementoFase(1, "Apertura"), ElementoFase(3, "Playoffs"))
+        };
+
+        EstructuraFasesTreeBuilder.InsertarFaseAnual(
+            elementos, new Dictionary<int, int?> { [10] = null }, (1, 10), (2, 10), ElementoAnual());
+
+        Assert.Equal(["Apertura", "Anual", "Playoffs"], Nombres(elementos[0].Elementos!));
+    }
 }

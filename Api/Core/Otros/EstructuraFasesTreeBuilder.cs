@@ -90,6 +90,72 @@ public static class EstructuraFasesTreeBuilder
             .ToList();
     }
 
+    /// <summary>
+    /// Inserta la fase "Anual" como hermana de Apertura y Clausura: en el grupo común más cercano
+    /// (o la raíz), justo después de la última de las dos. Si el grupo común no está en el árbol
+    /// (no visible en app), queda en el contenedor visible más profundo de esa cadena.
+    /// </summary>
+    public static void InsertarFaseAnual(
+        List<InformacionInicialElementoTorneoDTO> elementosRaiz,
+        IReadOnlyDictionary<int, int?> padrePorGrupoId,
+        (int FaseId, int? GrupoId) apertura,
+        (int FaseId, int? GrupoId) clausura,
+        InformacionInicialElementoTorneoDTO faseAnual)
+    {
+        var cadenaApertura = CadenaDeGrupos(apertura.GrupoId, padrePorGrupoId);
+        var cadenaClausura = CadenaDeGrupos(clausura.GrupoId, padrePorGrupoId);
+        var comun = cadenaApertura.Zip(cadenaClausura).TakeWhile(p => p.First == p.Second).Count();
+
+        var contenedor = elementosRaiz;
+        var profundidad = 0;
+        while (profundidad < comun)
+        {
+            var grupo = contenedor.FirstOrDefault(e =>
+                e.Tipo == TipoGrupo && e.GrupoId == cadenaApertura[profundidad]);
+            if (grupo == null)
+                break;
+            grupo.Elementos ??= [];
+            contenedor = grupo.Elementos;
+            profundidad++;
+        }
+
+        var indiceUltima = Math.Max(
+            IndiceEnContenedor(contenedor, apertura.FaseId, cadenaApertura, profundidad),
+            IndiceEnContenedor(contenedor, clausura.FaseId, cadenaClausura, profundidad));
+
+        if (indiceUltima < 0)
+            contenedor.Add(faseAnual);
+        else
+            contenedor.Insert(indiceUltima + 1, faseAnual);
+    }
+
+    /// <summary>Ids de grupos desde la raíz hasta el grupo directo de la fase.</summary>
+    private static List<int> CadenaDeGrupos(int? grupoId, IReadOnlyDictionary<int, int?> padrePorGrupoId)
+    {
+        var cadena = new List<int>();
+        var actual = grupoId;
+        while (actual is { } id && !cadena.Contains(id))
+        {
+            cadena.Add(id);
+            actual = padrePorGrupoId.GetValueOrDefault(id);
+        }
+
+        cadena.Reverse();
+        return cadena;
+    }
+
+    /// <summary>Índice del elemento del contenedor que representa a la fase (la fase o el subgrupo que la contiene).</summary>
+    private static int IndiceEnContenedor(
+        List<InformacionInicialElementoTorneoDTO> contenedor,
+        int faseId,
+        List<int> cadena,
+        int profundidad)
+    {
+        return profundidad < cadena.Count
+            ? contenedor.FindIndex(e => e.Tipo == TipoGrupo && e.GrupoId == cadena[profundidad])
+            : contenedor.FindIndex(e => e.Tipo == TipoFase && e.Id == faseId);
+    }
+
     public static List<InformacionInicialFaseDTO> AplanarFasesInformacionInicial(
         IEnumerable<InformacionInicialElementoTorneoDTO> elementos)
     {
