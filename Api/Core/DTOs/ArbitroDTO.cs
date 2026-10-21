@@ -7,10 +7,10 @@ public class ArbitroDTO : DTO
     [Required, MaxLength(9)]
     public string DNI { get; set; } = string.Empty;
 
-    [Required, MaxLength(14)]
+    [Required, MaxLength(50)]
     public required string Nombre { get; set; }
 
-    [Required, MaxLength(14)]
+    [Required, MaxLength(50)]
     public required string Apellido { get; set; }
 
     [MaxLength(20)]
