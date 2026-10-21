@@ -58,6 +58,44 @@ public class ArbitroIT : TestBase
     }
 
     [Fact]
+    public async Task CrearArbitro_NombreYApellidoDe50Caracteres_200()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var dto = new ArbitroDTO
+        {
+            DNI = "30123457",
+            Nombre = new string('N', 50),
+            Apellido = new string('A', 50)
+        };
+
+        var response = await client.PostAsJsonAsync("/api/arbitro", dto);
+
+        response.EnsureSuccessStatusCode();
+        var content = JsonConvert.DeserializeObject<ArbitroDTO>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+        Assert.Equal(dto.Nombre, content.Nombre);
+        Assert.Equal(dto.Apellido, content.Apellido);
+    }
+
+    [Fact]
+    public async Task CrearArbitro_NombreDeMasDe50Caracteres_400()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var dto = new ArbitroDTO
+        {
+            DNI = "30123458",
+            Nombre = new string('N', 51),
+            Apellido = "Pérez"
+        };
+
+        var response = await client.PostAsJsonAsync("/api/arbitro", dto);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task ObtenerArbitro_PorId_DevuelveCorrecto()
     {
         var client = await GetAuthenticatedClient();

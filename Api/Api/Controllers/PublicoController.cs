@@ -16,17 +16,20 @@ namespace Api.Api.Controllers
         private readonly IEquipoCore _equipoCore;
         private readonly IDelegadoCore _delegadoCore;
         private readonly IImagenSponsorWebPublicaRepo _imagenSponsorWebPublicaRepo;
+        private readonly ITorneoAgrupadorCore _torneoAgrupadorCore;
 
         public PublicoController(
             IPublicoCore publicoCore,
             IEquipoCore equipoCore,
             IDelegadoCore delegadoCore,
-            IImagenSponsorWebPublicaRepo imagenSponsorWebPublicaRepo)
+            IImagenSponsorWebPublicaRepo imagenSponsorWebPublicaRepo,
+            ITorneoAgrupadorCore torneoAgrupadorCore)
         {
             _core = publicoCore;
             _equipoCore = equipoCore;
             _delegadoCore = delegadoCore;
             _imagenSponsorWebPublicaRepo = imagenSponsorWebPublicaRepo;
+            _torneoAgrupadorCore = torneoAgrupadorCore;
         }
 
         [HttpGet("el-dni-esta-fichado")]
@@ -87,6 +90,13 @@ namespace Api.Api.Controllers
         {
             var sponsors = await _core.ListarSponsorsWebPublica();
             return Ok(sponsors);
+        }
+
+        [HttpGet("torneo-agrupadores-para-arbitros")]
+        public async Task<ActionResult<IReadOnlyList<TorneoAgrupadorParaArbitroDTO>>> TorneoAgrupadoresParaArbitros()
+        {
+            var agrupadores = await _torneoAgrupadorCore.ListarParaArbitros();
+            return Ok(agrupadores);
         }
 
         /// <summary>

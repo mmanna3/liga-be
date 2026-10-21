@@ -7,10 +7,10 @@ public class Arbitro : Entidad
     [Required, MaxLength(9)] 
     public string DNI { get; set; } = string.Empty;
 
-    [MaxLength(14), Required] 
+    [MaxLength(50), Required] 
     public required string Nombre { get; set; }
     
-    [MaxLength(14), Required]
+    [MaxLength(50), Required]
     public required string Apellido { get; set; }
 
     [MaxLength(20)]
