@@ -41,7 +41,7 @@ public class ArbitroIT : TestBase
             DNI = "30123456",
             Nombre = "Juan",
             Apellido = "Pérez",
-            TelefonoCelular = "1122334455"
+            TelefonoCelular = "+5491122334455"
         };
 
         var response = await client.PostAsJsonAsync("/api/arbitro", dto);
@@ -54,7 +54,7 @@ public class ArbitroIT : TestBase
         Assert.Equal("30123456", content.DNI);
         Assert.Equal("Juan", content.Nombre);
         Assert.Equal("Pérez", content.Apellido);
-        Assert.Equal("1122334455", content.TelefonoCelular);
+        Assert.Equal("+5491122334455", content.TelefonoCelular);
     }
 
     [Fact]
@@ -76,6 +76,58 @@ public class ArbitroIT : TestBase
         Assert.NotNull(content);
         Assert.Equal(dto.Nombre, content.Nombre);
         Assert.Equal(dto.Apellido, content.Apellido);
+    }
+
+    [Fact]
+    public async Task CrearArbitro_ConDatosDelRegistro_LosGuardaYQuedaActivo()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var dto = new ArbitroDTO
+        {
+            DNI = "30123459",
+            Nombre = "Laura",
+            Apellido = "Gómez",
+            Direccion = "Calle 1",
+            Localidad = "Quilmes",
+            FechaNacimiento = new DateTime(1990, 1, 15),
+            TipoMovilidad = TipoMovilidadArbitroEnum.Bicicleta,
+            FranjasHorarias = [FranjaHorariaArbitroEnum.Sabados13A20],
+            TieneRelacionInstitucional = false
+        };
+
+        var response = await client.PostAsJsonAsync("/api/arbitro", dto);
+
+        response.EnsureSuccessStatusCode();
+        var creado = JsonConvert.DeserializeObject<ArbitroDTO>(await response.Content.ReadAsStringAsync());
+        var obtenido = JsonConvert.DeserializeObject<ArbitroDTO>(
+            await (await client.GetAsync($"/api/arbitro/{creado!.Id}")).Content.ReadAsStringAsync());
+        Assert.NotNull(obtenido);
+        Assert.Equal("Quilmes", obtenido.Localidad);
+        Assert.Equal(TipoMovilidadArbitroEnum.Bicicleta, obtenido.TipoMovilidad);
+        Assert.Equal(new[] { FranjaHorariaArbitroEnum.Sabados13A20 }, obtenido.FranjasHorarias);
+
+        var listado = JsonConvert.DeserializeObject<List<ArbitroDTO>>(
+            await (await client.GetAsync("/api/arbitro")).Content.ReadAsStringAsync());
+        Assert.Contains(listado!, a => a.Id == creado.Id);
+    }
+
+    [Fact]
+    public async Task CrearArbitro_TelefonoConFormatoInvalido_400()
+    {
+        var client = await GetAuthenticatedClient();
+
+        var dto = new ArbitroDTO
+        {
+            DNI = "30123460",
+            Nombre = "Juan",
+            Apellido = "Pérez",
+            TelefonoCelular = "1122334455"
+        };
+
+        var response = await client.PostAsJsonAsync("/api/arbitro", dto);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -154,7 +206,7 @@ public class ArbitroIT : TestBase
             DNI = "33445566",
             Nombre = "Pedro Modif.",
             Apellido = "López Modif.",
-            TelefonoCelular = "1199887766"
+            TelefonoCelular = "+5491199887766"
         };
 
         var response = await client.PutAsJsonAsync($"/api/arbitro/{arbitro.Id}", dto);
@@ -169,7 +221,7 @@ public class ArbitroIT : TestBase
             Assert.NotNull(actualizado);
             Assert.Equal("Pedro Modif.", actualizado.Nombre);
             Assert.Equal("López Modif.", actualizado.Apellido);
-            Assert.Equal("1199887766", actualizado.TelefonoCelular);
+            Assert.Equal("+5491199887766", actualizado.TelefonoCelular);
         }
     }
 
@@ -241,7 +293,7 @@ public class ArbitroIT : TestBase
             DNI = "55667788",
             Nombre = "Flujo",
             Apellido = "Completo",
-            TelefonoCelular = "1155667788"
+            TelefonoCelular = "+5491155667788"
         };
         var crearResponse = await client.PostAsJsonAsync("/api/arbitro", crearDto);
         crearResponse.EnsureSuccessStatusCode();
@@ -259,7 +311,7 @@ public class ArbitroIT : TestBase
             DNI = "55667788",
             Nombre = "Flujo Mod.",
             Apellido = "Completo M.",
-            TelefonoCelular = "1199001122"
+            TelefonoCelular = "+5491199001122"
         };
         var modificarResponse = await client.PutAsJsonAsync($"/api/arbitro/{creado.Id}", modificarDto);
         modificarResponse.EnsureSuccessStatusCode();
@@ -267,7 +319,7 @@ public class ArbitroIT : TestBase
         var obtenido = await client.GetFromJsonAsync<ArbitroDTO>($"/api/arbitro/{creado.Id}");
         Assert.NotNull(obtenido);
         Assert.Equal("Flujo Mod.", obtenido.Nombre);
-        Assert.Equal("1199001122", obtenido.TelefonoCelular);
+        Assert.Equal("+5491199001122", obtenido.TelefonoCelular);
 
         var eliminarResponse = await client.DeleteAsync($"/api/arbitro/{creado.Id}");
         eliminarResponse.EnsureSuccessStatusCode();

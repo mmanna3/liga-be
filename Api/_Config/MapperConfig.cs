@@ -197,9 +197,19 @@ public class MapperConfig : Profile
             .ForMember(dest => dest.TorneoAgrupadores, opt => opt.MapFrom(src => src.ArbitroTorneoAgrupadores))
             .ForMember(dest => dest.EquipoProhibidoIds, opt => opt.MapFrom(src => src.ArbitroEquiposProhibidos.Select(x => x.EquipoId).ToList()))
             .ForMember(dest => dest.EquiposProhibidos, opt => opt.MapFrom(src => src.ArbitroEquiposProhibidos))
+            .ForMember(dest => dest.TipoMovilidad, opt => opt.MapFrom(src => (TipoMovilidadArbitroEnum?)src.TipoMovilidadArbitroId))
+            .ForMember(dest => dest.FranjasHorarias, opt => opt.MapFrom(src => src.ArbitroFranjasHorarias
+                .Select(x => (FranjaHorariaArbitroEnum)x.FranjaHorariaArbitroId)
+                .OrderBy(x => x)
+                .ToList()))
             .ReverseMap()
+            .ForMember(dest => dest.TipoMovilidadArbitroId, opt => opt.MapFrom(src => (int?)src.TipoMovilidad))
+            .ForMember(dest => dest.TipoMovilidadArbitro, opt => opt.Ignore())
+            .ForMember(dest => dest.EstadoArbitroId, opt => opt.Ignore())
+            .ForMember(dest => dest.EstadoArbitro, opt => opt.Ignore())
             .ForMember(dest => dest.ArbitroTorneoAgrupadores, opt => opt.Ignore())
-            .ForMember(dest => dest.ArbitroEquiposProhibidos, opt => opt.Ignore());
+            .ForMember(dest => dest.ArbitroEquiposProhibidos, opt => opt.Ignore())
+            .ForMember(dest => dest.ArbitroFranjasHorarias, opt => opt.Ignore());
         CreateMap<SponsorWebPublica, SponsorWebPublicaDTO>()
             .ForMember(dest => dest.Imagen, opt => opt.Ignore())
             .ReverseMap()
