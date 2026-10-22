@@ -320,6 +320,37 @@ public class RegistroArbitroIT : TestBase
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    private async Task<HttpClient> ClienteDelegado()
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        return await AuthTestHelper.CrearUsuarioYAutenticar(
+            Factory.CreateClient(), context, "delegado.arbitros", "clave123", RolEnum.Delegado);
+    }
+
+    [Fact]
+    public async Task Pendientes_ConRolDelegado_403()
+    {
+        await RegistrarPendiente();
+        var client = await ClienteDelegado();
+
+        var response = await client.GetAsync("/api/arbitro/pendientes");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Aprobar_ConRolDelegado_403YSiguePendiente()
+    {
+        var id = await RegistrarPendiente();
+        var client = await ClienteDelegado();
+
+        var response = await client.PostAsJsonAsync($"/api/arbitro/{id}/aprobar", new AprobarArbitroDTO());
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.Equal((int)EstadoArbitroEnum.PendienteDeAprobacion, ObtenerArbitroDeLaBase(id).EstadoArbitroId);
+    }
+
     [Fact]
     public async Task ListarArbitros_NoIncluyePendientes()
     {

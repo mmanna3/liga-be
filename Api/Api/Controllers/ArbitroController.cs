@@ -22,12 +22,14 @@ public class ArbitroController : ABMController<ArbitroDTO, IArbitroCore, Arbitro
         await ObtenerPorIdsCore(ids);
 
     [HttpGet("pendientes", Name = "arbitrosPendientes")]
+    [AutorizarCualquierUsuarioAdministrativo]
     public async Task<ActionResult<IEnumerable<ArbitroDTO>>> ListarPendientes()
     {
         return Ok(await Core.ListarPendientes());
     }
 
     [HttpPost("{id}/aprobar", Name = "aprobarArbitro")]
+    [AutorizarCualquierUsuarioAdministrativo]
     public async Task<ActionResult<int>> Aprobar(int id, AprobarArbitroDTO dto)
     {
         var resultado = await Core.Aprobar(id, dto);
