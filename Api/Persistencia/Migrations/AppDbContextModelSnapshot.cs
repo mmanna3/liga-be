@@ -41,6 +41,24 @@ namespace Api.Migrations
                         .HasMaxLength(9)
                         .HasColumnType("nvarchar(9)");
 
+                    b.Property<string>("Direccion")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("EstadoArbitroId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("FechaNacimiento")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Institucion")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Localidad")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -50,10 +68,20 @@ namespace Api.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<bool?>("TieneRelacionInstitucional")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("TipoMovilidadArbitroId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("DNI")
                         .IsUnique();
+
+                    b.HasIndex("EstadoArbitroId");
+
+                    b.HasIndex("TipoMovilidadArbitroId");
 
                     b.ToTable("Arbitros", "dbo");
                 });
@@ -80,6 +108,30 @@ namespace Api.Migrations
                         .IsUnique();
 
                     b.ToTable("ArbitroEquipoProhibido", "dbo");
+                });
+
+            modelBuilder.Entity("Api.Core.Entidades.ArbitroFranjaHoraria", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArbitroId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FranjaHorariaArbitroId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FranjaHorariaArbitroId");
+
+                    b.HasIndex("ArbitroId", "FranjaHorariaArbitroId")
+                        .IsUnique();
+
+                    b.ToTable("ArbitroFranjaHoraria", "dbo");
                 });
 
             modelBuilder.Entity("Api.Core.Entidades.ArbitroJornada", b =>
@@ -398,6 +450,33 @@ namespace Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Api.Core.Entidades.EntidadesConValoresPredefinidos.EstadoArbitro", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("_EstadoArbitro", "dbo");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Estado = "Pendiente de aprobación"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Estado = "Activo"
+                        });
+                });
+
             modelBuilder.Entity("Api.Core.Entidades.EntidadesConValoresPredefinidos.EstadoDelegado", b =>
                 {
                     b.Property<int>("Id")
@@ -548,6 +627,48 @@ namespace Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Api.Core.Entidades.EntidadesConValoresPredefinidos.FranjaHorariaArbitro", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Franja")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("_FranjaHorariaArbitro", "dbo");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Franja = "Sabados8A14"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Franja = "Sabados13A20"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Franja = "Domingos9A15"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Franja = "Domingos15A22"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Franja = "MartesAViernes20A2330"
+                        });
+                });
+
             modelBuilder.Entity("Api.Core.Entidades.EntidadesConValoresPredefinidos.HabilitacionFichaje", b =>
                 {
                     b.Property<int>("Id")
@@ -682,6 +803,43 @@ namespace Api.Migrations
                         {
                             Id = 4,
                             Nombre = "Delegado"
+                        });
+                });
+
+            modelBuilder.Entity("Api.Core.Entidades.EntidadesConValoresPredefinidos.TipoMovilidadArbitro", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("_TipoMovilidadArbitro", "dbo");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Tipo = "Moto"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Tipo = "Auto"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Tipo = "Bicicleta"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Tipo = "TransportePublico"
                         });
                 });
 
@@ -1646,6 +1804,24 @@ namespace Api.Migrations
                     b.HasDiscriminator().HasValue("TodosContraTodos");
                 });
 
+            modelBuilder.Entity("Api.Core.Entidades.Arbitro", b =>
+                {
+                    b.HasOne("Api.Core.Entidades.EntidadesConValoresPredefinidos.EstadoArbitro", "EstadoArbitro")
+                        .WithMany()
+                        .HasForeignKey("EstadoArbitroId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Api.Core.Entidades.EntidadesConValoresPredefinidos.TipoMovilidadArbitro", "TipoMovilidadArbitro")
+                        .WithMany()
+                        .HasForeignKey("TipoMovilidadArbitroId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("EstadoArbitro");
+
+                    b.Navigation("TipoMovilidadArbitro");
+                });
+
             modelBuilder.Entity("Api.Core.Entidades.ArbitroEquipoProhibido", b =>
                 {
                     b.HasOne("Api.Core.Entidades.Arbitro", "Arbitro")
@@ -1663,6 +1839,25 @@ namespace Api.Migrations
                     b.Navigation("Arbitro");
 
                     b.Navigation("Equipo");
+                });
+
+            modelBuilder.Entity("Api.Core.Entidades.ArbitroFranjaHoraria", b =>
+                {
+                    b.HasOne("Api.Core.Entidades.Arbitro", "Arbitro")
+                        .WithMany("ArbitroFranjasHorarias")
+                        .HasForeignKey("ArbitroId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Api.Core.Entidades.EntidadesConValoresPredefinidos.FranjaHorariaArbitro", "FranjaHorariaArbitro")
+                        .WithMany()
+                        .HasForeignKey("FranjaHorariaArbitroId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Arbitro");
+
+                    b.Navigation("FranjaHorariaArbitro");
                 });
 
             modelBuilder.Entity("Api.Core.Entidades.ArbitroJornada", b =>
@@ -2137,6 +2332,8 @@ namespace Api.Migrations
             modelBuilder.Entity("Api.Core.Entidades.Arbitro", b =>
                 {
                     b.Navigation("ArbitroEquiposProhibidos");
+
+                    b.Navigation("ArbitroFranjasHorarias");
 
                     b.Navigation("ArbitroTorneoAgrupadores");
                 });
