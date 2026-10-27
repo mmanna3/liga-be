@@ -1,0 +1,36 @@
+name: Tests en PR
+
+# Build y tests en cada pull request, sin deploy.
+# El deploy lo hace deploy.yml al pushear a main.
+on:
+  pull_request:
+
+concurrency:
+  group: tests-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_VERSION: "8.0.x"
+
+jobs:
+  build-y-tests:
+    name: Build y tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --configuration Release --no-build
