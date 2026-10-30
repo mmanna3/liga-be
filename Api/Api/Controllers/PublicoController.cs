@@ -16,17 +16,23 @@ namespace Api.Api.Controllers
         private readonly IEquipoCore _equipoCore;
         private readonly IDelegadoCore _delegadoCore;
         private readonly IImagenSponsorWebPublicaRepo _imagenSponsorWebPublicaRepo;
+        private readonly ITorneoAgrupadorCore _torneoAgrupadorCore;
+        private readonly IArbitroCore _arbitroCore;
 
         public PublicoController(
             IPublicoCore publicoCore,
             IEquipoCore equipoCore,
             IDelegadoCore delegadoCore,
-            IImagenSponsorWebPublicaRepo imagenSponsorWebPublicaRepo)
+            IImagenSponsorWebPublicaRepo imagenSponsorWebPublicaRepo,
+            ITorneoAgrupadorCore torneoAgrupadorCore,
+            IArbitroCore arbitroCore)
         {
             _core = publicoCore;
             _equipoCore = equipoCore;
             _delegadoCore = delegadoCore;
             _imagenSponsorWebPublicaRepo = imagenSponsorWebPublicaRepo;
+            _torneoAgrupadorCore = torneoAgrupadorCore;
+            _arbitroCore = arbitroCore;
         }
 
         [HttpGet("el-dni-esta-fichado")]
@@ -87,6 +93,20 @@ namespace Api.Api.Controllers
         {
             var sponsors = await _core.ListarSponsorsWebPublica();
             return Ok(sponsors);
+        }
+
+        [HttpGet("torneo-agrupadores-para-arbitros")]
+        public async Task<ActionResult<IReadOnlyList<TorneoAgrupadorParaArbitroDTO>>> TorneoAgrupadoresParaArbitros()
+        {
+            var agrupadores = await _torneoAgrupadorCore.ListarParaArbitros();
+            return Ok(agrupadores);
+        }
+
+        [HttpPost("registro-arbitro")]
+        public async Task<ActionResult<int>> RegistroArbitro(RegistroArbitroDTO dto)
+        {
+            var id = await _arbitroCore.Registrar(dto);
+            return Ok(id);
         }
 
         /// <summary>

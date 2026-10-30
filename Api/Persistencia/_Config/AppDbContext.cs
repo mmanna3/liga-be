@@ -79,6 +79,41 @@ public class AppDbContext : DbContext
                 TipoHabilitacion = nameof(HabilitacionFichajeEnum.Programado)
             });
 
+        builder.Entity<EstadoArbitro>()
+            .ToTable("_EstadoArbitro")
+            .Property(e => e.Id)
+            .ValueGeneratedNever();
+
+        builder.Entity<EstadoArbitro>().HasData(
+            new EstadoArbitro { Id = (int)EstadoArbitroEnum.PendienteDeAprobacion, Estado = "Pendiente de aprobación" },
+            new EstadoArbitro { Id = (int)EstadoArbitroEnum.Activo, Estado = "Activo" }
+        );
+
+        builder.Entity<TipoMovilidadArbitro>()
+            .ToTable("_TipoMovilidadArbitro")
+            .Property(t => t.Id)
+            .ValueGeneratedNever();
+
+        builder.Entity<TipoMovilidadArbitro>().HasData(
+            new TipoMovilidadArbitro { Id = (int)TipoMovilidadArbitroEnum.Moto, Tipo = nameof(TipoMovilidadArbitroEnum.Moto) },
+            new TipoMovilidadArbitro { Id = (int)TipoMovilidadArbitroEnum.Auto, Tipo = nameof(TipoMovilidadArbitroEnum.Auto) },
+            new TipoMovilidadArbitro { Id = (int)TipoMovilidadArbitroEnum.Bicicleta, Tipo = nameof(TipoMovilidadArbitroEnum.Bicicleta) },
+            new TipoMovilidadArbitro { Id = (int)TipoMovilidadArbitroEnum.TransportePublico, Tipo = nameof(TipoMovilidadArbitroEnum.TransportePublico) }
+        );
+
+        builder.Entity<FranjaHorariaArbitro>()
+            .ToTable("_FranjaHorariaArbitro")
+            .Property(f => f.Id)
+            .ValueGeneratedNever();
+
+        builder.Entity<FranjaHorariaArbitro>().HasData(
+            new FranjaHorariaArbitro { Id = (int)FranjaHorariaArbitroEnum.Sabados8A14, Franja = nameof(FranjaHorariaArbitroEnum.Sabados8A14) },
+            new FranjaHorariaArbitro { Id = (int)FranjaHorariaArbitroEnum.Sabados13A20, Franja = nameof(FranjaHorariaArbitroEnum.Sabados13A20) },
+            new FranjaHorariaArbitro { Id = (int)FranjaHorariaArbitroEnum.Domingos9A15, Franja = nameof(FranjaHorariaArbitroEnum.Domingos9A15) },
+            new FranjaHorariaArbitro { Id = (int)FranjaHorariaArbitroEnum.Domingos15A22, Franja = nameof(FranjaHorariaArbitroEnum.Domingos15A22) },
+            new FranjaHorariaArbitro { Id = (int)FranjaHorariaArbitroEnum.MartesAViernes20A2330, Franja = nameof(FranjaHorariaArbitroEnum.MartesAViernes20A2330) }
+        );
+
         builder.Entity<Club>()
             .HasOne(c => c.CanchaTipo)
             .WithMany(ct => ct.Clubes)
@@ -503,6 +538,27 @@ public class AppDbContext : DbContext
         builder.Entity<Arbitro>()
             .HasIndex(a => a.DNI)
             .IsUnique();
+        builder.Entity<Arbitro>()
+            .HasOne(a => a.EstadoArbitro)
+            .WithMany()
+            .HasForeignKey(a => a.EstadoArbitroId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<Arbitro>()
+            .HasOne(a => a.TipoMovilidadArbitro)
+            .WithMany()
+            .HasForeignKey(a => a.TipoMovilidadArbitroId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<ArbitroFranjaHoraria>()
+            .HasOne(a => a.Arbitro)
+            .WithMany(ar => ar.ArbitroFranjasHorarias)
+            .HasForeignKey(a => a.ArbitroId)
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.Entity<ArbitroFranjaHoraria>()
+            .HasOne(a => a.FranjaHorariaArbitro)
+            .WithMany()
+            .HasForeignKey(a => a.FranjaHorariaArbitroId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<ArbitroTorneoAgrupador>()
             .HasOne(a => a.Arbitro)
@@ -574,6 +630,10 @@ public class AppDbContext : DbContext
     public DbSet<ArbitroTorneoAgrupador> ArbitroTorneoAgrupador { get; set; } = null!;
     public DbSet<ArbitroEquipoProhibido> ArbitroEquipoProhibido { get; set; } = null!;
     public DbSet<ArbitroJornada> ArbitroJornada { get; set; } = null!;
+    public DbSet<ArbitroFranjaHoraria> ArbitroFranjaHoraria { get; set; } = null!;
+    public DbSet<EstadoArbitro> EstadoArbitro { get; set; } = null!;
+    public DbSet<TipoMovilidadArbitro> TipoMovilidadArbitro { get; set; } = null!;
+    public DbSet<FranjaHorariaArbitro> FranjaHorariaArbitro { get; set; } = null!;
     public DbSet<Delegado> Delegados { get; set; } = null!;
     public DbSet<DelegadoClub> DelegadoClub { get; set; } = null!;
     public DbSet<Jugador> Jugadores { get; set; } = null!;
