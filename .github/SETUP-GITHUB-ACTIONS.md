@@ -72,3 +72,7 @@ Si el deploy falla por conexión, prueba con la otra variante. El puerto 8172 es
 2. Ve a la pestaña **Actions** del repo.
 3. Deberías ver un job por cliente (ej: `build-and-deploy (cliente1)`, `build-and-deploy (cliente2)`).
 4. Revisa los logs si algo falla.
+
+## 6. Tests en pull requests
+
+`tests-pr.yml` corre build y tests en cada pull request, sin secrets ni deploy. Si un PR rompe el build o los tests, se ve en el PR antes de mergear. Recordá que mergear a `main` dispara el deploy a producción.
