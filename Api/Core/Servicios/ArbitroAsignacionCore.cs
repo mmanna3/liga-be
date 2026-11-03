@@ -3,6 +3,7 @@ using System.Text.Json;
 using Api.Core.DTOs;
 using Api.Core.Entidades;
 using Api.Core.Entidades.EntidadesConValoresPredefinidos;
+using Api.Core.Enums;
 using Api.Core.Otros;
 using Api.Core.Repositorios;
 using Api.Core.Servicios.Interfaces;
@@ -197,7 +198,8 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
             .AsNoTracking()
             .Include(a => a.ArbitroTorneoAgrupadores)
             .Include(a => a.ArbitroEquiposProhibidos)
-            .Where(a => a.ArbitroTorneoAgrupadores.Any(x => x.TorneoAgrupadorId == agrupadorId))
+            .Where(a => a.EstadoArbitroId == (int)EstadoArbitroEnum.Activo
+                        && a.ArbitroTorneoAgrupadores.Any(x => x.TorneoAgrupadorId == agrupadorId))
             .OrderBy(a => a.Apellido).ThenBy(a => a.Nombre)
             .ToListAsync();
 
@@ -467,7 +469,8 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
             .AsNoTracking()
             .Include(a => a.ArbitroTorneoAgrupadores)
             .Include(a => a.ArbitroEquiposProhibidos)
-            .Where(a => a.ArbitroTorneoAgrupadores.Any(x => x.TorneoAgrupadorId == agrupadorId))
+            .Where(a => a.EstadoArbitroId == (int)EstadoArbitroEnum.Activo
+                        && a.ArbitroTorneoAgrupadores.Any(x => x.TorneoAgrupadorId == agrupadorId))
             .OrderBy(a => a.Apellido).ThenBy(a => a.Nombre)
             .ToListAsync();
 
@@ -693,7 +696,9 @@ public class ArbitroAsignacionCore : IArbitroAsignacionCore
         if (arbitroIds.Count > 0)
         {
             var arbitrosValidos = await _context.ArbitroTorneoAgrupador
-                .Where(a => arbitroIds.Contains(a.ArbitroId) && a.TorneoAgrupadorId == torneoAgrupadorId)
+                .Where(a => arbitroIds.Contains(a.ArbitroId)
+                            && a.TorneoAgrupadorId == torneoAgrupadorId
+                            && a.Arbitro.EstadoArbitroId == (int)EstadoArbitroEnum.Activo)
                 .Select(a => a.ArbitroId)
                 .ToListAsync();
 

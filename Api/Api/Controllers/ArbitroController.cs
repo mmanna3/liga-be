@@ -21,6 +21,23 @@ public class ArbitroController : ABMController<ArbitroDTO, IArbitroCore, Arbitro
     public async Task<ActionResult<IEnumerable<ArbitroDTO>>> ObtenerPorIds([FromQuery] IEnumerable<int> ids) =>
         await ObtenerPorIdsCore(ids);
 
+    [HttpGet("pendientes", Name = "arbitrosPendientes")]
+    [AutorizarCualquierUsuarioAdministrativo]
+    public async Task<ActionResult<IEnumerable<ArbitroDTO>>> ListarPendientes()
+    {
+        return Ok(await Core.ListarPendientes());
+    }
+
+    [HttpPost("{id}/aprobar", Name = "aprobarArbitro")]
+    [AutorizarCualquierUsuarioAdministrativo]
+    public async Task<ActionResult<int>> Aprobar(int id, AprobarArbitroDTO dto)
+    {
+        var resultado = await Core.Aprobar(id, dto);
+        if (resultado == -1)
+            return NotFound();
+        return Ok(resultado);
+    }
+
     [HttpGet("asignacion-por-agrupador", Name = "arbitroAsignacionPorAgrupador")]
     public async Task<ActionResult<AsignacionArbitrosPorAgrupadorDTO>> ObtenerAsignacionPorAgrupador(
         [FromQuery] int agrupadorId,

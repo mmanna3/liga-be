@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Api.Core.DTOs;
 using Api.Core.Entidades;
+using Api.Core.Enums;
 using Api.Persistencia._Config;
 using Api.TestsDeIntegracion._Config;
 using Api.TestsUtilidades;
@@ -281,6 +282,79 @@ public class ArbitroAsignacionIT : TestBase
         var response = await client.PutAsJsonAsync(
             $"/api/arbitro/jornada/{escenario.JornadaProximaId}/arbitros",
             new AsignarArbitrosJornadaDTO { ArbitroIds = [escenario.ArbitroSinAgrupadorId] });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    private int DadoQueExisteUnArbitroPendienteEnElAgrupador(int agrupadorId)
+    {
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var pendiente = new Arbitro
+        {
+            Id = 0,
+            DNI = "30555666",
+            Nombre = "Pendiente",
+            Apellido = "Cinco",
+            EstadoArbitroId = (int)EstadoArbitroEnum.PendienteDeAprobacion
+        };
+        context.Arbitros.Add(pendiente);
+        context.SaveChanges();
+        context.ArbitroTorneoAgrupador.Add(new ArbitroTorneoAgrupador
+        {
+            Id = 0,
+            ArbitroId = pendiente.Id,
+            TorneoAgrupadorId = agrupadorId
+        });
+        context.SaveChanges();
+        return pendiente.Id;
+    }
+
+    [Fact]
+    public async Task ObtenerAsignacionPorAgrupador_NoIncluyeArbitrosPendientes()
+    {
+        var escenario = await CrearEscenario();
+        var pendienteId = DadoQueExisteUnArbitroPendienteEnElAgrupador(escenario.AgrupadorId);
+        var client = await GetAuthenticatedClient();
+
+        var response = await client.GetAsync(
+            $"/api/arbitro/asignacion-por-agrupador?agrupadorId={escenario.AgrupadorId}&anio={escenario.Anio}");
+
+        response.EnsureSuccessStatusCode();
+        var content = JsonConvert.DeserializeObject<AsignacionArbitrosPorAgrupadorDTO>(
+            await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+        Assert.Equal(2, content.ArbitrosElegibles.Count);
+        Assert.DoesNotContain(content.ArbitrosElegibles, a => a.Id == pendienteId);
+    }
+
+    [Fact]
+    public async Task ObtenerAsignacionHistorica_NoIncluyeArbitrosPendientes()
+    {
+        var escenario = await CrearEscenario();
+        var pendienteId = DadoQueExisteUnArbitroPendienteEnElAgrupador(escenario.AgrupadorId);
+        var client = await GetAuthenticatedClient();
+
+        var response = await client.GetAsync(
+            $"/api/arbitro/asignacion-historica-por-agrupador?agrupadorId={escenario.AgrupadorId}&anio={escenario.Anio}");
+
+        response.EnsureSuccessStatusCode();
+        var content = JsonConvert.DeserializeObject<AsignacionHistoricaArbitrosPorAgrupadorDTO>(
+            await response.Content.ReadAsStringAsync());
+        Assert.NotNull(content);
+        Assert.DoesNotContain(content.ArbitrosElegibles, a => a.Id == pendienteId);
+    }
+
+    [Fact]
+    public async Task AsignarArbitros_ArbitroPendiente_400()
+    {
+        var escenario = await CrearEscenario();
+        var pendienteId = DadoQueExisteUnArbitroPendienteEnElAgrupador(escenario.AgrupadorId);
+        var client = await GetAuthenticatedClient();
+
+        var response = await client.PutAsJsonAsync(
+            $"/api/arbitro/jornada/{escenario.JornadaProximaId}/arbitros",
+            new AsignarArbitrosJornadaDTO { ArbitroIds = [pendienteId] });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }

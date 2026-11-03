@@ -14,6 +14,20 @@ public class TorneoAgrupadorCore : ABMCore<ITorneoAgrupadorRepo, TorneoAgrupador
     {
     }
 
+    public async Task<IReadOnlyList<TorneoAgrupadorParaArbitroDTO>> ListarParaArbitros()
+    {
+        var agrupadores = await Repo.Listar();
+        return agrupadores
+            .Where(a => a.EsVisibleEnApp)
+            .OrderBy(a => a.Nombre, StringComparer.CurrentCultureIgnoreCase)
+            .Select(a => new TorneoAgrupadorParaArbitroDTO
+            {
+                Id = a.Id,
+                Nombre = a.Nombre
+            })
+            .ToList();
+    }
+
     protected override Task<TorneoAgrupador> AntesDeCrear(TorneoAgrupadorDTO dto, TorneoAgrupador entidad)
     {
         entidad.ColorId = (int)ColorEnum.Negro;
