@@ -13,6 +13,7 @@ namespace Api.Api.Controllers
     [Route("api/carnet-digital")]
     [ApiController]
     [Authorize]
+    [PermitirDelegado]
     public class AppCarnetDigitalController : ControllerBase
     {
         private readonly IAppCarnetDigitalCore _core;

@@ -48,6 +48,7 @@ namespace Api.Api.Controllers
         }
 
         [HttpPost("efectuar-pases")]
+        [PermitirDelegado]
         public async Task<ActionResult<int>> EfectuarPases([FromBody] List<EfectuarPaseDTO> dtos)
         {
             var id = await Core.EfectuarPases(dtos);
@@ -90,6 +91,7 @@ namespace Api.Api.Controllers
         }
 
         [HttpPost("desvincular-jugador-del-equipo")]
+        [PermitirDelegado]
         public async Task<ActionResult<int>> DesvincularJugadorDelEquipo(DesvincularJugadorDelEquipoDTO dto)
         {
             var esDelegado = User.IsInRole("Delegado");

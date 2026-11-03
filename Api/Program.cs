@@ -22,6 +22,7 @@ try
 
     builder.Services.AddControllers(options =>
     {
+        options.Filters.Add<Api.Api.Filters.RestriccionDelegadoFilter>();
         options.Filters.Add<Api.Api.Filters.PermisoModuloFilter>();
     })
     .AddJsonOptions(o =>
