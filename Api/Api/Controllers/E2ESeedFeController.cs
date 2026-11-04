@@ -73,13 +73,26 @@ public class E2ESeedFeController : ControllerBase
         var estadoDelegadoPendiente = _context.EstadoDelegado.First(e => e.Id == (int)EstadoDelegadoEnum.PendienteDeAprobacion);
 
         // ── Usuario admin ──────────────────────────────────────────────────────
-        _context.Usuarios.Add(new Usuario
+        var admin = new Usuario
         {
             Id = 0,
             NombreUsuario = "admin",
             Password = AuthCore.HashPassword("admin123"),
             RolId = rolAdmin.Id
-        });
+        };
+        _context.Usuarios.Add(admin);
+        _context.SaveChanges();
+
+        foreach (ModuloSistema modulo in Enum.GetValues<ModuloSistema>())
+        {
+            _context.UsuarioAccesoModulo.Add(new UsuarioAccesoModulo
+            {
+                Id = 0,
+                UsuarioId = admin.Id,
+                Modulo = modulo,
+                Nivel = NivelAcceso.ControlTotal
+            });
+        }
         _context.SaveChanges();
 
         // ── Clubs ──────────────────────────────────────────────────────────────
@@ -129,6 +142,38 @@ public class E2ESeedFeController : ControllerBase
         _context.Usuarios.Add(new Usuario { Id = 0, NombreUsuario = "roberto.mendez", Password = AuthCore.HashPassword("password123"), RolId = rolDelegado.Id, DelegadoId = delegado1.Id });
         _context.Usuarios.Add(new Usuario { Id = 0, NombreUsuario = "ana.suarez", Password = AuthCore.HashPassword("password123"), RolId = rolDelegado.Id, DelegadoId = delegado2.Id });
 
+        _context.SaveChanges();
+
+        // ── Árbitros ───────────────────────────────────────────────────────────
+        // El agrupador precargado habilita Aprobar: sin agrupador el botón queda deshabilitado.
+        var agrupador = new TorneoAgrupador
+        {
+            Id = 0,
+            Nombre = "Liga Infantil",
+            EsVisibleEnApp = true,
+            ColorId = (int)ColorEnum.Azul,
+            PermiteLimpiarAmarillas = false,
+            Torneos = new List<Torneo>()
+        };
+        _context.TorneoAgrupadores.Add(agrupador);
+        _context.SaveChanges();
+
+        _context.Arbitros.Add(new Arbitro
+        {
+            Id = 0,
+            DNI = "40111222",
+            Nombre = "Ana",
+            Apellido = "Pendiente",
+            TelefonoCelular = "1155556666",
+            Direccion = "San Martín 1234",
+            Localidad = "Rosario",
+            FechaNacimiento = new DateTime(1995, 3, 20),
+            EstadoArbitroId = (int)EstadoArbitroEnum.PendienteDeAprobacion,
+            ArbitroTorneoAgrupadores = new List<ArbitroTorneoAgrupador>
+            {
+                new() { Id = 0, TorneoAgrupadorId = agrupador.Id }
+            }
+        });
         _context.SaveChanges();
     }
 }
