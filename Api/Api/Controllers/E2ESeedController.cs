@@ -74,6 +74,7 @@ public class E2ESeedController : ControllerBase
     {
         // Id = 0 le indica a EF Core que el ID lo genera la DB (identity).
         // La DB está vacía tras EnsureCreated, así que club→1, torneo→1, equipo1→1, equipo2→2.
+        // El equipo 3 es de otro club y otro torneo, y se crea después para no correr esos ids.
 
         var club = new Club { Id = 0, Nombre = "Club de Prueba" };
         _context.Clubs.Add(club);
@@ -113,42 +114,83 @@ public class E2ESeedController : ControllerBase
         _context.EquipoZona.Add(new EquipoZona { Id = 0, EquipoId = equipo2.Id, ZonaId = zona.Id });
         _context.SaveChanges();
 
+        // Equipo 3 → Id=3, en otro club y otro torneo. Ahí quedan activos 44444444 y 55555555,
+        // para poder ficharlos al equipo 1 (MTD0001) sin "ya juega en otro equipo del mismo torneo".
+        // Otro club para que no aparezca en equipos-del-delegado: item-equipo-* y equipo-destino-* no cambian.
+        var clubRival = new Club { Id = 0, Nombre = "Club Rival" };
+        _context.Clubs.Add(clubRival);
+
+        var torneoRival = new Torneo { Id = 0, Nombre = "Torneo Rival", Anio = 2026, TorneoAgrupadorId = 1, EsVisibleEnApp = true, SeVenLosGolesEnTablaDePosiciones = true };
+        _context.Torneos.Add(torneoRival);
+        _context.SaveChanges();
+
+        var faseRival = new FaseTodosContraTodos
+        {
+            Id = 0,
+            TorneoId = torneoRival.Id,
+            Nombre = string.Empty,
+            Numero = 1,
+            EstadoFaseId = (int)EstadoFaseEnum.InicioPendiente,
+            EsVisibleEnApp = true
+        };
+        _context.Fases.Add(faseRival);
+        _context.SaveChanges();
+
+        var zonaRival = new ZonaTodosContraTodos { Id = 0, FaseId = faseRival.Id, Nombre = "Zona rival", Orden = 1 };
+        _context.Zonas.Add(zonaRival);
+        _context.SaveChanges();
+
+        var equipo3 = new Equipo { Id = 0, Nombre = "Equipo Rival", ClubId = clubRival.Id, Jugadores = new List<JugadorEquipo>(), Zonas = new List<EquipoZona>() };
+        _context.Equipos.Add(equipo3);
+        _context.SaveChanges();
+
+        _context.EquipoZona.Add(new EquipoZona { Id = 0, EquipoId = equipo3.Id, ZonaId = zonaRival.Id });
+        _context.SaveChanges();
+
         // ── Jugadores ──────────────────────────────────────────────────────────
 
-        // 87654321: Activo en equipo 2 — JugadorExiste=true, JugadorEstaPendiente=false.
+        // 87654321: Activo en equipo 2 — Id=1. JugadorExiste=true, JugadorEstaPendiente=false.
         // Tests 03 (anon fichaje ya fichado) y 05 (delegado ya fichado) pueden ficharlo al equipo 1 sin error.
         var jugadorPedro = new Jugador { Id = 0, Nombre = "Pedro", Apellido = "González", DNI = "87654321", FechaNacimiento = new DateTime(1995, 1, 1) };
         _context.Jugadores.Add(jugadorPedro);
         _context.SaveChanges();
         _context.JugadorEquipo.Add(new JugadorEquipo { Id = 0, JugadorId = jugadorPedro.Id, EquipoId = equipo2.Id, EstadoJugadorId = (int)EstadoJugadorEnum.Activo, FechaFichaje = DateTime.Now });
 
-        // 33333333: Pendiente en equipo 1 — para tab Pendientes en test 13
+        // 33333333: Pendiente en equipo 1 — Id=2, carnet-jugador-2 de la tab Pendientes.
         var jugadorPendiente = new Jugador { Id = 0, Nombre = "Jugador", Apellido = "Pendiente", DNI = "33333333", FechaNacimiento = new DateTime(2006, 1, 1) };
         _context.Jugadores.Add(jugadorPendiente);
         _context.SaveChanges();
         _context.JugadorEquipo.Add(new JugadorEquipo { Id = 0, JugadorId = jugadorPendiente.Id, EquipoId = equipo1.Id, EstadoJugadorId = (int)EstadoJugadorEnum.FichajePendienteDeAprobacion, FechaFichaje = DateTime.Now });
 
-        // 99999999: Activo en equipo 1, con foto — para ver carnets en tests 08 (mis jugadores) y 11 (buscar)
+        // 99999999: Activo en equipo 1, con foto — Id=3, carnet-jugador-3 de mis jugadores y buscar.
         var jugadorCarnet = new Jugador { Id = 0, Nombre = "Jugador", Apellido = "Carnet", DNI = "99999999", FechaNacimiento = new DateTime(2005, 1, 1) };
         _context.Jugadores.Add(jugadorCarnet);
         _context.SaveChanges();
         _context.JugadorEquipo.Add(new JugadorEquipo { Id = 0, JugadorId = jugadorCarnet.Id, EquipoId = equipo1.Id, EstadoJugadorId = (int)EstadoJugadorEnum.Activo, FechaFichaje = DateTime.Now });
         _context.SaveChanges();
 
-        // 44444444: Activo en equipo 2 — para test 03 (anon fichaje jugador ya fichado)
+        // 44444444: Activo en equipo 3 (otro torneo) — Id=4, para el fichaje anónimo de un jugador ya fichado.
         // DNI puro jugador (sin rol delegado) para evitar conflictos con checks delegado en FicharEnOtroEquipo.
         var jugadorCarlos = new Jugador { Id = 0, Nombre = "Carlos", Apellido = "Ruiz", DNI = "44444444", FechaNacimiento = new DateTime(1997, 3, 20) };
         _context.Jugadores.Add(jugadorCarlos);
         _context.SaveChanges();
-        _context.JugadorEquipo.Add(new JugadorEquipo { Id = 0, JugadorId = jugadorCarlos.Id, EquipoId = equipo2.Id, EstadoJugadorId = (int)EstadoJugadorEnum.Activo, FechaFichaje = DateTime.Now });
+        _context.JugadorEquipo.Add(new JugadorEquipo { Id = 0, JugadorId = jugadorCarlos.Id, EquipoId = equipo3.Id, EstadoJugadorId = (int)EstadoJugadorEnum.Activo, FechaFichaje = DateTime.Now });
         _context.SaveChanges();
 
-        // 55555555: Activo en equipo 2 — para test 10 (auth fichaje ya fichado)
+        // 55555555: Activo en equipo 3 (otro torneo) — Id=5, para el fichaje autenticado de un jugador ya fichado.
         // DNI puro jugador (sin rol delegado) para evitar conflictos con checks delegado en FicharEnOtroEquipo.
         var jugadorMaria = new Jugador { Id = 0, Nombre = "María", Apellido = "López", DNI = "55555555", FechaNacimiento = new DateTime(1998, 5, 15) };
         _context.Jugadores.Add(jugadorMaria);
         _context.SaveChanges();
-        _context.JugadorEquipo.Add(new JugadorEquipo { Id = 0, JugadorId = jugadorMaria.Id, EquipoId = equipo2.Id, EstadoJugadorId = (int)EstadoJugadorEnum.Activo, FechaFichaje = DateTime.Now });
+        _context.JugadorEquipo.Add(new JugadorEquipo { Id = 0, JugadorId = jugadorMaria.Id, EquipoId = equipo3.Id, EstadoJugadorId = (int)EstadoJugadorEnum.Activo, FechaFichaje = DateTime.Now });
+        _context.SaveChanges();
+
+        // 66666666: Inhabilitado en equipo 1 — Id=6, carnet-jugador-6 de delegado_eliminar-jugador.
+        // Inhabilitado se ve en mis jugadores y un delegado puede desvincularlo.
+        var jugadorInhabilitado = new Jugador { Id = 0, Nombre = "Jugador", Apellido = "Inhabilitado", DNI = "66666666", FechaNacimiento = new DateTime(2004, 8, 8) };
+        _context.Jugadores.Add(jugadorInhabilitado);
+        _context.SaveChanges();
+        _context.JugadorEquipo.Add(new JugadorEquipo { Id = 0, JugadorId = jugadorInhabilitado.Id, EquipoId = equipo1.Id, EstadoJugadorId = (int)EstadoJugadorEnum.Inhabilitado, FechaFichaje = DateTime.Now });
         _context.SaveChanges();
 
         // ── Delegados ──────────────────────────────────────────────────────────
