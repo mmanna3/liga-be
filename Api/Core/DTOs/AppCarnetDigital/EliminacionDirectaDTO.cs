@@ -3,6 +3,18 @@ namespace Api.Core.DTOs.AppCarnetDigital;
 public class EliminacionDirectaDTO
 {
     public ICollection<InstanciasDTO> Instancias { get; set; } = [];
+
+    /// <summary>
+    /// Solo para zonas de un único equipo: el fixture no tiene partidos y el equipo es campeón directo
+    /// (en la base es una Final con una jornada libre). En ese caso <see cref="Instancias"/> no incluye la Final.
+    /// </summary>
+    public CampeonEliminacionDirectaDTO? CampeonSinJugar { get; set; }
+}
+
+public class CampeonEliminacionDirectaDTO
+{
+    public string Equipo { get; set; } = string.Empty;
+    public string Escudo { get; set; } = string.Empty;
 }
 
 public class InstanciasDTO

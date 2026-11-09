@@ -242,6 +242,115 @@ public class AppCarnetDigitalEliminacionDirectaIT : TestBase
         return zonaId;
     }
 
+    /// <summary>
+    /// Zona ED de un único equipo: fixture con solo la Final y una jornada libre (campeón sin jugar).
+    /// </summary>
+    private static async Task<int> SeedZonaEdUnSoloEquipoFinalLibre(CustomWebApplicationFactory<Program> factory)
+    {
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var torneo = new Torneo
+        {
+            Id = 0,
+            Nombre = "Supercopa",
+            Anio = 2026,
+            TorneoAgrupadorId = 1,
+            EsVisibleEnApp = true,
+            SeVenLosGolesEnTablaDePosiciones = true
+        };
+        context.Torneos.Add(torneo);
+        await context.SaveChangesAsync();
+
+        var fase = new FaseEliminacionDirecta
+        {
+            Id = 0,
+            Nombre = "Fase Supercopa",
+            Numero = 1,
+            TorneoId = torneo.Id,
+            EstadoFaseId = 100,
+            EsVisibleEnApp = true
+        };
+        context.Fases.Add(fase);
+        await context.SaveChangesAsync();
+
+        var cat = await CategoriasDePrueba.AgregarFaseCategoria(context, fase.Id, "Cat Supercopa", 1);
+
+        var zona = new ZonaEliminacionDirecta
+        {
+            Id = 0,
+            Nombre = "Zona Supercopa",
+            FaseId = fase.Id,
+            Orden = 1,
+            CategoriaId = cat.Id
+        };
+        context.Zonas.Add(zona);
+        await context.SaveChangesAsync();
+
+        var club = new Club { Id = 0, Nombre = "Club Campeón", Localidad = "Rosario", Direccion = "Calle 1" };
+        context.Clubs.Add(club);
+        await context.SaveChangesAsync();
+
+        var equipo = new Equipo { Id = 0, Nombre = "Equipo Campeón", ClubId = club.Id, Jugadores = [] };
+        context.Equipos.Add(equipo);
+        await context.SaveChangesAsync();
+
+        context.EquipoZona.Add(new EquipoZona { Id = 0, EquipoId = equipo.Id, ZonaId = zona.Id });
+        await context.SaveChangesAsync();
+
+        var fecha = new FechaEliminacionDirecta
+        {
+            Id = 0,
+            Dia = new DateOnly(2026, 12, 1),
+            EsVisibleEnApp = true,
+            ZonaId = zona.Id,
+            InstanciaId = 2
+        };
+        context.Fechas.Add(fecha);
+        await context.SaveChangesAsync();
+
+        var jornada = new JornadaLibre
+        {
+            Id = 0,
+            FechaId = fecha.Id,
+            ResultadosVerificados = false,
+            EquipoId = equipo.Id,
+            LocalOVisitanteId = 1,
+            Partidos = []
+        };
+        context.Jornadas.Add(jornada);
+        await context.SaveChangesAsync();
+
+        context.Partidos.Add(new Partido
+        {
+            Id = 0,
+            CategoriaId = cat.Id,
+            JornadaId = jornada.Id,
+            ResultadoLocal = "",
+            ResultadoVisitante = ""
+        });
+        await context.SaveChangesAsync();
+
+        return zona.Id;
+    }
+
+    [Fact]
+    public async Task EliminacionDirecta_ZonaDeUnSoloEquipo_DevuelveCampeonSinJugarYNingunaInstancia()
+    {
+        var zonaId = await SeedZonaEdUnSoloEquipoFinalLibre(Factory);
+        var client = Factory.CreateClient();
+
+        var response = await client.GetAsync($"/api/carnet-digital/eliminacion-directa?zonaId={zonaId}");
+        response.EnsureSuccessStatusCode();
+
+        var dto = await response.Content.ReadFromJsonAsync<EliminacionDirectaDTO>();
+        Assert.NotNull(dto);
+        Assert.Empty(dto.Instancias);
+        Assert.NotNull(dto.CampeonSinJugar);
+        Assert.Equal("Equipo Campeón", dto.CampeonSinJugar.Equipo);
+        Assert.Contains(".jpg", dto.CampeonSinJugar.Escudo, StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task EliminacionDirecta_SemifinalDosJornadasSinResultadosCargados_DevuelveDosPartidosConEquiposYResultadosVacios()
     {
@@ -313,6 +422,8 @@ public class AppCarnetDigitalEliminacionDirectaIT : TestBase
 
         Assert.Equal(string.Empty, bloques[0].Partidos.Single().PenalesLocal);
         Assert.Equal(string.Empty, bloques[0].Partidos.Single().PenalesVisitante);
+
+        Assert.Null(dto.CampeonSinJugar);
 
         var final = bloques[3].Partidos.Single();
         Assert.Equal("4", final.PenalesLocal);

@@ -578,6 +578,16 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
 
         foreach (var fecha in fechas)
         {
+            if (EsFinalDeCampeonSinJugar(fecha, out var campeon))
+            {
+                dto.CampeonSinJugar = new CampeonEliminacionDirectaDTO
+                {
+                    Equipo = campeon.Equipo.Nombre,
+                    Escudo = EscudoRelativo(campeon.Equipo.ClubId)
+                };
+                continue;
+            }
+
             var categoriaId = fecha.Zona.CategoriaId;
             dto.Instancias.Add(new InstanciasDTO
             {
@@ -591,6 +601,21 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         }
 
         return dto;
+    }
+
+    /// <summary>
+    /// Zona de un único equipo: el fixture es una Final con una sola jornada libre, que no se juega.
+    /// Las jornadas libres solo llegan a la Final al generar el fixture (al avanzar de instancia nunca se crean).
+    /// </summary>
+    private static bool EsFinalDeCampeonSinJugar(FechaEliminacionDirecta fecha, out JornadaLibre campeon)
+    {
+        campeon = null!;
+        if (fecha.InstanciaId != (int)InstanciaEliminacionDirectaEnum.Final || fecha.Jornadas.Count != 1)
+            return false;
+        if (fecha.Jornadas.Single() is not JornadaLibre libre)
+            return false;
+        campeon = libre;
+        return true;
     }
 
     private PartidoEliminacionDirectaDTO MapJornadaAPartidoEliminacionDirecta(Jornada j, int categoriaId)
