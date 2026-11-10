@@ -42,6 +42,8 @@ try
         // Para desactivarlo, comentar esta línea.
         .AddInterceptors(new SqlCommandTimingInterceptor()));
 
+    builder.Services.Configure<DeepLinksOptions>(builder.Configuration.GetSection("DeepLinks"));
+
     builder.Services.AddAutoMapper(typeof(MapperConfig));
 
     // Compresión de respuestas (Brotli + Gzip). Los listados JSON comprimen ~8-10x.
