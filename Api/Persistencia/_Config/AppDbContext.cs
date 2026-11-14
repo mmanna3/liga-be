@@ -337,7 +337,7 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<LeyendaTablaPosiciones>()
-            .HasIndex(l => new { l.ZonaId, l.CategoriaId })
+            .HasIndex(l => new { l.ZonaId, l.CategoriaId, l.EsDeTablaAnual })
             .IsUnique()
             .HasFilter("[EquipoId] IS NULL");
 

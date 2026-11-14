@@ -14,6 +14,10 @@ public class LeyendaTablaPosicionesCore
     private readonly IZonaRepo _zonaRepo;
     private readonly IFaseCategoriaRepo _faseCategoriaRepo;
     private readonly IEquipoRepo _equipoRepo;
+    private readonly IFechaRepo _fechaRepo;
+
+    private const string MensajeDuplicada =
+        "Ya existe una leyenda con la misma zona, categoría y equipo (o ya hay una leyenda general sin equipo para esa categoría).";
 
     public LeyendaTablaPosicionesCore(
         IBDVirtual bd,
@@ -21,23 +25,28 @@ public class LeyendaTablaPosicionesCore
         IZonaRepo zonaRepo,
         IFaseCategoriaRepo faseCategoriaRepo,
         IEquipoRepo equipoRepo,
+        IFechaRepo fechaRepo,
         IMapper mapper)
         : base(bd, repo, mapper)
     {
         _zonaRepo = zonaRepo;
         _faseCategoriaRepo = faseCategoriaRepo;
         _equipoRepo = equipoRepo;
+        _fechaRepo = fechaRepo;
     }
 
     protected override async Task<LeyendaTablaPosiciones> AntesDeCrear(int padreId, LeyendaTablaPosicionesDTO dto,
         LeyendaTablaPosiciones entidad)
     {
         await ValidarZonaYCategoria(padreId, dto.CategoriaId);
-        await ValidarEquipoYQuita(padreId, dto.EquipoId, dto.QuitaDePuntos);
+        if (dto.EsDeTablaAnual)
+            await ValidarLeyendaDeTablaAnual(padreId, dto);
+        else
+            await ValidarEquipoYQuita(padreId, dto.EquipoId, dto.QuitaDePuntos);
 
-        if (await Repo.ExisteOtraConMismaZonaCategoriaYEquipo(padreId, dto.CategoriaId, dto.EquipoId, null))
-            throw new ExcepcionControlada(
-                "Ya existe una leyenda con la misma zona, categoría y equipo (o ya hay una leyenda general sin equipo para esa categoría).");
+        if (await Repo.ExisteOtraConMismaZonaCategoriaYEquipo(padreId, dto.CategoriaId, dto.EquipoId,
+                dto.EsDeTablaAnual, null))
+            throw new ExcepcionControlada(MensajeDuplicada);
 
         entidad.ZonaId = padreId;
         return entidad;
@@ -47,13 +56,31 @@ public class LeyendaTablaPosicionesCore
         LeyendaTablaPosiciones entidadAnterior, LeyendaTablaPosiciones entidadNueva)
     {
         await ValidarZonaYCategoria(padreId, dto.CategoriaId);
-        await ValidarEquipoYQuita(padreId, dto.EquipoId, dto.QuitaDePuntos);
+        if (dto.EsDeTablaAnual)
+            await ValidarLeyendaDeTablaAnual(padreId, dto);
+        else
+            await ValidarEquipoYQuita(padreId, dto.EquipoId, dto.QuitaDePuntos);
 
-        if (await Repo.ExisteOtraConMismaZonaCategoriaYEquipo(padreId, dto.CategoriaId, dto.EquipoId, id))
-            throw new ExcepcionControlada(
-                "Ya existe una leyenda con la misma zona, categoría y equipo (o ya hay una leyenda general sin equipo para esa categoría).");
+        if (await Repo.ExisteOtraConMismaZonaCategoriaYEquipo(padreId, dto.CategoriaId, dto.EquipoId,
+                dto.EsDeTablaAnual, id))
+            throw new ExcepcionControlada(MensajeDuplicada);
 
         entidadNueva.ZonaId = padreId;
+    }
+
+    /// <summary>
+    /// Las leyendas de la tabla Anual van en la zona de Apertura que tiene una zona homónima en Clausura, y son solo
+    /// texto: la tabla Anual ya hereda las quitas de puntos de Apertura y Clausura.
+    /// </summary>
+    private async Task ValidarLeyendaDeTablaAnual(int zonaId, LeyendaTablaPosicionesDTO dto)
+    {
+        if (dto.EquipoId.HasValue || dto.QuitaDePuntos != 0)
+            throw new ExcepcionControlada("Las leyendas de la tabla Anual no pueden quitar puntos.");
+
+        var par = await _fechaRepo.ObtenerIdsZonasAnualPorZonaReferenciaAsync(zonaId);
+        if (par == null || par.Value.ZonaAperturaId != zonaId)
+            throw new ExcepcionControlada(
+                "Las leyendas de la tabla Anual se cargan en una zona de la fase Apertura que tenga una zona con el mismo nombre en la fase Clausura.");
     }
 
     private async Task ValidarEquipoYQuita(int zonaId, int? equipoId, int quitaDePuntos)

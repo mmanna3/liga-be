@@ -14,12 +14,14 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
     private readonly ITorneoCategoriaRepo _torneoCategoriaRepo;
     private readonly IFaseCategoriaCore _faseCategoriaCore;
     private readonly IZonaRepo _torneoZonaRepo;
+    private readonly ILeyendaTablaPosicionesRepo _leyendaTablaPosicionesRepo;
 
     public TorneoCore(IBDVirtual bd, ITorneoRepo repo, IFaseRepo torneoFaseRepo,
         ITorneoCategoriaRepo torneoCategoriaRepo, IFaseCategoriaCore faseCategoriaCore,
-        IZonaRepo torneoZonaRepo, IMapper mapper)
+        IZonaRepo torneoZonaRepo, ILeyendaTablaPosicionesRepo leyendaTablaPosicionesRepo, IMapper mapper)
         : base(bd, repo, mapper)
     {
+        _leyendaTablaPosicionesRepo = leyendaTablaPosicionesRepo;
         _torneoFaseRepo = torneoFaseRepo;
         _torneoCategoriaRepo = torneoCategoriaRepo;
         _faseCategoriaCore = faseCategoriaCore;
@@ -357,9 +359,15 @@ public class TorneoCore : ABMCore<ITorneoRepo, Torneo, TorneoDTO>, ITorneoCore
             AsegurarFaseTodosContraTodosParaTablaAnual(fase, "clausura");
         }
 
+        var faseAperturaAnteriorId = (await Repo.ObtenerPorId(id))?.FaseAperturaId;
+
         var filas = await Repo.ActualizarFasesParaTablaAnual(id, dto.FaseAperturaId, dto.FaseClausuraId);
         if (filas == 0)
             throw new ExcepcionControlada("No existe el torneo a modificar.");
+
+        // Las leyendas de la tabla Anual viven en las zonas de Apertura: si cambia esa fase, dejan de tener sentido.
+        if (faseAperturaAnteriorId.HasValue && faseAperturaAnteriorId != dto.FaseAperturaId)
+            await _leyendaTablaPosicionesRepo.EliminarDeTablaAnualPorFase(faseAperturaAnteriorId.Value);
 
         if (dto.FaseAperturaId.HasValue && dto.FaseClausuraId.HasValue)
             await _faseCategoriaCore.ValidarCategoriasAnualSiAplica(dto.FaseAperturaId.Value, id);

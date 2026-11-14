@@ -357,21 +357,17 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
         string EscudoDeClub(int clubId) => _imagenEscudoRepo.GetRutaRelativaEscudo(clubId);
         var bloques = new List<CategoriasConPosicionesDTO>();
 
+        // La tabla Anual muestra solo sus propias leyendas, que se guardan en la zona de Apertura.
+        var leyendasAnual = datosA.LeyendasAnual;
         foreach (var (cat, filas) in filasFusion)
         {
-            var catClausura = datosC.FilasPorCategoria
-                .FirstOrDefault(x => x.Cat.Nombre.Trim() == cat.Nombre.Trim()).Cat;
-            var leyendaCat = PosicionesLeyendasTablaHelper.ConcatenarTextos(
-                datosA.LeyendasZona.Where(l => l.CategoriaId == cat.Id)
-                    .Concat(catClausura != null
-                        ? datosC.LeyendasZona.Where(l => l.CategoriaId == catClausura.Id)
-                        : []));
+            var leyendaCat =
+                PosicionesLeyendasTablaHelper.ConcatenarTextos(leyendasAnual.Where(l => l.CategoriaId == cat.Id));
             bloques.Add(ConstruirBloquePosiciones(cat.Nombre, leyendaCat, filas, EscudoDeClub));
         }
 
-        var leyendaGeneral = PosicionesLeyendasTablaHelper.ConcatenarTextos(
-            datosA.LeyendasZona.Where(l => l.CategoriaId == null)
-                .Concat(datosC.LeyendasZona.Where(l => l.CategoriaId == null)));
+        var leyendaGeneral =
+            PosicionesLeyendasTablaHelper.ConcatenarTextos(leyendasAnual.Where(l => l.CategoriaId == null));
         bloques.Add(ConstruirBloqueGeneralAcumulado(leyendaGeneral, filasFusion, soloGeneralFusion, EscudoDeClub));
 
         return new PosicionesDTO { VerGoles = datosA.VerGoles, Posiciones = bloques };
@@ -391,7 +387,9 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             ? fechas[0].Zona.Fase.Torneo.SeVenLosGolesEnTablaDePosiciones
             : true;
 
-        var leyendasZona = (await _leyendaTablaPosicionesRepo.ListarPorPadre(zonaId)).OrderBy(l => l.Id).ToList();
+        var todasLasLeyendas = (await _leyendaTablaPosicionesRepo.ListarPorPadre(zonaId)).OrderBy(l => l.Id).ToList();
+        var leyendasZona = todasLasLeyendas.Where(l => !l.EsDeTablaAnual).ToList();
+        var leyendasAnual = todasLasLeyendas.Where(l => l.EsDeTablaAnual).ToList();
 
         var quitaPorCatYEquipo = new Dictionary<(int CategoriaId, int EquipoId), int>();
         var soloGeneralPorEquipo = new Dictionary<int, int>();
@@ -441,7 +439,8 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
             filasPorCategoria.Add((cat, filas));
         }
 
-        return new DatosPosicionesZonaCalculados(filasPorCategoria, leyendasZona, soloGeneralPorEquipo, verGoles);
+        return new DatosPosicionesZonaCalculados(filasPorCategoria, leyendasZona, leyendasAnual, soloGeneralPorEquipo,
+            verGoles);
     }
 
     private static List<(FaseCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)>
@@ -493,6 +492,7 @@ public class AppCarnetDigitalCore : IAppCarnetDigitalCore
     private sealed record DatosPosicionesZonaCalculados(
         List<(FaseCategoria Cat, List<(Equipo Equipo, EstadisticasPosicionEquipo Stats, int Puntos)>)> FilasPorCategoria,
         List<LeyendaTablaPosiciones> LeyendasZona,
+        List<LeyendaTablaPosiciones> LeyendasAnual,
         Dictionary<int, int> SoloGeneralPorEquipo,
         bool VerGoles);
 

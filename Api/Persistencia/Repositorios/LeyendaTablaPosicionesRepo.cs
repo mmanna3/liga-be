@@ -26,9 +26,10 @@ public class LeyendaTablaPosicionesRepo : RepositorioABMAnidado<LeyendaTablaPosi
     }
 
     public async Task<bool> ExisteOtraConMismaZonaCategoriaYEquipo(int zonaId, int? categoriaId, int? equipoId,
-        int? excluirLeyendaId)
+        bool esDeTablaAnual, int? excluirLeyendaId)
     {
-        var q = Context.Set<LeyendaTablaPosiciones>().AsNoTracking().Where(x => x.ZonaId == zonaId);
+        var q = Context.Set<LeyendaTablaPosiciones>().AsNoTracking()
+            .Where(x => x.ZonaId == zonaId && x.EsDeTablaAnual == esDeTablaAnual);
         if (categoriaId.HasValue)
             q = q.Where(x => x.CategoriaId == categoriaId);
         else
@@ -43,5 +44,12 @@ public class LeyendaTablaPosicionesRepo : RepositorioABMAnidado<LeyendaTablaPosi
             q = q.Where(x => x.Id != excluirLeyendaId.Value);
 
         return await q.AnyAsync();
+    }
+
+    public async Task EliminarDeTablaAnualPorFase(int faseId)
+    {
+        await Context.Set<LeyendaTablaPosiciones>()
+            .Where(x => x.EsDeTablaAnual && x.Zona.FaseId == faseId)
+            .ExecuteDeleteAsync();
     }
 }
