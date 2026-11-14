@@ -22,4 +22,9 @@ public class LeyendaTablaPosicionesDTO : DTO
 
     /// <summary>Solo aplica con <see cref="EquipoId"/>; debe ser mayor que cero en ese caso.</summary>
     public int QuitaDePuntos { get; set; }
+
+    /// <summary>
+    /// true = leyenda de la tabla Anual. Va en la zona de la fase Apertura y no admite equipo ni quita de puntos.
+    /// </summary>
+    public bool EsDeTablaAnual { get; set; }
 }

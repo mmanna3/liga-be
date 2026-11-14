@@ -36,7 +36,8 @@ public class ABMCoreObtenerPorIdsTests
         var torneoZonaRepoMock = new Mock<IZonaRepo>();
         var faseCategoriaCoreMock = new Mock<IFaseCategoriaCore>();
         var core = new TorneoCore(bdMock.Object, repoMock.Object, torneoFaseRepoMock.Object,
-            torneoCategoriaRepoMock.Object, faseCategoriaCoreMock.Object, torneoZonaRepoMock.Object, mapperMock.Object);
+            torneoCategoriaRepoMock.Object, faseCategoriaCoreMock.Object, torneoZonaRepoMock.Object,
+            new Mock<ILeyendaTablaPosicionesRepo>().Object, mapperMock.Object);
 
         var result = (await core.ObtenerPorId(new[] { 1, 2 })).ToList();
 
@@ -62,7 +63,8 @@ public class ABMCoreObtenerPorIdsTests
         var torneoZonaRepoMock = new Mock<IZonaRepo>();
         var faseCategoriaCoreMock = new Mock<IFaseCategoriaCore>();
         var core = new TorneoCore(bdMock.Object, repoMock.Object, torneoFaseRepoMock.Object,
-            torneoCategoriaRepoMock.Object, faseCategoriaCoreMock.Object, torneoZonaRepoMock.Object, mapperMock.Object);
+            torneoCategoriaRepoMock.Object, faseCategoriaCoreMock.Object, torneoZonaRepoMock.Object,
+            new Mock<ILeyendaTablaPosicionesRepo>().Object, mapperMock.Object);
 
         var result = await core.ObtenerPorId(Array.Empty<int>());
 

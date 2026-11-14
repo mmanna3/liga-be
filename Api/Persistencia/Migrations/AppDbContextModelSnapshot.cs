@@ -1319,6 +1319,9 @@ namespace Api.Migrations
                     b.Property<int?>("EquipoId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("EsDeTablaAnual")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Leyenda")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -1336,13 +1339,13 @@ namespace Api.Migrations
 
                     b.HasIndex("EquipoId");
 
-                    b.HasIndex("ZonaId", "CategoriaId")
-                        .IsUnique()
-                        .HasFilter("[EquipoId] IS NULL");
-
                     b.HasIndex("ZonaId", "CategoriaId", "EquipoId")
                         .IsUnique()
                         .HasFilter("[EquipoId] IS NOT NULL");
+
+                    b.HasIndex("ZonaId", "CategoriaId", "EsDeTablaAnual")
+                        .IsUnique()
+                        .HasFilter("[EquipoId] IS NULL");
 
                     b.ToTable("LeyendaTablaPosiciones", "dbo");
                 });
